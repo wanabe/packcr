@@ -28,6 +28,8 @@ class Packcr::Context
     @sname = path + ".c"
     @hname = path + ".h"
     @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
+
+    @errnum = 0
   end
 
   def value_type

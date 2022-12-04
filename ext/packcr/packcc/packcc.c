@@ -259,7 +259,6 @@ typedef enum code_flag_tag {
 
 typedef struct context_tag {
     VALUE robj;   /* Ruby object */
-    size_t errnum;       /* the current number of PEG parsing errors */
     size_t linenum;      /* the current line number (0-based) */
     size_t charnum;      /* the number of characters in the current line that are already flushed (0-based, UTF-8 support if not disabled) */
     size_t linepos;      /* the beginning position in the PEG file of the current line */
@@ -1112,7 +1111,6 @@ static void node_const_array__term(node_const_array_t *array) {
 
 static context_t *create_context(VALUE robj) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
-    ctx->errnum = 0;
     ctx->linenum = 0;
     ctx->charnum = 0;
     ctx->linepos = 0;
@@ -1314,7 +1312,7 @@ static void link_references(context_t *ctx, node_t *node) {
             print_error("%s:" FMT_LU ":" FMT_LU ": No definition of rule '%s'\n",
                 RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(node->data.reference.line + 1), (ulong_t)(node->data.reference.col + 1),
                 node->data.reference.name);
-            ctx->errnum++;
+            rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
         else {
             assert(node->data.reference.rule->type == NODE_RULE);
@@ -1505,7 +1503,7 @@ static void verify_captures(context_t *ctx, node_t *node, node_const_array_t *ca
             if (i >= capts->len && node->data.expand.index != VOID_VALUE) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Capture " FMT_LU " not available at this position\n",
                     RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(node->data.expand.line + 1), (ulong_t)(node->data.expand.col + 1), (ulong_t)(node->data.expand.index + 1));
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
         }
         break;
@@ -1797,7 +1795,7 @@ static bool_t match_section_block_(context_t *ctx, const char *left, const char 
         while (!match_string(ctx, right)) {
             if (match_eof(ctx)) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in %s\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 break;
             }
             if (!match_eol(ctx)) match_character_any(ctx);
@@ -1814,7 +1812,7 @@ static bool_t match_quotation_(context_t *ctx, const char *left, const char *rig
         while (!match_string(ctx, right)) {
             if (match_eof(ctx)) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in %s\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 break;
             }
             if (match_character(ctx, '\\')) {
@@ -1823,7 +1821,7 @@ static bool_t match_quotation_(context_t *ctx, const char *left, const char *rig
             else {
                 if (match_eol(ctx)) {
                     print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOL in %s\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-                    ctx->errnum++;
+                    rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                     break;
                 }
                 match_character_any(ctx);
@@ -1901,7 +1899,7 @@ static bool_t match_code_block(context_t *ctx) {
         for (;;) {
             if (match_eof(ctx)) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in code block\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 break;
             }
             if (
@@ -1973,7 +1971,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
             if (n_p->data.reference.var[0] == '_') {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Leading underscore in variable name '%s'\n",
                     RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), n_p->data.reference.var);
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
             {
                 size_t i;
@@ -2023,15 +2021,15 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
             n_p->data.expand.index = string_to_size_t(s);
             if (n_p->data.expand.index == VOID_VALUE) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Invalid unsigned number '%s'\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), s);
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
             else if (n_p->data.expand.index == 0) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": 0 not allowed\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
             else if (s[0] == '0') {
                 print_error("%s:" FMT_LU ":" FMT_LU ": 0-prefixed number not allowed\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 n_p->data.expand.index = 0;
             }
             free(s);
@@ -2060,11 +2058,11 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
         n_p->data.charclass.value = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
         if (!unescape_string(n_p->data.charclass.value, TRUE)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-            ctx->errnum++;
+            rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
         if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))) && !is_valid_utf8_string(n_p->data.charclass.value)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Invalid UTF-8 string\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-            ctx->errnum++;
+            rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
         if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))) && n_p->data.charclass.value[0] != '\0') {
             rb_ivar_set(ctx->robj, rb_intern("@utf8"), Qtrue);
@@ -2077,11 +2075,11 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
         n_p->data.string.value = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
         if (!unescape_string(n_p->data.string.value, FALSE)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-            ctx->errnum++;
+            rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
         if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))) && !is_valid_utf8_string(n_p->data.string.value)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Invalid UTF-8 string\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-            ctx->errnum++;
+            rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
     }
     else if (match_code_block(ctx)) {
@@ -2344,7 +2342,7 @@ static bool_t parse_directive_include_(context_t *ctx, const char *name, code_bl
         }
         else {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal %s syntax\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-            ctx->errnum++;
+            rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
     }
     return TRUE;
@@ -2367,12 +2365,12 @@ static bool_t parse_directive_string_(context_t *ctx, const char *name, const ch
             s = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
             if (!unescape_string(s, FALSE)) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
         }
         else {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal %s syntax\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-            ctx->errnum++;
+            rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
         if (s != NULL) {
             string_flag_t f = STRING_FLAG__NONE;
@@ -2382,24 +2380,24 @@ static bool_t parse_directive_string_(context_t *ctx, const char *name, const ch
             assert((mode & ~7) == 0);
             if ((mode & STRING_FLAG__NOTEMPTY) && !is_filled_string(s)) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Empty string\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 f |= STRING_FLAG__NOTEMPTY;
             }
             if ((mode & STRING_FLAG__NOTVOID) && strcmp(s, "void") == 0) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": 'void' not allowed\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 f |= STRING_FLAG__NOTVOID;
             }
             if ((mode & STRING_FLAG__IDENTIFIER) && !is_identifier_string(s)) {
                 if (!(f & STRING_FLAG__NOTEMPTY)) {
                     print_error("%s:" FMT_LU ":" FMT_LU ": Invalid identifier\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
-                    ctx->errnum++;
+                    rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 }
                 f |= STRING_FLAG__IDENTIFIER;
             }
             if (rb_ivar_get(ctx->robj, rb_intern(varname)) != Qnil) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Multiple %s definition\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 b = FALSE;
             }
             if (f == STRING_FLAG__NONE && b) {
@@ -2439,7 +2437,7 @@ static bool_t parse(context_t *ctx) {
             }
             else if (match_character(ctx, '%')) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Invalid directive\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 match_identifier(ctx);
                 match_spaces(ctx);
                 b = TRUE;
@@ -2449,7 +2447,7 @@ static bool_t parse(context_t *ctx) {
                 if (n_r == NULL) {
                     if (b) {
                         print_error("%s:" FMT_LU ":" FMT_LU ": Illegal rule syntax\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                        ctx->errnum++;
+                        rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                         b = FALSE;
                     }
                     ctx->linenum = l;
@@ -2477,14 +2475,14 @@ static bool_t parse(context_t *ctx) {
                     RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))),
                     (ulong_t)(ctx->rules.buf[i]->data.rule.line + 1), (ulong_t)(ctx->rules.buf[i]->data.rule.col + 1),
                     ctx->rules.buf[i]->data.rule.name);
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
             else if (ctx->rules.buf[i]->data.rule.ref < 0) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Multiple definition of rule '%s'\n",
                     RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))),
                     (ulong_t)(ctx->rules.buf[i]->data.rule.line + 1), (ulong_t)(ctx->rules.buf[i]->data.rule.col + 1),
                     ctx->rules.buf[i]->data.rule.name);
-                ctx->errnum++;
+                rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
         }
     }
@@ -2502,7 +2500,8 @@ static bool_t parse(context_t *ctx) {
         }
         dump_options(ctx);
     }
-    return (ctx->errnum == 0) ? TRUE : FALSE;
+
+    return RB_TEST(rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("zero?"), 0)) ? TRUE : FALSE;
 }
 
 static code_reach_t generate_matching_string_code(generate_t *gen, const char *value, int onfail, size_t indent, bool_t bare) {
@@ -4762,7 +4761,7 @@ static bool_t generate(context_t *ctx) {
     }
     fclose_e(hstream.file);
     fclose_e(sstream.file);
-    if (ctx->errnum) {
+    if (!RB_TEST(rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("zero?"), 0))) {
         unlink(hname);
         unlink(sname);
         return FALSE;
