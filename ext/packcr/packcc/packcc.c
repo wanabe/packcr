@@ -724,18 +724,19 @@ static size_t count_characters(const char *str, size_t start, size_t end) {
 }
 
 static void stream__putc(VALUE stream, int c) {
-    size_t line = NUM2SIZET(rb_ivar_get(stream, rb_intern("@line")));
+    VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
     rb_funcall(rb_ivar_get(stream, rb_intern("@io")), rb_intern("putc"), 1, INT2NUM(c));
-    if (line != VOID_VALUE) {
-        if (c == '\n') rb_ivar_set(stream, rb_intern("@line"), SIZET2NUM(line + 1));
+    if (!NIL_P(rline)) {
+        if (c == '\n') rb_ivar_set(stream, rb_intern("@line"), SIZET2NUM(NUM2SIZET(rline) + 1));
     }
 }
 
 static void stream__puts(VALUE stream, const char *s) {
-    size_t line = NUM2SIZET(rb_ivar_get(stream, rb_intern("@line")));
+    VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
     rb_funcall(rb_ivar_get(stream, rb_intern("@io")), rb_intern("print"), 1, rb_str_new2(s));
-    if (line != VOID_VALUE) {
+    if (!NIL_P(rline)) {
         size_t i = 0;
+        size_t line = NUM2SIZET(rline);
         for (i = 0; s[i]; i++) {
             if (s[i] == '\n') line++;
         }
@@ -828,8 +829,8 @@ static void stream__write_code_block(VALUE stream, const char *ptr, size_t len, 
         ) break;
     }
     if (i < j) {
-        size_t line = NUM2SIZET(rb_ivar_get(stream, rb_intern("@line")));
-        if (line != VOID_VALUE)
+        VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
+        if (!NIL_P(rline))
             stream__write_line_directive(stream, fname, lineno);
         if (ptr[i] != '#')
             stream__write_characters(stream, ' ', indent);
@@ -846,8 +847,8 @@ static void stream__write_code_block(VALUE stream, const char *ptr, size_t len, 
         for (i = k; i < len; i = h) {
             j = find_first_trailing_space(ptr, i, len, &h);
             if (i < j) {
-                size_t line = NUM2SIZET(rb_ivar_get(stream, rb_intern("@line")));
-                if (line != VOID_VALUE && !b)
+                VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
+                if (!NIL_P(rline) && !b)
                     stream__write_line_directive(stream, fname, lineno);
                 if (ptr[i] != '#') {
                     const size_t l = count_indent_spaces(ptr, i, j, NULL);
@@ -882,8 +883,8 @@ static void stream__write_code_block(VALUE stream, const char *ptr, size_t len, 
     }
     {
         VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
-        size_t line = NUM2SIZET(rline);
-        if (line != VOID_VALUE && b) {
+        if (!NIL_P(rline) && b) {
+            size_t line = NUM2SIZET(rline);
             VALUE rname = rb_ivar_get(stream, rb_intern("@name"));
             const char *name = RSTRING_PTR(rname);
             stream__write_line_directive(stream, name, line);
