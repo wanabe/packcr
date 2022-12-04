@@ -1,0 +1,6 @@
+Gemfile.lock
+*.o
+*.so
+*.gem
+/tmp/
+/ext/packcr/Makefile
