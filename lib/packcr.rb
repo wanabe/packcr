@@ -31,6 +31,7 @@ class Packcr::Context
 
     @errnum = 0
     @linenum = 0
+    @charnum = 0
   end
 
   def value_type
