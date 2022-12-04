@@ -54,8 +54,8 @@ static VALUE packcr_context_initialize(VALUE self, VALUE arg) {
         rb_raise(rb_eArgError, "bad path: %"PRIsVALUE, rb_inspect(arg));
     }
 
-    packcr_context->ctx = create_context(RSTRING_PTR(path), NULL);
     rb_funcall(self, rb_intern("init"), 1, path);
+    packcr_context->ctx = create_context(self);
 
     if (rb_block_given_p()) {
         rb_yield(self);

@@ -16,6 +16,7 @@ require "packcr.so"
 
 class Packcr::Context
   def init(path)
+    @iname = path
     dirname = File.dirname(path)
     basename = File.basename(path, ".*")
     if dirname == "."
