@@ -11,8 +11,10 @@ static void packcr_context_mark(void *ptr) {
 }
 
 static void packcr_context_struct_free(struct packcr_context_data *packcr_context) {
-    destroy_context(packcr_context->ctx);
-    packcr_context->ctx = NULL;
+    if (packcr_context->ctx) {
+        destroy_context(packcr_context->ctx);
+        packcr_context->ctx = NULL;
+    }
 }
 
 static void packcr_context_free(void *ptr) {
@@ -92,21 +94,19 @@ static VALUE packcr_context_destroy(VALUE self) {
 
     TypedData_Get_Struct(self, struct packcr_context_data, &packcr_context_data_type, packcr_context);
 
-    if (packcr_context->ctx) {
-        packcr_context_struct_free(packcr_context);
-    }
+    packcr_context_struct_free(packcr_context);
     return self;
 }
 
 void Init_packcr(void) {
-  VALUE cPackcr, cPackcr_Context;
+    VALUE cPackcr, cPackcr_Context;
 
-  cPackcr = rb_const_get(rb_cObject, rb_intern("Packcr"));
+    cPackcr = rb_const_get(rb_cObject, rb_intern("Packcr"));
 
-  cPackcr_Context = rb_define_class_under(rb_cObject, "Context", cPackcr);
-  rb_define_alloc_func(cPackcr_Context, packcr_context_s_alloc);
-  rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, 1);
-  rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
-  rb_define_method(cPackcr_Context, "generate", packcr_context_generate, 0);
-  rb_define_method(cPackcr_Context, "destroy", packcr_context_destroy, 0);
+    cPackcr_Context = rb_define_class_under(rb_cObject, "Context", cPackcr);
+    rb_define_alloc_func(cPackcr_Context, packcr_context_s_alloc);
+    rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, 1);
+    rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
+    rb_define_method(cPackcr_Context, "generate", packcr_context_generate, 0);
+    rb_define_method(cPackcr_Context, "destroy", packcr_context_destroy, 0);
 }
