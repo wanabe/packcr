@@ -259,7 +259,6 @@ typedef enum code_flag_tag {
 
 typedef struct context_tag {
     VALUE robj;   /* Ruby object */
-    FILE *ifile;  /* the input stream of the PEG file */
     char *vtype;  /* the type name of the data output by the parsing API function (NULL means the default) */
     char *atype;  /* the type name of the user-defined data passed to the parser creation API function (NULL means the default) */
     char *prefix; /* the prefix of the API function names (NULL means the default) */
@@ -315,15 +314,6 @@ static int print_error(const char *format, ...) {
     return n;
 }
 
-static FILE *fopen_rb_e(const char *path) {
-    FILE *const f = fopen(path, "rb");
-    if (f == NULL) {
-        print_error("Cannot open file '%s' to read\n", path);
-        exit(2);
-    }
-    return f;
-}
-
 static FILE *fopen_wt_e(const char *path) {
     FILE *const f = fopen(path, "wt");
     if (f == NULL) {
@@ -340,15 +330,6 @@ static int fclose_e(FILE *stream) {
         exit(2);
     }
     return r;
-}
-
-static int fgetc_e(FILE *stream) {
-    const int c = fgetc(stream);
-    if (c == EOF && ferror(stream)) {
-        print_error("File read error\n");
-        exit(2);
-    }
-    return c;
 }
 
 static void *malloc_e(size_t size) {
@@ -1135,7 +1116,6 @@ static void node_const_array__term(node_const_array_t *array) {
 
 static context_t *create_context(VALUE robj) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
-    ctx->ifile = fopen_rb_e(RSTRING_PTR(rb_ivar_get(robj, rb_intern("@iname"))));
     ctx->vtype = NULL;
     ctx->atype = NULL;
     ctx->prefix = NULL;
@@ -1296,7 +1276,6 @@ static void destroy_context(context_t *ctx) {
     free(ctx->prefix);
     free(ctx->atype);
     free(ctx->vtype);
-    fclose_e(ctx->ifile);
     free(ctx);
 }
 
@@ -1696,9 +1675,9 @@ static void dump_node(context_t *ctx, const node_t *node, const int indent) {
 static size_t refill_buffer(context_t *ctx, size_t num) {
     if (ctx->buffer.len >= ctx->bufcur + num) return ctx->buffer.len - ctx->bufcur;
     while (ctx->buffer.len < ctx->bufcur + num) {
-        const int c = fgetc_e(ctx->ifile);
-        if (c == EOF) break;
-        char_array__add(&ctx->buffer, (char)c);
+        const VALUE c = rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@ifile")), rb_intern("getc"), 0);
+        if (c == Qnil) break;
+        char_array__add(&ctx->buffer, (char)RSTRING_PTR(c)[0]);
     }
     return ctx->buffer.len - ctx->bufcur;
 }
