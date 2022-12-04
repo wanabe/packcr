@@ -259,7 +259,6 @@ typedef enum code_flag_tag {
 
 typedef struct context_tag {
     VALUE robj;   /* Ruby object */
-    code_flag_t flags;   /* the bitwise flags to control code generation; updated during PEG parsing */
     size_t errnum;       /* the current number of PEG parsing errors */
     size_t linenum;      /* the current line number (0-based) */
     size_t charnum;      /* the number of characters in the current line that are already flushed (0-based, UTF-8 support if not disabled) */
@@ -1113,7 +1112,6 @@ static void node_const_array__term(node_const_array_t *array) {
 
 static context_t *create_context(VALUE robj) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
-    ctx->flags = CODE_FLAG__NONE;
     ctx->errnum = 0;
     ctx->linenum = 0;
     ctx->charnum = 0;
@@ -2052,7 +2050,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
         n_p = create_node(NODE_CHARCLASS);
         n_p->data.charclass.value = NULL;
         if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii")))) {
-            ctx->flags |= CODE_FLAG__UTF8_CHARCLASS_USED;
+            rb_ivar_set(ctx->robj, rb_intern("@utf8"), Qtrue);
         }
     }
     else if (match_character_class(ctx)) {
@@ -2069,7 +2067,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
             ctx->errnum++;
         }
         if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))) && n_p->data.charclass.value[0] != '\0') {
-            ctx->flags |= CODE_FLAG__UTF8_CHARCLASS_USED;
+            rb_ivar_set(ctx->robj, rb_intern("@utf8"), Qtrue);
         }
     }
     else if (match_quotation_single(ctx) || match_quotation_double(ctx)) {
@@ -4277,7 +4275,7 @@ static bool_t generate(context_t *ctx) {
             "}\n"
             "\n"
         );
-        if (ctx->flags & CODE_FLAG__UTF8_CHARCLASS_USED) {
+        if (rb_ivar_get(ctx->robj, rb_intern("@utf8"))) {
             stream__puts(
                 &sstream,
                 "static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with checking UTF-8 validity */\n"
