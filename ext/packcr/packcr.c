@@ -46,7 +46,6 @@ static VALUE packcr_context_s_alloc(VALUE klass) {
 static VALUE packcr_context_initialize(VALUE self, VALUE arg) {
     struct packcr_context_data *packcr_context;
     VALUE path;
-    options_t opts;
 
     TypedData_Get_Struct(self, struct packcr_context_data, &packcr_context_data_type, packcr_context);
 
@@ -55,10 +54,7 @@ static VALUE packcr_context_initialize(VALUE self, VALUE arg) {
         rb_raise(rb_eArgError, "bad path: %"PRIsVALUE, rb_inspect(arg));
     }
 
-    opts.ascii = FALSE;
-    opts.lines = FALSE;
-    opts.debug = FALSE;
-    packcr_context->ctx = create_context(RSTRING_PTR(path), NULL, &opts);
+    packcr_context->ctx = create_context(RSTRING_PTR(path), NULL);
     rb_funcall(self, rb_intern("init"), 1, path);
 
     if (rb_block_given_p()) {

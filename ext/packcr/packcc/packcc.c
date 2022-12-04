@@ -252,12 +252,6 @@ struct node_tag {
     node_data_t data;
 };
 
-typedef struct options_tag {
-    bool_t ascii; /* UTF-8 support is disabled if true  */
-    bool_t lines; /* #line directives are output if true */
-    bool_t debug; /* debug information is output if true */
-} options_t;
-
 typedef enum code_flag_tag {
     CODE_FLAG__NONE = 0,
     CODE_FLAG__UTF8_CHARCLASS_USED = 1
@@ -270,7 +264,6 @@ typedef struct context_tag {
     char *vtype;  /* the type name of the data output by the parsing API function (NULL means the default) */
     char *atype;  /* the type name of the user-defined data passed to the parser creation API function (NULL means the default) */
     char *prefix; /* the prefix of the API function names (NULL means the default) */
-    options_t opts;      /* the options */
     code_flag_t flags;   /* the bitwise flags to control code generation; updated during PEG parsing */
     size_t errnum;       /* the current number of PEG parsing errors */
     size_t linenum;      /* the current line number (0-based) */
@@ -1017,7 +1010,7 @@ static size_t populate_bits(size_t x) {
 
 static size_t column_number(const context_t *ctx) { /* 0-based */
     assert(ctx->bufpos + ctx->bufcur >= ctx->linepos);
-    if (ctx->opts.ascii)
+    if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))))
         return ctx->charnum + ctx->bufcur - ((ctx->linepos > ctx->bufpos) ? ctx->linepos - ctx->bufpos : 0);
     else
         return ctx->charnum + count_characters(ctx->buffer.buf, (ctx->linepos > ctx->bufpos) ? ctx->linepos - ctx->bufpos : 0, ctx->bufcur);
@@ -1149,14 +1142,13 @@ static void node_const_array__term(node_const_array_t *array) {
     free((node_t **)array->buf);
 }
 
-static context_t *create_context(const char *iname, const char *oname, const options_t *opts) {
+static context_t *create_context(const char *iname, const char *oname) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
     ctx->iname = strdup_e((iname && iname[0]) ? iname : "-");
     ctx->ifile = (iname && iname[0]) ? fopen_rb_e(ctx->iname) : stdin;
     ctx->vtype = NULL;
     ctx->atype = NULL;
     ctx->prefix = NULL;
-    ctx->opts = *opts;
     ctx->flags = CODE_FLAG__NONE;
     ctx->errnum = 0;
     ctx->linenum = 0;
@@ -1725,7 +1717,7 @@ static size_t refill_buffer(context_t *ctx, size_t num) {
 static void commit_buffer(context_t *ctx) {
     assert(ctx->buffer.len >= ctx->bufcur);
     if (ctx->linepos < ctx->bufpos + ctx->bufcur)
-        ctx->charnum += ctx->opts.ascii ? ctx->bufcur : count_characters(ctx->buffer.buf, 0, ctx->bufcur);
+        ctx->charnum += RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))) ? ctx->bufcur : count_characters(ctx->buffer.buf, 0, ctx->bufcur);
     memmove(ctx->buffer.buf, ctx->buffer.buf + ctx->bufcur, ctx->buffer.len - ctx->bufcur);
     ctx->buffer.len -= ctx->bufcur;
     ctx->bufpos += ctx->bufcur;
@@ -2100,7 +2092,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
         match_spaces(ctx);
         n_p = create_node(NODE_CHARCLASS);
         n_p->data.charclass.value = NULL;
-        if (!ctx->opts.ascii) {
+        if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii")))) {
             ctx->flags |= CODE_FLAG__UTF8_CHARCLASS_USED;
         }
     }
@@ -2113,11 +2105,11 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", ctx->iname, (ulong_t)(l + 1), (ulong_t)(m + 1));
             ctx->errnum++;
         }
-        if (!ctx->opts.ascii && !is_valid_utf8_string(n_p->data.charclass.value)) {
+        if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))) && !is_valid_utf8_string(n_p->data.charclass.value)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Invalid UTF-8 string\n", ctx->iname, (ulong_t)(l + 1), (ulong_t)(m + 1));
             ctx->errnum++;
         }
-        if (!ctx->opts.ascii && n_p->data.charclass.value[0] != '\0') {
+        if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))) && n_p->data.charclass.value[0] != '\0') {
             ctx->flags |= CODE_FLAG__UTF8_CHARCLASS_USED;
         }
     }
@@ -2130,7 +2122,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", ctx->iname, (ulong_t)(l + 1), (ulong_t)(m + 1));
             ctx->errnum++;
         }
-        if (!ctx->opts.ascii && !is_valid_utf8_string(n_p->data.string.value)) {
+        if (!RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))) && !is_valid_utf8_string(n_p->data.string.value)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Invalid UTF-8 string\n", ctx->iname, (ulong_t)(l + 1), (ulong_t)(m + 1));
             ctx->errnum++;
         }
@@ -2546,7 +2538,7 @@ static bool_t parse(context_t *ctx) {
             verify_captures(ctx, ctx->rules.buf[i]->data.rule.expr, NULL);
         }
     }
-    if (ctx->opts.debug) {
+    if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@debug")))) {
         size_t i;
         for (i = 0; i < ctx->rules.len; i++) {
             dump_node(ctx, ctx->rules.buf[i], 0);
@@ -3227,8 +3219,8 @@ static bool_t generate(context_t *ctx) {
     const char *const at = get_auxil_type(ctx);
     const bool_t vp = is_pointer_type(vt);
     const bool_t ap = is_pointer_type(at);
-    stream_t sstream = stream__wrap(fopen_wt_e(sname), sname, ctx->opts.lines ? 0 : VOID_VALUE);
-    stream_t hstream = stream__wrap(fopen_wt_e(hname), hname, ctx->opts.lines ? 0 : VOID_VALUE);
+    stream_t sstream = stream__wrap(fopen_wt_e(sname), sname, RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) ? 0 : VOID_VALUE);
+    stream_t hstream = stream__wrap(fopen_wt_e(hname), hname, RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) ? 0 : VOID_VALUE);
     stream__printf(&sstream, "/* A packrat parser generated by PackCC %s */\n\n", VERSION);
     stream__printf(&hstream, "/* A packrat parser generated by PackCC %s */\n\n", VERSION);
     {
@@ -4647,7 +4639,7 @@ static bool_t generate(context_t *ctx) {
                 g.stream = &sstream;
                 g.rule = ctx->rules.buf[i];
                 g.label = 0;
-                g.ascii = ctx->opts.ascii;
+                g.ascii = RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii")));
                 stream__printf(
                     &sstream,
                     "static pcc_thunk_chunk_t *pcc_evaluate_rule_%s(pcc_context_t *ctx) {\n",
@@ -4802,7 +4794,7 @@ static bool_t generate(context_t *ctx) {
         match_eol(ctx);
         if (!match_eof(ctx)) stream__putc(&sstream, '\n');
         commit_buffer(ctx);
-        if (ctx->opts.lines && !match_eof(ctx))
+        if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) && !match_eof(ctx))
             stream__write_line_directive(&sstream, ctx->iname, ctx->linenum);
         while (refill_buffer(ctx, ctx->buffer.max) > 0) {
             const size_t n = ctx->buffer.len;
