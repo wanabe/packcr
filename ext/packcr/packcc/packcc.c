@@ -2290,22 +2290,10 @@ EXCEPTION:;
     return NULL;
 }
 
-static const char *get_value_type(context_t *ctx) {
-    return RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("value_type"), 0));
-}
-
-static const char *get_auxil_type(context_t *ctx) {
-    return RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("auxil_type"), 0));
-}
-
-static const char *get_prefix(context_t *ctx) {
-    return RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0));
-}
-
 static void dump_options(context_t *ctx) {
-    fprintf(stdout, "value_type: '%s'\n", get_value_type(ctx));
-    fprintf(stdout, "auxil_type: '%s'\n", get_auxil_type(ctx));
-    fprintf(stdout, "prefix: '%s'\n", get_prefix(ctx));
+    fprintf(stdout, "value_type: '%s'\n", RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("value_type"), 0)));
+    fprintf(stdout, "auxil_type: '%s'\n", RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("auxil_type"), 0)));
+    fprintf(stdout, "prefix: '%s'\n", RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)));
 }
 
 static bool_t parse_directive_include_(context_t *ctx, const char *name, code_block_array_t *output1, code_block_array_t *output2) {
@@ -3164,8 +3152,8 @@ static bool_t generate(context_t *ctx) {
     const char *sname = RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@sname")));
     const char *hname = RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@hname")));
     const char *hid = RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@hid")));
-    const char *const vt = get_value_type(ctx);
-    const char *const at = get_auxil_type(ctx);
+    const char *const vt = RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("value_type"), 0));
+    const char *const at = RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("auxil_type"), 0));
     const bool_t vp = is_pointer_type(vt);
     const bool_t ap = is_pointer_type(at);
     stream_t sstream = stream__wrap(fopen_wt_e(sname), sname, RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) ? 0 : VOID_VALUE);
@@ -3299,12 +3287,12 @@ static bool_t generate(context_t *ctx) {
             "\n",
             at, ap ? "" : " "
         );
-        if (strcmp(get_prefix(ctx), "pcc") != 0) {
+        if (strcmp(RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), "pcc") != 0) {
             stream__printf(
                 &sstream,
                 "typedef %s_context_t pcc_context_t;\n"
                 "\n",
-                get_prefix(ctx)
+                RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
             );
         }
         stream__puts(
@@ -3503,7 +3491,7 @@ static bool_t generate(context_t *ctx) {
             "    pcc_memory_recycler_t lr_answer_recycler;\n"
             "};\n"
             "\n",
-            get_prefix(ctx)
+            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
         );
         stream__puts(
             &sstream,
@@ -4476,7 +4464,7 @@ static bool_t generate(context_t *ctx) {
                     stream__printf(
                         &sstream,
                         "static void pcc_action_%s_" FMT_LU "(%s_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {\n",
-                        r->name, (ulong_t)d, get_prefix(ctx)
+                        r->name, (ulong_t)d, RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
                     );
                     stream__puts(
                         &sstream,
@@ -4647,7 +4635,7 @@ static bool_t generate(context_t *ctx) {
         stream__printf(
             &sstream,
             "%s_context_t *%s_create(%s%sauxil) {\n",
-            get_prefix(ctx), get_prefix(ctx),
+            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
             at, ap ? "" : " "
         );
         stream__puts(
@@ -4659,7 +4647,7 @@ static bool_t generate(context_t *ctx) {
         stream__printf(
             &sstream,
             "int %s_parse(%s_context_t *ctx, %s%s*ret) {\n",
-            get_prefix(ctx), get_prefix(ctx),
+            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
             vt, vp ? "" : " "
         );
         if (ctx->rules.len > 0) {
@@ -4686,7 +4674,7 @@ static bool_t generate(context_t *ctx) {
         stream__printf(
             &sstream,
             "void %s_destroy(%s_context_t *ctx) {\n",
-            get_prefix(ctx), get_prefix(ctx)
+            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
         );
         stream__puts(
             &sstream,
@@ -4706,24 +4694,24 @@ static bool_t generate(context_t *ctx) {
             &hstream,
             "typedef struct %s_context_tag %s_context_t;\n"
             "\n",
-            get_prefix(ctx), get_prefix(ctx)
+            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
         );
         stream__printf(
             &hstream,
             "%s_context_t *%s_create(%s%sauxil);\n",
-            get_prefix(ctx), get_prefix(ctx),
+            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
             at, ap ? "" : " "
         );
         stream__printf(
             &hstream,
             "int %s_parse(%s_context_t *ctx, %s%s*ret);\n",
-            get_prefix(ctx), get_prefix(ctx),
+            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
             vt, vp ? "" : " "
         );
         stream__printf(
             &hstream,
             "void %s_destroy(%s_context_t *ctx);\n",
-            get_prefix(ctx), get_prefix(ctx)
+            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
         );
         stream__puts(
             &hstream,
