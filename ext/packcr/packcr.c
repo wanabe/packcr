@@ -3,10 +3,18 @@
 
 static VALUE packcr_run(VALUE self) {
     VALUE path = rb_iv_get(self, "@path");
-    const char *argv[] = {"", RSTRING_PTR(path)};
-    int ret = packcc_main(2, (char**)argv);
-    if (ret != 0) {
-        rb_raise(rb_eRuntimeError, "PackCC error");
+    const char *iname = RSTRING_PTR(path);
+    options_t opts;
+    opts.ascii = FALSE;
+    opts.lines = FALSE;
+    opts.debug = FALSE;
+    {
+        context_t *const ctx = create_context(iname, NULL, &opts);
+        const int b = parse(ctx) && generate(ctx);
+        destroy_context(ctx);
+        if (!b) {
+            rb_raise(rb_eRuntimeError, "PackCC error");
+        };
     }
     return self;
 }
