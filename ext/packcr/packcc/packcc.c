@@ -242,7 +242,6 @@ typedef enum code_flag_tag {
 typedef struct context_tag {
     VALUE robj;   /* Ruby object */
     char_array_t buffer; /* the character buffer */
-    node_array_t rules;  /* the PEG rules */
 } context_t;
 
 typedef struct generate_tag {
@@ -724,24 +723,11 @@ static size_t count_characters(const char *str, size_t start, size_t end) {
 }
 
 static void stream__putc(VALUE stream, int c) {
-    VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
-    rb_funcall(rb_ivar_get(stream, rb_intern("@io")), rb_intern("putc"), 1, INT2NUM(c));
-    if (!NIL_P(rline)) {
-        if (c == '\n') rb_ivar_set(stream, rb_intern("@line"), SIZET2NUM(NUM2SIZET(rline) + 1));
-    }
+    rb_funcall(stream, rb_intern("putc"), 1, INT2NUM(c));
 }
 
 static void stream__puts(VALUE stream, const char *s) {
-    VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
-    rb_funcall(rb_ivar_get(stream, rb_intern("@io")), rb_intern("print"), 1, rb_str_new2(s));
-    if (!NIL_P(rline)) {
-        size_t i = 0;
-        size_t line = NUM2SIZET(rline);
-        for (i = 0; s[i]; i++) {
-            if (s[i] == '\n') line++;
-        }
-        rb_ivar_set(stream, rb_intern("@line"), SIZET2NUM(line));
-    }
+    rb_funcall(stream, rb_intern("write"), 1, rb_str_new2(s));
 }
 
 __attribute__((format(printf, 2, 3)))
@@ -1019,7 +1005,6 @@ static void node_const_array__term(node_const_array_t *array) {
 static context_t *create_context(VALUE robj) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
     char_array__init(&ctx->buffer);
-    node_array__init(&ctx->rules);
     return ctx;
 }
 
@@ -1154,19 +1139,21 @@ static void destroy_context(context_t *ctx) {
     code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@source")));
     code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@eheader")));
     code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@esource")));
-    node_array__term(&ctx->rules);
     char_array__term(&ctx->buffer);
     free(ctx);
 }
 
 static void make_rulehash(context_t *ctx) {
     size_t i;
-    VALUE rname, rrulehash, rnode;
-    for (i = 0; i < ctx->rules.len; i++) {
-        assert(ctx->rules.buf[i]->type == NODE_RULE);
-        rname = rb_str_new2(ctx->rules.buf[i]->data.rule.name);
+    VALUE rname, rrulehash, rnode, rrules;
+    node_t *node;
+    rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+    for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
+        rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+        assert(node->type == NODE_RULE);
+        rname = rb_str_new2(node->data.rule.name);
         rrulehash = rb_ivar_get(ctx->robj, rb_intern("@rulehash"));
-        rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, ctx->rules.buf[i]);
         rb_funcall(rrulehash, rb_intern("[]="), 2, rname, rnode);
     }
 }
@@ -2317,6 +2304,7 @@ static bool_t parse(context_t *ctx) {
                 b = TRUE;
             }
             else {
+                VALUE rnode, rrules;
                 node_t *const n_r = parse_rule(ctx);
                 if (n_r == NULL) {
                     if (b) {
@@ -2330,7 +2318,9 @@ static bool_t parse(context_t *ctx) {
                     if (!match_identifier(ctx) && !match_spaces(ctx)) match_character_any(ctx);
                     continue;
                 }
-                node_array__add(&ctx->rules, n_r);
+                rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, n_r);
+                rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+                rb_ary_push(rrules, rnode);
                 b = TRUE;
             }
             commit_buffer(ctx);
@@ -2339,38 +2329,54 @@ static bool_t parse(context_t *ctx) {
     }
     {
         size_t i;
+        VALUE rrules, rnode;
+        node_t *node;
         make_rulehash(ctx);
-        for (i = 0; i < ctx->rules.len; i++) {
-            link_references(ctx, ctx->rules.buf[i]->data.rule.expr);
+        rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+        for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
+            rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+            link_references(ctx, node->data.rule.expr);
         }
-        for (i = 1; i < ctx->rules.len; i++) {
-            if (ctx->rules.buf[i]->data.rule.ref == 0) {
+        for (i = 1; i < (size_t)RARRAY_LEN(rrules); i++) {
+            rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+            if (node->data.rule.ref == 0) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Never used rule '%s'\n",
                     RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))),
-                    (ulong_t)(ctx->rules.buf[i]->data.rule.line + 1), (ulong_t)(ctx->rules.buf[i]->data.rule.col + 1),
-                    ctx->rules.buf[i]->data.rule.name);
+                    (ulong_t)(node->data.rule.line + 1), (ulong_t)(node->data.rule.col + 1),
+                    node->data.rule.name);
                 rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
-            else if (ctx->rules.buf[i]->data.rule.ref < 0) {
+            else if (node->data.rule.ref < 0) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Multiple definition of rule '%s'\n",
                     RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))),
-                    (ulong_t)(ctx->rules.buf[i]->data.rule.line + 1), (ulong_t)(ctx->rules.buf[i]->data.rule.col + 1),
-                    ctx->rules.buf[i]->data.rule.name);
+                    (ulong_t)(node->data.rule.line + 1), (ulong_t)(node->data.rule.col + 1),
+                    node->data.rule.name);
                 rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
             }
         }
     }
     {
         size_t i;
-        for (i = 0; i < ctx->rules.len; i++) {
-            verify_variables(ctx, ctx->rules.buf[i]->data.rule.expr, NULL);
-            verify_captures(ctx, ctx->rules.buf[i]->data.rule.expr, NULL);
+        VALUE rrules;
+        node_t *node;
+        rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+        for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
+            VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+            verify_variables(ctx, node->data.rule.expr, NULL);
+            verify_captures(ctx, node->data.rule.expr, NULL);
         }
     }
     if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@debug")))) {
         size_t i;
-        for (i = 0; i < ctx->rules.len; i++) {
-            dump_node(ctx, ctx->rules.buf[i], 0);
+        node_t *node;
+        VALUE rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+        for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
+            VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+            dump_node(ctx, node, 0);
         }
         dump_options(ctx);
     }
@@ -3042,7 +3048,6 @@ static code_reach_t generate_code(generate_t *gen, const node_t *node, int onfai
 }
 
 static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
-    VALUE rsname = rb_ivar_get(ctx->robj, rb_intern("@sname"));
     VALUE rhname = rb_ivar_get(ctx->robj, rb_intern("@hname"));
     const char *hid = RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@hid")));
     VALUE rvt = rb_funcall(ctx->robj, rb_intern("value_type"), 0);
@@ -3131,6 +3136,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
         }
     }
     {
+        VALUE rrules;
         stream__puts(
             sstream,
             "#if !defined __has_attribute || defined _MSC_VER\n"
@@ -4341,8 +4347,12 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
         );
         {
             size_t i, j, k;
-            for (i = 0; i < ctx->rules.len; i++) {
-                const node_rule_t *const r = &ctx->rules.buf[i]->data.rule;
+            VALUE rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+            for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
+                node_t *node;
+                VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+                TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+                const node_rule_t *const r = &node->data.rule;
                 for (j = 0; j < r->codes.len; j++) {
                     const code_block_t *b;
                     size_t d;
@@ -4462,28 +4472,36 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
         }
         {
             size_t i;
-            for (i = 0; i < ctx->rules.len; i++) {
+            VALUE rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+            for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
+                node_t *node;
+                VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+                TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
                 stream__printf(
                     sstream,
                     "static pcc_thunk_chunk_t *pcc_evaluate_rule_%s(pcc_context_t *ctx);\n",
-                    ctx->rules.buf[i]->data.rule.name
+                    node->data.rule.name
                 );
             }
             stream__puts(
                 sstream,
                 "\n"
             );
-            for (i = 0; i < ctx->rules.len; i++) {
+            rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+            for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
+                node_t *node;
+                VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+                TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
                 code_reach_t r;
                 generate_t g;
                 g.stream = sstream;
-                g.rule = ctx->rules.buf[i];
+                g.rule = node;
                 g.label = 0;
                 g.ascii = RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii")));
                 stream__printf(
                     sstream,
                     "static pcc_thunk_chunk_t *pcc_evaluate_rule_%s(pcc_context_t *ctx) {\n",
-                    ctx->rules.buf[i]->data.rule.name
+                    node->data.rule.name
                 );
                 stream__printf(
                     sstream,
@@ -4491,31 +4509,31 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
                     "    chunk->pos = ctx->cur;\n"
                     "    PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, \"%s\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));\n"
                     "    ctx->level++;\n",
-                    ctx->rules.buf[i]->data.rule.name
+                    node->data.rule.name
                 );
                 stream__printf(
                     sstream,
                     "    pcc_value_table__resize(ctx->auxil, &chunk->values, " FMT_LU ");\n",
-                    (ulong_t)ctx->rules.buf[i]->data.rule.vars.len
+                    (ulong_t)node->data.rule.vars.len
                 );
                 stream__printf(
                     sstream,
                     "    pcc_capture_table__resize(ctx->auxil, &chunk->capts, " FMT_LU ");\n",
-                    (ulong_t)ctx->rules.buf[i]->data.rule.capts.len
+                    (ulong_t)node->data.rule.capts.len
                 );
-                if (ctx->rules.buf[i]->data.rule.vars.len > 0) {
+                if (node->data.rule.vars.len > 0) {
                     stream__puts(
                         sstream,
                         "    pcc_value_table__clear(ctx->auxil, &chunk->values);\n"
                     );
                 }
-                r = generate_code(&g, ctx->rules.buf[i]->data.rule.expr, 0, 4, FALSE);
+                r = generate_code(&g, node->data.rule.expr, 0, 4, FALSE);
                 stream__printf(
                     sstream,
                     "    ctx->level--;\n"
                     "    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, \"%s\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));\n"
                     "    return chunk;\n",
-                    ctx->rules.buf[i]->data.rule.name
+                    node->data.rule.name
                 );
                 if (r != CODE_REACH__ALWAYS_SUCCEED) {
                     stream__printf(
@@ -4525,7 +4543,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
                         "    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, \"%s\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));\n"
                         "    pcc_thunk_chunk__destroy(ctx, chunk);\n"
                         "    return NULL;\n",
-                        ctx->rules.buf[i]->data.rule.name
+                        node->data.rule.name
                     );
                 }
                 stream__puts(
@@ -4553,11 +4571,15 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
             RSTRING_PTR(rvt), vp ? "" : " "
         );
-        if (ctx->rules.len > 0) {
+        rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
+        if (RARRAY_LEN(rrules) > 0) {
+            node_t *node;
+            VALUE rnode = rb_funcall(rrules, rb_intern("first"), 0);
+            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
             stream__printf(
                 sstream,
                 "    if (pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &ctx->thunks, ret))\n",
-                ctx->rules.buf[0]->data.rule.name
+                node->data.rule.name
             );
             stream__puts(
                 sstream,

@@ -20,6 +20,20 @@ class Packcr::Stream
     @name = name
     @line = line
   end
+
+  def putc(c)
+    @io.putc(c)
+    if @line && c.chr == "\n"
+      @line += 1
+    end
+  end
+
+  def write(s)
+    @io.write(s)
+    if @line
+      @line += s.count("\n")
+    end
+  end
 end
 
 class Packcr::Context
@@ -48,6 +62,7 @@ class Packcr::Context
     @eheader = []
     @source = []
     @header = []
+    @rules = []
     @rulehash = {}
   end
 
@@ -66,8 +81,8 @@ class Packcr::Context
   def generate
     File.open(@sname, "wt") do |sio|
       File.open(@hname, "wt") do |hio|
-        sstream = ::Packcr::Stream.new(sio, @sname, @lines ? 0 : -1)
-        hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : -1)
+        sstream = ::Packcr::Stream.new(sio, @sname, @lines ? 0 : nil)
+        hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
         _generate(sstream, hstream)
       end
     end
