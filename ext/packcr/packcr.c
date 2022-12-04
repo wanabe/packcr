@@ -1,5 +1,5 @@
 #include <ruby.h>
-int packcc_main(int argc, char **argv);
+#include "packcc/packcc.c"
 
 static VALUE packcr_run(VALUE self) {
     VALUE path = rb_iv_get(self, "@path");
