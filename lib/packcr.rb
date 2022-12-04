@@ -34,6 +34,7 @@ class Packcr::Context
     @charnum = 0
     @linepos = 0
     @bufpos = 0
+    @bufcur = 0
   end
 
   def value_type

@@ -259,7 +259,6 @@ typedef enum code_flag_tag {
 
 typedef struct context_tag {
     VALUE robj;   /* Ruby object */
-    size_t bufcur;       /* the current parsing position in the character buffer */
     char_array_t buffer; /* the character buffer */
     node_array_t rules;  /* the PEG rules */
     node_hash_table_t rulehash; /* the hash table to accelerate access of desired PEG rules */
@@ -972,11 +971,11 @@ static size_t populate_bits(size_t x) {
 }
 
 static size_t column_number(const context_t *ctx) { /* 0-based */
-    assert(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + ctx->bufcur >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))));
+    assert(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))));
     if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))))
-        return NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum"))) + ctx->bufcur - ((NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos")))) ? NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) : 0);
+        return NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) - ((NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos")))) ? NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) : 0);
     else
-        return NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum"))) + count_characters(ctx->buffer.buf, (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos")))) ? NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) : 0, ctx->bufcur);
+        return NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum"))) + count_characters(ctx->buffer.buf, (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos")))) ? NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) : 0, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
 }
 
 static void char_array__init(char_array_t *array) {
@@ -1107,7 +1106,6 @@ static void node_const_array__term(node_const_array_t *array) {
 
 static context_t *create_context(VALUE robj) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
-    ctx->bufcur = 0;
     char_array__init(&ctx->buffer);
     node_array__init(&ctx->rules);
     ctx->rulehash.mod = 0;
@@ -1652,26 +1650,26 @@ static void dump_node(context_t *ctx, const node_t *node, const int indent) {
 }
 
 static size_t refill_buffer(context_t *ctx, size_t num) {
-    if (ctx->buffer.len >= ctx->bufcur + num) return ctx->buffer.len - ctx->bufcur;
-    while (ctx->buffer.len < ctx->bufcur + num) {
+    if (ctx->buffer.len >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) + num) return ctx->buffer.len - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
+    while (ctx->buffer.len < NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) + num) {
         const VALUE c = rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@ifile")), rb_intern("getc"), 0);
         if (c == Qnil) break;
         char_array__add(&ctx->buffer, (char)RSTRING_PTR(c)[0]);
     }
-    return ctx->buffer.len - ctx->bufcur;
+    return ctx->buffer.len - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
 }
 
 static void commit_buffer(context_t *ctx) {
-    assert(ctx->buffer.len >= ctx->bufcur);
-    if (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) < NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + ctx->bufcur) {
+    assert(ctx->buffer.len >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
+    if (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) < NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))) {
         const bool ascii = RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii")));
-	size_t count = ascii ? ctx->bufcur : count_characters(ctx->buffer.buf, 0, ctx->bufcur);
+	size_t count = ascii ? NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) : count_characters(ctx->buffer.buf, 0, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
         rb_ivar_set(ctx->robj, rb_intern("@charnum"), NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum"))) + count);
     }
-    memmove(ctx->buffer.buf, ctx->buffer.buf + ctx->bufcur, ctx->buffer.len - ctx->bufcur);
-    ctx->buffer.len -= ctx->bufcur;
-    rb_ivar_set(ctx->robj, rb_intern("@bufpos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + ctx->bufcur));
-    ctx->bufcur = 0;
+    memmove(ctx->buffer.buf, ctx->buffer.buf + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))), ctx->buffer.len - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
+    ctx->buffer.len -= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
+    rb_ivar_set(ctx->robj, rb_intern("@bufpos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))));
+    rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(0));
 }
 
 static bool_t match_eof(context_t *ctx) {
@@ -1680,21 +1678,21 @@ static bool_t match_eof(context_t *ctx) {
 
 static bool_t match_eol(context_t *ctx) {
     if (refill_buffer(ctx, 1) >= 1) {
-        switch (ctx->buffer.buf[ctx->bufcur]) {
+        switch (ctx->buffer.buf[NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))]) {
         case '\n':
-            ctx->bufcur++;
+            rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
             rb_ivar_set(ctx->robj, rb_intern("@linenum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@linenum")), rb_intern("succ"), 0));
             rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(0));
-            rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + ctx->bufcur));
+            rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))));
             return TRUE;
         case '\r':
-            ctx->bufcur++;
+            rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
             if (refill_buffer(ctx, 1) >= 1) {
-                if (ctx->buffer.buf[ctx->bufcur] == '\n') ctx->bufcur++;
+                if (ctx->buffer.buf[NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))] == '\n') rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
             }
             rb_ivar_set(ctx->robj, rb_intern("@linenum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@linenum")), rb_intern("succ"), 0));
             rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(0));
-            rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + ctx->bufcur));
+            rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))));
             return TRUE;
         }
     }
@@ -1703,8 +1701,8 @@ static bool_t match_eol(context_t *ctx) {
 
 static bool_t match_character(context_t *ctx, char ch) {
     if (refill_buffer(ctx, 1) >= 1) {
-        if (ctx->buffer.buf[ctx->bufcur] == ch) {
-            ctx->bufcur++;
+        if (ctx->buffer.buf[NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))] == ch) {
+            rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
             return TRUE;
         }
     }
@@ -1713,9 +1711,9 @@ static bool_t match_character(context_t *ctx, char ch) {
 
 static bool_t match_character_range(context_t *ctx, char min, char max) {
     if (refill_buffer(ctx, 1) >= 1) {
-        const char c = ctx->buffer.buf[ctx->bufcur];
+        const char c = ctx->buffer.buf[NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))];
         if (c >= min && c <= max) {
-            ctx->bufcur++;
+            rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
             return TRUE;
         }
     }
@@ -1724,11 +1722,11 @@ static bool_t match_character_range(context_t *ctx, char min, char max) {
 
 static bool_t match_character_set(context_t *ctx, const char *chs) {
     if (refill_buffer(ctx, 1) >= 1) {
-        const char c = ctx->buffer.buf[ctx->bufcur];
+        const char c = ctx->buffer.buf[NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))];
         size_t i;
         for (i = 0; chs[i]; i++) {
             if (c == chs[i]) {
-                ctx->bufcur++;
+                rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
                 return TRUE;
             }
         }
@@ -1738,7 +1736,7 @@ static bool_t match_character_set(context_t *ctx, const char *chs) {
 
 static bool_t match_character_any(context_t *ctx) {
     if (refill_buffer(ctx, 1) >= 1) {
-        ctx->bufcur++;
+        rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
         return TRUE;
     }
     return FALSE;
@@ -1747,8 +1745,8 @@ static bool_t match_character_any(context_t *ctx) {
 static bool_t match_string(context_t *ctx, const char *str) {
     const size_t n = strlen(str);
     if (refill_buffer(ctx, n) >= n) {
-        if (strncmp(ctx->buffer.buf + ctx->bufcur, str, n) == 0) {
-            ctx->bufcur += n;
+        if (strncmp(ctx->buffer.buf + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))), str, n) == 0) {
+            rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) + n));
             return TRUE;
         }
     }
@@ -1770,7 +1768,7 @@ static bool_t match_section_line_(context_t *ctx, const char *head) {
 static bool_t match_section_line_continuable_(context_t *ctx, const char *head) {
     if (match_string(ctx, head)) {
         while (!match_eof(ctx)) {
-            const size_t p = ctx->bufcur;
+            const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             if (match_eol(ctx)) {
                 if (ctx->buffer.buf[p - 1] != '\\') break;
             }
@@ -1914,7 +1912,7 @@ static bool_t match_code_block(context_t *ctx) {
             else {
                 if (!match_eol(ctx)) {
                     if (match_character(ctx, '$')) {
-                        ctx->buffer.buf[ctx->bufcur - 1] = '_';
+                        ctx->buffer.buf[NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) - 1] = '_';
                     }
                     else {
                         match_character_any(ctx);
@@ -1934,21 +1932,21 @@ static bool_t match_footer_start(context_t *ctx) {
 static node_t *parse_expression(context_t *ctx, node_t *rule);
 
 static node_t *parse_primary(context_t *ctx, node_t *rule) {
-    const size_t p = ctx->bufcur;
+    const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t m = column_number(ctx);
     const size_t n = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos")));
     node_t *n_p = NULL;
     if (match_identifier(ctx)) {
-        const size_t q = ctx->bufcur;
+        const size_t q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
         size_t r = VOID_VALUE, s = VOID_VALUE;
         match_spaces(ctx);
         if (match_character(ctx, ':')) {
             match_spaces(ctx);
-            r = ctx->bufcur;
+            r = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             if (!match_identifier(ctx)) goto EXCEPTION;
-            s = ctx->bufcur;
+            s = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             match_spaces(ctx);
         }
         if (match_string(ctx, "<-")) goto EXCEPTION;
@@ -2005,9 +2003,9 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
     else if (match_character(ctx, '$')) {
         size_t p;
         match_spaces(ctx);
-        p = ctx->bufcur;
+        p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
         if (match_number(ctx)) {
-            const size_t q = ctx->bufcur;
+            const size_t q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             char *s;
             match_spaces(ctx);
             n_p = create_node(NODE_EXPAND);
@@ -2047,7 +2045,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
         }
     }
     else if (match_character_class(ctx)) {
-        const size_t q = ctx->bufcur;
+        const size_t q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
         match_spaces(ctx);
         n_p = create_node(NODE_CHARCLASS);
         n_p->data.charclass.value = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
@@ -2064,7 +2062,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
         }
     }
     else if (match_quotation_single(ctx) || match_quotation_double(ctx)) {
-        const size_t q = ctx->bufcur;
+        const size_t q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
         match_spaces(ctx);
         n_p = create_node(NODE_STRING);
         n_p->data.string.value = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
@@ -2078,7 +2076,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
         }
     }
     else if (match_code_block(ctx)) {
-        const size_t q = ctx->bufcur;
+        const size_t q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
         match_spaces(ctx);
         n_p = create_node(NODE_ACTION);
         n_p->data.action.code.text = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
@@ -2095,7 +2093,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
 
 EXCEPTION:;
     destroy_node(n_p);
-    ctx->bufcur = p;
+    rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(p));
     rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(n));
     rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(o));
@@ -2103,7 +2101,7 @@ EXCEPTION:;
 }
 
 static node_t *parse_term(context_t *ctx, node_t *rule) {
-    const size_t p = ctx->bufcur;
+    const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos")));
@@ -2156,11 +2154,11 @@ static node_t *parse_term(context_t *ctx, node_t *rule) {
     if (match_character(ctx, '~')) {
         size_t p, l, m;
         match_spaces(ctx);
-        p = ctx->bufcur;
+        p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
         l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
         m = column_number(ctx);
         if (match_code_block(ctx)) {
-            const size_t q = ctx->bufcur;
+            const size_t q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             match_spaces(ctx);
             n_t = create_node(NODE_ERROR);
             n_t->data.error.expr = n_r;
@@ -2182,7 +2180,7 @@ static node_t *parse_term(context_t *ctx, node_t *rule) {
 
 EXCEPTION:;
     destroy_node(n_r);
-    ctx->bufcur = p;
+    rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(p));
     rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(n));
     rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(o));
@@ -2190,7 +2188,7 @@ EXCEPTION:;
 }
 
 static node_t *parse_sequence(context_t *ctx, node_t *rule) {
-    const size_t p = ctx->bufcur;
+    const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos")));
@@ -2216,7 +2214,7 @@ static node_t *parse_sequence(context_t *ctx, node_t *rule) {
     return n_s;
 
 EXCEPTION:;
-    ctx->bufcur = p;
+    rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(p));
     rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(n));
     rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(o));
@@ -2224,7 +2222,7 @@ EXCEPTION:;
 }
 
 static node_t *parse_expression(context_t *ctx, node_t *rule) {
-    const size_t p = ctx->bufcur;
+    const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos")));
@@ -2234,9 +2232,9 @@ static node_t *parse_expression(context_t *ctx, node_t *rule) {
     node_t *n_e = NULL;
     n_s = parse_sequence(ctx, rule);
     if (n_s == NULL) goto EXCEPTION;
-    q = ctx->bufcur;
+    q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
     if (match_character(ctx, '/')) {
-        ctx->bufcur = q;
+        rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(q));
         n_e = create_node(NODE_ALTERNATE);
         a_s = &n_e->data.alternate.nodes;
         node_array__add(a_s, n_s);
@@ -2254,7 +2252,7 @@ static node_t *parse_expression(context_t *ctx, node_t *rule) {
 
 EXCEPTION:;
     destroy_node(n_e);
-    ctx->bufcur = p;
+    rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(p));
     rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(n));
     rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(o));
@@ -2262,7 +2260,7 @@ EXCEPTION:;
 }
 
 static node_t *parse_rule(context_t *ctx) {
-    const size_t p = ctx->bufcur;
+    const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t m = column_number(ctx);
     const size_t n = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum")));
@@ -2270,7 +2268,7 @@ static node_t *parse_rule(context_t *ctx) {
     size_t q;
     node_t *n_r = NULL;
     if (!match_identifier(ctx)) goto EXCEPTION;
-    q = ctx->bufcur;
+    q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
     match_spaces(ctx);
     if (!match_string(ctx, "<-")) goto EXCEPTION;
     match_spaces(ctx);
@@ -2285,7 +2283,7 @@ static node_t *parse_rule(context_t *ctx) {
 
 EXCEPTION:;
     destroy_node(n_r);
-    ctx->bufcur = p;
+    rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(p));
     rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(n));
     rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(o));
@@ -2314,11 +2312,11 @@ static bool_t parse_directive_include_(context_t *ctx, const char *name, code_bl
     if (!match_string(ctx, name)) return FALSE;
     match_spaces(ctx);
     {
-        const size_t p = ctx->bufcur;
+        const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
         const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
         const size_t m = column_number(ctx);
         if (match_code_block(ctx)) {
-            const size_t q = ctx->bufcur;
+            const size_t q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             match_spaces(ctx);
             if (output1 != NULL) {
                 code_block_t *c = code_block_array__create_entry(output1);
@@ -2350,12 +2348,12 @@ static bool_t parse_directive_string_(context_t *ctx, const char *name, const ch
     match_spaces(ctx);
     {
         char *s = NULL;
-        const size_t p = ctx->bufcur;
+        const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
         const size_t lv = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
         const size_t mv = column_number(ctx);
         size_t q;
         if (match_quotation_single(ctx) || match_quotation_double(ctx)) {
-            q = ctx->bufcur;
+            q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             match_spaces(ctx);
             s = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
             if (!unescape_string(s, FALSE)) {
@@ -4750,7 +4748,7 @@ static bool_t generate(context_t *ctx) {
         while (refill_buffer(ctx, ctx->buffer.max) > 0) {
             const size_t n = ctx->buffer.len;
             stream__write_text(&sstream, ctx->buffer.buf, (n > 0 && ctx->buffer.buf[n - 1] == '\r') ? n - 1 : n);
-            ctx->bufcur = n;
+            rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(n));
             commit_buffer(ctx);
         }
     }
