@@ -118,12 +118,6 @@ typedef struct code_block_tag {
     size_t col;
 } code_block_t;
 
-typedef struct code_block_array_tag {
-    code_block_t *buf;
-    size_t max;
-    size_t len;
-} code_block_array_t;
-
 typedef enum node_type_tag {
     NODE_RULE = 0,
     NODE_REFERENCE,
@@ -262,10 +256,6 @@ typedef struct context_tag {
     char_array_t buffer; /* the character buffer */
     node_array_t rules;  /* the PEG rules */
     node_hash_table_t rulehash; /* the hash table to accelerate access of desired PEG rules */
-    code_block_array_t esource; /* the code blocks from %earlysource and %earlycommon directives to be added into the generated source file */
-    code_block_array_t eheader; /* the code blocks from %earlyheader and %earlycommon directives to be added into the generated header file */
-    code_block_array_t source;  /* the code blocks from %source and %common directives to be added into the generated source file */
-    code_block_array_t header;  /* the code blocks from %header and %common directives to be added into the generated header file */
 } context_t;
 
 typedef struct generate_tag {
@@ -1012,32 +1002,21 @@ static void code_block__term(code_block_t *code) {
     free(code->text);
 }
 
-static void code_block_array__init(code_block_array_t *array) {
-    array->len = 0;
-    array->max = 0;
-    array->buf = NULL;
+static code_block_t *code_block_array__create_entry(VALUE array) {
+    code_block_t *code;
+    VALUE rcode = rb_funcall(cPackcr_CodeBlock, rb_intern("new"),0);
+    TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+    rb_ary_push(array, rcode);
+    return code;
 }
 
-static code_block_t *code_block_array__create_entry(code_block_array_t *array) {
-    if (array->max <= array->len) {
-        const size_t n = array->len + 1;
-        size_t m = array->max;
-        if (m == 0) m = ARRAY_MIN_SIZE;
-        while (m < n && m != 0) m <<= 1;
-        if (m == 0) m = n; /* in case of shift overflow */
-        array->buf = (code_block_t *)realloc_e(array->buf, sizeof(code_block_t) * m);
-        array->max = m;
+static void code_block_array__term(VALUE array) {
+    while (RARRAY_LEN(array) > 0) {
+        code_block_t *code;
+        VALUE rcode = rb_funcall(array, rb_intern("pop"), 0);
+        TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+        code_block__term(code);
     }
-    code_block__init(&array->buf[array->len]);
-    return &array->buf[array->len++];
-}
-
-static void code_block_array__term(code_block_array_t *array) {
-    while (array->len > 0) {
-        array->len--;
-        code_block__term(&array->buf[array->len]);
-    }
-    free(array->buf);
 }
 
 static void node_array__init(node_array_t *array) {
@@ -1111,10 +1090,6 @@ static context_t *create_context(VALUE robj) {
     ctx->rulehash.mod = 0;
     ctx->rulehash.max = 0;
     ctx->rulehash.buf = NULL;
-    code_block_array__init(&ctx->esource);
-    code_block_array__init(&ctx->eheader);
-    code_block_array__init(&ctx->source);
-    code_block_array__init(&ctx->header);
     return ctx;
 }
 
@@ -1246,10 +1221,10 @@ static void destroy_node(node_t *node) {
 
 static void destroy_context(context_t *ctx) {
     if (ctx == NULL) return;
-    code_block_array__term(&ctx->header);
-    code_block_array__term(&ctx->source);
-    code_block_array__term(&ctx->eheader);
-    code_block_array__term(&ctx->esource);
+    code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@header")));
+    code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@source")));
+    code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@eheader")));
+    code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@esource")));
     free((node_t **)ctx->rulehash.buf);
     node_array__term(&ctx->rules);
     char_array__term(&ctx->buffer);
@@ -2296,7 +2271,7 @@ static void dump_options(context_t *ctx) {
     fprintf(stdout, "prefix: '%s'\n", RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)));
 }
 
-static bool_t parse_directive_include_(context_t *ctx, const char *name, code_block_array_t *output1, code_block_array_t *output2) {
+static bool_t parse_directive_include_(context_t *ctx, const char *name, VALUE output1, VALUE output2) {
     if (!match_string(ctx, name)) return FALSE;
     match_spaces(ctx);
     {
@@ -2306,14 +2281,14 @@ static bool_t parse_directive_include_(context_t *ctx, const char *name, code_bl
         if (match_code_block(ctx)) {
             const size_t q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             match_spaces(ctx);
-            if (output1 != NULL) {
+            if (output1 != Qnil) {
                 code_block_t *c = code_block_array__create_entry(output1);
                 c->text = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
                 c->len = q - p - 2;
                 c->line = l;
                 c->col = m;
             }
-            if (output2 != NULL) {
+            if (output2 != Qnil) {
                 code_block_t *c = code_block_array__create_entry(output2);
                 c->text = strndup_e(ctx->buffer.buf + p + 1, q - p - 2);
                 c->len = q - p - 2;
@@ -2404,12 +2379,12 @@ static bool_t parse(context_t *ctx) {
             n = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum")));
             o = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos")));
             if (
-                parse_directive_include_(ctx, "%earlysource", &ctx->esource, NULL) ||
-                parse_directive_include_(ctx, "%earlyheader", &ctx->eheader, NULL) ||
-                parse_directive_include_(ctx, "%earlycommon", &ctx->esource, &ctx->eheader) ||
-                parse_directive_include_(ctx, "%source", &ctx->source, NULL) ||
-                parse_directive_include_(ctx, "%header", &ctx->header, NULL) ||
-                parse_directive_include_(ctx, "%common", &ctx->source, &ctx->header) ||
+                parse_directive_include_(ctx, "%earlysource", rb_ivar_get(ctx->robj, rb_intern("@esource")), Qnil) ||
+                parse_directive_include_(ctx, "%earlyheader", rb_ivar_get(ctx->robj, rb_intern("@eheader")), Qnil) ||
+                parse_directive_include_(ctx, "%earlycommon", rb_ivar_get(ctx->robj, rb_intern("@esource")), rb_ivar_get(ctx->robj, rb_intern("@eheader"))) ||
+                parse_directive_include_(ctx, "%source", rb_ivar_get(ctx->robj, rb_intern("@source")), Qnil) ||
+                parse_directive_include_(ctx, "%header", rb_ivar_get(ctx->robj, rb_intern("@header")), Qnil) ||
+                parse_directive_include_(ctx, "%common", rb_ivar_get(ctx->robj, rb_intern("@source")), rb_ivar_get(ctx->robj, rb_intern("@header"))) ||
                 parse_directive_string_(ctx, "%value", "@value_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
                 parse_directive_string_(ctx, "%auxil", "@auxil_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
                 parse_directive_string_(ctx, "%prefix", "@prefix", STRING_FLAG__NOTEMPTY | STRING_FLAG__IDENTIFIER)
@@ -3163,11 +3138,14 @@ static bool_t generate(context_t *ctx) {
     {
         {
             size_t i;
-            for (i = 0; i < ctx->eheader.len; i++) {
-                stream__write_code_block(&hstream, ctx->eheader.buf[i].text, ctx->eheader.buf[i].len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), ctx->eheader.buf[i].line);
+            for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))); i++) {
+                VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@eheader")))[i];
+                code_block_t *code;
+                TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+                stream__write_code_block(&hstream, code->text, code->len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), code->line);
             }
         }
-        if (ctx->eheader.len > 0) stream__puts(&hstream, "\n");
+        if (RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))) > 0) stream__puts(&hstream, "\n");
         stream__printf(
             &hstream,
             "#ifndef PCC_INCLUDED_%s\n"
@@ -3177,19 +3155,25 @@ static bool_t generate(context_t *ctx) {
         );
         {
             size_t i;
-            for (i = 0; i < ctx->header.len; i++) {
-                stream__write_code_block(&hstream, ctx->header.buf[i].text, ctx->header.buf[i].len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), ctx->header.buf[i].line);
+            for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@header"))); i++) {
+                VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@header")))[i];
+                code_block_t *code;
+                TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+                stream__write_code_block(&hstream, code->text, code->len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), code->line);
             }
         }
     }
     {
         {
             size_t i;
-            for (i = 0; i < ctx->esource.len; i++) {
-                stream__write_code_block(&sstream, ctx->esource.buf[i].text, ctx->esource.buf[i].len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), ctx->esource.buf[i].line);
+            for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@esource"))); i++) {
+                VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@esource")))[i];
+                code_block_t *code;
+                TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+                stream__write_code_block(&sstream, code->text, code->len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), code->line);
             }
         }
-        if (ctx->esource.len > 0) stream__puts(&sstream, "\n");
+        if (RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@esource"))) > 0) stream__puts(&sstream, "\n");
         stream__puts(
             &sstream,
             "#ifdef _MSC_VER\n"
@@ -3222,8 +3206,11 @@ static bool_t generate(context_t *ctx) {
         );
         {
             size_t i;
-            for (i = 0; i < ctx->source.len; i++) {
-                stream__write_code_block(&sstream, ctx->source.buf[i].text, ctx->source.buf[i].len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), ctx->source.buf[i].line);
+            for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@source"))); i++) {
+                VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@source")))[i];
+                code_block_t *code;
+                TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+                stream__write_code_block(&sstream, code->text, code->len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), code->line);
             }
         }
     }

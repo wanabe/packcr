@@ -35,6 +35,11 @@ class Packcr::Context
     @linepos = 0
     @bufpos = 0
     @bufcur = 0
+
+    @esource = []
+    @eheader = []
+    @source = []
+    @header = []
   end
 
   def value_type

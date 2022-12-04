@@ -1,5 +1,37 @@
 #include <ruby.h>
+
+VALUE cPackcr_CodeBlock;
+
+static void packcr_code_block_mark(void *ptr) {
+}
+
+static void packcr_code_block_free(void *ptr) {
+    xfree(ptr);
+}
+
+static size_t packcr_code_block_memsize(const void *ptr) {
+    return 0;
+}
+
+static const rb_data_type_t packcr_code_block_data_type = {
+    "packcr_code_block",
+    {packcr_code_block_mark, packcr_code_block_free, packcr_code_block_memsize,},
+    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
+};
+
 #include "packcc/packcc.c"
+
+static VALUE packcr_code_block_s_alloc(VALUE klass) {
+    code_block_t *code;
+    VALUE obj = TypedData_Make_Struct(klass, code_block_t, &packcr_code_block_data_type, code);
+
+    code->text = NULL;
+    code->len = 0;
+    code->line = VOID_VALUE;
+    code->col = VOID_VALUE;
+
+    return obj;
+}
 
 struct packcr_context_data {
     context_t *ctx;
@@ -108,4 +140,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
     rb_define_method(cPackcr_Context, "generate", packcr_context_generate, 0);
     rb_define_method(cPackcr_Context, "destroy", packcr_context_destroy, 0);
+
+    cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
+    rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
 }
