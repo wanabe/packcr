@@ -29,6 +29,18 @@ class Packcr::Context
     @hname = path + ".h"
     @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
   end
+
+  def value_type
+    @value_type || "int"
+  end
+
+  def auxil_type
+    @auxil_type || "void *"
+  end
+
+  def prefix
+    @prefix || "pcc"
+  end
 end
 
 require "packcr/version"

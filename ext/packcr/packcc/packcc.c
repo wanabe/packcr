@@ -259,9 +259,6 @@ typedef enum code_flag_tag {
 
 typedef struct context_tag {
     VALUE robj;   /* Ruby object */
-    char *vtype;  /* the type name of the data output by the parsing API function (NULL means the default) */
-    char *atype;  /* the type name of the user-defined data passed to the parser creation API function (NULL means the default) */
-    char *prefix; /* the prefix of the API function names (NULL means the default) */
     code_flag_t flags;   /* the bitwise flags to control code generation; updated during PEG parsing */
     size_t errnum;       /* the current number of PEG parsing errors */
     size_t linenum;      /* the current line number (0-based) */
@@ -1116,9 +1113,6 @@ static void node_const_array__term(node_const_array_t *array) {
 
 static context_t *create_context(VALUE robj) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
-    ctx->vtype = NULL;
-    ctx->atype = NULL;
-    ctx->prefix = NULL;
     ctx->flags = CODE_FLAG__NONE;
     ctx->errnum = 0;
     ctx->linenum = 0;
@@ -1273,9 +1267,6 @@ static void destroy_context(context_t *ctx) {
     free((node_t **)ctx->rulehash.buf);
     node_array__term(&ctx->rules);
     char_array__term(&ctx->buffer);
-    free(ctx->prefix);
-    free(ctx->atype);
-    free(ctx->vtype);
     free(ctx);
 }
 
@@ -2311,15 +2302,15 @@ EXCEPTION:;
 }
 
 static const char *get_value_type(context_t *ctx) {
-    return (ctx->vtype && ctx->vtype[0]) ? ctx->vtype : "int";
+    return RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("value_type"), 0));
 }
 
 static const char *get_auxil_type(context_t *ctx) {
-    return (ctx->atype && ctx->atype[0]) ? ctx->atype : "void *";
+    return RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("auxil_type"), 0));
 }
 
 static const char *get_prefix(context_t *ctx) {
-    return (ctx->prefix && ctx->prefix[0]) ? ctx->prefix : "pcc";
+    return RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0));
 }
 
 static void dump_options(context_t *ctx) {
@@ -2361,7 +2352,7 @@ static bool_t parse_directive_include_(context_t *ctx, const char *name, code_bl
     return TRUE;
 }
 
-static bool_t parse_directive_string_(context_t *ctx, const char *name, char **output, string_flag_t mode) {
+static bool_t parse_directive_string_(context_t *ctx, const char *name, const char *varname, string_flag_t mode) {
     const size_t l = ctx->linenum;
     const size_t m = column_number(ctx);
     if (!match_string(ctx, name)) return FALSE;
@@ -2408,13 +2399,13 @@ static bool_t parse_directive_string_(context_t *ctx, const char *name, char **o
                 }
                 f |= STRING_FLAG__IDENTIFIER;
             }
-            if (*output != NULL) {
+            if (rb_ivar_get(ctx->robj, rb_intern(varname)) != Qnil) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Multiple %s definition\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
                 ctx->errnum++;
                 b = FALSE;
             }
             if (f == STRING_FLAG__NONE && b) {
-                *output = s;
+                rb_ivar_set(ctx->robj, rb_intern(varname), rb_str_new2(s));
             }
             else {
                 free(s); s = NULL;
@@ -2442,9 +2433,9 @@ static bool_t parse(context_t *ctx) {
                 parse_directive_include_(ctx, "%source", &ctx->source, NULL) ||
                 parse_directive_include_(ctx, "%header", &ctx->header, NULL) ||
                 parse_directive_include_(ctx, "%common", &ctx->source, &ctx->header) ||
-                parse_directive_string_(ctx, "%value", &ctx->vtype, STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
-                parse_directive_string_(ctx, "%auxil", &ctx->atype, STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
-                parse_directive_string_(ctx, "%prefix", &ctx->prefix, STRING_FLAG__NOTEMPTY | STRING_FLAG__IDENTIFIER)
+                parse_directive_string_(ctx, "%value", "@value_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
+                parse_directive_string_(ctx, "%auxil", "@auxil_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
+                parse_directive_string_(ctx, "%prefix", "@prefix", STRING_FLAG__NOTEMPTY | STRING_FLAG__IDENTIFIER)
             ) {
                 b = TRUE;
             }
