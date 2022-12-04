@@ -259,7 +259,6 @@ typedef enum code_flag_tag {
 
 typedef struct context_tag {
     VALUE robj;   /* Ruby object */
-    size_t linenum;      /* the current line number (0-based) */
     size_t charnum;      /* the number of characters in the current line that are already flushed (0-based, UTF-8 support if not disabled) */
     size_t linepos;      /* the beginning position in the PEG file of the current line */
     size_t bufpos;       /* the position in the PEG file of the first character currently buffered */
@@ -1111,7 +1110,6 @@ static void node_const_array__term(node_const_array_t *array) {
 
 static context_t *create_context(VALUE robj) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
-    ctx->linenum = 0;
     ctx->charnum = 0;
     ctx->linepos = 0;
     ctx->bufpos = 0;
@@ -1688,7 +1686,7 @@ static bool_t match_eol(context_t *ctx) {
         switch (ctx->buffer.buf[ctx->bufcur]) {
         case '\n':
             ctx->bufcur++;
-            ctx->linenum++;
+            rb_ivar_set(ctx->robj, rb_intern("@linenum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@linenum")), rb_intern("succ"), 0));
             ctx->charnum = 0;
             ctx->linepos = ctx->bufpos + ctx->bufcur;
             return TRUE;
@@ -1697,7 +1695,7 @@ static bool_t match_eol(context_t *ctx) {
             if (refill_buffer(ctx, 1) >= 1) {
                 if (ctx->buffer.buf[ctx->bufcur] == '\n') ctx->bufcur++;
             }
-            ctx->linenum++;
+            rb_ivar_set(ctx->robj, rb_intern("@linenum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@linenum")), rb_intern("succ"), 0));
             ctx->charnum = 0;
             ctx->linepos = ctx->bufpos + ctx->bufcur;
             return TRUE;
@@ -1789,7 +1787,7 @@ static bool_t match_section_line_continuable_(context_t *ctx, const char *head) 
 }
 
 static bool_t match_section_block_(context_t *ctx, const char *left, const char *right, const char *name) {
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t m = column_number(ctx);
     if (match_string(ctx, left)) {
         while (!match_string(ctx, right)) {
@@ -1806,7 +1804,7 @@ static bool_t match_section_block_(context_t *ctx, const char *left, const char 
 }
 
 static bool_t match_quotation_(context_t *ctx, const char *left, const char *right, const char *name) {
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t m = column_number(ctx);
     if (match_string(ctx, left)) {
         while (!match_string(ctx, right)) {
@@ -1892,7 +1890,7 @@ static bool_t match_identifier(context_t *ctx) {
 }
 
 static bool_t match_code_block(context_t *ctx) {
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t m = column_number(ctx);
     if (match_character(ctx, '{')) {
         int d = 1;
@@ -1940,7 +1938,7 @@ static node_t *parse_expression(context_t *ctx, node_t *rule);
 
 static node_t *parse_primary(context_t *ctx, node_t *rule) {
     const size_t p = ctx->bufcur;
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t m = column_number(ctx);
     const size_t n = ctx->charnum;
     const size_t o = ctx->linepos;
@@ -2101,7 +2099,7 @@ static node_t *parse_primary(context_t *ctx, node_t *rule) {
 EXCEPTION:;
     destroy_node(n_p);
     ctx->bufcur = p;
-    ctx->linenum = l;
+    rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     ctx->charnum = n;
     ctx->linepos = o;
     return NULL;
@@ -2109,7 +2107,7 @@ EXCEPTION:;
 
 static node_t *parse_term(context_t *ctx, node_t *rule) {
     const size_t p = ctx->bufcur;
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t n = ctx->charnum;
     const size_t o = ctx->linepos;
     node_t *n_p = NULL;
@@ -2162,7 +2160,7 @@ static node_t *parse_term(context_t *ctx, node_t *rule) {
         size_t p, l, m;
         match_spaces(ctx);
         p = ctx->bufcur;
-        l = ctx->linenum;
+        l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
         m = column_number(ctx);
         if (match_code_block(ctx)) {
             const size_t q = ctx->bufcur;
@@ -2188,7 +2186,7 @@ static node_t *parse_term(context_t *ctx, node_t *rule) {
 EXCEPTION:;
     destroy_node(n_r);
     ctx->bufcur = p;
-    ctx->linenum = l;
+    rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     ctx->charnum = n;
     ctx->linepos = o;
     return NULL;
@@ -2196,7 +2194,7 @@ EXCEPTION:;
 
 static node_t *parse_sequence(context_t *ctx, node_t *rule) {
     const size_t p = ctx->bufcur;
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t n = ctx->charnum;
     const size_t o = ctx->linepos;
     node_array_t *a_t = NULL;
@@ -2222,7 +2220,7 @@ static node_t *parse_sequence(context_t *ctx, node_t *rule) {
 
 EXCEPTION:;
     ctx->bufcur = p;
-    ctx->linenum = l;
+    rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     ctx->charnum = n;
     ctx->linepos = o;
     return NULL;
@@ -2230,7 +2228,7 @@ EXCEPTION:;
 
 static node_t *parse_expression(context_t *ctx, node_t *rule) {
     const size_t p = ctx->bufcur;
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t n = ctx->charnum;
     const size_t o = ctx->linepos;
     size_t q;
@@ -2260,7 +2258,7 @@ static node_t *parse_expression(context_t *ctx, node_t *rule) {
 EXCEPTION:;
     destroy_node(n_e);
     ctx->bufcur = p;
-    ctx->linenum = l;
+    rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     ctx->charnum = n;
     ctx->linepos = o;
     return NULL;
@@ -2268,7 +2266,7 @@ EXCEPTION:;
 
 static node_t *parse_rule(context_t *ctx) {
     const size_t p = ctx->bufcur;
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t m = column_number(ctx);
     const size_t n = ctx->charnum;
     const size_t o = ctx->linepos;
@@ -2291,7 +2289,7 @@ static node_t *parse_rule(context_t *ctx) {
 EXCEPTION:;
     destroy_node(n_r);
     ctx->bufcur = p;
-    ctx->linenum = l;
+    rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
     ctx->charnum = n;
     ctx->linepos = o;
     return NULL;
@@ -2320,7 +2318,7 @@ static bool_t parse_directive_include_(context_t *ctx, const char *name, code_bl
     match_spaces(ctx);
     {
         const size_t p = ctx->bufcur;
-        const size_t l = ctx->linenum;
+        const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
         const size_t m = column_number(ctx);
         if (match_code_block(ctx)) {
             const size_t q = ctx->bufcur;
@@ -2349,14 +2347,14 @@ static bool_t parse_directive_include_(context_t *ctx, const char *name, code_bl
 }
 
 static bool_t parse_directive_string_(context_t *ctx, const char *name, const char *varname, string_flag_t mode) {
-    const size_t l = ctx->linenum;
+    const size_t l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     const size_t m = column_number(ctx);
     if (!match_string(ctx, name)) return FALSE;
     match_spaces(ctx);
     {
         char *s = NULL;
         const size_t p = ctx->bufcur;
-        const size_t lv = ctx->linenum;
+        const size_t lv = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
         const size_t mv = column_number(ctx);
         size_t q;
         if (match_quotation_single(ctx) || match_quotation_double(ctx)) {
@@ -2418,7 +2416,7 @@ static bool_t parse(context_t *ctx) {
         for (;;) {
             size_t l, m, n, o;
             if (match_eof(ctx) || match_footer_start(ctx)) break;
-            l = ctx->linenum;
+            l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
             m = column_number(ctx);
             n = ctx->charnum;
             o = ctx->linepos;
@@ -2450,7 +2448,7 @@ static bool_t parse(context_t *ctx) {
                         rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                         b = FALSE;
                     }
-                    ctx->linenum = l;
+                    rb_ivar_set(ctx->robj, rb_intern("@linenum"), SIZET2NUM(l));
                     ctx->charnum = n;
                     ctx->linepos = o;
                     if (!match_identifier(ctx) && !match_spaces(ctx)) match_character_any(ctx);
@@ -4751,7 +4749,7 @@ static bool_t generate(context_t *ctx) {
         if (!match_eof(ctx)) stream__putc(&sstream, '\n');
         commit_buffer(ctx);
         if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) && !match_eof(ctx))
-            stream__write_line_directive(&sstream, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), ctx->linenum);
+            stream__write_line_directive(&sstream, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum"))));
         while (refill_buffer(ctx, ctx->buffer.max) > 0) {
             const size_t n = ctx->buffer.len;
             stream__write_text(&sstream, ctx->buffer.buf, (n > 0 && ctx->buffer.buf[n - 1] == '\r') ? n - 1 : n);

@@ -30,6 +30,7 @@ class Packcr::Context
     @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
 
     @errnum = 0
+    @linenum = 0
   end
 
   def value_type
