@@ -40,6 +40,7 @@ class Packcr::Context
     @eheader = []
     @source = []
     @header = []
+    @rulehash = {}
   end
 
   def value_type

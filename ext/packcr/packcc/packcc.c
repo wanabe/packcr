@@ -147,12 +147,6 @@ typedef struct node_const_array_tag {
     size_t len;
 } node_const_array_t;
 
-typedef struct node_hash_table_tag {
-    const node_t **buf;
-    size_t max;
-    size_t mod;
-} node_hash_table_t;
-
 typedef struct node_rule_tag {
     char *name;
     node_t *expr;
@@ -255,7 +249,6 @@ typedef struct context_tag {
     VALUE robj;   /* Ruby object */
     char_array_t buffer; /* the character buffer */
     node_array_t rules;  /* the PEG rules */
-    node_hash_table_t rulehash; /* the hash table to accelerate access of desired PEG rules */
 } context_t;
 
 typedef struct generate_tag {
@@ -940,26 +933,6 @@ static void stream__write_code_block(stream_t *stream, const char *ptr, size_t l
         stream__write_line_directive(stream, stream->name, stream->line);
 }
 
-static size_t hash_string(const char *str) {
-    size_t i, h = 0;
-    for (i = 0; str[i]; i++) {
-        h = h * 31 + str[i];
-    }
-    return h;
-}
-
-static size_t populate_bits(size_t x) {
-    x |= x >>  1;
-    x |= x >>  2;
-    x |= x >>  4;
-    x |= x >>  8;
-    x |= x >> 16;
-#if (defined __SIZEOF_SIZE_T__ && __SIZEOF_SIZE_T__ == 8) /* gcc or clang */ || defined _WIN64 /* MSVC */
-    x |= x >> 32;
-#endif
-    return x;
-}
-
 static size_t column_number(const context_t *ctx) { /* 0-based */
     assert(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))));
     if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii"))))
@@ -1005,7 +978,7 @@ static void code_block__term(code_block_t *code) {
 static code_block_t *code_block_array__create_entry(VALUE array) {
     code_block_t *code;
     VALUE rcode = rb_funcall(cPackcr_CodeBlock, rb_intern("new"),0);
-    TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+    TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
     rb_ary_push(array, rcode);
     return code;
 }
@@ -1014,7 +987,7 @@ static void code_block_array__term(VALUE array) {
     while (RARRAY_LEN(array) > 0) {
         code_block_t *code;
         VALUE rcode = rb_funcall(array, rb_intern("pop"), 0);
-        TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+        TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
         code_block__term(code);
     }
 }
@@ -1087,9 +1060,6 @@ static context_t *create_context(VALUE robj) {
     context_t *const ctx = (context_t *)malloc_e(sizeof(context_t));
     char_array__init(&ctx->buffer);
     node_array__init(&ctx->rules);
-    ctx->rulehash.mod = 0;
-    ctx->rulehash.max = 0;
-    ctx->rulehash.buf = NULL;
     return ctx;
 }
 
@@ -1216,7 +1186,6 @@ static void destroy_node(node_t *node) {
         print_error("Internal error [%d]\n", __LINE__);
         exit(-1);
     }
-    free(node);
 }
 
 static void destroy_context(context_t *ctx) {
@@ -1225,44 +1194,33 @@ static void destroy_context(context_t *ctx) {
     code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@source")));
     code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@eheader")));
     code_block_array__term(rb_ivar_get(ctx->robj, rb_intern("@esource")));
-    free((node_t **)ctx->rulehash.buf);
     node_array__term(&ctx->rules);
     char_array__term(&ctx->buffer);
     free(ctx);
 }
 
 static void make_rulehash(context_t *ctx) {
-    size_t i, j;
-    ctx->rulehash.mod = populate_bits(ctx->rules.len * 4);
-    ctx->rulehash.max = ctx->rulehash.mod + 1;
-    ctx->rulehash.buf = (const node_t **)realloc_e((node_t **)ctx->rulehash.buf, sizeof(const node_t *) * ctx->rulehash.max);
-    for (i = 0; i < ctx->rulehash.max; i++) {
-        ctx->rulehash.buf[i] = NULL;
-    }
+    size_t i;
+    VALUE rname, rrulehash, rnode;
     for (i = 0; i < ctx->rules.len; i++) {
         assert(ctx->rules.buf[i]->type == NODE_RULE);
-        j = hash_string(ctx->rules.buf[i]->data.rule.name) & ctx->rulehash.mod;
-        while (ctx->rulehash.buf[j] != NULL) {
-            if (strcmp(ctx->rules.buf[i]->data.rule.name, ctx->rulehash.buf[j]->data.rule.name) == 0) {
-                assert(ctx->rules.buf[i]->data.rule.ref == 0);
-                assert(ctx->rulehash.buf[j]->data.rule.ref == 0);
-                ctx->rules.buf[i]->data.rule.ref = -1;
-                goto EXCEPTION;
-            }
-            j = (j + 1) & ctx->rulehash.mod;
-        }
-        ctx->rulehash.buf[j] = ctx->rules.buf[i];
-
-    EXCEPTION:;
+        rname = rb_str_new2(ctx->rules.buf[i]->data.rule.name);
+        rrulehash = rb_ivar_get(ctx->robj, rb_intern("@rulehash"));
+        rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, ctx->rules.buf[i]);
+        rb_funcall(rrulehash, rb_intern("[]="), 2, rname, rnode);
     }
 }
 
 static const node_t *lookup_rulehash(const context_t *ctx, const char *name) {
-    size_t j = hash_string(name) & ctx->rulehash.mod;
-    while (ctx->rulehash.buf[j] != NULL && strcmp(name, ctx->rulehash.buf[j]->data.rule.name) != 0) {
-        j = (j + 1) & ctx->rulehash.mod;
+    node_t *node;
+    VALUE rname = rb_str_new2(name);
+    VALUE rrulehash = rb_ivar_get(ctx->robj, rb_intern("@rulehash"));
+    VALUE rnode = rb_funcall(rrulehash, rb_intern("[]"), 1, rname);
+    if (rnode == Qnil) {
+        return NULL;
     }
-    return (ctx->rulehash.buf[j] != NULL) ? ctx->rulehash.buf[j] : NULL;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    return node;
 }
 
 static void link_references(context_t *ctx, node_t *node) {
@@ -3141,7 +3099,7 @@ static bool_t generate(context_t *ctx) {
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))); i++) {
                 VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@eheader")))[i];
                 code_block_t *code;
-                TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+                TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
                 stream__write_code_block(&hstream, code->text, code->len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), code->line);
             }
         }
@@ -3158,7 +3116,7 @@ static bool_t generate(context_t *ctx) {
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@header"))); i++) {
                 VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@header")))[i];
                 code_block_t *code;
-                TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+                TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
                 stream__write_code_block(&hstream, code->text, code->len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), code->line);
             }
         }
@@ -3169,7 +3127,7 @@ static bool_t generate(context_t *ctx) {
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@esource"))); i++) {
                 VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@esource")))[i];
                 code_block_t *code;
-                TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+                TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
                 stream__write_code_block(&sstream, code->text, code->len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), code->line);
             }
         }
@@ -3209,7 +3167,7 @@ static bool_t generate(context_t *ctx) {
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@source"))); i++) {
                 VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@source")))[i];
                 code_block_t *code;
-                TypedData_Get_Struct(rcode, code_block_t, &packcr_code_block_data_type, code);
+                TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
                 stream__write_code_block(&sstream, code->text, code->len, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), code->line);
             }
         }

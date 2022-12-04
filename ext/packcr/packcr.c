@@ -1,21 +1,21 @@
 #include <ruby.h>
 
-VALUE cPackcr_CodeBlock;
+VALUE cPackcr_CodeBlock, cPackcr_Node;
 
-static void packcr_code_block_mark(void *ptr) {
+static void packcr_ptr_mark(void *ptr) {
 }
 
-static void packcr_code_block_free(void *ptr) {
+static void packcr_ptr_free(void *ptr) {
     xfree(ptr);
 }
 
-static size_t packcr_code_block_memsize(const void *ptr) {
+static size_t packcr_ptr_memsize(const void *ptr) {
     return 0;
 }
 
-static const rb_data_type_t packcr_code_block_data_type = {
-    "packcr_code_block",
-    {packcr_code_block_mark, packcr_code_block_free, packcr_code_block_memsize,},
+static const rb_data_type_t packcr_ptr_data_type = {
+    "packcr_ptr",
+    {packcr_ptr_mark, packcr_ptr_free, packcr_ptr_memsize,},
     0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
 };
 
@@ -23,12 +23,19 @@ static const rb_data_type_t packcr_code_block_data_type = {
 
 static VALUE packcr_code_block_s_alloc(VALUE klass) {
     code_block_t *code;
-    VALUE obj = TypedData_Make_Struct(klass, code_block_t, &packcr_code_block_data_type, code);
+    VALUE obj = TypedData_Make_Struct(klass, code_block_t, &packcr_ptr_data_type, code);
 
     code->text = NULL;
     code->len = 0;
     code->line = VOID_VALUE;
     code->col = VOID_VALUE;
+
+    return obj;
+}
+
+static VALUE packcr_node_s_alloc(VALUE klass) {
+    node_t *node;
+    VALUE obj = TypedData_Make_Struct(klass, node_t, &packcr_ptr_data_type, node);
 
     return obj;
 }
@@ -143,4 +150,7 @@ void Init_packcr(void) {
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
+
+    cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
+    rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
 }
