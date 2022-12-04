@@ -115,7 +115,7 @@ static VALUE packcr_context_parse(VALUE self) {
     return parse(packcr_context->ctx) ? Qtrue : Qfalse;
 }
 
-static VALUE packcr_context_generate(VALUE self) {
+static VALUE packcr_context_generate(VALUE self, VALUE sstream, VALUE hstream) {
     struct packcr_context_data *packcr_context;
 
     TypedData_Get_Struct(self, struct packcr_context_data, &packcr_context_data_type, packcr_context);
@@ -124,7 +124,8 @@ static VALUE packcr_context_generate(VALUE self) {
         rb_raise(rb_eRuntimeError, "closed context");
     }
     packcr_context->ctx->robj = self;
-    return generate(packcr_context->ctx) ? Qtrue : Qfalse;
+    generate(packcr_context->ctx, sstream, hstream);
+    return self;
 }
 
 static VALUE packcr_context_destroy(VALUE self) {
@@ -145,7 +146,7 @@ void Init_packcr(void) {
     rb_define_alloc_func(cPackcr_Context, packcr_context_s_alloc);
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, 1);
     rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
-    rb_define_method(cPackcr_Context, "generate", packcr_context_generate, 0);
+    rb_define_method(cPackcr_Context, "_generate", packcr_context_generate, 2);
     rb_define_method(cPackcr_Context, "destroy", packcr_context_destroy, 0);
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);

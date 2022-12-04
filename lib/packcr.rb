@@ -14,6 +14,14 @@ end
 
 require "packcr.so"
 
+class Packcr::Stream
+  def initialize(io, name, line)
+    @io = io
+    @name = name
+    @line = line
+  end
+end
+
 class Packcr::Context
   def init(path)
     @iname = path
@@ -53,6 +61,23 @@ class Packcr::Context
 
   def prefix
     @prefix || "pcc"
+  end
+
+  def generate
+    File.open(@sname, "wt") do |sio|
+      File.open(@hname, "wt") do |hio|
+        sstream = ::Packcr::Stream.new(sio, @sname, @lines ? 0 : -1)
+        hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : -1)
+        _generate(sstream, hstream)
+      end
+    end
+
+    if !@errnum.zero?
+      File.unlink(@hname)
+      File.unlink(@sname)
+      return false
+    end
+    true
   end
 end
 
