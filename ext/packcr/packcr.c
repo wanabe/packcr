@@ -103,7 +103,7 @@ void Init_packcr(void) {
 
     cPackcr = rb_const_get(rb_cObject, rb_intern("Packcr"));
 
-    cPackcr_Context = rb_define_class_under(rb_cObject, "Context", cPackcr);
+    cPackcr_Context = rb_define_class_under(cPackcr, "Context", rb_cObject);
     rb_define_alloc_func(cPackcr_Context, packcr_context_s_alloc);
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, 1);
     rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
