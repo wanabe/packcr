@@ -59,6 +59,7 @@ static VALUE packcr_context_initialize(VALUE self, VALUE arg) {
     opts.lines = FALSE;
     opts.debug = FALSE;
     packcr_context->ctx = create_context(RSTRING_PTR(path), NULL, &opts);
+    rb_funcall(self, rb_intern("init"), 1, path);
 
     if (rb_block_given_p()) {
         rb_yield(self);
@@ -75,6 +76,7 @@ static VALUE packcr_context_parse(VALUE self) {
     if (!packcr_context->ctx) {
         rb_raise(rb_eRuntimeError, "closed context");
     }
+    packcr_context->ctx->robj = self;
     return parse(packcr_context->ctx) ? Qtrue : Qfalse;
 }
 
@@ -86,6 +88,7 @@ static VALUE packcr_context_generate(VALUE self) {
     if (!packcr_context->ctx) {
         rb_raise(rb_eRuntimeError, "closed context");
     }
+    packcr_context->ctx->robj = self;
     return generate(packcr_context->ctx) ? Qtrue : Qfalse;
 }
 

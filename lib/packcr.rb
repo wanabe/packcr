@@ -13,4 +13,20 @@ class Packcr
 end
 
 require "packcr.so"
+
+class Packcr::Context
+  def init(path)
+    dirname = File.dirname(path)
+    basename = File.basename(path, ".*")
+    if dirname == "."
+      path = basename
+    else
+      path = File.join(dirname, basename)
+    end
+    @sname = path + ".c"
+    @hname = path + ".h"
+    @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
+  end
+end
+
 require "packcr/version"
