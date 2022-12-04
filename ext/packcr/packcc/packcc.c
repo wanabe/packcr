@@ -942,6 +942,7 @@ static code_block_t *code_block_array__create_entry(VALUE array) {
 }
 
 static void code_block_array__term(VALUE array) {
+    if (!RB_TEST(array)) return;
     while (RARRAY_LEN(array) > 0) {
         code_block_t *code;
         VALUE rcode = rb_funcall(array, rb_intern("pop"), 0);
