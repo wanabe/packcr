@@ -32,10 +32,6 @@ class Packcr::Stream
       @line += s.count("\n")
     end
   end
-
-  def printf(...)
-    write(sprintf(...))
-  end
 end
 
 require "packcr.so"
@@ -103,7 +99,7 @@ class Packcr::Context
       end
       hstream.write "\n" if !@eheader.empty?
 
-      hstream.printf(<<~EOS)
+      hstream.write(<<~EOS)
         #ifndef PCC_INCLUDED_#{@hid}
         #define PCC_INCLUDED_#{@hid}
 
