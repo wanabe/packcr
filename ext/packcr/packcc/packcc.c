@@ -3080,7 +3080,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             size_t i;
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))); i++) {
                 VALUE rcode = rb_ary_entry(rb_ivar_get(ctx->robj, rb_intern("@eheader")), i);
-                stream__write_code_block(hstream, rcode, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                rb_funcall(hstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(0), rb_ivar_get(ctx->robj, rb_intern("@iname")));
             }
         }
         if (RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))) > 0) stream__puts(hstream, "\n");
@@ -3095,7 +3095,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             size_t i;
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@header"))); i++) {
                 VALUE rcode = rb_ary_entry(rb_ivar_get(ctx->robj, rb_intern("@header")), i);
-                stream__write_code_block(hstream, rcode, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                rb_funcall(hstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(0), rb_ivar_get(ctx->robj, rb_intern("@iname")));
             }
         }
     }
@@ -3104,7 +3104,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             size_t i;
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@esource"))); i++) {
                 VALUE rcode = rb_ary_entry(rb_ivar_get(ctx->robj, rb_intern("@esource")), i);
-                stream__write_code_block(sstream, rcode, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                rb_funcall(sstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(0), rb_ivar_get(ctx->robj, rb_intern("@iname")));
             }
         }
         if (RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@esource"))) > 0) stream__puts(sstream, "\n");
@@ -3142,7 +3142,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             size_t i;
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@source"))); i++) {
                 VALUE rcode = rb_ary_entry(rb_ivar_get(ctx->robj, rb_intern("@source")), i);
-                stream__write_code_block(sstream, rcode, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                rb_funcall(sstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(0), rb_ivar_get(ctx->robj, rb_intern("@iname")));
             }
         }
     }
@@ -4436,7 +4436,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
                         VALUE rcode;
                         *code_block = *b;
                         rcode = TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code_block);
-                        stream__write_code_block(sstream, rcode, 4, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                        rb_funcall(sstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(4), rb_ivar_get(ctx->robj, rb_intern("@iname")));
                     }
                     k = c->len;
                     while (k > 0) {

@@ -1,6 +1,6 @@
 #include <ruby.h>
 
-VALUE cPackcr_CodeBlock, cPackcr_Node;
+VALUE cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream;
 
 static void packcr_ptr_mark(void *ptr) {
 }
@@ -137,6 +137,13 @@ static VALUE packcr_context_destroy(VALUE self) {
     return self;
 }
 
+static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rindent, VALUE rfname) {
+    size_t indent = NUM2SIZET(rindent);
+    const char *fname = StringValuePtr(rfname);
+    stream__write_code_block(self, rcode, indent, fname);
+    return self;
+}
+
 void Init_packcr(void) {
     VALUE cPackcr, cPackcr_Context;
 
@@ -154,4 +161,7 @@ void Init_packcr(void) {
 
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
+
+    cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
+    rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
 }

@@ -12,8 +12,6 @@ class Packcr
   end
 end
 
-require "packcr.so"
-
 class Packcr::Stream
   def initialize(io, name, line)
     @io = io
@@ -35,6 +33,8 @@ class Packcr::Stream
     end
   end
 end
+
+require "packcr.so"
 
 class Packcr::Context
   def init(path)
