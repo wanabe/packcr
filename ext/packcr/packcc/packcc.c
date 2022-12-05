@@ -3068,37 +3068,12 @@ static code_reach_t generate_code(generate_t *gen, const node_t *node, int onfai
     }
 }
 
-static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
+static void generate(context_t *ctx, VALUE sstream) {
     VALUE rhname = rb_ivar_get(ctx->robj, rb_intern("@hname"));
-    const char *hid = RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@hid")));
     VALUE rvt = rb_funcall(ctx->robj, rb_intern("value_type"), 0);
     VALUE rat = rb_funcall(ctx->robj, rb_intern("auxil_type"), 0);
     const bool_t vp = is_pointer_type(RSTRING_PTR(rvt));
     const bool_t ap = is_pointer_type(RSTRING_PTR(rat));
-    {
-        {
-            size_t i;
-            for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))); i++) {
-                VALUE rcode = rb_ary_entry(rb_ivar_get(ctx->robj, rb_intern("@eheader")), i);
-                rb_funcall(hstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(0), rb_ivar_get(ctx->robj, rb_intern("@iname")));
-            }
-        }
-        if (RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))) > 0) stream__puts(hstream, "\n");
-        stream__printf(
-            hstream,
-            "#ifndef PCC_INCLUDED_%s\n"
-            "#define PCC_INCLUDED_%s\n"
-            "\n",
-            hid, hid
-        );
-        {
-            size_t i;
-            for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@header"))); i++) {
-                VALUE rcode = rb_ary_entry(rb_ivar_get(ctx->robj, rb_intern("@header")), i);
-                rb_funcall(hstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(0), rb_ivar_get(ctx->robj, rb_intern("@iname")));
-            }
-        }
-    }
     {
         {
             size_t i;
@@ -4622,51 +4597,6 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             sstream,
             "    pcc_context__destroy(ctx);\n"
             "}\n"
-        );
-    }
-    {
-        stream__puts(
-            hstream,
-            "#ifdef __cplusplus\n"
-            "extern \"C\" {\n"
-            "#endif\n"
-            "\n"
-        );
-        stream__printf(
-            hstream,
-            "typedef struct %s_context_tag %s_context_t;\n"
-            "\n",
-            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
-        );
-        stream__printf(
-            hstream,
-            "%s_context_t *%s_create(%s%sauxil);\n",
-            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
-            RSTRING_PTR(rat), ap ? "" : " "
-        );
-        stream__printf(
-            hstream,
-            "int %s_parse(%s_context_t *ctx, %s%s*ret);\n",
-            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
-            RSTRING_PTR(rvt), vp ? "" : " "
-        );
-        stream__printf(
-            hstream,
-            "void %s_destroy(%s_context_t *ctx);\n",
-            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
-        );
-        stream__puts(
-            hstream,
-            "\n"
-            "#ifdef __cplusplus\n"
-            "}\n"
-            "#endif\n"
-        );
-        stream__printf(
-            hstream,
-            "\n"
-            "#endif /* !PCC_INCLUDED_%s */\n",
-            hid
         );
     }
     {
