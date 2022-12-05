@@ -804,12 +804,17 @@ static void stream__write_line_directive(VALUE stream, const char *fname, size_t
     stream__puts(stream, "\"\n");
 }
 
-static void stream__write_code_block(VALUE stream, const code_block_t *code_block, size_t indent, const char *fname) {
+static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, const char *fname) {
     bool_t b = FALSE;
     size_t i, j, k;
-    const char *ptr = code_block->text;
-    size_t len = code_block->len;
-    size_t lineno = code_block->line;
+    const char *ptr;
+    size_t len;
+    size_t lineno;
+    code_block_t *code_block;
+    TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code_block);
+    ptr = code_block->text;
+    len = code_block->len;
+    lineno = code_block->line;
     if (len == VOID_VALUE) return; /* for safety */
     j = find_first_trailing_space(ptr, 0, len, &k);
     for (i = 0; i < j; i++) {
@@ -3075,9 +3080,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             size_t i;
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))); i++) {
                 VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@eheader")))[i];
-                code_block_t *code;
-                TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
-                stream__write_code_block(hstream, code, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                stream__write_code_block(hstream, rcode, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
             }
         }
         if (RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@eheader"))) > 0) stream__puts(hstream, "\n");
@@ -3092,9 +3095,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             size_t i;
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@header"))); i++) {
                 VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@header")))[i];
-                code_block_t *code;
-                TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
-                stream__write_code_block(hstream, code, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                stream__write_code_block(hstream, rcode, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
             }
         }
     }
@@ -3103,9 +3104,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             size_t i;
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@esource"))); i++) {
                 VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@esource")))[i];
-                code_block_t *code;
-                TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
-                stream__write_code_block(sstream, code, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                stream__write_code_block(sstream, rcode, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
             }
         }
         if (RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@esource"))) > 0) stream__puts(sstream, "\n");
@@ -3143,9 +3142,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             size_t i;
             for (i = 0; i < (size_t)RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@source"))); i++) {
                 VALUE rcode = RARRAY_PTR(rb_ivar_get(ctx->robj, rb_intern("@source")))[i];
-                code_block_t *code;
-                TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
-                stream__write_code_block(sstream, code, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                stream__write_code_block(sstream, rcode, 0, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
             }
         }
     }
@@ -4434,7 +4431,13 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
                         );
                         k++;
                     }
-                    stream__write_code_block(sstream, b, 4, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                    {
+                        code_block_t *code_block = malloc_e(sizeof(code_block_t));
+                        VALUE rcode;
+                        *code_block = *b;
+                        rcode = TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code_block);
+                        stream__write_code_block(sstream, rcode, 4, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))));
+                    }
                     k = c->len;
                     while (k > 0) {
                         k--;
