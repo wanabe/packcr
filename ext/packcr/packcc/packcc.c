@@ -943,7 +943,7 @@ static void code_block_array__term(VALUE array) {
     if (!RB_TEST(array)) return;
     while (RARRAY_LEN(array) > 0) {
         code_block_t *code;
-        VALUE rcode = rb_funcall(array, rb_intern("pop"), 0);
+        VALUE rcode = rb_ary_pop(array);
         TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
         code_block__term(code);
     }
@@ -1160,12 +1160,12 @@ static void make_rulehash(context_t *ctx) {
     node_t *node;
     rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
     for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
-        rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+        rnode = rb_ary_entry(rrules, i);
         TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
         assert(node->type == NODE_RULE);
         rname = rb_str_new2(node->data.rule.name);
         rrulehash = rb_ivar_get(ctx->robj, rb_intern("@rulehash"));
-        rb_funcall(rrulehash, rb_intern("[]="), 2, rname, rnode);
+        rb_hash_aset(rrulehash, rname, rnode);
     }
 }
 
@@ -1173,7 +1173,7 @@ static const node_t *lookup_rulehash(const context_t *ctx, const char *name) {
     node_t *node;
     VALUE rname = rb_str_new2(name);
     VALUE rrulehash = rb_ivar_get(ctx->robj, rb_intern("@rulehash"));
-    VALUE rnode = rb_funcall(rrulehash, rb_intern("[]"), 1, rname);
+    VALUE rnode = rb_hash_aref(rrulehash, rname);
     if (rnode == Qnil) {
         return NULL;
     }
@@ -2345,12 +2345,12 @@ static bool_t parse(context_t *ctx) {
         make_rulehash(ctx);
         rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
-            rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+            rnode = rb_ary_entry(rrules, i);
             TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
             link_references(ctx, node->data.rule.expr);
         }
         for (i = 1; i < (size_t)RARRAY_LEN(rrules); i++) {
-            rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+            rnode = rb_ary_entry(rrules, i);
             TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
             if (node->data.rule.ref == 0) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Never used rule '%s'\n",
@@ -2374,7 +2374,7 @@ static bool_t parse(context_t *ctx) {
         node_t *node;
         rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
-            VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+            VALUE rnode = rb_ary_entry(rrules, i);
             TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
             verify_variables(ctx, node->data.rule.expr, NULL);
             verify_captures(ctx, node->data.rule.expr, NULL);
@@ -2385,7 +2385,7 @@ static bool_t parse(context_t *ctx) {
         node_t *node;
         VALUE rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
-            VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+            VALUE rnode = rb_ary_entry(rrules, i);
             TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
             dump_node(ctx, node, 0);
         }
@@ -4361,7 +4361,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             VALUE rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
             for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
                 node_t *node;
-                VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+                VALUE rnode = rb_ary_entry(rrules, i);
                 TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
                 const node_rule_t *const r = &node->data.rule;
                 for (j = 0; j < r->codes.len; j++) {
@@ -4492,7 +4492,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             VALUE rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
             for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
                 node_t *node;
-                VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+                VALUE rnode = rb_ary_entry(rrules, i);
                 TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
                 stream__printf(
                     sstream,
@@ -4507,7 +4507,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
             rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
             for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
                 node_t *node;
-                VALUE rnode = rb_funcall(rrules, rb_intern("[]"), 1, INT2NUM(i));
+                VALUE rnode = rb_ary_entry(rrules, i);
                 TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
                 code_reach_t r;
                 generate_t g;
@@ -4591,7 +4591,7 @@ static void generate(context_t *ctx, VALUE sstream, VALUE hstream) {
         rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
         if (RARRAY_LEN(rrules) > 0) {
             node_t *node;
-            VALUE rnode = rb_funcall(rrules, rb_intern("first"), 0);
+            VALUE rnode = rb_ary_entry(rrules, 0);
             TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
             stream__printf(
                 sstream,
