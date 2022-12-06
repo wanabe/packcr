@@ -52,6 +52,9 @@ class Packcr::Generator
   end
 end
 
+class Packcr::Context
+end
+
 require "packcr.so"
 
 class Packcr::Context
