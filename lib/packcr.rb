@@ -1,4 +1,8 @@
 class Packcr
+  CODE_REACH__BOTH = 0
+  CODE_REACH__ALWAYS_SUCCEED = 1
+  CODE_REACH__ALWAYS_FAIL = -1
+
   def initialize(path, **opt)
     @path = path.to_s
     @opt = opt
@@ -1384,6 +1388,49 @@ class Packcr::Context
 
       _generate(sstream)
 
+      @rules.each do |node|
+        sstream.write(<<~EOS)
+          static pcc_thunk_chunk_t *pcc_evaluate_rule_#{node.rule_name}(pcc_context_t *ctx);
+        EOS
+      end
+      sstream.write("\n")
+
+      @rules.each do |node|
+        g = ::Packcr::Generator.new(sstream, node, @ascii)
+        sstream.write(<<~EOS)
+          static pcc_thunk_chunk_t *pcc_evaluate_rule_#{node.rule_name}(pcc_context_t *ctx) {
+              pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
+              chunk->pos = ctx->cur;
+              PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, \"#{node.rule_name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
+              ctx->level++;
+              pcc_value_table__resize(ctx->auxil, &chunk->values, #{node.rule_vars_len});
+              pcc_capture_table__resize(ctx->auxil, &chunk->capts, #{node.rule_capts_len});
+        EOS
+        if node.rule_vars_len > 0
+          sstream.write("    pcc_value_table__clear(ctx->auxil, &chunk->values);\n")
+        end
+        r = g.generate_code(node.rule_expr, 0, 4, false)
+        sstream.write(<<~EOS.sub(/\A.*\n/, ""))
+            >
+                ctx->level--;
+                PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, \"#{node.rule_name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+                return chunk;
+        EOS
+        if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+          sstream.write(<<~EOS)
+            L0000:;
+                ctx->level--;
+                PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, \"#{node.rule_name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+                pcc_thunk_chunk__destroy(ctx, chunk);
+                return NULL;
+          EOS
+        end
+        sstream.write(<<~EOS)
+          }
+
+        EOS
+      end
+
       sstream.write(<<~EOS)
         #{prefix}_context_t *#{prefix}_create(#{auxil_def}auxil) {
             return pcc_context__create(auxil);
@@ -1402,7 +1449,6 @@ class Packcr::Context
               pcc_commit_buffer(ctx);
         EOS
       end
-
 
       sstream.write(<<~EOS)
             pcc_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);

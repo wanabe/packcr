@@ -47,6 +47,27 @@ static VALUE packcr_node_rule_name(VALUE self) {
     return rb_str_new2(node->data.rule.name);
 }
 
+static VALUE packcr_node_rule_vars_len(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    return SIZET2NUM(node->data.rule.vars.len);
+}
+
+static VALUE packcr_node_rule_capts_len(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    return SIZET2NUM(node->data.rule.capts.len);
+}
+
+static VALUE packcr_node_rule_expr(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.rule.expr);
+}
+
 static VALUE packcr_buffer_s_alloc(VALUE klass) {
     char_array_t *buffer;
     VALUE obj = TypedData_Make_Struct(klass, char_array_t, &packcr_ptr_data_type, buffer);
@@ -322,6 +343,9 @@ void Init_packcr(void) {
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
     rb_define_method(cPackcr_Node, "rule_name", packcr_node_rule_name, 0);
+    rb_define_method(cPackcr_Node, "rule_vars_len", packcr_node_rule_vars_len, 0);
+    rb_define_method(cPackcr_Node, "rule_capts_len", packcr_node_rule_capts_len, 0);
+    rb_define_method(cPackcr_Node, "rule_expr", packcr_node_rule_expr, 0);
 
     cPackcr_Buffer = rb_define_class_under(cPackcr, "Buffer", rb_cObject);
     rb_define_alloc_func(cPackcr_Buffer, packcr_buffer_s_alloc);
