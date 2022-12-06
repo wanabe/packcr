@@ -1,6 +1,6 @@
 #include <ruby.h>
 
-VALUE cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Buffer;
+VALUE cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Buffer, cPackcr_Generator;
 
 static void packcr_ptr_mark(void *ptr) {
 }
@@ -275,4 +275,6 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
     rb_define_method(cPackcr_Stream, "write_context_buffer", packcr_stream_write_context_buffer, 1);
     rb_define_method(cPackcr_Stream, "write_line_directive", packcr_stream_write_line_directive, 2);
+
+    cPackcr_Generator = rb_const_get(cPackcr, rb_intern("Generator"));
 }

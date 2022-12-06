@@ -35,6 +35,19 @@ class Packcr::Stream
   end
 end
 
+class Packcr::Generator
+  def initialize(stream, rule, ascii)
+    @stream = stream
+    @rule = rule
+    @label = 0
+    @ascii = !!ascii
+  end
+
+  def next_label
+    @label += 1
+  end
+end
+
 require "packcr.so"
 
 class Packcr::Context
