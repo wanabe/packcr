@@ -2556,8 +2556,6 @@ static code_reach_t generate_matching_utf8_charclass_code(VALUE gen, const char 
     }
 }
 
-static code_reach_t generate_code(VALUE gen, const node_t *node, int onfail, size_t indent, bool_t bare);
-
 static code_reach_t generate_quantifying_code(VALUE gen, const node_t *expr, int min, int max, int onfail, size_t indent, bool_t bare) {
     if (max > 1 || max < 0) {
         code_reach_t r;
@@ -2585,7 +2583,8 @@ static code_reach_t generate_quantifying_code(VALUE gen, const node_t *expr, int
         stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t n = chunk->thunks.len;\n");
         {
             const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
-            r = generate_code(gen, expr, l, indent + 4, FALSE);
+            VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
+            r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent + 4), Qfalse));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
             stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "if (ctx->cur == p) break;\n");
             if (r != CODE_REACH__ALWAYS_SUCCEED) {
@@ -2624,7 +2623,8 @@ static code_reach_t generate_quantifying_code(VALUE gen, const node_t *expr, int
     }
     else if (max == 1) {
         if (min > 0) {
-            return generate_code(gen, expr, onfail, indent, bare);
+            VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
+            return (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(onfail), SIZET2NUM(indent), bare ? Qtrue : Qfalse));
         }
         else {
             if (!bare) {
@@ -2638,7 +2638,8 @@ static code_reach_t generate_quantifying_code(VALUE gen, const node_t *expr, int
             stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t n = chunk->thunks.len;\n");
             {
                 const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
-                if (generate_code(gen, expr, l, indent, FALSE) != CODE_REACH__ALWAYS_SUCCEED) {
+                VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
+                if ((code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent), Qfalse)) != CODE_REACH__ALWAYS_SUCCEED) {
                     const int m = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
                     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", m);
@@ -2677,7 +2678,8 @@ static code_reach_t generate_predicating_code(VALUE gen, const node_t *expr, boo
     stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t p = ctx->cur;\n");
     if (neg) {
         const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
-        r = generate_code(gen, expr, l, indent, FALSE);
+        VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
+        r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent), Qfalse));
         if (r != CODE_REACH__ALWAYS_FAIL) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
@@ -2699,7 +2701,8 @@ static code_reach_t generate_predicating_code(VALUE gen, const node_t *expr, boo
     else {
         const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
         const int m = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
-        r = generate_code(gen, expr, l, indent, FALSE);
+        VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
+        r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent), Qfalse));
         if (r != CODE_REACH__ALWAYS_FAIL) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
@@ -2733,7 +2736,8 @@ static code_reach_t generate_sequential_code(VALUE gen, const node_array_t *node
     bool_t b = FALSE;
     size_t i;
     for (i = 0; i < nodes->len; i++) {
-        switch (generate_code(gen, nodes->buf[i], onfail, indent, FALSE)) {
+        VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, nodes->buf[i]);
+        switch ((code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(onfail), SIZET2NUM(indent), Qfalse))) {
         case CODE_REACH__ALWAYS_FAIL:
             if (i + 1 < nodes->len) {
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
@@ -2765,7 +2769,8 @@ static code_reach_t generate_alternative_code(VALUE gen, const node_array_t *nod
     for (i = 0; i < nodes->len; i++) {
         const bool_t c = (i + 1 < nodes->len) ? TRUE : FALSE;
         const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
-        switch (generate_code(gen, nodes->buf[i], l, indent, FALSE)) {
+        VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, nodes->buf[i]);
+        switch ((code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent), Qfalse))) {
         case CODE_REACH__ALWAYS_SUCCEED:
             if (c) {
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
@@ -2822,7 +2827,10 @@ static code_reach_t generate_capturing_code(VALUE gen, const node_t *expr, size_
     stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t p = ctx->cur;\n");
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
     stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "size_t q;\n");
-    r = generate_code(gen, expr, onfail, indent, FALSE);
+    {
+        VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
+        r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(onfail), SIZET2NUM(indent), Qfalse));
+    }
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
     stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "q = ctx->cur;\n");
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
@@ -2938,13 +2946,14 @@ static code_reach_t generate_thunking_error_code(
     code_reach_t r;
     const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
     const int m = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
+    VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
     assert(rule->type == NODE_RULE);
     if (!bare) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
         stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
         indent += 4;
     }
-    r = generate_code(gen, expr, l, indent, TRUE);
+    r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent), Qtrue));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", m);
     if (indent > 4) stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent - 4);
@@ -2960,59 +2969,6 @@ static code_reach_t generate_thunking_error_code(
         stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
     }
     return r;
-}
-
-static code_reach_t generate_code(VALUE gen, const node_t *node, int onfail, size_t indent, bool_t bare) {
-    if (node == NULL) {
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    }
-    switch (node->type) {
-    case NODE_RULE:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    case NODE_REFERENCE:
-        if (node->data.reference.index != VOID_VALUE) {
-            stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, &(chunk->values.buf[" FMT_LU "]))) goto L%04d;\n",
-                node->data.reference.name, (ulong_t)node->data.reference.index, onfail);
-        }
-        else {
-            stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, NULL)) goto L%04d;\n",
-                node->data.reference.name, onfail);
-        }
-        return CODE_REACH__BOTH;
-    case NODE_STRING:
-        return generate_matching_string_code(gen, node->data.string.value, onfail, indent, bare);
-    case NODE_CHARCLASS:
-        return RB_TEST(rb_ivar_get(gen, rb_intern("@ascii"))) ?
-               generate_matching_charclass_code(gen, node->data.charclass.value, onfail, indent, bare) :
-               generate_matching_utf8_charclass_code(gen, node->data.charclass.value, onfail, indent, bare);
-    case NODE_QUANTITY:
-        return generate_quantifying_code(gen, node->data.quantity.expr, node->data.quantity.min, node->data.quantity.max, onfail, indent, bare);
-    case NODE_PREDICATE:
-        return generate_predicating_code(gen, node->data.predicate.expr, node->data.predicate.neg, onfail, indent, bare);
-    case NODE_SEQUENCE:
-        return generate_sequential_code(gen, &node->data.sequence.nodes, onfail, indent, bare);
-    case NODE_ALTERNATE:
-        return generate_alternative_code(gen, &node->data.alternate.nodes, onfail, indent, bare);
-    case NODE_CAPTURE:
-        return generate_capturing_code(gen, node->data.capture.expr, node->data.capture.index, onfail, indent, bare);
-    case NODE_EXPAND:
-        return generate_expanding_code(gen, node->data.expand.index, onfail, indent, bare);
-    case NODE_ACTION:
-        return generate_thunking_action_code(
-            gen, node->data.action.index, &node->data.action.vars, &node->data.action.capts, FALSE, onfail, indent, bare
-        );
-    case NODE_ERROR:
-        return generate_thunking_error_code(
-            gen, node->data.error.expr, node->data.error.index, &node->data.error.vars, &node->data.error.capts, onfail, indent, bare
-        );
-    default:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    }
 }
 
 static void generate(context_t *ctx, VALUE sstream) {
@@ -3202,7 +3158,10 @@ static void generate(context_t *ctx, VALUE sstream) {
                         "    pcc_value_table__clear(ctx->auxil, &chunk->values);\n"
                     );
                 }
-                r = generate_code(g, node->data.rule.expr, 0, 4, FALSE);
+                {
+                    VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.rule.expr);
+                    r = (code_reach_t)NUM2INT(rb_funcall(g, rb_intern("generate_code"), 4, rexpr, INT2NUM(0), SIZET2NUM(4), Qfalse));
+                }
                 stream__printf(
                     sstream,
                     "    ctx->level--;\n"

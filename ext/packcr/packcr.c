@@ -244,6 +244,64 @@ static VALUE packcr_stream_write_line_directive(VALUE self, VALUE rfname, VALUE 
     return self;
 }
 
+static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfail, VALUE rindent, VALUE rbare) {
+    const node_t *node;
+    int onfail = NUM2INT(ronfail);
+    size_t indent = NUM2SIZET(rindent);
+    bool_t bare = RB_TEST(rbare);
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    if (node == NULL) {
+        print_error("Internal error [%d]\n", __LINE__);
+        exit(-1);
+    }
+    switch (node->type) {
+    case NODE_RULE:
+        print_error("Internal error [%d]\n", __LINE__);
+        exit(-1);
+    case NODE_REFERENCE:
+        if (node->data.reference.index != VOID_VALUE) {
+            stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
+            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, &(chunk->values.buf[" FMT_LU "]))) goto L%04d;\n",
+                node->data.reference.name, (ulong_t)node->data.reference.index, onfail);
+        }
+        else {
+            stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
+            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, NULL)) goto L%04d;\n",
+                node->data.reference.name, onfail);
+        }
+        return INT2NUM(CODE_REACH__BOTH);
+    case NODE_STRING:
+        return INT2NUM(generate_matching_string_code(gen, node->data.string.value, onfail, indent, bare));
+    case NODE_CHARCLASS:
+        return RB_TEST(rb_ivar_get(gen, rb_intern("@ascii"))) ?
+               INT2NUM(generate_matching_charclass_code(gen, node->data.charclass.value, onfail, indent, bare)) :
+               INT2NUM(generate_matching_utf8_charclass_code(gen, node->data.charclass.value, onfail, indent, bare));
+    case NODE_QUANTITY:
+        return INT2NUM(generate_quantifying_code(gen, node->data.quantity.expr, node->data.quantity.min, node->data.quantity.max, onfail, indent, bare));
+    case NODE_PREDICATE:
+        return INT2NUM(generate_predicating_code(gen, node->data.predicate.expr, node->data.predicate.neg, onfail, indent, bare));
+    case NODE_SEQUENCE:
+        return INT2NUM(generate_sequential_code(gen, &node->data.sequence.nodes, onfail, indent, bare));
+    case NODE_ALTERNATE:
+        return INT2NUM(generate_alternative_code(gen, &node->data.alternate.nodes, onfail, indent, bare));
+    case NODE_CAPTURE:
+        return INT2NUM(generate_capturing_code(gen, node->data.capture.expr, node->data.capture.index, onfail, indent, bare));
+    case NODE_EXPAND:
+        return INT2NUM(generate_expanding_code(gen, node->data.expand.index, onfail, indent, bare));
+    case NODE_ACTION:
+        return INT2NUM(generate_thunking_action_code(
+            gen, node->data.action.index, &node->data.action.vars, &node->data.action.capts, FALSE, onfail, indent, bare
+        ));
+    case NODE_ERROR:
+        return INT2NUM(generate_thunking_error_code(
+            gen, node->data.error.expr, node->data.error.index, &node->data.error.vars, &node->data.error.capts, onfail, indent, bare
+        ));
+    default:
+        print_error("Internal error [%d]\n", __LINE__);
+        exit(-1);
+    }
+}
+
 void Init_packcr(void) {
     VALUE cPackcr, cPackcr_Context;
 
@@ -277,4 +335,5 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Stream, "write_line_directive", packcr_stream_write_line_directive, 2);
 
     cPackcr_Generator = rb_const_get(cPackcr, rb_intern("Generator"));
+    rb_define_method(cPackcr_Generator, "generate_code", packcr_generator_generate_code, 4);
 }
