@@ -93,6 +93,30 @@ class Packcr::Context
     refill_buffer(1) < 1
   end
 
+  def eol?
+    return false if eof?
+
+    case @buffer[@bufcur]
+    when 0xd
+      @bufcur += 1
+      @linenum += 1
+      @charnum = 0
+      @linepos = @bufpos + @bufcur
+      true
+    when 0xa
+      @bufcur += 1
+      if !eof? && @buffer[@bufcur] == 0xd
+        @bufcur += 1
+      end
+      @linenum += 1
+      @charnum = 0
+      @linepos = @bufpos + @bufcur
+      true
+    else
+      false
+    end
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
@@ -1342,6 +1366,7 @@ class Packcr::Context
 
       _generate(sstream)
 
+      eol?
       if !eof?
         sstream.putc("\n")
       end

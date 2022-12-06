@@ -1522,30 +1522,6 @@ static void dump_node(context_t *ctx, const node_t *node, const int indent) {
     }
 }
 
-static bool_t match_eol(context_t *ctx) {
-    VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
-    if (NUM2SIZET(rb_funcall(ctx->robj, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) >= 1) {
-        switch ((char)NUM2INT(rb_funcall(rbuffer, rb_intern("[]"), 1, rb_ivar_get(ctx->robj, rb_intern("@bufcur"))))) {
-        case '\n':
-            rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
-            rb_ivar_set(ctx->robj, rb_intern("@linenum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@linenum")), rb_intern("succ"), 0));
-            rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(0));
-            rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))));
-            return TRUE;
-        case '\r':
-            rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
-            if (NUM2SIZET(rb_funcall(ctx->robj, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) >= 1) {
-                if ((char)NUM2INT(rb_funcall(rbuffer, rb_intern("[]"), 1, rb_ivar_get(ctx->robj, rb_intern("@bufcur")))) == '\n') rb_ivar_set(ctx->robj, rb_intern("@bufcur"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@bufcur")), rb_intern("succ"), 0));
-            }
-            rb_ivar_set(ctx->robj, rb_intern("@linenum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@linenum")), rb_intern("succ"), 0));
-            rb_ivar_set(ctx->robj, rb_intern("@charnum"), SIZET2NUM(0));
-            rb_ivar_set(ctx->robj, rb_intern("@linepos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))));
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
 static bool_t match_character(context_t *ctx, char ch) {
     VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
     if (NUM2SIZET(rb_funcall(ctx->robj, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) >= 1) {
@@ -1612,7 +1588,7 @@ static bool_t match_blank(context_t *ctx) {
 
 static bool_t match_section_line_(context_t *ctx, const char *head) {
     if (match_string(ctx, head)) {
-        while (!match_eol(ctx) && !RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) match_character_any(ctx);
+        while (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eol?"), 0)) && !RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) match_character_any(ctx);
         return TRUE;
     }
     return FALSE;
@@ -1622,7 +1598,7 @@ static bool_t match_section_line_continuable_(context_t *ctx, const char *head) 
     VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
     if (match_string(ctx, head)) {
         while (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) {
-            if (match_eol(ctx)) {
+            if (RB_TEST(rb_funcall(ctx->robj, rb_intern("eol?"), 0))) {
                 if ((char)NUM2INT(rb_funcall(rbuffer, rb_intern("[]"), 1, SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) - 1))) != '\\') break;
             }
             else {
@@ -1644,7 +1620,7 @@ static bool_t match_section_block_(context_t *ctx, const char *left, const char 
                 rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 break;
             }
-            if (!match_eol(ctx)) match_character_any(ctx);
+            if (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eol?"), 0))) match_character_any(ctx);
         }
         return TRUE;
     }
@@ -1662,10 +1638,10 @@ static bool_t match_quotation_(context_t *ctx, const char *left, const char *rig
                 break;
             }
             if (match_character(ctx, '\\')) {
-                if (!match_eol(ctx)) match_character_any(ctx);
+                if (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eol?"), 0))) match_character_any(ctx);
             }
             else {
-                if (match_eol(ctx)) {
+                if (RB_TEST(rb_funcall(ctx->robj, rb_intern("eol?"), 0))) {
                     print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOL in %s\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
                     rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                     break;
@@ -1708,7 +1684,7 @@ static bool_t match_character_class(context_t *ctx) {
 
 static bool_t match_spaces(context_t *ctx) {
     size_t n = 0;
-    while (match_blank(ctx) || match_eol(ctx) || match_comment(ctx)) n++;
+    while (match_blank(ctx) || RB_TEST(rb_funcall(ctx->robj, rb_intern("eol?"), 0)) || match_comment(ctx)) n++;
     return (n > 0) ? TRUE : FALSE;
 }
 
@@ -1763,7 +1739,7 @@ static bool_t match_code_block(context_t *ctx) {
                 if (d == 0) break;
             }
             else {
-                if (!match_eol(ctx)) {
+                if (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eol?"), 0))) {
                     VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
                     char_array_t *buffer;
                     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
@@ -3322,8 +3298,5 @@ static void generate(context_t *ctx, VALUE sstream) {
             "    pcc_context__destroy(ctx);\n"
             "}\n"
         );
-    }
-    {
-        match_eol(ctx);
     }
 }
