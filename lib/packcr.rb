@@ -89,6 +89,10 @@ class Packcr::Context
     "#{type}#{type =~ /\*$/ ? "" : " "}"
   end
 
+  def eof?
+    refill_buffer(1) < 1
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)

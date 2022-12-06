@@ -1530,10 +1530,6 @@ static void dump_node(context_t *ctx, const node_t *node, const int indent) {
     }
 }
 
-static bool_t match_eof(context_t *ctx) {
-    return (NUM2SIZET(rb_funcall(ctx->robj, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) < 1) ? TRUE : FALSE;
-}
-
 static bool_t match_eol(context_t *ctx) {
     VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
     char_array_t *buffer;
@@ -1632,7 +1628,7 @@ static bool_t match_blank(context_t *ctx) {
 
 static bool_t match_section_line_(context_t *ctx, const char *head) {
     if (match_string(ctx, head)) {
-        while (!match_eol(ctx) && !match_eof(ctx)) match_character_any(ctx);
+        while (!match_eol(ctx) && !RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) match_character_any(ctx);
         return TRUE;
     }
     return FALSE;
@@ -1643,7 +1639,7 @@ static bool_t match_section_line_continuable_(context_t *ctx, const char *head) 
     char_array_t *buffer;
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     if (match_string(ctx, head)) {
-        while (!match_eof(ctx)) {
+        while (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) {
             const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
             if (match_eol(ctx)) {
                 if (buffer->buf[p - 1] != '\\') break;
@@ -1662,7 +1658,7 @@ static bool_t match_section_block_(context_t *ctx, const char *left, const char 
     const size_t m = column_number(ctx);
     if (match_string(ctx, left)) {
         while (!match_string(ctx, right)) {
-            if (match_eof(ctx)) {
+            if (RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in %s\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
                 rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 break;
@@ -1679,7 +1675,7 @@ static bool_t match_quotation_(context_t *ctx, const char *left, const char *rig
     const size_t m = column_number(ctx);
     if (match_string(ctx, left)) {
         while (!match_string(ctx, right)) {
-            if (match_eof(ctx)) {
+            if (RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in %s\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
                 rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 break;
@@ -1766,7 +1762,7 @@ static bool_t match_code_block(context_t *ctx) {
     if (match_character(ctx, '{')) {
         int d = 1;
         for (;;) {
-            if (match_eof(ctx)) {
+            if (RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in code block\n", RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
                 rb_ivar_set(ctx->robj, rb_intern("@errnum"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@errnum")), rb_intern("succ"), 0));
                 break;
@@ -2292,7 +2288,7 @@ static bool_t parse(context_t *ctx) {
         match_spaces(ctx);
         for (;;) {
             size_t l, m, n, o;
-            if (match_eof(ctx) || match_footer_start(ctx)) break;
+            if (RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0)) || match_footer_start(ctx)) break;
             l = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum")));
             m = column_number(ctx);
             n = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum")));
@@ -3348,9 +3344,9 @@ static void generate(context_t *ctx, VALUE sstream) {
     }
     {
         match_eol(ctx);
-        if (!match_eof(ctx)) stream__putc(sstream, '\n');
+        if (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) stream__putc(sstream, '\n');
         rb_funcall(ctx->robj, rb_intern("commit_buffer"), 0);
-        if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) && !match_eof(ctx))
+        if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) && !RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0)))
             stream__write_line_directive(sstream, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum"))));
     }
 }
