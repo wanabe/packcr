@@ -682,14 +682,6 @@ static size_t count_characters(const char *str, size_t start, size_t end) {
     return n;
 }
 
-static void stream__putc(VALUE stream, int c) {
-    rb_funcall(stream, rb_intern("putc"), 1, INT2NUM(c));
-}
-
-static void stream__puts(VALUE stream, const char *s) {
-    rb_funcall(stream, rb_intern("write"), 1, rb_str_new2(s));
-}
-
 __attribute__((format(printf, 2, 3)))
 static int stream__printf(VALUE stream, const char *format, ...) {
     {
@@ -719,7 +711,7 @@ static int stream__printf(VALUE stream, const char *format, ...) {
                 exit(2);
             }
         }
-        stream__puts(stream, p);
+        rb_funcall(stream, rb_intern("write"), 1, rb_str_new2(p));
         if (p != s) free(p);
         return n;
 #undef M
@@ -729,7 +721,7 @@ static int stream__printf(VALUE stream, const char *format, ...) {
 static void stream__write_characters(VALUE stream, char ch, size_t len) {
     size_t i;
     if (len == VOID_VALUE) return; /* for safety */
-    for (i = 0; i < len; i++) stream__putc(stream, ch);
+    for (i = 0; i < len; i++) rb_funcall(stream, rb_intern("putc"), 1, INT2NUM(ch));
 }
 
 static void stream__write_text(VALUE stream, const char *ptr, size_t len) {
@@ -738,10 +730,10 @@ static void stream__write_text(VALUE stream, const char *ptr, size_t len) {
     for (i = 0; i < len; i++) {
         if (ptr[i] == '\r') {
             if (i + 1 < len && ptr[i + 1] == '\n') i++;
-            stream__putc(stream, '\n');
+            rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
         }
         else {
-            stream__putc(stream, ptr[i]);
+            rb_funcall(stream, rb_intern("putc"), 1, INT2NUM(ptr[i]));
         }
     }
 }
@@ -774,7 +766,7 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
         if (ptr[i] != '#')
             stream__write_characters(stream, ' ', indent);
         stream__write_text(stream, ptr + i, j - i);
-        stream__putc(stream, '\n');
+        rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
         b = TRUE;
     }
     else {
@@ -812,11 +804,11 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
                     stream__write_characters(stream, ' ', l - m + indent);
                 }
                 stream__write_text(stream, ptr + i, j - i);
-                stream__putc(stream, '\n');
+                rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
                 b = TRUE;
             }
             else if (h < len) {
-                stream__putc(stream, '\n');
+                rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
             }
         }
     }
@@ -2283,7 +2275,7 @@ static code_reach_t generate_matching_string_code(VALUE gen, const char *value, 
         if (n > 1) {
             size_t i;
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "if (\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("if (\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "pcc_refill_buffer(ctx, " FMT_LU ") < " FMT_LU " ||\n", (ulong_t)n, (ulong_t)n);
             for (i = 0; i < n - 1; i++) {
@@ -2302,16 +2294,16 @@ static code_reach_t generate_matching_string_code(VALUE gen, const char *value, 
         }
         else {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "if (\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("if (\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_refill_buffer(ctx, 1) < 1 ||\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_refill_buffer(ctx, 1) < 1 ||\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
             s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[0]));
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "ctx->buffer.buf[ctx->cur] != '%s'\n", RSTRING_PTR(s));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), ") goto L%04d;\n", onfail);
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur++;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur++;\n"));
             return CODE_REACH__BOTH;
         }
     }
@@ -2332,30 +2324,30 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
                 size_t i = a ? 1 : 0;
                 if (i + 1 == n) { /* fulfilled only if a == TRUE */
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "if (\n");
+                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("if (\n"));
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-                    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_refill_buffer(ctx, 1) < 1 ||\n");
+                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_refill_buffer(ctx, 1) < 1 ||\n"));
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
                     s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
                     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "ctx->buffer.buf[ctx->cur] == '%s'\n", RSTRING_PTR(s));
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
                     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), ") goto L%04d;\n", onfail);
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur++;\n");
+                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur++;\n"));
                     return CODE_REACH__BOTH;
                 }
                 else {
                     if (!bare) {
                         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+                        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
                         indent += 4;
                     }
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "char c;\n");
+                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("char c;\n"));
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
                     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (pcc_refill_buffer(ctx, 1) < 1) goto L%04d;\n", onfail);
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "c = ctx->buffer.buf[ctx->cur];\n");
+                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("c = ctx->buffer.buf[ctx->cur];\n"));
                     if (i + 3 == n && value[i] != '\\' && value[i + 1] == '-') {
                         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
                         s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
@@ -2367,7 +2359,7 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
                     }
                     else {
                         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), a ? "if (\n" : "if (!(\n");
+                        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2(a ? "if (\n" : "if (!(\n"));
                         for (; i < n; i++) {
                             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
                             if (value[i] == '\\' && i + 1 < n) i++;
@@ -2388,11 +2380,11 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
                         stream__printf(rb_ivar_get(gen, rb_intern("@stream")), a ? ") goto L%04d;\n" : ")) goto L%04d;\n", onfail);
                     }
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur++;\n");
+                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur++;\n"));
                     if (!bare) {
                         indent -= 4;
                         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+                        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
                     }
                     return CODE_REACH__BOTH;
                 }
@@ -2400,15 +2392,15 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
             else {
                 VALUE s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[0]));
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "if (\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("if (\n"));
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_refill_buffer(ctx, 1) < 1 ||\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_refill_buffer(ctx, 1) < 1 ||\n"));
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
                 stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "ctx->buffer.buf[ctx->cur] != '%s'\n",  RSTRING_PTR(s));
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
                 stream__printf(rb_ivar_get(gen, rb_intern("@stream")), ") goto L%04d;\n", onfail);
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur++;\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur++;\n"));
                 return CODE_REACH__BOTH;
             }
         }
@@ -2422,7 +2414,7 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
         stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (pcc_refill_buffer(ctx, 1) < 1) goto L%04d;\n", onfail);
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur++;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur++;\n"));
         return CODE_REACH__BOTH;
     }
 }
@@ -2434,20 +2426,20 @@ static code_reach_t generate_matching_utf8_charclass_code(VALUE gen, const char 
         size_t i = a ? 1 : 0;
         if (!bare) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
             indent += 4;
         }
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "int u;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("int u;\n"));
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t n = pcc_get_char_as_utf32(ctx, &u);\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t n = pcc_get_char_as_utf32(ctx, &u);\n"));
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
         stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (n == 0) goto L%04d;\n", onfail);
         if (value != NULL && !(a && n == 1)) { /* not '.' or '[^]' */
             int u0 = 0;
             bool_t r = FALSE;
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), a ? "if (\n" : "if (!(\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2(a ? "if (\n" : "if (!(\n"));
             while (i < n) {
                 int u = 0;
                 if (value[i] == '\\' && i + 1 < n) i++;
@@ -2478,11 +2470,11 @@ static code_reach_t generate_matching_utf8_charclass_code(VALUE gen, const char 
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), a ? ") goto L%04d;\n" : ")) goto L%04d;\n", onfail);
         }
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur += n;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur += n;\n"));
         if (!bare) {
             indent -= 4;
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
         }
         return CODE_REACH__BOTH;
     }
@@ -2498,63 +2490,63 @@ static code_reach_t generate_quantifying_code(VALUE gen, const node_t *expr, int
         code_reach_t r;
         if (!bare) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
             indent += 4;
         }
         if (min > 0) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t p0 = ctx->cur;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t p0 = ctx->cur;\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t n0 = chunk->thunks.len;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t n0 = chunk->thunks.len;\n"));
         }
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "int i;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("int i;\n"));
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
         if (max < 0)
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "for (i = 0;; i++) {\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("for (i = 0;; i++) {\n"));
         else
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "for (i = 0; i < %d; i++) {\n", max);
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t p = ctx->cur;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t p = ctx->cur;\n"));
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t n = chunk->thunks.len;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t n = chunk->thunks.len;\n"));
         {
             const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
             VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
             r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent + 4), Qfalse));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "if (ctx->cur == p) break;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("if (ctx->cur == p) break;\n"));
             if (r != CODE_REACH__ALWAYS_SUCCEED) {
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "continue;\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("continue;\n"));
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
                 stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "L%04d:;\n", l);
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur = p;\n"));
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"));
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "break;\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("break;\n"));
             }
         }
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
         if (min > 0) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (i < %d) {\n", min);
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p0;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur = p0;\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", onfail);
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
         }
         if (!bare) {
             indent -= 4;
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
         }
         return (min > 0) ? ((r == CODE_REACH__ALWAYS_FAIL) ? CODE_REACH__ALWAYS_FAIL : CODE_REACH__BOTH) : CODE_REACH__ALWAYS_SUCCEED;
     }
@@ -2566,13 +2558,13 @@ static code_reach_t generate_quantifying_code(VALUE gen, const node_t *expr, int
         else {
             if (!bare) {
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
                 indent += 4;
             }
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t p = ctx->cur;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t p = ctx->cur;\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t n = chunk->thunks.len;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t n = chunk->thunks.len;\n"));
             {
                 const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
                 VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
@@ -2583,9 +2575,9 @@ static code_reach_t generate_quantifying_code(VALUE gen, const node_t *expr, int
                     if (indent > 4) stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent - 4);
                     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "L%04d:;\n", l);
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
+                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur = p;\n"));
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n");
+                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"));
                     if (indent > 4) stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent - 4);
                     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "L%04d:;\n", m);
                 }
@@ -2593,7 +2585,7 @@ static code_reach_t generate_quantifying_code(VALUE gen, const node_t *expr, int
             if (!bare) {
                 indent -= 4;
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
             }
             return CODE_REACH__ALWAYS_SUCCEED;
         }
@@ -2608,18 +2600,18 @@ static code_reach_t generate_predicating_code(VALUE gen, const node_t *expr, boo
     code_reach_t r;
     if (!bare) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
         indent += 4;
     }
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t p = ctx->cur;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t p = ctx->cur;\n"));
     if (neg) {
         const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
         VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
         r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent), Qfalse));
         if (r != CODE_REACH__ALWAYS_FAIL) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur = p;\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", onfail);
         }
@@ -2627,7 +2619,7 @@ static code_reach_t generate_predicating_code(VALUE gen, const node_t *expr, boo
             if (indent > 4) stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent - 4);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "L%04d:;\n", l);
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur = p;\n"));
         }
         switch (r) {
         case CODE_REACH__ALWAYS_SUCCEED: r = CODE_REACH__ALWAYS_FAIL; break;
@@ -2642,7 +2634,7 @@ static code_reach_t generate_predicating_code(VALUE gen, const node_t *expr, boo
         r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent), Qfalse));
         if (r != CODE_REACH__ALWAYS_FAIL) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur = p;\n"));
         }
         if (r == CODE_REACH__BOTH) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
@@ -2652,7 +2644,7 @@ static code_reach_t generate_predicating_code(VALUE gen, const node_t *expr, boo
             if (indent > 4) stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent - 4);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "L%04d:;\n", l);
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-            stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur = p;\n"));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", onfail);
         }
@@ -2664,7 +2656,7 @@ static code_reach_t generate_predicating_code(VALUE gen, const node_t *expr, boo
     if (!bare) {
         indent -= 4;
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
     }
     return r;
 }
@@ -2678,7 +2670,7 @@ static code_reach_t generate_sequential_code(VALUE gen, const node_array_t *node
         case CODE_REACH__ALWAYS_FAIL:
             if (i + 1 < nodes->len) {
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "/* unreachable codes omitted */\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("/* unreachable codes omitted */\n"));
             }
             return CODE_REACH__ALWAYS_FAIL;
         case CODE_REACH__ALWAYS_SUCCEED:
@@ -2696,13 +2688,13 @@ static code_reach_t generate_alternative_code(VALUE gen, const node_array_t *nod
     size_t i;
     if (!bare) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
         indent += 4;
     }
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t p = ctx->cur;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t p = ctx->cur;\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t n = chunk->thunks.len;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t n = chunk->thunks.len;\n"));
     for (i = 0; i < nodes->len; i++) {
         const bool_t c = (i + 1 < nodes->len) ? TRUE : FALSE;
         const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
@@ -2711,7 +2703,7 @@ static code_reach_t generate_alternative_code(VALUE gen, const node_array_t *nod
         case CODE_REACH__ALWAYS_SUCCEED:
             if (c) {
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "/* unreachable codes omitted */\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("/* unreachable codes omitted */\n"));
             }
             if (b) {
                 if (indent > 4) stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent - 4);
@@ -2720,7 +2712,7 @@ static code_reach_t generate_alternative_code(VALUE gen, const node_array_t *nod
             if (!bare) {
                 indent -= 4;
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
             }
             return CODE_REACH__ALWAYS_SUCCEED;
         case CODE_REACH__ALWAYS_FAIL:
@@ -2733,9 +2725,9 @@ static code_reach_t generate_alternative_code(VALUE gen, const node_array_t *nod
         if (indent > 4) stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent - 4);
         stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "L%04d:;\n", l);
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur = p;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur = p;\n"));
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"));
         if (!c) {
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", onfail);
@@ -2748,7 +2740,7 @@ static code_reach_t generate_alternative_code(VALUE gen, const node_array_t *nod
     if (!bare) {
         indent -= 4;
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
     }
     return b ? CODE_REACH__BOTH : CODE_REACH__ALWAYS_FAIL;
 }
@@ -2757,19 +2749,19 @@ static code_reach_t generate_capturing_code(VALUE gen, const node_t *expr, size_
     code_reach_t r;
     if (!bare) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
         indent += 4;
     }
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const size_t p = ctx->cur;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t p = ctx->cur;\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "size_t q;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("size_t q;\n"));
     {
         VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
         r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(onfail), SIZET2NUM(indent), Qfalse));
     }
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "q = ctx->cur;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("q = ctx->cur;\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "chunk->capts.buf[" FMT_LU "].range.start = p;\n", (ulong_t)index);
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
@@ -2777,7 +2769,7 @@ static code_reach_t generate_capturing_code(VALUE gen, const node_t *expr, size_
     if (!bare) {
         indent -= 4;
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
     }
     return r;
 }
@@ -2785,7 +2777,7 @@ static code_reach_t generate_capturing_code(VALUE gen, const node_t *expr, size_
 static code_reach_t generate_expanding_code(VALUE gen, size_t index, int onfail, size_t indent, bool_t bare) {
     if (!bare) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
         indent += 4;
     }
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
@@ -2794,27 +2786,27 @@ static code_reach_t generate_expanding_code(VALUE gen, size_t index, int onfail,
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (pcc_refill_buffer(ctx, n) < n) goto L%04d;\n", onfail);
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "if (n > 0) {\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("if (n > 0) {\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "const char *const p = ctx->buffer.buf + ctx->cur;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const char *const p = ctx->buffer.buf + ctx->cur;\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "const char *const q = ctx->buffer.buf + chunk->capts.buf[" FMT_LU "].range.start;\n", (ulong_t)index);
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "size_t i;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("size_t i;\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "for (i = 0; i < n; i++) {\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("for (i = 0; i < n; i++) {\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 8);
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (p[i] != q[i]) goto L%04d;\n", onfail);
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur += n;\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur += n;\n"));
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-    stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
     if (!bare) {
         indent -= 4;
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
     }
     return CODE_REACH__BOTH;
 }
@@ -2828,12 +2820,12 @@ static code_reach_t generate_thunking_action_code(
     assert(rule->type == NODE_RULE);
     if (!bare) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
         indent += 4;
     }
     if (error) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_value_t null;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_value_t null;\n"));
     }
     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_%s_" FMT_LU ", " FMT_LU ", " FMT_LU ");\n",
@@ -2853,26 +2845,26 @@ static code_reach_t generate_thunking_action_code(
                 (ulong_t)capts->buf[i]->data.capture.index, (ulong_t)capts->buf[i]->data.capture.index);
         }
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "thunk->data.leaf.capt0.range.start = chunk->pos;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("thunk->data.leaf.capt0.range.start = chunk->pos;\n"));
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "thunk->data.leaf.capt0.range.end = ctx->cur;\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("thunk->data.leaf.capt0.range.end = ctx->cur;\n"));
     }
     if (error) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n"));
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "thunk->data.leaf.action(ctx, thunk, &null);\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("thunk->data.leaf.action(ctx, thunk, &null);\n"));
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_thunk__destroy(ctx->auxil, thunk);\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_thunk__destroy(ctx->auxil, thunk);\n"));
     }
     else {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n"));
     }
     if (!bare) {
         indent -= 4;
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
     }
     return CODE_REACH__ALWAYS_SUCCEED;
 }
@@ -2887,7 +2879,7 @@ static code_reach_t generate_thunking_error_code(
     assert(rule->type == NODE_RULE);
     if (!bare) {
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "{\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
         indent += 4;
     }
     r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(l), SIZET2NUM(indent), Qtrue));
@@ -2903,7 +2895,7 @@ static code_reach_t generate_thunking_error_code(
     if (!bare) {
         indent -= 4;
         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-        stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "}\n");
+        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
     }
     return r;
 }
@@ -2944,11 +2936,11 @@ static void generate(VALUE rctx, VALUE sstream) {
                         "static void pcc_action_%s_" FMT_LU "(%s_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {\n",
                         r->name, (ulong_t)d, RSTRING_PTR(rb_funcall(rctx, rb_intern("prefix"), 0))
                     );
-                    stream__puts(
-                        sstream,
+                    rb_funcall(
+                        sstream, rb_intern("write"), 1, rb_str_new2(
                         "#define auxil (__pcc_ctx->auxil)\n"
                         "#define __ (*__pcc_out)\n"
-                    );
+                    ));
                     k = 0;
                     while (k < v->len) {
                         assert(v->buf[k]->type == NODE_REFERENCE);
@@ -2959,12 +2951,12 @@ static void generate(VALUE rctx, VALUE sstream) {
                         );
                         k++;
                     }
-                    stream__puts(
-                        sstream,
+                    rb_funcall(
+                        sstream, rb_intern("write"), 1, rb_str_new2(
                         "#define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)\n"
                         "#define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))\n"
                         "#define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))\n"
-                    );
+                    ));
                     k = 0;
                     while (k < c->len) {
                         assert(c->buf[k]->type == NODE_CAPTURE);
@@ -3012,12 +3004,12 @@ static void generate(VALUE rctx, VALUE sstream) {
                             (ulong_t)(c->buf[k]->data.capture.index + 1)
                         );
                     }
-                    stream__puts(
-                        sstream,
+                    rb_funcall(
+                        sstream, rb_intern("write"), 1, rb_str_new2(
                         "#undef _0e\n"
                         "#undef _0s\n"
                         "#undef _0\n"
-                    );
+                    ));
                     k = v->len;
                     while (k > 0) {
                         k--;
@@ -3028,16 +3020,13 @@ static void generate(VALUE rctx, VALUE sstream) {
                             v->buf[k]->data.reference.var
                         );
                     }
-                    stream__puts(
-                        sstream,
+                    rb_funcall(
+                        sstream, rb_intern("write"), 1, rb_str_new2(
                         "#undef __\n"
                         "#undef auxil\n"
-                    );
-                    stream__puts(
-                        sstream,
                         "}\n"
                         "\n"
-                    );
+                    ));
                 }
             }
         }
