@@ -1337,6 +1337,11 @@ class Packcr::Context
       EOS
 
       _generate(sstream)
+
+      while refill_buffer(@buffer.max) > 0
+        sstream.write_context_buffer(self)
+        commit_buffer
+      end
     end
 
     if !@errnum.zero?

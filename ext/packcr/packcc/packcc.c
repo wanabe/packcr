@@ -3347,15 +3347,10 @@ static void generate(context_t *ctx, VALUE sstream) {
         );
     }
     {
-        VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
         match_eol(ctx);
         if (!match_eof(ctx)) stream__putc(sstream, '\n');
         rb_funcall(ctx->robj, rb_intern("commit_buffer"), 0);
         if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) && !match_eof(ctx))
             stream__write_line_directive(sstream, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum"))));
-        while (NUM2SIZET(rb_funcall(ctx->robj, rb_intern("refill_buffer"), 1,rb_funcall(rbuffer, rb_intern("max"), 0))) > 0) {
-            rb_funcall(sstream, rb_intern("write_context_buffer"), 1, ctx->robj);
-            rb_funcall(ctx->robj, rb_intern("commit_buffer"), 0);
-        }
     }
 }
