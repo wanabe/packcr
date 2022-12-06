@@ -122,13 +122,13 @@ class Packcr::Context
     return false if eof?
 
     case @buffer[@bufcur]
-    when 0xd
+    when 0xa
       @bufcur += 1
       @linenum += 1
       @charnum = 0
       @linepos = @bufpos + @bufcur
       true
-    when 0xa
+    when 0xd
       @bufcur += 1
       if !eof? && @buffer[@bufcur] == 0xd
         @bufcur += 1
