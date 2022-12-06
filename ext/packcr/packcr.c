@@ -111,18 +111,26 @@ static VALUE packcr_context_s_alloc(VALUE klass) {
     return obj;
 }
 
-static VALUE packcr_context_initialize(VALUE self, VALUE arg) {
+static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     struct packcr_context_data *packcr_context;
-    VALUE path;
+    VALUE path, arg, hash;
 
     TypedData_Get_Struct(self, struct packcr_context_data, &packcr_context_data_type, packcr_context);
 
+    rb_scan_args(argc, argv, "1:", &arg, &hash);
     path = rb_check_string_type(arg);
     if (NIL_P(path)) {
         rb_raise(rb_eArgError, "bad path: %"PRIsVALUE, rb_inspect(arg));
     }
 
-    rb_funcall(self, rb_intern("init"), 1, path);
+    if (NIL_P(hash)) {
+        rb_funcall(self, rb_intern("init"), 1, path);
+    } else {
+        VALUE  args[2];
+        args[0] = path;
+        args[1] = hash;
+        rb_funcallv_kw(self, rb_intern("init"), 2, args, 1);
+    }
     packcr_context->ctx = create_context(self);
 
     if (rb_block_given_p()) {
@@ -236,7 +244,7 @@ void Init_packcr(void) {
 
     cPackcr_Context = rb_define_class_under(cPackcr, "Context", rb_cObject);
     rb_define_alloc_func(cPackcr_Context, packcr_context_s_alloc);
-    rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, 1);
+    rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);
     rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
     rb_define_method(cPackcr_Context, "_generate", packcr_context_generate, 1);
     rb_define_method(cPackcr_Context, "destroy", packcr_context_destroy, 0);

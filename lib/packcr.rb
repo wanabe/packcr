@@ -1,10 +1,11 @@
 class Packcr
-  def initialize(path)
+  def initialize(path, **opt)
     @path = path.to_s
+    @opt = opt
   end
 
   def run
-    Context.new(@path.to_s) do |ctx|
+    Context.new(@path.to_s, **@opt) do |ctx|
       if !ctx.parse || !ctx.generate
         raise "PackCC error"
       end
@@ -37,7 +38,7 @@ end
 require "packcr.so"
 
 class Packcr::Context
-  def init(path)
+  def init(path, lines: false, debug: false, ascii: false)
     @iname = path
     @ifile = File.open(path, "rb")
     dirname = File.dirname(path)
@@ -50,6 +51,10 @@ class Packcr::Context
     @sname = path + ".c"
     @hname = path + ".h"
     @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
+
+    @lines = !!lines
+    @debug = !!debug
+    @ascii = !!ascii
 
     @errnum = 0
     @linenum = 0
