@@ -63,6 +63,12 @@ static VALUE packcr_buffer_len(VALUE self) {
     return SIZET2NUM(buffer->len);
 }
 
+static VALUE packcr_buffer_entry(VALUE self, VALUE rindex) {
+    char_array_t *buffer;
+    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
+    return INT2NUM(buffer->buf[NUM2SIZET(rindex)]);
+}
+
 struct packcr_context_data {
     context_t *ctx;
 };
@@ -247,6 +253,7 @@ void Init_packcr(void) {
     rb_define_alloc_func(cPackcr_Buffer, packcr_buffer_s_alloc);
     rb_define_method(cPackcr_Buffer, "max", packcr_buffer_max, 0);
     rb_define_method(cPackcr_Buffer, "len", packcr_buffer_len, 0);
+    rb_define_method(cPackcr_Buffer, "[]", packcr_buffer_entry, 1);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
