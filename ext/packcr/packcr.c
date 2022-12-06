@@ -214,6 +214,15 @@ static VALUE packcr_stream_write_context_buffer(VALUE self, VALUE rctx) {
     return self;
 }
 
+static VALUE packcr_stream_write_line_directive(VALUE self, VALUE rfname, VALUE rlineno) {
+    const char *fname = StringValuePtr(rfname);
+    size_t lineno = NUM2SIZET(rlineno);
+    stream__printf(self, "#line " FMT_LU " \"", (ulong_t)(lineno + 1));
+    stream__write_escaped_string(self, fname, strlen(fname));
+    stream__puts(self, "\"\n");
+    return self;
+}
+
 void Init_packcr(void) {
     VALUE cPackcr, cPackcr_Context;
 
@@ -242,4 +251,5 @@ void Init_packcr(void) {
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
     rb_define_method(cPackcr_Stream, "write_context_buffer", packcr_stream_write_context_buffer, 1);
+    rb_define_method(cPackcr_Stream, "write_line_directive", packcr_stream_write_line_directive, 2);
 }

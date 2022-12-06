@@ -797,12 +797,6 @@ static void stream__write_escaped_string(VALUE stream, const char *ptr, size_t l
     }
 }
 
-static void stream__write_line_directive(VALUE stream, const char *fname, size_t lineno) {
-    stream__printf(stream, "#line " FMT_LU " \"", (ulong_t)(lineno + 1));
-    stream__write_escaped_string(stream, fname, strlen(fname));
-    stream__puts(stream, "\"\n");
-}
-
 static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, const char *fname) {
     bool_t b = FALSE;
     size_t i, j, k;
@@ -827,7 +821,7 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
     if (i < j) {
         VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
         if (!NIL_P(rline))
-            stream__write_line_directive(stream, fname, lineno);
+            rb_funcall(stream, rb_intern("write_line_directive"), 2, rb_str_new2(fname), SIZET2NUM(lineno));
         if (ptr[i] != '#')
             stream__write_characters(stream, ' ', indent);
         stream__write_text(stream, ptr + i, j - i);
@@ -845,7 +839,7 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
             if (i < j) {
                 VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
                 if (!NIL_P(rline) && !b)
-                    stream__write_line_directive(stream, fname, lineno);
+                    rb_funcall(stream, rb_intern("write_line_directive"), 2, rb_str_new2(fname), SIZET2NUM(lineno));
                 if (ptr[i] != '#') {
                     const size_t l = count_indent_spaces(ptr, i, j, NULL);
                     if (m == VOID_VALUE || m > l) m = l;
@@ -880,10 +874,8 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
     {
         VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
         if (!NIL_P(rline) && b) {
-            size_t line = NUM2SIZET(rline);
             VALUE rname = rb_ivar_get(stream, rb_intern("@name"));
-            const char *name = RSTRING_PTR(rname);
-            stream__write_line_directive(stream, name, line);
+            rb_funcall(stream, rb_intern("write_line_directive"), 2, rname, rline);
         }
     }
 }
@@ -3347,6 +3339,6 @@ static void generate(context_t *ctx, VALUE sstream) {
         if (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) stream__putc(sstream, '\n');
         rb_funcall(ctx->robj, rb_intern("commit_buffer"), 0);
         if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) && !RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0)))
-            stream__write_line_directive(sstream, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum"))));
+            rb_funcall(sstream, rb_intern("write_line_directive"), 2, rb_ivar_get(ctx->robj, rb_intern("@iname")), rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     }
 }
