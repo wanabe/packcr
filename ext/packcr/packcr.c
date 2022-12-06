@@ -178,6 +178,21 @@ static VALUE packcr_context_commit_buffer(VALUE self) {
     return self;
 }
 
+static VALUE packcr_context_refill_buffer(VALUE self, VALUE rnum) {
+    size_t num = NUM2SIZET(rnum);
+    VALUE rbuffer = rb_ivar_get(self, rb_intern("@buffer"));
+    char_array_t *buffer;
+    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
+    if (NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) >= NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))) + num)
+        return SIZET2NUM(NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) - NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
+    while (NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) < NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))) + num) {
+        const VALUE c = rb_funcall(rb_ivar_get(self, rb_intern("@ifile")), rb_intern("getc"), 0);
+        if (c == Qnil) break;
+        char_array__add(buffer, (char)RSTRING_PTR(c)[0]);
+    }
+    
+    return SIZET2NUM(NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) - NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
+}
 
 static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rindent, VALUE rfname) {
     size_t indent = NUM2SIZET(rindent);
@@ -211,6 +226,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Context, "_generate", packcr_context_generate, 1);
     rb_define_method(cPackcr_Context, "destroy", packcr_context_destroy, 0);
     rb_define_method(cPackcr_Context, "commit_buffer", packcr_context_commit_buffer, 0);
+    rb_define_method(cPackcr_Context, "refill_buffer", packcr_context_refill_buffer, 1);
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
