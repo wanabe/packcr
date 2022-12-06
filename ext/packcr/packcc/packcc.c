@@ -1534,26 +1534,26 @@ static size_t refill_buffer(context_t *ctx, size_t num) {
     VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
     char_array_t *buffer;
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
-    if (buffer->len >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) + num) return buffer->len - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
-    while (buffer->len < NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) + num) {
+    if (NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) + num) return NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
+    while (NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) < NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) + num) {
         const VALUE c = rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@ifile")), rb_intern("getc"), 0);
         if (c == Qnil) break;
         char_array__add(buffer, (char)RSTRING_PTR(c)[0]);
     }
-    return buffer->len - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
+    return NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
 }
 
 static void commit_buffer(context_t *ctx) {
     VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
     char_array_t *buffer;
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
-    assert(buffer->len >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
+    assert(NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
     if (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linepos"))) < NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))) {
         const bool ascii = RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@ascii")));
 	size_t count = ascii ? NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))) : count_characters(buffer->buf, 0, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
         rb_ivar_set(ctx->robj, rb_intern("@charnum"), NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@charnum"))) + count);
     }
-    memmove(buffer->buf, buffer->buf + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))), buffer->len - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
+    memmove(buffer->buf, buffer->buf + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))), NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur"))));
     buffer->len -= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")));
     rb_ivar_set(ctx->robj, rb_intern("@bufpos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@bufcur")))));
     rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(0));
@@ -3377,14 +3377,12 @@ static void generate(context_t *ctx, VALUE sstream) {
     }
     {
         VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
-        char_array_t *buffer;
-        TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
         match_eol(ctx);
         if (!match_eof(ctx)) stream__putc(sstream, '\n');
         commit_buffer(ctx);
         if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) && !match_eof(ctx))
             stream__write_line_directive(sstream, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@iname"))), NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@linenum"))));
-        while (refill_buffer(ctx, buffer->max) > 0) {
+        while (refill_buffer(ctx, NUM2SIZET(rb_funcall(rbuffer, rb_intern("max"), 0))) > 0) {
             rb_funcall(sstream, rb_intern("write_context_buffer"), 1, ctx->robj);
             commit_buffer(ctx);
         }
