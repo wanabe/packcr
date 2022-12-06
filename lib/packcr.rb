@@ -64,6 +64,7 @@ class Packcr::Context
     @header = []
     @rules = []
     @rulehash = {}
+    @buffer = Packcr::Buffer.new
   end
 
   def value_type

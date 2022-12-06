@@ -1,6 +1,6 @@
 #include <ruby.h>
 
-VALUE cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream;
+VALUE cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Buffer;
 
 static void packcr_ptr_mark(void *ptr) {
 }
@@ -36,6 +36,17 @@ static VALUE packcr_code_block_s_alloc(VALUE klass) {
 static VALUE packcr_node_s_alloc(VALUE klass) {
     node_t *node;
     VALUE obj = TypedData_Make_Struct(klass, node_t, &packcr_ptr_data_type, node);
+
+    return obj;
+}
+
+static VALUE packcr_buffer_s_alloc(VALUE klass) {
+    char_array_t *buffer;
+    VALUE obj = TypedData_Make_Struct(klass, char_array_t, &packcr_ptr_data_type, buffer);
+
+    buffer->len = 0;
+    buffer->max = 0;
+    buffer->buf = NULL;
 
     return obj;
 }
@@ -144,6 +155,23 @@ static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rinde
     return self;
 }
 
+static VALUE packcr_stream_write_context_buffer(VALUE self, VALUE rctx) {
+    size_t n;
+    struct packcr_context_data *packcr_context;
+    context_t *ctx;
+    VALUE rbuffer;
+    char_array_t *buffer;
+
+    TypedData_Get_Struct(rctx, struct packcr_context_data, &packcr_context_data_type, packcr_context);
+    rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
+    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
+    ctx = packcr_context->ctx;
+    n = buffer->len;
+    stream__write_text(self, buffer->buf, (n > 0 && buffer->buf[n - 1] == '\r') ? n - 1 : n);
+    rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(n));
+    return self;
+}
+
 void Init_packcr(void) {
     VALUE cPackcr, cPackcr_Context;
 
@@ -162,6 +190,10 @@ void Init_packcr(void) {
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
 
+    cPackcr_Buffer = rb_define_class_under(cPackcr, "Buffer", rb_cObject);
+    rb_define_alloc_func(cPackcr_Buffer, packcr_buffer_s_alloc);
+
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
+    rb_define_method(cPackcr_Stream, "write_context_buffer", packcr_stream_write_context_buffer, 1);
 }
