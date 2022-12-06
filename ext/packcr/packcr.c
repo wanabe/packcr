@@ -160,6 +160,25 @@ static VALUE packcr_context_destroy(VALUE self) {
     return self;
 }
 
+static VALUE packcr_context_commit_buffer(VALUE self) {
+    VALUE rbuffer;
+    char_array_t *buffer;
+    rbuffer = rb_ivar_get(self, rb_intern("@buffer"));
+    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
+    assert(NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) >= NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
+    if (NUM2SIZET(rb_ivar_get(self, rb_intern("@linepos"))) < NUM2SIZET(rb_ivar_get(self, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur")))) {
+        const bool ascii = RB_TEST(rb_ivar_get(self, rb_intern("@ascii")));
+	size_t count = ascii ? NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))) : count_characters(buffer->buf, 0, NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
+        rb_ivar_set(self, rb_intern("@charnum"), NUM2SIZET(rb_ivar_get(self, rb_intern("@charnum"))) + count);
+    }
+    memmove(buffer->buf, buffer->buf + NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))), NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) - NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
+    buffer->len -= NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur")));
+    rb_ivar_set(self, rb_intern("@bufpos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(self, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur")))));
+    rb_ivar_set(self, rb_intern("@bufcur"), SIZET2NUM(0));
+    return self;
+}
+
+
 static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rindent, VALUE rfname) {
     size_t indent = NUM2SIZET(rindent);
     const char *fname = StringValuePtr(rfname);
@@ -169,18 +188,14 @@ static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rinde
 
 static VALUE packcr_stream_write_context_buffer(VALUE self, VALUE rctx) {
     size_t n;
-    struct packcr_context_data *packcr_context;
-    context_t *ctx;
     VALUE rbuffer;
     char_array_t *buffer;
 
-    TypedData_Get_Struct(rctx, struct packcr_context_data, &packcr_context_data_type, packcr_context);
     rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
-    ctx = packcr_context->ctx;
     n = buffer->len;
     stream__write_text(self, buffer->buf, (n > 0 && buffer->buf[n - 1] == '\r') ? n - 1 : n);
-    rb_ivar_set(ctx->robj, rb_intern("@bufcur"), SIZET2NUM(n));
+    rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(n));
     return self;
 }
 
@@ -195,6 +210,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
     rb_define_method(cPackcr_Context, "_generate", packcr_context_generate, 1);
     rb_define_method(cPackcr_Context, "destroy", packcr_context_destroy, 0);
+    rb_define_method(cPackcr_Context, "commit_buffer", packcr_context_commit_buffer, 0);
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
