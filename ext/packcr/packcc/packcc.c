@@ -622,31 +622,6 @@ static bool_t unescape_string(char *str, bool_t cls) { /* cls: TRUE if used for 
     return b;
 }
 
-static VALUE escape_character(char ch) {
-    switch (ch) {
-    case '\x00': return rb_str_new2("\\0"); break;
-    case '\x07': return rb_str_new2("\\a"); break;
-    case '\x08': return rb_str_new2("\\b"); break;
-    case '\x0c': return rb_str_new2("\\f"); break;
-    case '\x0a': return rb_str_new2("\\n"); break;
-    case '\x0d': return rb_str_new2("\\r"); break;
-    case '\x09': return rb_str_new2("\\t"); break;
-    case '\x0b': return rb_str_new2("\\v"); break;
-    case '\\':  return rb_str_new2("\\\\"); break;
-    case '\'':  return rb_str_new2("\\\'"); break;
-    case '\"':  return rb_str_new2("\\\""); break;
-    default:
-        if (ch >= '\x20' && ch < '\x7f') {
-            return rb_str_new(&ch, 1);
-        }
-    }
-    {
-        char buf[5];
-        snprintf(buf, 5, "\\x%02x", (int)(unsigned char)ch);
-        return rb_str_new(buf, 4);
-    }
-}
-
 static void remove_leading_blanks(char *str) {
     size_t i, j;
     for (i = 0; str[i]; i++) {
@@ -768,16 +743,6 @@ static void stream__write_text(VALUE stream, const char *ptr, size_t len) {
         else {
             stream__putc(stream, ptr[i]);
         }
-    }
-}
-
-static void stream__write_escaped_string(VALUE stream, const char *ptr, size_t len) {
-    VALUE s;
-    size_t i;
-    if (len == VOID_VALUE) return; /* for safety */
-    for (i = 0; i < len; i++) {
-        s = escape_character(ptr[i]);
-        stream__puts(stream, RSTRING_PTR(s));
     }
 }
 
@@ -1352,7 +1317,7 @@ static void dump_escaped_string(const char *str) {
         return;
     }
     while (*str) {
-        VALUE s = escape_character(*str++);
+        VALUE s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(*str++));
         fprintf(stdout, "%s", RSTRING_PTR(s));
     }
 }
@@ -2323,11 +2288,11 @@ static code_reach_t generate_matching_string_code(VALUE gen, const char *value, 
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "pcc_refill_buffer(ctx, " FMT_LU ") < " FMT_LU " ||\n", (ulong_t)n, (ulong_t)n);
             for (i = 0; i < n - 1; i++) {
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-                s = escape_character(value[i]);
+                s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
                 stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "(ctx->buffer.buf + ctx->cur)[" FMT_LU "] != '%s' ||\n", (ulong_t)i, RSTRING_PTR(s));
             }
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-            s = escape_character(value[i]);
+            s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "(ctx->buffer.buf + ctx->cur)[" FMT_LU "] != '%s'\n", (ulong_t)i, RSTRING_PTR(s));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), ") goto L%04d;\n", onfail);
@@ -2341,7 +2306,7 @@ static code_reach_t generate_matching_string_code(VALUE gen, const char *value, 
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
             stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_refill_buffer(ctx, 1) < 1 ||\n");
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-            s = escape_character(value[0]);
+            s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[0]));
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "ctx->buffer.buf[ctx->cur] != '%s'\n", RSTRING_PTR(s));
             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), ") goto L%04d;\n", onfail);
@@ -2371,7 +2336,7 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
                     stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "pcc_refill_buffer(ctx, 1) < 1 ||\n");
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
-                    s = escape_character(value[i]);
+                    s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
                     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "ctx->buffer.buf[ctx->cur] == '%s'\n", RSTRING_PTR(s));
                     stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
                     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), ") goto L%04d;\n", onfail);
@@ -2393,8 +2358,8 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
                     stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "c = ctx->buffer.buf[ctx->cur];\n");
                     if (i + 3 == n && value[i] != '\\' && value[i + 1] == '-') {
                         stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
-                        s = escape_character(value[i]);
-                        t = escape_character(value[i + 2]);
+                        s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
+                        t = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i + 2]));
                         stream__printf(rb_ivar_get(gen, rb_intern("@stream")),
                             a ? "if (c >= '%s' && c <= '%s') goto L%04d;\n"
                               : "if (!(c >= '%s' && c <= '%s')) goto L%04d;\n",
@@ -2407,14 +2372,14 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
                             stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);
                             if (value[i] == '\\' && i + 1 < n) i++;
                             if (i + 2 < n && value[i + 1] == '-') {
-                                s = escape_character(value[i]);
-                                t = escape_character(value[i + 2]);
+                                s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
+                                t = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i + 2]));
                                 stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "(c >= '%s' && c <= '%s')%s\n",
                                     RSTRING_PTR(s), RSTRING_PTR(t), (i + 3 == n) ? "" : " ||");
                                 i += 2;
                             }
                             else {
-                                s = escape_character(value[i]);
+                                s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
                                 stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "c == '%s'%s\n",
                                     RSTRING_PTR(s), (i + 1 == n) ? "" : " ||");
                             }
@@ -2433,7 +2398,7 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
                 }
             }
             else {
-                VALUE s = escape_character(value[0]);
+                VALUE s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[0]));
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
                 stream__puts(rb_ivar_get(gen, rb_intern("@stream")), "if (\n");
                 stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent + 4);

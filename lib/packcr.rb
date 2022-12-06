@@ -15,6 +15,42 @@ class Packcr
       end
     end
   end
+
+  class << self
+    def escape_character(c)
+      ch = c.ord
+      case ch
+      when 0x00
+        "\\0"
+      when 0x07
+        "\\a"
+      when 0x08
+        "\\b"
+      when 0x0c
+        "\\f"
+      when 0x0a
+        "\\n"
+      when 0x0d
+        "\\r"
+      when 0x09
+        "\\t"
+      when 0x0b
+        "\\v"
+      when "\\".ord
+        "\\\\"
+      when "\'".ord
+        "\\\'"
+      when "\"".ord
+        "\\\""
+      else
+        if ch >= 0x20 && ch < 0x7f
+          ch.chr
+        else
+          "\\x%02x" % ch
+        end
+      end
+    end
+  end
 end
 
 class Packcr::Stream
@@ -36,6 +72,14 @@ class Packcr::Stream
     if @line
       @line += s.count("\n")
     end
+  end
+
+  def write_line_directive(fname, lineno)
+    write("#line #{lineno + 1} \"")
+    fname.each_byte do |b|
+      write(Packcr.escape_character(b))
+    end
+    write("\"\n")
   end
 end
 

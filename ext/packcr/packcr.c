@@ -1,6 +1,6 @@
 #include <ruby.h>
 
-VALUE cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Buffer, cPackcr_Generator;
+VALUE cPackcr, cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Buffer, cPackcr_Generator;
 
 static void packcr_ptr_mark(void *ptr) {
 }
@@ -184,15 +184,6 @@ static VALUE packcr_stream_write_context_buffer(VALUE self, VALUE rctx) {
     return self;
 }
 
-static VALUE packcr_stream_write_line_directive(VALUE self, VALUE rfname, VALUE rlineno) {
-    const char *fname = StringValuePtr(rfname);
-    size_t lineno = NUM2SIZET(rlineno);
-    stream__printf(self, "#line " FMT_LU " \"", (ulong_t)(lineno + 1));
-    stream__write_escaped_string(self, fname, strlen(fname));
-    stream__puts(self, "\"\n");
-    return self;
-}
-
 static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfail, VALUE rindent, VALUE rbare) {
     const node_t *node;
     int onfail = NUM2INT(ronfail);
@@ -252,7 +243,7 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
 }
 
 void Init_packcr(void) {
-    VALUE cPackcr, cPackcr_Context;
+    VALUE cPackcr_Context;
 
     cPackcr = rb_const_get(rb_cObject, rb_intern("Packcr"));
 
@@ -282,7 +273,6 @@ void Init_packcr(void) {
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
     rb_define_method(cPackcr_Stream, "write_context_buffer", packcr_stream_write_context_buffer, 1);
-    rb_define_method(cPackcr_Stream, "write_line_directive", packcr_stream_write_line_directive, 2);
 
     cPackcr_Generator = rb_const_get(cPackcr, rb_intern("Generator"));
     rb_define_method(cPackcr_Generator, "generate_code", packcr_generator_generate_code, 4);
