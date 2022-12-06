@@ -3336,9 +3336,5 @@ static void generate(context_t *ctx, VALUE sstream) {
     }
     {
         match_eol(ctx);
-        if (!RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0))) stream__putc(sstream, '\n');
-        rb_funcall(ctx->robj, rb_intern("commit_buffer"), 0);
-        if (RB_TEST(rb_ivar_get(ctx->robj, rb_intern("@lines"))) && !RB_TEST(rb_funcall(ctx->robj, rb_intern("eof?"), 0)))
-            rb_funcall(sstream, rb_intern("write_line_directive"), 2, rb_ivar_get(ctx->robj, rb_intern("@iname")), rb_ivar_get(ctx->robj, rb_intern("@linenum")));
     }
 }

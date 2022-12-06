@@ -1342,6 +1342,13 @@ class Packcr::Context
 
       _generate(sstream)
 
+      if !eof?
+        sstream.putc("\n")
+      end
+      commit_buffer
+      if @lines && !eof?
+        sstream.write_line_directive(@iname, @linenum)
+      end
       while refill_buffer(@buffer.max) > 0
         sstream.write_context_buffer(self)
         commit_buffer
