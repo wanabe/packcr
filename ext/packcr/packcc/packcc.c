@@ -399,11 +399,6 @@ static bool_t is_identifier_string(const char *str) {
     return TRUE;
 }
 
-static bool_t is_pointer_type(const char *str) {
-    const size_t n = strlen(str);
-    return (n > 0 && str[n - 1] == '*') ? TRUE : FALSE;
-}
-
 static bool_t is_valid_utf8_string(const char *str) {
     int k = 0, n = 0, u = 0;
     size_t i;
@@ -3025,12 +3020,7 @@ static code_reach_t generate_code(generate_t *gen, const node_t *node, int onfai
 }
 
 static void generate(context_t *ctx, VALUE sstream) {
-    VALUE rvt = rb_funcall(ctx->robj, rb_intern("value_type"), 0);
-    VALUE rat = rb_funcall(ctx->robj, rb_intern("auxil_type"), 0);
-    const bool_t vp = is_pointer_type(RSTRING_PTR(rvt));
-    const bool_t ap = is_pointer_type(RSTRING_PTR(rat));
     {
-        VALUE rrules;
         {
             size_t i, j, k;
             VALUE rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
@@ -3245,58 +3235,5 @@ static void generate(context_t *ctx, VALUE sstream) {
                 );
             }
         }
-        stream__printf(
-            sstream,
-            "%s_context_t *%s_create(%s%sauxil) {\n",
-            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
-            RSTRING_PTR(rat), ap ? "" : " "
-        );
-        stream__puts(
-            sstream,
-            "    return pcc_context__create(auxil);\n"
-            "}\n"
-            "\n"
-        );
-        stream__printf(
-            sstream,
-            "int %s_parse(%s_context_t *ctx, %s%s*ret) {\n",
-            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)),
-            RSTRING_PTR(rvt), vp ? "" : " "
-        );
-        rrules = rb_ivar_get(ctx->robj, rb_intern("@rules"));
-        if (RARRAY_LEN(rrules) > 0) {
-            node_t *node;
-            VALUE rnode = rb_ary_entry(rrules, 0);
-            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-            stream__printf(
-                sstream,
-                "    if (pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &ctx->thunks, ret))\n",
-                node->data.rule.name
-            );
-            stream__puts(
-                sstream,
-                "        pcc_do_action(ctx, &ctx->thunks, ret);\n"
-                "    else\n"
-                "        PCC_ERROR(ctx->auxil);\n"
-                "    pcc_commit_buffer(ctx);\n"
-            );
-        }
-        stream__puts(
-            sstream,
-            "    pcc_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);\n"
-            "    return pcc_refill_buffer(ctx, 1) >= 1;\n"
-            "}\n"
-            "\n"
-        );
-        stream__printf(
-            sstream,
-            "void %s_destroy(%s_context_t *ctx) {\n",
-            RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0)), RSTRING_PTR(rb_funcall(ctx->robj, rb_intern("prefix"), 0))
-        );
-        stream__puts(
-            sstream,
-            "    pcc_context__destroy(ctx);\n"
-            "}\n"
-        );
     }
 }

@@ -148,11 +148,11 @@ class Packcr::Context
         extern "C" {
         #endif
 
-        typedef struct #{@prefix}_context_tag #{@prefix}_context_t;
+        typedef struct #{prefix}_context_tag #{prefix}_context_t;
 
-        #{@prefix}_context_t *#{@prefix}_create(#{auxil_def}auxil);
-        int #{@prefix}_parse(#{@prefix}_context_t *ctx, #{value_def}*ret);
-        void #{@prefix}_destroy(#{@prefix}_context_t *ctx);
+        #{prefix}_context_t *#{prefix}_create(#{auxil_def}auxil);
+        int #{prefix}_parse(#{prefix}_context_t *ctx, #{value_def}*ret);
+        void #{prefix}_destroy(#{prefix}_context_t *ctx);
 
         #ifdef __cplusplus
         }
@@ -254,7 +254,7 @@ class Packcr::Context
 
       if @prefix != "pcc"
         sstream.write(<<~EOS)
-          typedef #{@prefix}_context_t pcc_context_t;
+          typedef #{prefix}_context_t pcc_context_t;
 
         EOS
       end
@@ -434,7 +434,7 @@ class Packcr::Context
             size_t element_size;
         } pcc_memory_recycler_t;
 
-        struct #{@prefix}_context_tag {
+        struct #{prefix}_context_tag {
             size_t pos; /* the position in the input of the first character currently buffered */
             size_t cur; /* the current parsing position in the character buffer */
             size_t level;
@@ -1370,6 +1370,36 @@ class Packcr::Context
       EOS
 
       _generate(sstream)
+
+      sstream.write(<<~EOS)
+        #{prefix}_context_t *#{prefix}_create(#{auxil_def}auxil) {
+            return pcc_context__create(auxil);
+        }
+
+        int #{prefix}_parse(#{prefix}_context_t *ctx, #{value_def}*ret) {
+      EOS
+
+      if !@rules.empty?
+        sstream.write(<<~EOS.sub(/\A.*\n/, ""))
+          >
+              if (pcc_apply_rule(ctx, pcc_evaluate_rule_#{@rules[0].rule_name}, &ctx->thunks, ret))
+                  pcc_do_action(ctx, &ctx->thunks, ret);
+              else
+                  PCC_ERROR(ctx->auxil);
+              pcc_commit_buffer(ctx);
+        EOS
+      end
+
+
+      sstream.write(<<~EOS)
+            pcc_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);
+            return pcc_refill_buffer(ctx, 1) >= 1;
+        }
+
+        void #{prefix}_destroy(#{prefix}_context_t *ctx) {
+            pcc_context__destroy(ctx);
+        }
+      EOS
 
       eol?
       if !eof?
