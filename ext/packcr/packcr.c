@@ -61,6 +61,22 @@ static VALUE packcr_node_rule_capts_len(VALUE self) {
     return SIZET2NUM(node->data.rule.capts.len);
 }
 
+static VALUE packcr_node_index(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        return SIZET2NUM(node->data.action.index);
+        break;
+    case NODE_ERROR:
+        return SIZET2NUM(node->data.error.index);
+        break;
+    default:
+        return Qnil;
+    }
+}
+
 static VALUE packcr_node_rule_expr(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -282,6 +298,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "rule_vars_len", packcr_node_rule_vars_len, 0);
     rb_define_method(cPackcr_Node, "rule_capts_len", packcr_node_rule_capts_len, 0);
     rb_define_method(cPackcr_Node, "rule_expr", packcr_node_rule_expr, 0);
+    rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
 
     cPackcr_Buffer = rb_define_class_under(cPackcr, "Buffer", rb_cObject);
     rb_define_alloc_func(cPackcr_Buffer, packcr_buffer_s_alloc);

@@ -1455,7 +1455,20 @@ class Packcr::Context
 
       @rules.each do |rule|
         rule.codes.each do |code|
+          sstream.write(<<~EOS)
+            static void pcc_action_#{rule.rule_name}_#{code.index}(#{@prefix}_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+            #define auxil (__pcc_ctx->auxil)
+            #define __ (*__pcc_out)
+          EOS
+
           generate_code(sstream, rule.rule_name, code)
+
+          sstream.write(<<~EOS)
+            #undef __
+            #undef auxil
+            }
+
+          EOS
         end
       end
 

@@ -2903,21 +2903,18 @@ static code_reach_t generate_thunking_error_code(
 
 static void generate_code(VALUE rctx, VALUE sstream, VALUE rrule_name, VALUE rnode) {
     const code_block_t *b;
-    size_t d, k;
+    size_t k;
     const node_const_array_t *v, *c;
     const node_t *node;
-    const char *rule_name = StringValuePtr(rrule_name);
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     switch (node->type) {
     case NODE_ACTION:
         b = &node->data.action.code;
-        d = node->data.action.index;
         v = &node->data.action.vars;
         c = &node->data.action.capts;
         break;
     case NODE_ERROR:
         b = &node->data.error.code;
-        d = node->data.error.index;
         v = &node->data.error.vars;
         c = &node->data.error.capts;
         break;
@@ -2925,16 +2922,6 @@ static void generate_code(VALUE rctx, VALUE sstream, VALUE rrule_name, VALUE rno
         print_error("Internal error [%d]\n", __LINE__);
         exit(-1);
     }
-    stream__printf(
-        sstream,
-        "static void pcc_action_%s_" FMT_LU "(%s_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {\n",
-        rule_name, (ulong_t)d, RSTRING_PTR(rb_funcall(rctx, rb_intern("prefix"), 0))
-    );
-    rb_funcall(
-        sstream, rb_intern("write"), 1, rb_str_new2(
-        "#define auxil (__pcc_ctx->auxil)\n"
-        "#define __ (*__pcc_out)\n"
-    ));
     k = 0;
     while (k < v->len) {
         assert(v->buf[k]->type == NODE_REFERENCE);
@@ -3014,11 +3001,4 @@ static void generate_code(VALUE rctx, VALUE sstream, VALUE rrule_name, VALUE rno
             v->buf[k]->data.reference.var
         );
     }
-    rb_funcall(
-        sstream, rb_intern("write"), 1, rb_str_new2(
-        "#undef __\n"
-        "#undef auxil\n"
-        "}\n"
-        "\n"
-    ));
 }
