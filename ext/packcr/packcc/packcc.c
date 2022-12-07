@@ -1315,14 +1315,22 @@ static void dump_integer_value(size_t value) {
     }
 }
 
-static void dump_node(VALUE rctx, const node_t *node, const int indent) {
+static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     if (node == NULL) return;
     switch (node->type) {
     case NODE_RULE:
-        fprintf(stdout, "%*sRule(name:'%s', ref:%d, vars.len:" FMT_LU ", capts.len:" FMT_LU ", codes.len:" FMT_LU ") {\n",
-            indent, "", node->data.rule.name, node->data.rule.ref,
-            (ulong_t)node->data.rule.vars.len, (ulong_t)node->data.rule.capts.len, (ulong_t)0 /* TODO: (ulong_t)node->data.rule.codes.len*/);
-        dump_node(rctx, node->data.rule.expr, indent + 2);
+        {
+            VALUE rcodes = rb_ivar_get(rnode, rb_intern("@codes"));
+            fprintf(stdout, "%*sRule(name:'%s', ref:%d, vars.len:" FMT_LU ", capts.len:" FMT_LU ", codes.len:" FMT_LU ") {\n",
+                indent, "", node->data.rule.name, node->data.rule.ref,
+                (ulong_t)node->data.rule.vars.len, (ulong_t)node->data.rule.capts.len, NIL_P(rcodes) ? 0 : (ulong_t) NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0)));
+        }
+        {
+            VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.rule.expr);
+            dump_node(rctx, rexpr, indent + 2);
+        }
         fprintf(stdout, "%*s}\n", indent, "");
         break;
     case NODE_REFERENCE:
@@ -1343,12 +1351,18 @@ static void dump_node(VALUE rctx, const node_t *node, const int indent) {
         break;
     case NODE_QUANTITY:
         fprintf(stdout, "%*sQuantity(min:%d, max:%d) {\n", indent, "", node->data.quantity.min, node->data.quantity.max);
-        dump_node(rctx, node->data.quantity.expr, indent + 2);
+        {
+            VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.quantity.expr);
+            dump_node(rctx, rexpr, indent + 2);
+        }
         fprintf(stdout, "%*s}\n", indent, "");
         break;
     case NODE_PREDICATE:
         fprintf(stdout, "%*sPredicate(neg:%d) {\n", indent, "", node->data.predicate.neg);
-        dump_node(rctx, node->data.predicate.expr, indent + 2);
+        {
+            VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.predicate.expr);
+            dump_node(rctx, rexpr, indent + 2);
+        }
         fprintf(stdout, "%*s}\n", indent, "");
         break;
     case NODE_SEQUENCE:
@@ -1357,7 +1371,8 @@ static void dump_node(VALUE rctx, const node_t *node, const int indent) {
         {
             size_t i;
             for (i = 0; i < node->data.sequence.nodes.len; i++) {
-                dump_node(rctx, node->data.sequence.nodes.buf[i], indent + 2);
+                VALUE rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.sequence.nodes.buf[i]);
+                dump_node(rctx, rnode, indent + 2);
             }
         }
         fprintf(stdout, "%*s}\n", indent, "");
@@ -1368,7 +1383,8 @@ static void dump_node(VALUE rctx, const node_t *node, const int indent) {
         {
             size_t i;
             for (i = 0; i < node->data.alternate.nodes.len; i++) {
-                dump_node(rctx, node->data.alternate.nodes.buf[i], indent + 2);
+                VALUE rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.alternate.nodes.buf[i]);
+                dump_node(rctx, rnode, indent + 2);
             }
         }
         fprintf(stdout, "%*s}\n", indent, "");
@@ -1377,7 +1393,10 @@ static void dump_node(VALUE rctx, const node_t *node, const int indent) {
         fprintf(stdout, "%*sCapture(index:", indent, "");
         dump_integer_value(node->data.capture.index);
         fprintf(stdout, ") {\n");
-        dump_node(rctx, node->data.capture.expr, indent + 2);
+        {
+            VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.capture.expr);
+            dump_node(rctx, rexpr, indent + 2);
+        }
         fprintf(stdout, "%*s}\n", indent, "");
         break;
     case NODE_EXPAND:
@@ -1422,7 +1441,10 @@ static void dump_node(VALUE rctx, const node_t *node, const int indent) {
             }
         }
         fprintf(stdout, "%*s) {\n", indent, "");
-        dump_node(rctx, node->data.error.expr, indent + 2);
+        {
+            VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.error.expr);
+            dump_node(rctx, rexpr, indent + 2);
+        }
         fprintf(stdout, "%*s}\n", indent, "");
         break;
     default:
@@ -2256,12 +2278,10 @@ static bool_t parse(VALUE rctx) {
     }
     if (RB_TEST(rb_ivar_get(rctx, rb_intern("@debug")))) {
         size_t i;
-        node_t *node;
         VALUE rrules = rb_ivar_get(rctx, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             VALUE rnode = rb_ary_entry(rrules, i);
-            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-            dump_node(rctx, node, 0);
+            dump_node(rctx, rnode, 0);
         }
         dump_options(rctx);
     }
