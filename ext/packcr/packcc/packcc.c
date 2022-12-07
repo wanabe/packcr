@@ -1671,18 +1671,20 @@ static bool_t match_footer_start(VALUE rctx) {
     return match_string(rctx, "%%");
 }
 
-static node_t *parse_expression(VALUE rctx, node_t *rule);
+static node_t *parse_expression(VALUE rctx, VALUE rrule);
 
-static node_t *parse_primary(VALUE rctx, node_t *rule) {
+static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
+    node_t *rule;
     node_t *n_p = NULL;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     char_array_t *buffer;
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
+    TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
     if (match_identifier(rctx)) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         size_t r = VOID_VALUE, s = VOID_VALUE;
@@ -1728,7 +1730,7 @@ static node_t *parse_primary(VALUE rctx, node_t *rule) {
     }
     else if (match_character(rctx, '(')) {
         match_spaces(rctx);
-        n_p = parse_expression(rctx, rule);
+        n_p = parse_expression(rctx, rrule);
         if (n_p == NULL) goto EXCEPTION;
         if (!match_character(rctx, ')')) goto EXCEPTION;
         match_spaces(rctx);
@@ -1738,7 +1740,7 @@ static node_t *parse_primary(VALUE rctx, node_t *rule) {
         n_p = create_node(NODE_CAPTURE);
         n_p->data.capture.index = rule->data.rule.capts.len;
         node_const_array__add(&rule->data.rule.capts, n_p);
-        n_p->data.capture.expr = parse_expression(rctx, rule);
+        n_p->data.capture.expr = parse_expression(rctx, rrule);
         if (n_p->data.capture.expr == NULL || !match_character(rctx, '>')) {
             rule->data.rule.capts.len = n_p->data.capture.index;
             goto EXCEPTION;
@@ -1845,7 +1847,7 @@ EXCEPTION:;
     return NULL;
 }
 
-static node_t *parse_term(VALUE rctx, node_t *rule) {
+static node_t *parse_term(VALUE rctx, VALUE rrule) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
@@ -1854,12 +1856,14 @@ static node_t *parse_term(VALUE rctx, node_t *rule) {
     node_t *n_q = NULL;
     node_t *n_r = NULL;
     node_t *n_t = NULL;
+    node_t *rule;
     const char t = match_character(rctx, '&') ? '&' : match_character(rctx, '!') ? '!' : '\0';
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     char_array_t *buffer;
+    TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     if (t) match_spaces(rctx);
-    n_p = parse_primary(rctx, rule);
+    n_p = parse_primary(rctx, rrule);
     if (n_p == NULL) goto EXCEPTION;
     if (match_character(rctx, '*')) {
         match_spaces(rctx);
@@ -1935,7 +1939,7 @@ EXCEPTION:;
     return NULL;
 }
 
-static node_t *parse_sequence(VALUE rctx, node_t *rule) {
+static node_t *parse_sequence(VALUE rctx, VALUE rrule) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
@@ -1944,15 +1948,15 @@ static node_t *parse_sequence(VALUE rctx, node_t *rule) {
     node_t *n_t = NULL;
     node_t *n_u = NULL;
     node_t *n_s = NULL;
-    n_t = parse_term(rctx, rule);
+    n_t = parse_term(rctx, rrule);
     if (n_t == NULL) goto EXCEPTION;
-    n_u = parse_term(rctx, rule);
+    n_u = parse_term(rctx, rrule);
     if (n_u != NULL) {
         n_s = create_node(NODE_SEQUENCE);
         a_t = &n_s->data.sequence.nodes;
         node_array__add(a_t, n_t);
         node_array__add(a_t, n_u);
-        while ((n_t = parse_term(rctx, rule)) != NULL) {
+        while ((n_t = parse_term(rctx, rrule)) != NULL) {
             node_array__add(a_t, n_t);
         }
     }
@@ -1969,7 +1973,7 @@ EXCEPTION:;
     return NULL;
 }
 
-static node_t *parse_expression(VALUE rctx, node_t *rule) {
+static node_t *parse_expression(VALUE rctx, VALUE rrule) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
@@ -1978,7 +1982,7 @@ static node_t *parse_expression(VALUE rctx, node_t *rule) {
     node_array_t *a_s = NULL;
     node_t *n_s = NULL;
     node_t *n_e = NULL;
-    n_s = parse_sequence(rctx, rule);
+    n_s = parse_sequence(rctx, rrule);
     if (n_s == NULL) goto EXCEPTION;
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     if (match_character(rctx, '/')) {
@@ -1988,7 +1992,7 @@ static node_t *parse_expression(VALUE rctx, node_t *rule) {
         node_array__add(a_s, n_s);
         while (match_character(rctx, '/')) {
             match_spaces(rctx);
-            n_s = parse_sequence(rctx, rule);
+            n_s = parse_sequence(rctx, rrule);
             if (n_s == NULL) goto EXCEPTION;
             node_array__add(a_s, n_s);
         }
@@ -2026,7 +2030,7 @@ static VALUE parse_rule(VALUE rctx) {
     match_spaces(rctx);
     rn_r = create_rule_node();
     TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
-    n_r->data.rule.expr = parse_expression(rctx, n_r);
+    n_r->data.rule.expr = parse_expression(rctx, rn_r);
     if (n_r->data.rule.expr == NULL) goto EXCEPTION;
     assert(q >= p);
     n_r->data.rule.name = strndup_e(buffer->buf + p, q - p);
