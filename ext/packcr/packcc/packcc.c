@@ -809,23 +809,6 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
     }
 }
 
-static size_t column_number(VALUE rctx) { /* 0-based */
-    VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
-    assert(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) >= NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))));
-    if (RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii"))))
-        return NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) - ((NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos")))) ? NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))) : 0);
-    else
-        return NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")))
-            + NUM2SIZET(rb_funcall(
-                rbuffer, rb_intern("count_characters"), 2,
-                (NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))))
-                    ? SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))))
-                    : SIZET2NUM(0),
-                rb_ivar_get(rctx, rb_intern("@bufcur"))
-            ));
-}
-
 static void char_array__add(char_array_t *array, char ch) {
     if (array->max <= array->len) {
         const size_t n = array->len + 1;
@@ -1539,7 +1522,7 @@ static bool_t match_section_line_continuable_(VALUE rctx, const char *head) {
 
 static bool_t match_section_block_(VALUE rctx, const char *left, const char *right, const char *name) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = column_number(rctx);
+    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     if (match_string(rctx, left)) {
         while (!match_string(rctx, right)) {
             if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) {
@@ -1556,7 +1539,7 @@ static bool_t match_section_block_(VALUE rctx, const char *left, const char *rig
 
 static bool_t match_quotation_(VALUE rctx, const char *left, const char *right, const char *name) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = column_number(rctx);
+    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     if (match_string(rctx, left)) {
         while (!match_string(rctx, right)) {
             if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) {
@@ -1642,7 +1625,7 @@ static bool_t match_identifier(VALUE rctx) {
 
 static bool_t match_code_block(VALUE rctx) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = column_number(rctx);
+    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     if (match_character(rctx, '{')) {
         int d = 1;
         for (;;) {
@@ -1693,7 +1676,7 @@ static node_t *parse_expression(VALUE rctx, node_t *rule);
 static node_t *parse_primary(VALUE rctx, node_t *rule) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = column_number(rctx);
+    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
     node_t *n_p = NULL;
@@ -1921,7 +1904,7 @@ static node_t *parse_term(VALUE rctx, node_t *rule) {
         match_spaces(rctx);
         p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-        m = column_number(rctx);
+        m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
         if (match_code_block(rctx)) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             match_spaces(rctx);
@@ -2027,7 +2010,7 @@ EXCEPTION:;
 static VALUE parse_rule(VALUE rctx) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = column_number(rctx);
+    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
     size_t q;
@@ -2075,7 +2058,7 @@ static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE outpu
     {
         const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-        const size_t m = column_number(rctx);
+        const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
         if (match_code_block(rctx)) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             match_spaces(rctx);
@@ -2104,14 +2087,14 @@ static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE outpu
 
 static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *varname, string_flag_t mode) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = column_number(rctx);
+    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     if (!match_string(rctx, name)) return FALSE;
     match_spaces(rctx);
     {
         char *s = NULL;
         const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         const size_t lv = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-        const size_t mv = column_number(rctx);
+        const size_t mv = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
         size_t q;
         VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
         char_array_t *buffer;
@@ -2176,7 +2159,7 @@ static bool_t parse(VALUE rctx) {
             size_t l, m, n, o;
             if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0)) || match_footer_start(rctx)) break;
             l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-            m = column_number(rctx);
+            m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
             n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
             o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
             if (

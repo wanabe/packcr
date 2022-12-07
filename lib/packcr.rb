@@ -186,6 +186,18 @@ class Packcr::Context
     end
   end
 
+  def column_number
+    unless @bufpos + @bufcur >= @linepos
+      raise "invalid position: expect #{@bufpos + @bufcur} >= #{@linepos}"
+    end
+    offset = @linepos > @bufpos ? @linepos - @bufpos : 0
+    if @ascii
+      @charnum + @bufcur - offset
+    else
+      @charnum + @buffer.count_characters(offset, @bufcur)
+    end
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
