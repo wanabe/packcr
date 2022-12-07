@@ -1433,7 +1433,9 @@ class Packcr::Context
 
       EOS
 
-      _generate(sstream)
+      @rules.each do |rule|
+        generate_by_rule(sstream, rule)
+      end
 
       @rules.each do |node|
         sstream.write(<<~EOS)

@@ -125,8 +125,8 @@ static VALUE packcr_context_parse(VALUE self) {
     return parse(self) ? Qtrue : Qfalse;
 }
 
-static VALUE packcr_context_generate(VALUE self, VALUE sstream) {
-    generate(self, sstream);
+static VALUE packcr_context_generate_by_rule(VALUE self, VALUE sstream, VALUE rule) {
+    generate_by_rule(self, sstream, rule);
     return self;
 }
 
@@ -250,7 +250,7 @@ void Init_packcr(void) {
     cPackcr_Context = rb_const_get(cPackcr, rb_intern("Context"));
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);
     rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
-    rb_define_method(cPackcr_Context, "_generate", packcr_context_generate, 1);
+    rb_define_method(cPackcr_Context, "generate_by_rule", packcr_context_generate_by_rule, 2);
     rb_define_method(cPackcr_Context, "commit_buffer", packcr_context_commit_buffer, 0);
     rb_define_method(cPackcr_Context, "refill_buffer", packcr_context_refill_buffer, 1);
 
