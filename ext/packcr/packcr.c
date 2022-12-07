@@ -97,6 +97,23 @@ static VALUE packcr_buffer_entry(VALUE self, VALUE rindex) {
     return INT2NUM(buffer->buf[NUM2SIZET(rindex)]);
 }
 
+static VALUE packcr_buffer_count_characters(VALUE self, VALUE rstart, VALUE rend) {
+    char_array_t *buffer;
+    const char *str;
+    size_t start = NUM2SIZET(rstart), end = NUM2SIZET(rend);
+    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
+    str = buffer->buf;
+    /* UTF-8 multibyte character support but without checking UTF-8 validity */
+    size_t n = 0, i = start;
+    while (i < end) {
+        const int c = (int)(unsigned char)str[i];
+        if (c == 0) break;
+        n++;
+        i += (c < 0x80) ? 1 : ((c & 0xe0) == 0xc0) ? 2 : ((c & 0xf0) == 0xe0) ? 3 : ((c & 0xf8) == 0xf0) ? 4 : /* invalid code */ 1;
+    }
+    return SIZET2NUM(n);
+}
+
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -138,7 +155,9 @@ static VALUE packcr_context_commit_buffer(VALUE self) {
     assert(NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) >= NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
     if (NUM2SIZET(rb_ivar_get(self, rb_intern("@linepos"))) < NUM2SIZET(rb_ivar_get(self, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur")))) {
         const bool ascii = RB_TEST(rb_ivar_get(self, rb_intern("@ascii")));
-	size_t count = ascii ? NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))) : count_characters(buffer->buf, 0, NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
+	    size_t count = ascii
+            ? NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur")))
+            : NUM2SIZET(rb_funcall(rbuffer, rb_intern("count_characters"), 2, SIZET2NUM(0), rb_ivar_get(self, rb_intern("@bufcur"))));
         rb_ivar_set(self, rb_intern("@charnum"), NUM2SIZET(rb_ivar_get(self, rb_intern("@charnum"))) + count);
     }
     memmove(buffer->buf, buffer->buf + NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))), NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) - NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
@@ -269,6 +288,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Buffer, "max", packcr_buffer_max, 0);
     rb_define_method(cPackcr_Buffer, "len", packcr_buffer_len, 0);
     rb_define_method(cPackcr_Buffer, "[]", packcr_buffer_entry, 1);
+    rb_define_method(cPackcr_Buffer, "count_characters", packcr_buffer_count_characters, 2);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);

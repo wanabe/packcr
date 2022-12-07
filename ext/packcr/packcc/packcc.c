@@ -670,18 +670,6 @@ static size_t find_trailing_blanks(const char *str) {
     return j;
 }
 
-static size_t count_characters(const char *str, size_t start, size_t end) {
-    /* UTF-8 multibyte character support but without checking UTF-8 validity */
-    size_t n = 0, i = start;
-    while (i < end) {
-        const int c = (int)(unsigned char)str[i];
-        if (c == 0) break;
-        n++;
-        i += (c < 0x80) ? 1 : ((c & 0xe0) == 0xc0) ? 2 : ((c & 0xf0) == 0xe0) ? 3 : ((c & 0xf8) == 0xf0) ? 4 : /* invalid code */ 1;
-    }
-    return n;
-}
-
 __attribute__((format(printf, 2, 3)))
 static int stream__printf(VALUE stream, const char *format, ...) {
     {
@@ -823,13 +811,19 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
 
 static size_t column_number(VALUE rctx) { /* 0-based */
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    char_array_t *buffer;
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     assert(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) >= NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))));
     if (RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii"))))
         return NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) - ((NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos")))) ? NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))) : 0);
     else
-        return NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum"))) + count_characters(buffer->buf, (NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos")))) ? NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))) : 0, NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))));
+        return NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")))
+            + NUM2SIZET(rb_funcall(
+                rbuffer, rb_intern("count_characters"), 2,
+                (NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) > NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))))
+                    ? SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos"))) - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufpos"))))
+                    : SIZET2NUM(0),
+                rb_ivar_get(rctx, rb_intern("@bufcur"))
+            ));
 }
 
 static void char_array__add(char_array_t *array, char ch) {
