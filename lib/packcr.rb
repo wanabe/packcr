@@ -101,6 +101,13 @@ end
 
 require "packcr.so"
 
+class Packcr::Node
+  def initialize
+    super
+    @codes = []
+  end
+end
+
 class Packcr::Context
   def init(path, lines: false, debug: false, ascii: false)
     @iname = path

@@ -6,7 +6,7 @@ static void packcr_ptr_mark(void *ptr) {
 }
 
 static void packcr_ptr_free(void *ptr) {
-    xfree(ptr);
+    /* TODO: temporary disable to avoid double free */
 }
 
 static size_t packcr_ptr_memsize(const void *ptr) {

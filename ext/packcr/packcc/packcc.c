@@ -147,7 +147,6 @@ typedef struct node_rule_tag {
     int ref; /* mutable */
     node_const_array_t vars;
     node_const_array_t capts;
-    node_const_array_t codes;
     size_t line;
     size_t col;
 } node_rule_t;
@@ -915,9 +914,33 @@ static VALUE create_rule_node() {
     node->data.rule.ref = 0;
     node_const_array__init(&node->data.rule.vars);
     node_const_array__init(&node->data.rule.capts);
-    node_const_array__init(&node->data.rule.codes);
     node->data.rule.line = VOID_VALUE;
     node->data.rule.col = VOID_VALUE;
+    return rnode;
+}
+
+static VALUE create_action_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_ACTION;
+    code_block__init(&node->data.action.code);
+    node->data.action.index = VOID_VALUE;
+    node_const_array__init(&node->data.action.vars);
+    node_const_array__init(&node->data.action.capts);
+    return rnode;
+}
+
+static VALUE create_error_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_ERROR;
+    node->data.error.expr = NULL;
+    code_block__init(&node->data.error.code);
+    node->data.error.index = VOID_VALUE;
+    node_const_array__init(&node->data.error.vars);
+    node_const_array__init(&node->data.error.capts);
     return rnode;
 }
 
@@ -925,16 +948,6 @@ static node_t *create_node(node_type_t type) {
     node_t *const node = (node_t *)malloc_e(sizeof(node_t));
     node->type = type;
     switch (node->type) {
-    case NODE_RULE:
-        node->data.rule.name = NULL;
-        node->data.rule.expr = NULL;
-        node->data.rule.ref = 0;
-        node_const_array__init(&node->data.rule.vars);
-        node_const_array__init(&node->data.rule.capts);
-        node_const_array__init(&node->data.rule.codes);
-        node->data.rule.line = VOID_VALUE;
-        node->data.rule.col = VOID_VALUE;
-        break;
     case NODE_REFERENCE:
         node->data.reference.var = NULL;
         node->data.reference.index = VOID_VALUE;
@@ -972,19 +985,6 @@ static node_t *create_node(node_type_t type) {
         node->data.expand.line = VOID_VALUE;
         node->data.expand.col = VOID_VALUE;
         break;
-    case NODE_ACTION:
-        code_block__init(&node->data.action.code);
-        node->data.action.index = VOID_VALUE;
-        node_const_array__init(&node->data.action.vars);
-        node_const_array__init(&node->data.action.capts);
-        break;
-    case NODE_ERROR:
-        node->data.error.expr = NULL;
-        code_block__init(&node->data.error.code);
-        node->data.error.index = VOID_VALUE;
-        node_const_array__init(&node->data.error.vars);
-        node_const_array__init(&node->data.error.capts);
-        break;
     default:
         print_error("Internal error [%d]\n", __LINE__);
         exit(-1);
@@ -996,7 +996,6 @@ static void destroy_node(node_t *node) {
     if (node == NULL) return;
     switch (node->type) {
     case NODE_RULE:
-        node_const_array__term(&node->data.rule.codes);
         node_const_array__term(&node->data.rule.capts);
         node_const_array__term(&node->data.rule.vars);
         destroy_node(node->data.rule.expr);
@@ -1322,7 +1321,7 @@ static void dump_node(VALUE rctx, const node_t *node, const int indent) {
     case NODE_RULE:
         fprintf(stdout, "%*sRule(name:'%s', ref:%d, vars.len:" FMT_LU ", capts.len:" FMT_LU ", codes.len:" FMT_LU ") {\n",
             indent, "", node->data.rule.name, node->data.rule.ref,
-            (ulong_t)node->data.rule.vars.len, (ulong_t)node->data.rule.capts.len, (ulong_t)node->data.rule.codes.len);
+            (ulong_t)node->data.rule.vars.len, (ulong_t)node->data.rule.capts.len, (ulong_t)0 /* TODO: (ulong_t)node->data.rule.codes.len*/);
         dump_node(rctx, node->data.rule.expr, indent + 2);
         fprintf(stdout, "%*s}\n", indent, "");
         break;
@@ -1824,14 +1823,17 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     }
     else if (match_code_block(rctx)) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
+        VALUE rn_p, rcodes;
+        rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
         match_spaces(rctx);
-        n_p = create_node(NODE_ACTION);
+        rn_p = create_action_node();
+        TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
         n_p->data.action.code.text = strndup_e(buffer->buf + p + 1, q - p - 2);
         n_p->data.action.code.len = find_trailing_blanks(n_p->data.action.code.text);
         n_p->data.action.code.line = l;
         n_p->data.action.code.col = m;
-        n_p->data.action.index = rule->data.rule.codes.len;
-        node_const_array__add(&rule->data.rule.codes, n_p);
+        n_p->data.action.index = NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0));
+        rb_ary_push(rcodes, rn_p);
     }
     else {
         goto EXCEPTION;
@@ -1856,11 +1858,9 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
     node_t *n_q = NULL;
     node_t *n_r = NULL;
     node_t *n_t = NULL;
-    node_t *rule;
     const char t = match_character(rctx, '&') ? '&' : match_character(rctx, '!') ? '!' : '\0';
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     char_array_t *buffer;
-    TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     if (t) match_spaces(rctx);
     n_p = parse_primary(rctx, rrule);
@@ -1911,15 +1911,18 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
         m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
         if (match_code_block(rctx)) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
+            VALUE rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
+            VALUE rn_t;
             match_spaces(rctx);
-            n_t = create_node(NODE_ERROR);
+            rn_t = create_error_node();
+            TypedData_Get_Struct(rn_t, node_t, &packcr_ptr_data_type, n_t);
             n_t->data.error.expr = n_r;
             n_t->data.error.code.text = strndup_e(buffer->buf + p + 1, q - p - 2);
             n_t->data.error.code.len = find_trailing_blanks(n_t->data.error.code.text);
             n_t->data.error.code.line = l;
             n_t->data.error.code.col = m;
-            n_t->data.error.index = rule->data.rule.codes.len;
-            node_const_array__add(&rule->data.rule.codes, n_t);
+            n_t->data.error.index = NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0));
+            rb_ary_push(rcodes, rn_t);
         }
         else {
             goto EXCEPTION;
@@ -2902,12 +2905,16 @@ static void generate_by_rule(VALUE rctx, VALUE sstream, VALUE rrule) {
     size_t j, k;
     node_t *rule;
     TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
-    const node_rule_t *const r = &rule->data.rule;
-    for (j = 0; j < r->codes.len; j++) {
+    node_rule_t *r;
+    VALUE rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
+    r = &rule->data.rule;
+    for (j = 0; j < (size_t)RARRAY_LEN(rcodes); j++) {
         const code_block_t *b;
         size_t d;
         const node_const_array_t *v, *c;
-        const node_t *node = r->codes.buf[j];
+        const node_t *node;
+        VALUE rnode = rb_ary_entry(rcodes, j);
+        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
         switch (node->type) {
         case NODE_ACTION:
             b = &node->data.action.code;
