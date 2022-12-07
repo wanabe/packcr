@@ -106,6 +106,20 @@ static VALUE packcr_node_rule_expr(VALUE self) {
     return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.rule.expr);
 }
 
+static VALUE packcr_node_reference_var(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    return rb_str_new2(node->data.reference.var);
+}
+
+static VALUE packcr_node_reference_index(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    return SIZET2NUM(node->data.reference.index);
+}
+
 static VALUE packcr_buffer_s_alloc(VALUE klass) {
     char_array_t *buffer;
     VALUE obj = TypedData_Make_Struct(klass, char_array_t, &packcr_ptr_data_type, buffer);
@@ -321,6 +335,8 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "rule_expr", packcr_node_rule_expr, 0);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
+    rb_define_method(cPackcr_Node, "reference_var", packcr_node_reference_var, 0);
+    rb_define_method(cPackcr_Node, "reference_index", packcr_node_reference_index, 0);
 
     cPackcr_Buffer = rb_define_class_under(cPackcr, "Buffer", rb_cObject);
     rb_define_alloc_func(cPackcr_Buffer, packcr_buffer_s_alloc);

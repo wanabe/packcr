@@ -2924,40 +2924,22 @@ static code_reach_t generate_thunking_error_code(
 static void generate_code(VALUE rctx, VALUE sstream, VALUE rrule_name, VALUE rnode) {
     const code_block_t *b;
     size_t k;
-    const node_const_array_t *v, *c;
+    const node_const_array_t *c;
     const node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     switch (node->type) {
     case NODE_ACTION:
         b = &node->data.action.code;
-        v = &node->data.action.vars;
         c = &node->data.action.capts;
         break;
     case NODE_ERROR:
         b = &node->data.error.code;
-        v = &node->data.error.vars;
         c = &node->data.error.capts;
         break;
     default:
         print_error("Internal error [%d]\n", __LINE__);
         exit(-1);
     }
-    k = 0;
-    while (k < v->len) {
-        assert(v->buf[k]->type == NODE_REFERENCE);
-        stream__printf(
-            sstream,
-            "#define %s (*__pcc_in->data.leaf.values.buf[" FMT_LU "])\n",
-            v->buf[k]->data.reference.var, (ulong_t)v->buf[k]->data.reference.index
-        );
-        k++;
-    }
-    rb_funcall(
-        sstream, rb_intern("write"), 1, rb_str_new2(
-        "#define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)\n"
-        "#define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))\n"
-        "#define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))\n"
-    ));
     k = 0;
     while (k < c->len) {
         assert(c->buf[k]->type == NODE_CAPTURE);
@@ -3003,22 +2985,6 @@ static void generate_code(VALUE rctx, VALUE sstream, VALUE rrule_name, VALUE rno
             sstream,
             "#undef _" FMT_LU "\n",
             (ulong_t)(c->buf[k]->data.capture.index + 1)
-        );
-    }
-    rb_funcall(
-        sstream, rb_intern("write"), 1, rb_str_new2(
-        "#undef _0e\n"
-        "#undef _0s\n"
-        "#undef _0\n"
-    ));
-    k = v->len;
-    while (k > 0) {
-        k--;
-        assert(v->buf[k]->type == NODE_REFERENCE);
-        stream__printf(
-            sstream,
-            "#undef %s\n",
-            v->buf[k]->data.reference.var
         );
     }
 }

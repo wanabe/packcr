@@ -1461,7 +1461,31 @@ class Packcr::Context
             #define __ (*__pcc_out)
           EOS
 
+          code.vars.each do |ref|
+            sstream.write(<<~EOS)
+              #define #{ref.reference_var} (*__pcc_in->data.leaf.values.buf[#{ref.reference_index}])
+            EOS
+          end
+
+          sstream.write(<<~EOS)
+            #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
+            #define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))
+            #define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))
+          EOS
+
           generate_code(sstream, rule.rule_name, code)
+
+          sstream.write(<<~EOS)
+            #undef _0e
+            #undef _0s
+            #undef _0
+          EOS
+
+          code.vars.reverse_each do |ref|
+            sstream.write(<<~EOS)
+              #undef #{ref.reference_var}
+            EOS
+          end
 
           sstream.write(<<~EOS)
             #undef __
