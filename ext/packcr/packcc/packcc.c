@@ -2901,132 +2901,124 @@ static code_reach_t generate_thunking_error_code(
     return r;
 }
 
-static void generate_by_rule(VALUE rctx, VALUE sstream, VALUE rrule) {
-    size_t j, k;
-    node_t *rule;
-    TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
-    node_rule_t *r;
-    VALUE rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
-    r = &rule->data.rule;
-    for (j = 0; j < (size_t)RARRAY_LEN(rcodes); j++) {
-        const code_block_t *b;
-        size_t d;
-        const node_const_array_t *v, *c;
-        const node_t *node;
-        VALUE rnode = rb_ary_entry(rcodes, j);
-        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-        switch (node->type) {
-        case NODE_ACTION:
-            b = &node->data.action.code;
-            d = node->data.action.index;
-            v = &node->data.action.vars;
-            c = &node->data.action.capts;
-            break;
-        case NODE_ERROR:
-            b = &node->data.error.code;
-            d = node->data.error.index;
-            v = &node->data.error.vars;
-            c = &node->data.error.capts;
-            break;
-        default:
-            print_error("Internal error [%d]\n", __LINE__);
-            exit(-1);
-        }
+static void generate_code(VALUE rctx, VALUE sstream, VALUE rrule_name, VALUE rnode) {
+    const code_block_t *b;
+    size_t d, k;
+    const node_const_array_t *v, *c;
+    const node_t *node;
+    const char *rule_name = StringValuePtr(rrule_name);
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    switch (node->type) {
+    case NODE_ACTION:
+        b = &node->data.action.code;
+        d = node->data.action.index;
+        v = &node->data.action.vars;
+        c = &node->data.action.capts;
+        break;
+    case NODE_ERROR:
+        b = &node->data.error.code;
+        d = node->data.error.index;
+        v = &node->data.error.vars;
+        c = &node->data.error.capts;
+        break;
+    default:
+        print_error("Internal error [%d]\n", __LINE__);
+        exit(-1);
+    }
+    stream__printf(
+        sstream,
+        "static void pcc_action_%s_" FMT_LU "(%s_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {\n",
+        rule_name, (ulong_t)d, RSTRING_PTR(rb_funcall(rctx, rb_intern("prefix"), 0))
+    );
+    rb_funcall(
+        sstream, rb_intern("write"), 1, rb_str_new2(
+        "#define auxil (__pcc_ctx->auxil)\n"
+        "#define __ (*__pcc_out)\n"
+    ));
+    k = 0;
+    while (k < v->len) {
+        assert(v->buf[k]->type == NODE_REFERENCE);
         stream__printf(
             sstream,
-            "static void pcc_action_%s_" FMT_LU "(%s_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {\n",
-            r->name, (ulong_t)d, RSTRING_PTR(rb_funcall(rctx, rb_intern("prefix"), 0))
+            "#define %s (*__pcc_in->data.leaf.values.buf[" FMT_LU "])\n",
+            v->buf[k]->data.reference.var, (ulong_t)v->buf[k]->data.reference.index
         );
-        rb_funcall(
-            sstream, rb_intern("write"), 1, rb_str_new2(
-            "#define auxil (__pcc_ctx->auxil)\n"
-            "#define __ (*__pcc_out)\n"
-        ));
-        k = 0;
-        while (k < v->len) {
-            assert(v->buf[k]->type == NODE_REFERENCE);
-            stream__printf(
-                sstream,
-                "#define %s (*__pcc_in->data.leaf.values.buf[" FMT_LU "])\n",
-                v->buf[k]->data.reference.var, (ulong_t)v->buf[k]->data.reference.index
-            );
-            k++;
-        }
-        rb_funcall(
-            sstream, rb_intern("write"), 1, rb_str_new2(
-            "#define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)\n"
-            "#define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))\n"
-            "#define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))\n"
-        ));
-        k = 0;
-        while (k < c->len) {
-            assert(c->buf[k]->type == NODE_CAPTURE);
-            stream__printf(
-                sstream,
-                "#define _" FMT_LU " pcc_get_capture_string(__pcc_ctx, __pcc_in->data.leaf.capts.buf[" FMT_LU "])\n",
-                (ulong_t)(c->buf[k]->data.capture.index + 1), (ulong_t)c->buf[k]->data.capture.index
-            );
-            stream__printf(
-                sstream,
-                "#define _" FMT_LU "s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[" FMT_LU "]->range.start))\n",
-                (ulong_t)(c->buf[k]->data.capture.index + 1), (ulong_t)c->buf[k]->data.capture.index
-            );
-            stream__printf(
-                sstream,
-                "#define _" FMT_LU "e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[" FMT_LU "]->range.end))\n",
-                (ulong_t)(c->buf[k]->data.capture.index + 1), (ulong_t)c->buf[k]->data.capture.index
-            );
-            k++;
-        }
-        {
-            code_block_t *code_block = malloc_e(sizeof(code_block_t));
-            VALUE rcode;
-            *code_block = *b;
-            rcode = TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code_block);
-            rb_funcall(sstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(4), rb_ivar_get(rctx, rb_intern("@iname")));
-        }
-        k = c->len;
-        while (k > 0) {
-            k--;
-            assert(c->buf[k]->type == NODE_CAPTURE);
-            stream__printf(
-                sstream,
-                "#undef _" FMT_LU "e\n",
-                (ulong_t)(c->buf[k]->data.capture.index + 1)
-            );
-            stream__printf(
-                sstream,
-                "#undef _" FMT_LU "s\n",
-                (ulong_t)(c->buf[k]->data.capture.index + 1)
-            );
-            stream__printf(
-                sstream,
-                "#undef _" FMT_LU "\n",
-                (ulong_t)(c->buf[k]->data.capture.index + 1)
-            );
-        }
-        rb_funcall(
-            sstream, rb_intern("write"), 1, rb_str_new2(
-            "#undef _0e\n"
-            "#undef _0s\n"
-            "#undef _0\n"
-        ));
-        k = v->len;
-        while (k > 0) {
-            k--;
-            assert(v->buf[k]->type == NODE_REFERENCE);
-            stream__printf(
-                sstream,
-                "#undef %s\n",
-                v->buf[k]->data.reference.var
-            );
-        }
-        rb_funcall(
-            sstream, rb_intern("write"), 1, rb_str_new2(
-            "#undef __\n"
-            "#undef auxil\n"
-            "}\n"
-            "\n"
-        ));
+        k++;
     }
+    rb_funcall(
+        sstream, rb_intern("write"), 1, rb_str_new2(
+        "#define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)\n"
+        "#define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))\n"
+        "#define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))\n"
+    ));
+    k = 0;
+    while (k < c->len) {
+        assert(c->buf[k]->type == NODE_CAPTURE);
+        stream__printf(
+            sstream,
+            "#define _" FMT_LU " pcc_get_capture_string(__pcc_ctx, __pcc_in->data.leaf.capts.buf[" FMT_LU "])\n",
+            (ulong_t)(c->buf[k]->data.capture.index + 1), (ulong_t)c->buf[k]->data.capture.index
+        );
+        stream__printf(
+            sstream,
+            "#define _" FMT_LU "s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[" FMT_LU "]->range.start))\n",
+            (ulong_t)(c->buf[k]->data.capture.index + 1), (ulong_t)c->buf[k]->data.capture.index
+        );
+        stream__printf(
+            sstream,
+            "#define _" FMT_LU "e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[" FMT_LU "]->range.end))\n",
+            (ulong_t)(c->buf[k]->data.capture.index + 1), (ulong_t)c->buf[k]->data.capture.index
+        );
+        k++;
+    }
+    {
+        code_block_t *code_block = malloc_e(sizeof(code_block_t));
+        VALUE rcode;
+        *code_block = *b;
+        rcode = TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code_block);
+        rb_funcall(sstream, rb_intern("write_code_block"), 3, rcode, INT2NUM(4), rb_ivar_get(rctx, rb_intern("@iname")));
+    }
+    k = c->len;
+    while (k > 0) {
+        k--;
+        assert(c->buf[k]->type == NODE_CAPTURE);
+        stream__printf(
+            sstream,
+            "#undef _" FMT_LU "e\n",
+            (ulong_t)(c->buf[k]->data.capture.index + 1)
+        );
+        stream__printf(
+            sstream,
+            "#undef _" FMT_LU "s\n",
+            (ulong_t)(c->buf[k]->data.capture.index + 1)
+        );
+        stream__printf(
+            sstream,
+            "#undef _" FMT_LU "\n",
+            (ulong_t)(c->buf[k]->data.capture.index + 1)
+        );
+    }
+    rb_funcall(
+        sstream, rb_intern("write"), 1, rb_str_new2(
+        "#undef _0e\n"
+        "#undef _0s\n"
+        "#undef _0\n"
+    ));
+    k = v->len;
+    while (k > 0) {
+        k--;
+        assert(v->buf[k]->type == NODE_REFERENCE);
+        stream__printf(
+            sstream,
+            "#undef %s\n",
+            v->buf[k]->data.reference.var
+        );
+    }
+    rb_funcall(
+        sstream, rb_intern("write"), 1, rb_str_new2(
+        "#undef __\n"
+        "#undef auxil\n"
+        "}\n"
+        "\n"
+    ));
 }

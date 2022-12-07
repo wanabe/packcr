@@ -102,6 +102,7 @@ end
 require "packcr.so"
 
 class Packcr::Node
+  attr_reader :codes
   def initialize
     super
     @codes = []
@@ -1453,7 +1454,9 @@ class Packcr::Context
       EOS
 
       @rules.each do |rule|
-        generate_by_rule(sstream, rule)
+        rule.codes.each do |code|
+          generate_code(sstream, rule.rule_name, code)
+        end
       end
 
       @rules.each do |node|
