@@ -928,6 +928,22 @@ static void node_const_array__term(node_const_array_t *array) {
     free((node_t **)array->buf);
 }
 
+static VALUE create_rule_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_RULE;
+    node->data.rule.name = NULL;
+    node->data.rule.expr = NULL;
+    node->data.rule.ref = 0;
+    node_const_array__init(&node->data.rule.vars);
+    node_const_array__init(&node->data.rule.capts);
+    node_const_array__init(&node->data.rule.codes);
+    node->data.rule.line = VOID_VALUE;
+    node->data.rule.col = VOID_VALUE;
+    return rnode;
+}
+
 static node_t *create_node(node_type_t type) {
     node_t *const node = (node_t *)malloc_e(sizeof(node_t));
     node->type = type;
@@ -2014,7 +2030,7 @@ EXCEPTION:;
     return NULL;
 }
 
-static node_t *parse_rule(VALUE rctx) {
+static VALUE parse_rule(VALUE rctx) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = column_number(rctx);
@@ -2023,6 +2039,7 @@ static node_t *parse_rule(VALUE rctx) {
     size_t q;
     node_t *n_r = NULL;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
+    VALUE rn_r;
     char_array_t *buffer;
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     if (!match_identifier(rctx)) goto EXCEPTION;
@@ -2030,14 +2047,15 @@ static node_t *parse_rule(VALUE rctx) {
     match_spaces(rctx);
     if (!match_string(rctx, "<-")) goto EXCEPTION;
     match_spaces(rctx);
-    n_r = create_node(NODE_RULE);
+    rn_r = create_rule_node();
+    TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
     n_r->data.rule.expr = parse_expression(rctx, n_r);
     if (n_r->data.rule.expr == NULL) goto EXCEPTION;
     assert(q >= p);
     n_r->data.rule.name = strndup_e(buffer->buf + p, q - p);
     n_r->data.rule.line = l;
     n_r->data.rule.col = m;
-    return n_r;
+    return rn_r;
 
 EXCEPTION:;
     destroy_node(n_r);
@@ -2045,7 +2063,7 @@ EXCEPTION:;
     rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
     rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-    return NULL;
+    return Qnil;
 }
 
 static void dump_options(VALUE rctx) {
@@ -2189,8 +2207,8 @@ static bool_t parse(VALUE rctx) {
             }
             else {
                 VALUE rnode, rrules;
-                node_t *const n_r = parse_rule(rctx);
-                if (n_r == NULL) {
+                rnode = parse_rule(rctx);
+                if (rnode == Qnil) {
                     if (b) {
                         print_error("%s:" FMT_LU ":" FMT_LU ": Illegal rule syntax\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
                         rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
@@ -2202,7 +2220,6 @@ static bool_t parse(VALUE rctx) {
                     if (!match_identifier(rctx) && !match_spaces(rctx)) match_character_any(rctx);
                     continue;
                 }
-                rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, n_r);
                 rrules = rb_ivar_get(rctx, rb_intern("@rules"));
                 rb_ary_push(rrules, rnode);
                 b = TRUE;
@@ -2900,27 +2917,28 @@ static code_reach_t generate_thunking_error_code(
     return r;
 }
 
-static void generate_by_rule(VALUE rctx, VALUE sstream, VALUE rnode) {
+static void generate_by_rule(VALUE rctx, VALUE sstream, VALUE rrule) {
     size_t j, k;
-    node_t *node;
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    const node_rule_t *const r = &node->data.rule;
+    node_t *rule;
+    TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
+    const node_rule_t *const r = &rule->data.rule;
     for (j = 0; j < r->codes.len; j++) {
         const code_block_t *b;
         size_t d;
         const node_const_array_t *v, *c;
-        switch (r->codes.buf[j]->type) {
+        const node_t *node = r->codes.buf[j];
+        switch (node->type) {
         case NODE_ACTION:
-            b = &r->codes.buf[j]->data.action.code;
-            d = r->codes.buf[j]->data.action.index;
-            v = &r->codes.buf[j]->data.action.vars;
-            c = &r->codes.buf[j]->data.action.capts;
+            b = &node->data.action.code;
+            d = node->data.action.index;
+            v = &node->data.action.vars;
+            c = &node->data.action.capts;
             break;
         case NODE_ERROR:
-            b = &r->codes.buf[j]->data.error.code;
-            d = r->codes.buf[j]->data.error.index;
-            v = &r->codes.buf[j]->data.error.vars;
-            c = &r->codes.buf[j]->data.error.capts;
+            b = &node->data.error.code;
+            d = node->data.error.index;
+            v = &node->data.error.vars;
+            c = &node->data.error.capts;
             break;
         default:
             print_error("Internal error [%d]\n", __LINE__);
