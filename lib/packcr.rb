@@ -1487,10 +1487,10 @@ class Packcr::Context
               chunk->pos = ctx->cur;
               PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, \"#{node.rule_name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
               ctx->level++;
-              pcc_value_table__resize(ctx->auxil, &chunk->values, #{node.rule_vars_len});
+              pcc_value_table__resize(ctx->auxil, &chunk->values, #{node.vars.length});
               pcc_capture_table__resize(ctx->auxil, &chunk->capts, #{node.rule_capts_len});
         EOS
-        if node.rule_vars_len > 0
+        if node.vars.length > 0
           sstream.write("    pcc_value_table__clear(ctx->auxil, &chunk->values);\n")
         end
         r = g.generate_code(node.rule_expr, 0, 4, false)

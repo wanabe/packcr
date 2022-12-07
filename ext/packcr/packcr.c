@@ -47,13 +47,6 @@ static VALUE packcr_node_rule_name(VALUE self) {
     return rb_str_new2(node->data.rule.name);
 }
 
-static VALUE packcr_node_rule_vars_len(VALUE self) {
-    node_t *node;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    return SIZET2NUM(node->data.rule.vars.len);
-}
-
 static VALUE packcr_node_rule_capts_len(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -75,6 +68,35 @@ static VALUE packcr_node_index(VALUE self) {
     default:
         return Qnil;
     }
+}
+
+static VALUE packcr_node_vars(VALUE self) {
+    node_t *node;
+    VALUE vars = rb_ary_new();
+    node_const_array_t *v;
+    size_t k;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        v = &node->data.action.vars;
+        break;
+    case NODE_ERROR:
+        v = &node->data.error.vars;
+        break;
+    case NODE_RULE:
+        v = &node->data.rule.vars;
+        break;
+    default:
+        return Qnil;
+    }
+    k = 0;
+    while (k < v->len) {
+        node_t *node = (node_t *)v->buf[k++];
+        VALUE rvar = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
+        rb_ary_push(vars, rvar);
+    }
+    return vars;
 }
 
 static VALUE packcr_node_rule_expr(VALUE self) {
@@ -295,10 +317,10 @@ void Init_packcr(void) {
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
     rb_define_method(cPackcr_Node, "rule_name", packcr_node_rule_name, 0);
-    rb_define_method(cPackcr_Node, "rule_vars_len", packcr_node_rule_vars_len, 0);
     rb_define_method(cPackcr_Node, "rule_capts_len", packcr_node_rule_capts_len, 0);
     rb_define_method(cPackcr_Node, "rule_expr", packcr_node_rule_expr, 0);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
+    rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
 
     cPackcr_Buffer = rb_define_class_under(cPackcr, "Buffer", rb_cObject);
     rb_define_alloc_func(cPackcr_Buffer, packcr_buffer_s_alloc);
