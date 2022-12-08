@@ -2651,32 +2651,3 @@ static code_reach_t generate_alternative_code(VALUE gen, const node_array_t *nod
     }
     return b ? CODE_REACH__BOTH : CODE_REACH__ALWAYS_FAIL;
 }
-
-static code_reach_t generate_capturing_code(VALUE gen, const node_t *expr, size_t index, int onfail, size_t indent, bool_t bare) {
-    code_reach_t r;
-    if (!bare) {
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
-        indent += 4;
-    }
-    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t p = ctx->cur;\n"));
-    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("size_t q;\n"));
-    {
-        VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
-        r = (code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(onfail), SIZET2NUM(indent), Qfalse));
-    }
-    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("q = ctx->cur;\n"));
-    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-    stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "chunk->capts.buf[" FMT_LU "].range.start = p;\n", (ulong_t)index);
-    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-    stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "chunk->capts.buf[" FMT_LU "].range.end = q;\n", (ulong_t)index);
-    if (!bare) {
-        indent -= 4;
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
-    }
-    return r;
-}

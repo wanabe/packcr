@@ -354,7 +354,14 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     case NODE_ALTERNATE:
         return INT2NUM(generate_alternative_code(gen, &node->data.alternate.nodes, onfail, indent, bare));
     case NODE_CAPTURE:
-        return INT2NUM(generate_capturing_code(gen, node->data.capture.expr, node->data.capture.index, onfail, indent, bare));
+        return INT2NUM(
+            rb_funcall(
+                gen, rb_intern("generate_capturing_code"), 5,
+                rb_funcall(rnode, rb_intern("expr"), 0),
+                SIZET2NUM(node->data.capture.index),
+                ronfail, rindent, rbare
+            )
+        );
     case NODE_EXPAND:
         return INT2NUM(rb_funcall(gen, rb_intern("generate_expanding_code"), 4, rb_funcall(rnode, rb_intern("index"), 0), ronfail, rindent, rbare));
     case NODE_ACTION:

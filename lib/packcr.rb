@@ -143,6 +143,33 @@ class Packcr::Generator
     end
   end
 
+  def generate_capturing_code(expr, index, onfail, indent, bare)
+    if !bare
+      @stream.write " " * indent
+      @stream.write "{\n"
+      indent += 4
+    end
+
+    @stream.write " " * indent
+    @stream.write "const size_t p = ctx->cur;\n"
+    @stream.write " " * indent
+    @stream.write "size_t q;\n"
+    r = generate_code(expr, onfail, indent, false)
+    @stream.write " " * indent
+    @stream.write "q = ctx->cur;\n"
+    @stream.write " " * indent
+    @stream.write "chunk->capts.buf[#{index}].range.start = p;\n"
+    @stream.write " " * indent
+    @stream.write "chunk->capts.buf[#{index}].range.end = q;\n"
+
+    if !bare
+      indent -= 4
+      @stream.write " " * indent
+      @stream.write "}\n"
+    end
+    return r
+  end
+
   def generate_expanding_code(index, onfail, indent, bare)
     if !bare
       @stream.write " " * indent
