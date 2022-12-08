@@ -376,7 +376,7 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     case NODE_PREDICATE:
         return INT2NUM(generate_predicating_code(gen, node->data.predicate.expr, node->data.predicate.neg, onfail, indent, bare));
     case NODE_SEQUENCE:
-        return INT2NUM(generate_sequential_code(gen, &node->data.sequence.nodes, onfail, indent, bare));
+        return rb_funcall(gen, rb_intern("generate_sequential_code"), 4, rb_funcall(rnode, rb_intern("nodes"), 0), ronfail, rindent, rbare);
     case NODE_ALTERNATE:
         return rb_funcall(gen, rb_intern("generate_alternative_code"), 4, rb_funcall(rnode, rb_intern("nodes"), 0), ronfail, rindent, rbare);
     case NODE_CAPTURE:

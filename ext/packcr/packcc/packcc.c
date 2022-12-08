@@ -2553,24 +2553,3 @@ static code_reach_t generate_predicating_code(VALUE gen, const node_t *expr, boo
     }
     return r;
 }
-
-static code_reach_t generate_sequential_code(VALUE gen, const node_array_t *nodes, int onfail, size_t indent, bool_t bare) {
-    bool_t b = FALSE;
-    size_t i;
-    for (i = 0; i < nodes->len; i++) {
-        VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, nodes->buf[i]);
-        switch ((code_reach_t)NUM2INT(rb_funcall(gen, rb_intern("generate_code"), 4, rexpr, INT2NUM(onfail), SIZET2NUM(indent), Qfalse))) {
-        case CODE_REACH__ALWAYS_FAIL:
-            if (i + 1 < nodes->len) {
-                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("/* unreachable codes omitted */\n"));
-            }
-            return CODE_REACH__ALWAYS_FAIL;
-        case CODE_REACH__ALWAYS_SUCCEED:
-            break;
-        default:
-            b = TRUE;
-        }
-    }
-    return b ? CODE_REACH__BOTH : CODE_REACH__ALWAYS_SUCCEED;
-}
