@@ -2827,7 +2827,7 @@ static code_reach_t generate_expanding_code(VALUE gen, size_t index, int onfail,
 }
 
 static code_reach_t generate_thunking_action_code(
-    VALUE gen, size_t index, const node_const_array_t *vars, const node_const_array_t *capts, bool_t error, int onfail, size_t indent, bool_t bare
+    VALUE gen, size_t index, const VALUE rvars, VALUE rcapts, bool_t error, int onfail, size_t indent, bool_t bare
 ) {
     node_t *rule;
     VALUE rrule = rb_ivar_get(gen, rb_intern("@rule"));
@@ -2847,17 +2847,17 @@ static code_reach_t generate_thunking_action_code(
         rule->data.rule.name, (ulong_t)index, (ulong_t)rule->data.rule.vars.len, (ulong_t)rule->data.rule.capts.len);
     {
         size_t i;
-        for (i = 0; i < vars->len; i++) {
-            assert(vars->buf[i]->type == NODE_REFERENCE);
+        for (i = 0; i < (size_t)RARRAY_LEN(rvars); i++) {
+            VALUE rvar = rb_ary_entry(rvars, i);
             rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "thunk->data.leaf.values.buf[" FMT_LU "] = &(chunk->values.buf[" FMT_LU "]);\n",
-                (ulong_t)vars->buf[i]->data.reference.index, (ulong_t)vars->buf[i]->data.reference.index);
+                (ulong_t)NUM2SIZET(rb_funcall(rvar, rb_intern("index"), 0)), (ulong_t)NUM2SIZET(rb_funcall(rvar, rb_intern("index"), 0)));
         }
-        for (i = 0; i < capts->len; i++) {
-            assert(capts->buf[i]->type == NODE_CAPTURE);
+        for (i = 0; i < (size_t)RARRAY_LEN(rcapts); i++) {
+            VALUE rcapt = rb_ary_entry(rcapts, i);
             rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "thunk->data.leaf.capts.buf[" FMT_LU "] = &(chunk->capts.buf[" FMT_LU "]);\n",
-                (ulong_t)capts->buf[i]->data.capture.index, (ulong_t)capts->buf[i]->data.capture.index);
+                (ulong_t)NUM2SIZET(rb_funcall(rcapt, rb_intern("index"), 0)), (ulong_t)NUM2SIZET(rb_funcall(rcapt, rb_intern("index"), 0)));
         }
         rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
         rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("thunk->data.leaf.capt0.range.start = chunk->pos;\n"));
@@ -2885,12 +2885,11 @@ static code_reach_t generate_thunking_action_code(
 }
 
 static code_reach_t generate_thunking_error_code(
-    VALUE gen, const node_t *expr, size_t index, const node_const_array_t *vars, const node_const_array_t *capts, int onfail, size_t indent, bool_t bare
+    VALUE gen, VALUE rexpr, size_t index, VALUE rvars, VALUE rcapts, int onfail, size_t indent, bool_t bare
 ) {
     code_reach_t r;
     const int l = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
     const int m = NUM2INT(rb_funcall(gen, rb_intern("next_label"), 0));
-    VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, (node_t *)expr);
     assert(rule->type == NODE_RULE);
     if (!bare) {
         rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
@@ -2902,7 +2901,7 @@ static code_reach_t generate_thunking_error_code(
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", m);
     if (indent > 4) rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent - 4));
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "L%04d:;\n", l);
-    generate_thunking_action_code(gen, index, vars, capts, TRUE, l, indent, FALSE);
+    generate_thunking_action_code(gen, index, rvars, rcapts, TRUE, l, indent, FALSE);
     rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
     stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", onfail);
     if (indent > 4) rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent - 4));

@@ -68,6 +68,9 @@ static VALUE packcr_node_index(VALUE self) {
     case NODE_CAPTURE:
         return SIZET2NUM(node->data.capture.index);
         break;
+    case NODE_REFERENCE:
+        return SIZET2NUM(node->data.reference.index);
+        break;
     default:
         return Qnil;
     }
@@ -366,11 +369,11 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
         return INT2NUM(generate_expanding_code(gen, node->data.expand.index, onfail, indent, bare));
     case NODE_ACTION:
         return INT2NUM(generate_thunking_action_code(
-            gen, node->data.action.index, &node->data.action.vars, &node->data.action.capts, FALSE, onfail, indent, bare
+            gen, node->data.action.index, rb_funcall(rnode, rb_intern("vars"), 0), rb_funcall(rnode, rb_intern("capts"), 0), FALSE, onfail, indent, bare
         ));
     case NODE_ERROR:
         return INT2NUM(generate_thunking_error_code(
-            gen, node->data.error.expr, node->data.error.index, &node->data.error.vars, &node->data.error.capts, onfail, indent, bare
+            gen, rb_funcall(rnode, rb_intern("expr"), 0), node->data.error.index, rb_funcall(rnode, rb_intern("vars"), 0), rb_funcall(rnode, rb_intern("capts"), 0), onfail, indent, bare
         ));
     default:
         print_error("Internal error [%d]\n", __LINE__);
