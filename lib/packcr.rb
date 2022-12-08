@@ -340,6 +340,52 @@ class Packcr::Context
     return @buffer.len - @bufcur
   end
 
+  def match_character(ch)
+    if refill_buffer(1) >= 1
+      if @buffer[@bufcur].ord == ch
+        @bufcur += 1
+        return true
+      end
+    end
+    false
+  end
+
+  def match_character_range(min, max)
+    if refill_buffer(1) >= 1
+      c = @buffer[@bufcur].ord
+      if (min..max) === c
+        @bufcur += 1
+        return true
+      end
+    end
+    false
+  end
+
+  def match_character_set(chars)
+    if refill_buffer(1) >= 1
+      c = @buffer[@bufcur].ord
+      chars.each_byte do |ch|
+        if c == ch
+          @bufcur += 1
+          return true
+        end
+      end
+    end
+    false
+  end
+
+  def match_blank
+    match_character_set(" \t\v\f")
+  end
+
+  def match_character_any
+    if refill_buffer(1) >= 1
+      @bufcur += 1
+      return true
+    end
+    false
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
