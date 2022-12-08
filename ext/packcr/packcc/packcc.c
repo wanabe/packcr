@@ -705,20 +705,6 @@ static int stream__printf(VALUE stream, const char *format, ...) {
     }
 }
 
-static void stream__write_text(VALUE stream, const char *ptr, size_t len) {
-    size_t i;
-    if (len == VOID_VALUE) return; /* for safety */
-    for (i = 0; i < len; i++) {
-        if (ptr[i] == '\r') {
-            if (i + 1 < len && ptr[i + 1] == '\n') i++;
-            rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
-        }
-        else {
-            rb_funcall(stream, rb_intern("putc"), 1, INT2NUM(ptr[i]));
-        }
-    }
-}
-
 static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, const char *fname) {
     bool_t b = FALSE;
     size_t i, j, k;
@@ -746,7 +732,7 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
             rb_funcall(stream, rb_intern("write_line_directive"), 2, rb_str_new2(fname), SIZET2NUM(lineno));
         if (ptr[i] != '#')
             rb_funcall(stream, rb_intern("write_characters"), 2, SIZET2NUM(' '), SIZET2NUM(indent));
-        stream__write_text(stream, ptr + i, j - i);
+        rb_funcall(stream, rb_intern("write_text"), 1, rb_str_new(ptr + i, j - i));
         rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
         b = TRUE;
     }
@@ -784,7 +770,7 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
                     assert(l >= m);
                     rb_funcall(stream, rb_intern("write_characters"), 2, SIZET2NUM(' '), SIZET2NUM(l - m + indent));
                 }
-                stream__write_text(stream, ptr + i, j - i);
+                rb_funcall(stream, rb_intern("write_text"), 1, rb_str_new(ptr + i, j - i));
                 rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
                 b = TRUE;
             }

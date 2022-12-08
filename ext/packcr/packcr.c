@@ -308,7 +308,7 @@ static VALUE packcr_stream_write_context_buffer(VALUE self, VALUE rctx) {
     rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     n = buffer->len;
-    stream__write_text(self, buffer->buf, (n > 0 && buffer->buf[n - 1] == '\r') ? n - 1 : n);
+    rb_funcall(self, rb_intern("write_text"), 1, rb_str_new(buffer->buf, (n > 0 && buffer->buf[n - 1] == '\r') ? n - 1 : n));
     rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(n));
     return self;
 }

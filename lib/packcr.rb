@@ -80,6 +80,25 @@ class Packcr::Stream
     end
   end
 
+  def write_text(s)
+    skip_char = nil
+
+    s.each_byte do |c|
+      if c == skip_char
+        skip_char = nil
+        next
+      end
+      skip_char = nil
+
+      if c == 0xd
+        skip_char = 0xa
+        putc(0xa)
+      else
+        putc(c)
+      end
+    end
+  end
+
   def write_line_directive(fname, lineno)
     write("#line #{lineno + 1} \"")
     fname.each_byte do |b|
