@@ -385,7 +385,7 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
                INT2NUM(generate_matching_charclass_code(gen, node->data.charclass.value, onfail, indent, bare)) :
                INT2NUM(generate_matching_utf8_charclass_code(gen, node->data.charclass.value, onfail, indent, bare));
     case NODE_QUANTITY:
-        return INT2NUM(generate_quantifying_code(gen, node->data.quantity.expr, node->data.quantity.min, node->data.quantity.max, onfail, indent, bare));
+        return rb_funcall(gen, rb_intern("generate_quantifying_code"), 6, rb_funcall(rnode, rb_intern("expr"), 0), INT2NUM(node->data.quantity.min), INT2NUM(node->data.quantity.max), ronfail, rindent, rbare);
     case NODE_PREDICATE:
         return rb_funcall(gen, rb_intern("generate_predicating_code"), 5, rb_funcall(rnode, rb_intern("expr"), 0), rb_funcall(rnode, rb_intern("neg"), 0), ronfail, rindent, rbare);
     case NODE_SEQUENCE:
