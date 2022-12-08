@@ -47,13 +47,6 @@ static VALUE packcr_node_rule_name(VALUE self) {
     return rb_str_new2(node->data.rule.name);
 }
 
-static VALUE packcr_node_rule_capts_len(VALUE self) {
-    node_t *node;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    return SIZET2NUM(node->data.rule.capts.len);
-}
-
 static VALUE packcr_node_index(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -184,13 +177,6 @@ static VALUE packcr_node_reference_var(VALUE self) {
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
     return rb_str_new2(node->data.reference.var);
-}
-
-static VALUE packcr_node_reference_index(VALUE self) {
-    node_t *node;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    return SIZET2NUM(node->data.reference.index);
 }
 
 static VALUE packcr_buffer_s_alloc(VALUE klass) {
@@ -410,14 +396,12 @@ void Init_packcr(void) {
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
     rb_define_method(cPackcr_Node, "rule_name", packcr_node_rule_name, 0);
-    rb_define_method(cPackcr_Node, "rule_capts_len", packcr_node_rule_capts_len, 0);
     rb_define_method(cPackcr_Node, "expr", packcr_node_expr, 0);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
     rb_define_method(cPackcr_Node, "capts", packcr_node_capts, 0);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "reference_var", packcr_node_reference_var, 0);
-    rb_define_method(cPackcr_Node, "reference_index", packcr_node_reference_index, 0);
 
     cPackcr_Buffer = rb_define_class_under(cPackcr, "Buffer", rb_cObject);
     rb_define_alloc_func(cPackcr_Buffer, packcr_buffer_s_alloc);

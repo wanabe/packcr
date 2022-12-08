@@ -1597,7 +1597,7 @@ class Packcr::Context
 
           code.vars.each do |ref|
             sstream.write(<<~EOS)
-              #define #{ref.reference_var} (*__pcc_in->data.leaf.values.buf[#{ref.reference_index}])
+              #define #{ref.reference_var} (*__pcc_in->data.leaf.values.buf[#{ref.index}])
             EOS
           end
 
@@ -1662,7 +1662,7 @@ class Packcr::Context
               PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, \"#{node.rule_name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
               ctx->level++;
               pcc_value_table__resize(ctx->auxil, &chunk->values, #{node.vars.length});
-              pcc_capture_table__resize(ctx->auxil, &chunk->capts, #{node.rule_capts_len});
+              pcc_capture_table__resize(ctx->auxil, &chunk->capts, #{node.capts.length});
         EOS
         if node.vars.length > 0
           sstream.write("    pcc_value_table__clear(ctx->auxil, &chunk->values);\n")
