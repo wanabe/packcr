@@ -142,6 +142,82 @@ class Packcr::Generator
       return Packcr::CODE_REACH__ALWAYS_SUCCEED
     end
   end
+
+  def generate_thunking_action_code(index, vars, capts, error, onfail, indent, bare)
+    if !bare
+      @stream.write " " * indent
+      @stream.write "{\n"
+      indent += 4
+    end
+    if error
+      @stream.write " " * indent
+      @stream.write "pcc_value_t null;\n"
+    end
+    @stream.write " " * indent
+    rule_name = @rule.rule_name
+    @stream.write "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{rule_name}_#{index}, #{@rule.vars.length}, #{@rule.capts.length});\n"
+
+    vars.each do |var|
+      @stream.write " " * indent
+      @stream.write "thunk->data.leaf.values.buf[#{var.index}] = &(chunk->values.buf[#{var.index}]);\n"
+    end
+    capts.each do |capt|
+      @stream.write " " * indent
+      @stream.write "thunk->data.leaf.capts.buf[#{capt.index}] = &(chunk->capts.buf[#{capt.index}]);\n"
+    end
+    @stream.write " " * indent
+    @stream.write "thunk->data.leaf.capt0.range.start = chunk->pos;\n"
+    @stream.write " " * indent
+    @stream.write "thunk->data.leaf.capt0.range.end = ctx->cur;\n"
+
+    if error
+      @stream.write " " * indent
+      @stream.write "memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n"
+      @stream.write " " * indent
+      @stream.write "thunk->data.leaf.action(ctx, thunk, &null);\n"
+      @stream.write " " * indent
+      @stream.write "pcc_thunk__destroy(ctx->auxil, thunk);\n"
+    else
+      @stream.write " " * indent
+      @stream.write "pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n"
+    end
+    if !bare
+      indent -= 4;
+      @stream.write " " * indent
+      @stream.write "}\n"
+    end
+    return Packcr::CODE_REACH__ALWAYS_SUCCEED
+  end
+
+  def generate_thunking_error_code(expr, index, vars, capts, onfail, indent, bare)
+    l = next_label
+    m = next_label
+    if !bare
+      @stream.write " " * indent
+      @stream.write "{\n"
+      indent += 4
+    end
+    r = generate_code(expr, l, indent, true)
+    @stream.write " " * indent
+    @stream.write "goto L#{"%04d" % m};\n"
+    if indent > 4
+      @stream.write " " * (indent - 4)
+    end
+    @stream.write "L#{"%04d" % l}:;\n"
+    generate_thunking_action_code(index, vars, capts, true, l, indent, true)
+    @stream.write " " * indent
+    @stream.write "goto L#{"%04d" % onfail};\n"
+    if indent > 4
+      @stream.write " " * (indent - 4)
+    end
+    @stream.write "L%#{"04d" % m}:;\n"
+    if !bare
+      indent -= 4
+      @stream.write " " * indent
+      @stream.write "}\n"
+    end
+    return r
+  end
 end
 
 class Packcr::Context

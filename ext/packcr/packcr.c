@@ -368,12 +368,24 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     case NODE_EXPAND:
         return INT2NUM(generate_expanding_code(gen, node->data.expand.index, onfail, indent, bare));
     case NODE_ACTION:
-        return INT2NUM(generate_thunking_action_code(
-            gen, node->data.action.index, rb_funcall(rnode, rb_intern("vars"), 0), rb_funcall(rnode, rb_intern("capts"), 0), FALSE, onfail, indent, bare
-        ));
+        return INT2NUM(
+            rb_funcall(
+                gen, rb_intern("generate_thunking_action_code"), 7,
+                SIZET2NUM(node->data.action.index),
+                rb_funcall(rnode, rb_intern("vars"), 0),
+                rb_funcall(rnode, rb_intern("capts"), 0),
+                Qfalse,
+                ronfail, rindent, rbare
+            )
+        );
     case NODE_ERROR:
-        return INT2NUM(generate_thunking_error_code(
-            gen, rb_funcall(rnode, rb_intern("expr"), 0), node->data.error.index, rb_funcall(rnode, rb_intern("vars"), 0), rb_funcall(rnode, rb_intern("capts"), 0), onfail, indent, bare
+        return INT2NUM(rb_funcall(
+            gen, rb_intern("generate_thunking_error_code"), 7,
+            rb_funcall(rnode, rb_intern("expr"), 0),
+            SIZET2NUM(node->data.error.index),
+            rb_funcall(rnode, rb_intern("vars"), 0),
+            rb_funcall(rnode, rb_intern("capts"), 0),
+            ronfail, rindent, rbare
         ));
     default:
         print_error("Internal error [%d]\n", __LINE__);
