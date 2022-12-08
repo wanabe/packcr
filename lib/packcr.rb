@@ -500,6 +500,12 @@ class Packcr::Context
     end
   end
 
+  def make_rulehash
+    @rules.each do |rule|
+      @rulehash[rule.rule_name] = rule
+    end
+  end
+
   def refill_buffer(num)
     while @buffer.len - @bufcur < num
       c = @ifile.getc

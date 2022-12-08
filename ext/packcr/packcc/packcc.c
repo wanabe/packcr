@@ -1012,21 +1012,6 @@ static void destroy_node(node_t *node) {
     }
 }
 
-static void make_rulehash(VALUE rctx) {
-    size_t i;
-    VALUE rname, rrulehash, rnode, rrules;
-    node_t *node;
-    rrules = rb_ivar_get(rctx, rb_intern("@rules"));
-    for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
-        rnode = rb_ary_entry(rrules, i);
-        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-        assert(node->type == NODE_RULE);
-        rname = rb_str_new2(node->data.rule.name);
-        rrulehash = rb_ivar_get(rctx, rb_intern("@rulehash"));
-        rb_hash_aset(rrulehash, rname, rnode);
-    }
-}
-
 static const node_t *lookup_rulehash(VALUE rctx, const char *name) {
     node_t *node;
     VALUE rname = rb_str_new2(name);
@@ -2155,7 +2140,7 @@ static bool_t parse(VALUE rctx) {
         size_t i;
         VALUE rrules, rnode;
         node_t *node;
-        make_rulehash(rctx);
+        rb_funcall(rctx, rb_intern("make_rulehash"), 0);
         rrules = rb_ivar_get(rctx, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             rnode = rb_ary_entry(rrules, i);
