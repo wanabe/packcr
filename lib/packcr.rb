@@ -100,6 +100,48 @@ class Packcr::Generator
   def next_label
     @label += 1
   end
+
+  def matching_string_code(value, onfail, indent, bare)
+    n = value&.length || 0
+
+    if n > 0
+      if n > 1
+        @stream.write " " * indent
+        @stream.write "if (\n"
+        @stream.write " " * (indent + 4)
+        @stream.write "pcc_refill_buffer(ctx, #{n}) < #{n} ||\n"
+        (n - 1).times do |i|
+          @stream.write " " * (indent + 4)
+          s = Packcr.escape_character(value[i])
+          @stream.write "(ctx->buffer.buf + ctx->cur)[#{i}] != '#{s}' ||\n"
+        end
+        @stream.write " " * (indent + 4)
+        s = Packcr.escape_character(value[n - 1])
+        @stream.write "(ctx->buffer.buf + ctx->cur)[#{n - 1}] != '#{s}'\n"
+        @stream.write " " * indent
+        @stream.write ") goto L#{"%04d" % onfail};\n"
+        @stream.write " " * indent
+        @stream.write "ctx->cur += #{n};\n"
+        return Packcr::CODE_REACH__BOTH
+      else
+        @stream.write " " * indent
+        @stream.write "if (\n"
+        @stream.write " " * (indent + 4)
+        @stream.write "pcc_refill_buffer(ctx, 1) < 1 ||\n"
+        @stream.write " " * (indent + 4)
+        s = Packcr.escape_character(value[0])
+        @stream.write "ctx->buffer.buf[ctx->cur] != '#{s}'\n"
+        @stream.write " " * indent
+        @stream.write ") goto L#{"%04d" % onfail};\n"
+        @stream.write " " * indent
+        @stream.write "ctx->cur++;\n"
+        return Packcr::CODE_REACH__BOTH
+      end
+    else
+      # no code to generate
+      return Packcr::CODE_REACH__ALWAYS_SUCCEED
+    end
+  end
 end
 
 class Packcr::Context

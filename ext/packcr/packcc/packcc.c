@@ -2283,51 +2283,6 @@ static bool_t parse(VALUE rctx) {
     return RB_TEST(rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("zero?"), 0)) ? TRUE : FALSE;
 }
 
-static code_reach_t generate_matching_string_code(VALUE gen, const char *value, int onfail, size_t indent, bool_t bare) {
-    const size_t n = (value != NULL) ? strlen(value) : 0;
-    if (n > 0) {
-        VALUE s;
-        if (n > 1) {
-            size_t i;
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("if (\n"));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent + 4));
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "pcc_refill_buffer(ctx, " FMT_LU ") < " FMT_LU " ||\n", (ulong_t)n, (ulong_t)n);
-            for (i = 0; i < n - 1; i++) {
-                rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent + 4));
-                s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
-                stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "(ctx->buffer.buf + ctx->cur)[" FMT_LU "] != '%s' ||\n", (ulong_t)i, RSTRING_PTR(s));
-            }
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent + 4));
-            s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[i]));
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "(ctx->buffer.buf + ctx->cur)[" FMT_LU "] != '%s'\n", (ulong_t)i, RSTRING_PTR(s));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), ") goto L%04d;\n", onfail);
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "ctx->cur += " FMT_LU ";\n", (ulong_t)n);
-            return CODE_REACH__BOTH;
-        }
-        else {
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("if (\n"));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent + 4));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("pcc_refill_buffer(ctx, 1) < 1 ||\n"));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent + 4));
-            s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(value[0]));
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "ctx->buffer.buf[ctx->cur] != '%s'\n", RSTRING_PTR(s));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), ") goto L%04d;\n", onfail);
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur++;\n"));
-            return CODE_REACH__BOTH;
-        }
-    }
-    else {
-        /* no code to generate */
-        return CODE_REACH__ALWAYS_SUCCEED;
-    }
-}
-
 static code_reach_t generate_matching_charclass_code(VALUE gen, const char *value, int onfail, size_t indent, bool_t bare) {
     assert(RB_TEST(rb_ivar_get(gen, rb_intern("@ascii"))));
     if (value != NULL) {
