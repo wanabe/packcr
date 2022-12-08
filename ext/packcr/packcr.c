@@ -64,6 +64,9 @@ static VALUE packcr_node_index(VALUE self) {
     case NODE_REFERENCE:
         return SIZET2NUM(node->data.reference.index);
         break;
+    case NODE_EXPAND:
+        return SIZET2NUM(node->data.expand.index);
+        break;
     default:
         return Qnil;
     }
@@ -353,7 +356,7 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     case NODE_CAPTURE:
         return INT2NUM(generate_capturing_code(gen, node->data.capture.expr, node->data.capture.index, onfail, indent, bare));
     case NODE_EXPAND:
-        return INT2NUM(generate_expanding_code(gen, node->data.expand.index, onfail, indent, bare));
+        return INT2NUM(rb_funcall(gen, rb_intern("generate_expanding_code"), 4, rb_funcall(rnode, rb_intern("index"), 0), ronfail, rindent, rbare));
     case NODE_ACTION:
         return INT2NUM(
             rb_funcall(
