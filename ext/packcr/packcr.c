@@ -174,6 +174,19 @@ static VALUE packcr_node_code(VALUE self) {
     return TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code);
 }
 
+static VALUE packcr_node_neg(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_PREDICATE:
+        return node->data.predicate.neg ? Qtrue : Qfalse;
+        break;
+    default:
+        return Qnil;
+    }
+}
+
 static VALUE packcr_node_expr(VALUE self) {
     node_t *node;
     node_t *expr;
@@ -374,7 +387,7 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     case NODE_QUANTITY:
         return INT2NUM(generate_quantifying_code(gen, node->data.quantity.expr, node->data.quantity.min, node->data.quantity.max, onfail, indent, bare));
     case NODE_PREDICATE:
-        return INT2NUM(generate_predicating_code(gen, node->data.predicate.expr, node->data.predicate.neg, onfail, indent, bare));
+        return rb_funcall(gen, rb_intern("generate_predicating_code"), 5, rb_funcall(rnode, rb_intern("expr"), 0), rb_funcall(rnode, rb_intern("neg"), 0), ronfail, rindent, rbare);
     case NODE_SEQUENCE:
         return rb_funcall(gen, rb_intern("generate_sequential_code"), 4, rb_funcall(rnode, rb_intern("nodes"), 0), ronfail, rindent, rbare);
     case NODE_ALTERNATE:
@@ -434,6 +447,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "capts", packcr_node_capts, 0);
     rb_define_method(cPackcr_Node, "nodes", packcr_node_nodes, 0);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
+    rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);
     rb_define_method(cPackcr_Node, "reference_var", packcr_node_reference_var, 0);
 
     cPackcr_Buffer = rb_define_class_under(cPackcr, "Buffer", rb_cObject);

@@ -162,6 +162,78 @@ class Packcr::Generator
     end
   end
 
+  def generate_predicating_code(expr, neg, onfail, indent, bare)
+    if !bare
+      @stream.write " " * indent
+      @stream.write "{\n"
+      indent += 4
+    end
+    @stream.write " " * indent
+    @stream.write "const size_t p = ctx->cur;\n"
+
+    if neg
+      l = next_label
+      r = generate_code(expr, l, indent, false)
+
+      if r != Packcr::CODE_REACH__ALWAYS_FAIL
+        @stream.write " " * indent
+        @stream.write "ctx->cur = p;\n"
+        @stream.write " " * indent
+        @stream.write "goto L#{"%04d" % onfail};\n"
+      end
+      if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+        if indent > 4
+          @stream.write " " * (indent - 4)
+        end
+        @stream.write "L#{"%04d" % l}:;\n"
+        @stream.write " " * indent
+        @stream.write "ctx->cur = p;\n"
+      end
+
+      case r
+      when Packcr::CODE_REACH__ALWAYS_SUCCEED
+        r = Packcr::CODE_REACH__ALWAYS_FAIL
+      when Packcr::CODE_REACH__ALWAYS_FAIL
+        r = Packcr::CODE_REACH__ALWAYS_SUCCEED
+      end
+    else
+      l = next_label
+      m = next_label
+      r = generate_code(expr, l, indent, false)
+      if r != Packcr::CODE_REACH__ALWAYS_FAIL
+        @stream.write " " * indent
+        @stream.write "ctx->cur = p;\n"
+      end
+      if r == Packcr::CODE_REACH__BOTH
+        @stream.write " " * indent
+        @stream.write "goto L#{"%04d" % m};\n"
+      end
+      if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+        if indent > 4
+          @stream.write " " * (indent - 4)
+        end
+        @stream.write "L#{"%04d" % l}:;\n"
+        @stream.write " " * indent
+        @stream.write "ctx->cur = p;\n"
+        @stream.write " " * indent
+        @stream.write "goto L#{"%04d" % onfail};\n"
+      end
+      if r == Packcr::CODE_REACH__BOTH
+        if indent > 4
+          @stream.write " " * (indent - 4)
+        end
+        @stream.write "L#{"%04d" % m}:;\n", m
+      end
+    end
+
+    if !bare
+      indent -= 4
+      @stream.write " " * indent
+      @stream.write "}\n"
+    end
+    return r
+  end
+
   def generate_sequential_code(nodes, onfail, indent, bare)
     b = false
     nodes.each_with_index do |expr, i|
