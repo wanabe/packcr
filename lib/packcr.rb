@@ -1473,7 +1473,23 @@ class Packcr::Context
             #define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))
           EOS
 
-          generate_code(sstream, rule.rule_name, code)
+          code.capts.each do |capture|
+            sstream.write(<<~EOS)
+              #define _#{capture.index + 1} pcc_get_capture_string(__pcc_ctx, __pcc_in->data.leaf.capts.buf[#{capture.index}])
+              #define _#{capture.index + 1}s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[#{capture.index}]->range.start))
+              #define _#{capture.index + 1}e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[#{capture.index}]->range.end))
+            EOS
+          end
+
+          sstream.write_code_block(code.code, 4, @iname)
+
+          code.capts.reverse_each do |capture|
+            sstream.write(<<~EOS)
+              #undef _#{capture.index + 1}e
+              #undef _#{capture.index + 1}s
+              #undef _#{capture.index + 1}
+            EOS
+          end
 
           sstream.write(<<~EOS)
             #undef _0e

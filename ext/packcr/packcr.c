@@ -65,6 +65,9 @@ static VALUE packcr_node_index(VALUE self) {
     case NODE_ERROR:
         return SIZET2NUM(node->data.error.index);
         break;
+    case NODE_CAPTURE:
+        return SIZET2NUM(node->data.capture.index);
+        break;
     default:
         return Qnil;
     }
@@ -97,6 +100,53 @@ static VALUE packcr_node_vars(VALUE self) {
         rb_ary_push(vars, rvar);
     }
     return vars;
+}
+
+static VALUE packcr_node_capts(VALUE self) {
+    node_t *node;
+    VALUE capts = rb_ary_new();
+    node_const_array_t *v;
+    size_t k;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        v = &node->data.action.capts;
+        break;
+    case NODE_ERROR:
+        v = &node->data.error.capts;
+        break;
+    case NODE_RULE:
+        v = &node->data.rule.capts;
+        break;
+    default:
+        return Qnil;
+    }
+    k = 0;
+    while (k < v->len) {
+        node_t *node = (node_t *)v->buf[k++];
+        VALUE rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
+        rb_ary_push(capts, rnode);
+    }
+    return capts;
+}
+
+static VALUE packcr_node_code(VALUE self) {
+    node_t *node;
+    code_block_t *code;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        code = &node->data.action.code;
+        break;
+    case NODE_ERROR:
+        code = &node->data.error.code;
+        break;
+    default:
+        return Qnil;
+    }
+    return TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code);
 }
 
 static VALUE packcr_node_rule_expr(VALUE self) {
@@ -192,11 +242,6 @@ static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
 
 static VALUE packcr_context_parse(VALUE self) {
     return parse(self) ? Qtrue : Qfalse;
-}
-
-static VALUE packcr_context_generate_code(VALUE self, VALUE sstream, VALUE rule_name, VALUE code) {
-    generate_code(self, sstream, rule_name, code);
-    return self;
 }
 
 static VALUE packcr_context_commit_buffer(VALUE self) {
@@ -321,7 +366,6 @@ void Init_packcr(void) {
     cPackcr_Context = rb_const_get(cPackcr, rb_intern("Context"));
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);
     rb_define_method(cPackcr_Context, "parse", packcr_context_parse, 0);
-    rb_define_method(cPackcr_Context, "generate_code", packcr_context_generate_code, 3);
     rb_define_method(cPackcr_Context, "commit_buffer", packcr_context_commit_buffer, 0);
     rb_define_method(cPackcr_Context, "refill_buffer", packcr_context_refill_buffer, 1);
 
@@ -335,6 +379,8 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "rule_expr", packcr_node_rule_expr, 0);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
+    rb_define_method(cPackcr_Node, "capts", packcr_node_capts, 0);
+    rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "reference_var", packcr_node_reference_var, 0);
     rb_define_method(cPackcr_Node, "reference_index", packcr_node_reference_index, 0);
 
