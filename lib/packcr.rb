@@ -1539,7 +1539,7 @@ class Packcr::Context
         if node.vars.length > 0
           sstream.write("    pcc_value_table__clear(ctx->auxil, &chunk->values);\n")
         end
-        r = g.generate_code(node.rule_expr, 0, 4, false)
+        r = g.generate_code(node.expr, 0, 4, false)
         sstream.write(<<~EOS.sub(/\A.*\n/, ""))
             >
                 ctx->level--;

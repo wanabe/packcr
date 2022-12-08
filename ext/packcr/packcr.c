@@ -149,11 +149,31 @@ static VALUE packcr_node_code(VALUE self) {
     return TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code);
 }
 
-static VALUE packcr_node_rule_expr(VALUE self) {
+static VALUE packcr_node_expr(VALUE self) {
     node_t *node;
+    node_t *expr;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
-    return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.rule.expr);
+    switch (node->type) {
+    case NODE_RULE:
+        expr = node->data.rule.expr;
+        break;
+    case NODE_QUANTITY:
+        expr = node->data.quantity.expr;
+        break;
+    case NODE_PREDICATE:
+        expr = node->data.predicate.expr;
+        break;
+    case NODE_CAPTURE:
+        expr = node->data.capture.expr;
+        break;
+    case NODE_ERROR:
+        expr = node->data.error.expr;
+        break;
+    default:
+        return Qnil;
+    }
+    return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, expr);
 }
 
 static VALUE packcr_node_reference_var(VALUE self) {
@@ -376,7 +396,7 @@ void Init_packcr(void) {
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
     rb_define_method(cPackcr_Node, "rule_name", packcr_node_rule_name, 0);
     rb_define_method(cPackcr_Node, "rule_capts_len", packcr_node_rule_capts_len, 0);
-    rb_define_method(cPackcr_Node, "rule_expr", packcr_node_rule_expr, 0);
+    rb_define_method(cPackcr_Node, "expr", packcr_node_expr, 0);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
     rb_define_method(cPackcr_Node, "capts", packcr_node_capts, 0);
