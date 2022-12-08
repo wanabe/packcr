@@ -380,36 +380,32 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     case NODE_ALTERNATE:
         return rb_funcall(gen, rb_intern("generate_alternative_code"), 4, rb_funcall(rnode, rb_intern("nodes"), 0), ronfail, rindent, rbare);
     case NODE_CAPTURE:
-        return INT2NUM(
-            rb_funcall(
-                gen, rb_intern("generate_capturing_code"), 5,
-                rb_funcall(rnode, rb_intern("expr"), 0),
-                SIZET2NUM(node->data.capture.index),
-                ronfail, rindent, rbare
-            )
+        return rb_funcall(
+            gen, rb_intern("generate_capturing_code"), 5,
+            rb_funcall(rnode, rb_intern("expr"), 0),
+            SIZET2NUM(node->data.capture.index),
+            ronfail, rindent, rbare
         );
     case NODE_EXPAND:
-        return INT2NUM(rb_funcall(gen, rb_intern("generate_expanding_code"), 4, rb_funcall(rnode, rb_intern("index"), 0), ronfail, rindent, rbare));
+        return rb_funcall(gen, rb_intern("generate_expanding_code"), 4, rb_funcall(rnode, rb_intern("index"), 0), ronfail, rindent, rbare);
     case NODE_ACTION:
-        return INT2NUM(
-            rb_funcall(
-                gen, rb_intern("generate_thunking_action_code"), 7,
-                SIZET2NUM(node->data.action.index),
-                rb_funcall(rnode, rb_intern("vars"), 0),
-                rb_funcall(rnode, rb_intern("capts"), 0),
-                Qfalse,
-                ronfail, rindent, rbare
-            )
+        return rb_funcall(
+            gen, rb_intern("generate_thunking_action_code"), 7,
+            SIZET2NUM(node->data.action.index),
+            rb_funcall(rnode, rb_intern("vars"), 0),
+            rb_funcall(rnode, rb_intern("capts"), 0),
+            Qfalse,
+            ronfail, rindent, rbare
         );
     case NODE_ERROR:
-        return INT2NUM(rb_funcall(
+        return rb_funcall(
             gen, rb_intern("generate_thunking_error_code"), 7,
             rb_funcall(rnode, rb_intern("expr"), 0),
             SIZET2NUM(node->data.error.index),
             rb_funcall(rnode, rb_intern("vars"), 0),
             rb_funcall(rnode, rb_intern("capts"), 0),
             ronfail, rindent, rbare
-        ));
+        );
     default:
         print_error("Internal error [%d]\n", __LINE__);
         exit(-1);
