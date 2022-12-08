@@ -316,12 +316,12 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
         exit(-1);
     case NODE_REFERENCE:
         if (node->data.reference.index != VOID_VALUE) {
-            stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2, SIZET2NUM(' '), SIZET2NUM(indent));
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, &(chunk->values.buf[" FMT_LU "]))) goto L%04d;\n",
                 node->data.reference.name, (ulong_t)node->data.reference.index, onfail);
         }
         else {
-            stream__write_characters(rb_ivar_get(gen, rb_intern("@stream")), ' ', indent);
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2, SIZET2NUM(' '), SIZET2NUM(indent));
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, NULL)) goto L%04d;\n",
                 node->data.reference.name, onfail);
         }

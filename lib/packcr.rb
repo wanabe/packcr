@@ -67,6 +67,12 @@ class Packcr::Stream
     end
   end
 
+  def write_characters(c, n)
+    n.times do
+      putc(c)
+    end
+  end
+
   def write(s)
     @io.write(s)
     if @line
