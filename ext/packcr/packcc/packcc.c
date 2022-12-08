@@ -802,19 +802,6 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
     }
 }
 
-static void char_array__add(char_array_t *array, char ch) {
-    if (array->max <= array->len) {
-        const size_t n = array->len + 1;
-        size_t m = array->max;
-        if (m == 0) m = BUFFER_MIN_SIZE;
-        while (m < n && m != 0) m <<= 1;
-        if (m == 0) m = n; /* in case of shift overflow */
-        array->buf = (char *)realloc_e(array->buf, m);
-        array->max = m;
-    }
-    array->buf[array->len++] = ch;
-}
-
 static void code_block__init(code_block_t *code) {
     code->text = NULL;
     code->len = 0;

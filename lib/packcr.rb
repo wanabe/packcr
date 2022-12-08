@@ -330,6 +330,16 @@ class Packcr::Context
     end
   end
 
+  def refill_buffer(num)
+    while @buffer.len - @bufcur < num
+      c = @ifile.getc
+      break if c.nil?
+      @buffer.add(c.ord)
+    end
+
+    return @buffer.len - @bufcur
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
