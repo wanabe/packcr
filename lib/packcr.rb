@@ -162,6 +162,76 @@ class Packcr::Generator
     end
   end
 
+  def generate_alternative_code(nodes, onfail, indent, bare)
+    b = false
+    m = next_label
+    if !bare
+      @stream.write " " * indent
+      @stream.write "{\n"
+      indent += 4
+    end
+
+    @stream.write " " * indent
+    @stream.write "const size_t p = ctx->cur;\n"
+    @stream.write " " * indent
+    @stream.write "const size_t n = chunk->thunks.len;\n"
+
+    nodes.each_with_index do |expr, i|
+      c = i + 1 < nodes.length
+      l = next_label
+      case generate_code(expr, l, indent, false)
+      when Packcr::CODE_REACH__ALWAYS_SUCCEED
+        if c
+          @stream.write " " * indent
+          @stream.write "/* unreachable codes omitted */\n"
+        end
+        if b
+          if indent > 4
+            @stream.write " " * (indent - 4)
+          end
+          @stream.write "L#{"%04d" % m}:;\n"
+        end
+        if !bare
+          indent -= 4
+          @stream.write " " * indent
+          @stream.write "}\n"
+        end
+        return Packcr::CODE_REACH__ALWAYS_SUCCEED
+      when Packcr::CODE_REACH__ALWAYS_FAIL
+      else
+        b = true
+        @stream.write " " * indent
+        @stream.write "goto L#{"%04d" % m};\n"
+      end
+
+      if indent > 4
+        @stream.write " " * (indent - 4)
+      end
+      @stream.write "L#{"%04d" % l}:;\n"
+      @stream.write " " * indent
+      @stream.write "ctx->cur = p;\n"
+      @stream.write " " * indent
+      @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
+      if !c
+        @stream.write " " * indent
+        @stream.write "goto L#{"%04d" % onfail};\n"
+      end
+    end
+    if b
+      if indent > 4
+        @stream.write " " * (indent - 4)
+      end
+      @stream.write "L#{"%04d" % m}:;\n"
+    end
+
+    if !bare
+      indent -= 4
+      @stream.write " " * indent
+      @stream.write "}\n"
+    end
+    b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_FAIL
+  end
+
   def generate_capturing_code(expr, index, onfail, indent, bare)
     if !bare
       @stream.write " " * indent

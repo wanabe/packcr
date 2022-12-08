@@ -130,6 +130,32 @@ static VALUE packcr_node_capts(VALUE self) {
     return capts;
 }
 
+static VALUE packcr_node_nodes(VALUE self) {
+    node_t *node;
+    VALUE nodes = rb_ary_new();
+    node_array_t *a;
+    size_t k;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_SEQUENCE:
+        a = &node->data.sequence.nodes;
+        break;
+    case NODE_ALTERNATE:
+        a = &node->data.alternate.nodes;
+        break;
+    default:
+        return Qnil;
+    }
+    k = 0;
+    while (k < a->len) {
+        node_t *n = (node_t *)a->buf[k++];
+        VALUE rn = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, n);
+        rb_ary_push(nodes, rn);
+    }
+    return nodes;
+}
+
 static VALUE packcr_node_code(VALUE self) {
     node_t *node;
     code_block_t *code;
@@ -352,7 +378,7 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     case NODE_SEQUENCE:
         return INT2NUM(generate_sequential_code(gen, &node->data.sequence.nodes, onfail, indent, bare));
     case NODE_ALTERNATE:
-        return INT2NUM(generate_alternative_code(gen, &node->data.alternate.nodes, onfail, indent, bare));
+        return rb_funcall(gen, rb_intern("generate_alternative_code"), 4, rb_funcall(rnode, rb_intern("nodes"), 0), ronfail, rindent, rbare);
     case NODE_CAPTURE:
         return INT2NUM(
             rb_funcall(
@@ -410,6 +436,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
     rb_define_method(cPackcr_Node, "capts", packcr_node_capts, 0);
+    rb_define_method(cPackcr_Node, "nodes", packcr_node_nodes, 0);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "reference_var", packcr_node_reference_var, 0);
 
