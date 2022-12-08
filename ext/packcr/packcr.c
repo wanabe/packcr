@@ -379,7 +379,7 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
         }
         return INT2NUM(CODE_REACH__BOTH);
     case NODE_STRING:
-        return rb_funcall(gen, rb_intern("matching_string_code"), 4, rb_str_new2(node->data.string.value), ronfail, rindent, rbare);
+        return rb_funcall(gen, rb_intern("generate_matching_string_code"), 4, rb_str_new2(node->data.string.value), ronfail, rindent, rbare);
     case NODE_CHARCLASS:
         return RB_TEST(rb_ivar_get(gen, rb_intern("@ascii"))) ?
                INT2NUM(generate_matching_charclass_code(gen, node->data.charclass.value, onfail, indent, bare)) :

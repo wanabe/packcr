@@ -120,7 +120,7 @@ class Packcr::Generator
     @label += 1
   end
 
-  def matching_string_code(value, onfail, indent, bare)
+  def generate_matching_string_code(value, onfail, indent, bare)
     n = value&.length || 0
 
     if n > 0
