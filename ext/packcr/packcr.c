@@ -294,6 +294,14 @@ static VALUE packcr_buffer_aset(VALUE self, VALUE pos, VALUE ch) {
     return ch;
 }
 
+static VALUE packcr_buffer_add_pos(VALUE self, VALUE offset) {
+    char_array_t *buffer;
+    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
+    memmove(buffer->buf, buffer->buf + NUM2SIZET(offset), buffer->len - NUM2SIZET(offset));
+    buffer->len -= NUM2SIZET(offset);
+    return self;
+}
+
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -324,9 +332,7 @@ static VALUE packcr_context_parse(VALUE self) {
 
 static VALUE packcr_context_commit_buffer(VALUE self) {
     VALUE rbuffer;
-    char_array_t *buffer;
     rbuffer = rb_ivar_get(self, rb_intern("@buffer"));
-    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     assert(NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) >= NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
     if (NUM2SIZET(rb_ivar_get(self, rb_intern("@linepos"))) < NUM2SIZET(rb_ivar_get(self, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur")))) {
         const bool ascii = RB_TEST(rb_ivar_get(self, rb_intern("@ascii")));
@@ -335,8 +341,7 @@ static VALUE packcr_context_commit_buffer(VALUE self) {
             : NUM2SIZET(rb_funcall(rbuffer, rb_intern("count_characters"), 2, SIZET2NUM(0), rb_ivar_get(self, rb_intern("@bufcur"))));
         rb_ivar_set(self, rb_intern("@charnum"), NUM2SIZET(rb_ivar_get(self, rb_intern("@charnum"))) + count);
     }
-    memmove(buffer->buf, buffer->buf + NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))), NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0)) - NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur"))));
-    buffer->len -= NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur")));
+    rb_funcall(rbuffer, rb_intern("add_pos"), 1, rb_ivar_get(self, rb_intern("@bufcur")));
     rb_ivar_set(self, rb_intern("@bufpos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(self, rb_intern("@bufpos"))) + NUM2SIZET(rb_ivar_get(self, rb_intern("@bufcur")))));
     rb_ivar_set(self, rb_intern("@bufcur"), SIZET2NUM(0));
     return self;
@@ -487,6 +492,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Buffer, "add", packcr_buffer_add, 1);
     rb_define_method(cPackcr_Buffer, "to_s", packcr_buffer_to_s, 0);
     rb_define_method(cPackcr_Buffer, "[]=", packcr_buffer_aset, 2);
+    rb_define_method(cPackcr_Buffer, "add_pos", packcr_buffer_add_pos, 1);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
