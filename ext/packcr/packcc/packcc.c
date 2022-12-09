@@ -1371,24 +1371,8 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_string(VALUE rctx, const char *str) {
-    const size_t n = strlen(str);
-    VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(n))) >= n) {
-        VALUE rbuf = rb_funcall(rbuffer, rb_intern("to_s"), 0);
-        char *buf;
-        rbuf = rb_funcall(rbuf, rb_intern("[]"), 2, rb_ivar_get(rctx, rb_intern("@bufcur")), SIZET2NUM(n));
-        buf = StringValuePtr(rbuf);
-        if (strncmp(buf, str, n) == 0) {
-            rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) + n));
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
 static bool_t match_section_line_(VALUE rctx, const char *head) {
-    if (match_string(rctx, head)) {
+    if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(head)))) {
         while (!RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0)) && !RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
         return TRUE;
     }
@@ -1397,7 +1381,7 @@ static bool_t match_section_line_(VALUE rctx, const char *head) {
 
 static bool_t match_section_line_continuable_(VALUE rctx, const char *head) {
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    if (match_string(rctx, head)) {
+    if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(head)))) {
         while (!RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) {
             if (RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0))) {
                 if ((char)NUM2INT(rb_funcall(rbuffer, rb_intern("[]"), 1, SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) - 1))) != '\\') break;
@@ -1414,8 +1398,8 @@ static bool_t match_section_line_continuable_(VALUE rctx, const char *head) {
 static bool_t match_section_block_(VALUE rctx, const char *left, const char *right, const char *name) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-    if (match_string(rctx, left)) {
-        while (!match_string(rctx, right)) {
+    if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(left)))) {
+        while (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(right)))) {
             if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in %s\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
                 rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
@@ -1431,8 +1415,8 @@ static bool_t match_section_block_(VALUE rctx, const char *left, const char *rig
 static bool_t match_quotation_(VALUE rctx, const char *left, const char *right, const char *name) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-    if (match_string(rctx, left)) {
-        while (!match_string(rctx, right)) {
+    if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(left)))) {
+        while (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(right)))) {
             if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in %s\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
                 rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
@@ -1557,7 +1541,7 @@ static bool_t match_code_block(VALUE rctx) {
 }
 
 static bool_t match_footer_start(VALUE rctx) {
-    return match_string(rctx, "%%");
+    return RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("%%")));
 }
 
 static node_t *parse_expression(VALUE rctx, VALUE rrule);
@@ -1583,7 +1567,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             s = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             match_spaces(rctx);
         }
-        if (match_string(rctx, "<-")) goto EXCEPTION;
+        if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("<-")))) goto EXCEPTION;
         n_p = create_node(NODE_REFERENCE);
         if (r == VOID_VALUE) {
             VALUE rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
@@ -1948,7 +1932,7 @@ static VALUE parse_rule(VALUE rctx) {
     if (!match_identifier(rctx)) goto EXCEPTION;
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     match_spaces(rctx);
-    if (!match_string(rctx, "<-")) goto EXCEPTION;
+    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("<-")))) goto EXCEPTION;
     match_spaces(rctx);
     rn_r = create_rule_node();
     TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
@@ -1980,7 +1964,7 @@ static void dump_options(VALUE rctx) {
 
 static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE output1, VALUE output2) {
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    if (!match_string(rctx, name)) return FALSE;
+    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(name)))) return FALSE;
     match_spaces(rctx);
     {
         const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
@@ -2027,7 +2011,7 @@ static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE outpu
 static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *varname, string_flag_t mode) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-    if (!match_string(rctx, name)) return FALSE;
+    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(name)))) return FALSE;
     match_spaces(rctx);
     {
         char *s = NULL;

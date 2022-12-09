@@ -977,6 +977,17 @@ class Packcr::Context
     false
   end
 
+  def match_string(str)
+    n = str.length
+    if refill_buffer(n) >= n
+      if @buffer.to_s[@bufcur, n] == str
+        @bufcur += n
+        return true
+      end
+    end
+    false
+  end
+
   def match_blank
     match_character_set(" \t\v\f")
   end
