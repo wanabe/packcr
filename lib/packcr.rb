@@ -1013,8 +1013,9 @@ class Packcr::Context
   def match_section_line_continuable_(head)
     if match_string(head)
       while !eof?
+        pos = @bufcur
         if eol?
-          if @buffer[@bufcur - 1] != "\\".ord
+          if @buffer[pos - 1] != "\\".ord
             break
           end
         else
