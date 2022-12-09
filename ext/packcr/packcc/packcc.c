@@ -767,12 +767,10 @@ static void code_block__term(code_block_t *code) {
     free(code->text);
 }
 
-static code_block_t *code_block_array__create_entry(VALUE array) {
-    code_block_t *code;
+static VALUE code_block_array__create_entry(VALUE array) {
     VALUE rcode = rb_funcall(cPackcr_CodeBlock, rb_intern("new"),0);
-    TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code);
     rb_ary_push(array, rcode);
-    return code;
+    return rcode;
 }
 
 static void node_array__init(node_array_t *array) {
@@ -1992,7 +1990,9 @@ static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE outpu
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             match_spaces(rctx);
             if (output1 != Qnil) {
-                code_block_t *c = code_block_array__create_entry(output1);
+                code_block_t *c;
+                VALUE rc = code_block_array__create_entry(output1);
+                TypedData_Get_Struct(rc, code_block_t, &packcr_ptr_data_type, c);
                 char *text;
                 VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
                 rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
@@ -2003,7 +2003,9 @@ static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE outpu
                 c->col = m;
             }
             if (output2 != Qnil) {
-                code_block_t *c = code_block_array__create_entry(output2);
+                code_block_t *c;
+                VALUE rc = code_block_array__create_entry(output2);
+                TypedData_Get_Struct(rc, code_block_t, &packcr_ptr_data_type, c);
                 char *text;
                 VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
                 rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
