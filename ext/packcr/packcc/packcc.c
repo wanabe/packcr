@@ -1371,22 +1371,6 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_section_line_continuable_(VALUE rctx, const char *head) {
-    VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(head)))) {
-        while (!RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) {
-            if (RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0))) {
-                if ((char)NUM2INT(rb_funcall(rbuffer, rb_intern("[]"), 1, SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) - 1))) != '\\') break;
-            }
-            else {
-                RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
-            }
-        }
-        return TRUE;
-    }
-    return FALSE;
-}
-
 static bool_t match_section_block_(VALUE rctx, const char *left, const char *right, const char *name) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
@@ -1432,7 +1416,7 @@ static bool_t match_quotation_(VALUE rctx, const char *left, const char *right, 
 }
 
 static bool_t match_directive_c(VALUE rctx) {
-    return match_section_line_continuable_(rctx, "#");
+    return RB_TEST(rb_funcall(rctx, rb_intern("match_section_line_continuable_"), 1, rb_str_new_cstr("#")));
 }
 
 static bool_t match_comment(VALUE rctx) {

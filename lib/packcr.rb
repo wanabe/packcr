@@ -1010,6 +1010,22 @@ class Packcr::Context
     false
   end
 
+  def match_section_line_continuable_(head)
+    if match_string(head)
+      while !eof?
+        if eol?
+          if @buffer[@bufcur - 1] != "\\".ord
+            break
+          end
+        else
+          match_character_any
+        end
+      end
+      return true
+    end
+    false
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
