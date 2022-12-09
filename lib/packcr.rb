@@ -684,8 +684,7 @@ class Packcr::Generator
       @stream.write "pcc_value_t null;\n"
     end
     @stream.write " " * indent
-    rule_name = @rule.rule_name
-    @stream.write "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{rule_name}_#{index}, #{@rule.vars.length}, #{@rule.capts.length});\n"
+    @stream.write "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{@rule.name}_#{index}, #{@rule.vars.length}, #{@rule.capts.length});\n"
 
     vars.each do |var|
       @stream.write " " * indent
@@ -907,7 +906,7 @@ class Packcr::Context
 
   def make_rulehash
     @rules.each do |rule|
-      @rulehash[rule.rule_name] = rule
+      @rulehash[rule.name] = rule
     end
   end
 
@@ -2240,7 +2239,7 @@ class Packcr::Context
       @rules.each do |rule|
         rule.codes.each do |code|
           sstream.write(<<~EOS)
-            static void pcc_action_#{rule.rule_name}_#{code.index}(#{@prefix}_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+            static void pcc_action_#{rule.name}_#{code.index}(#{@prefix}_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
             #define auxil (__pcc_ctx->auxil)
             #define __ (*__pcc_out)
           EOS
@@ -2298,7 +2297,7 @@ class Packcr::Context
 
       @rules.each do |node|
         sstream.write(<<~EOS)
-          static pcc_thunk_chunk_t *pcc_evaluate_rule_#{node.rule_name}(pcc_context_t *ctx);
+          static pcc_thunk_chunk_t *pcc_evaluate_rule_#{node.name}(pcc_context_t *ctx);
         EOS
       end
       sstream.write("\n")
@@ -2306,10 +2305,10 @@ class Packcr::Context
       @rules.each do |node|
         g = ::Packcr::Generator.new(sstream, node, @ascii)
         sstream.write(<<~EOS)
-          static pcc_thunk_chunk_t *pcc_evaluate_rule_#{node.rule_name}(pcc_context_t *ctx) {
+          static pcc_thunk_chunk_t *pcc_evaluate_rule_#{node.name}(pcc_context_t *ctx) {
               pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
               chunk->pos = ctx->cur;
-              PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, \"#{node.rule_name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
+              PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, \"#{node.name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
               ctx->level++;
               pcc_value_table__resize(ctx->auxil, &chunk->values, #{node.vars.length});
               pcc_capture_table__resize(ctx->auxil, &chunk->capts, #{node.capts.length});
@@ -2321,14 +2320,14 @@ class Packcr::Context
         sstream.write(<<~EOS.sub(/\A.*\n/, ""))
             >
                 ctx->level--;
-                PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, \"#{node.rule_name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+                PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, \"#{node.name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
                 return chunk;
         EOS
         if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
           sstream.write(<<~EOS)
             L0000:;
                 ctx->level--;
-                PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, \"#{node.rule_name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+                PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, \"#{node.name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
                 pcc_thunk_chunk__destroy(ctx, chunk);
                 return NULL;
           EOS
@@ -2350,7 +2349,7 @@ class Packcr::Context
       if !@rules.empty?
         sstream.write(<<~EOS.sub(/\A.*\n/, ""))
           >
-              if (pcc_apply_rule(ctx, pcc_evaluate_rule_#{@rules[0].rule_name}, &ctx->thunks, ret))
+              if (pcc_apply_rule(ctx, pcc_evaluate_rule_#{@rules[0].name}, &ctx->thunks, ret))
                   pcc_do_action(ctx, &ctx->thunks, ret);
               else
                   PCC_ERROR(ctx->auxil);

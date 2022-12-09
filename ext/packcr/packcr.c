@@ -41,11 +41,22 @@ static VALUE packcr_node_s_alloc(VALUE klass) {
     return obj;
 }
 
-static VALUE packcr_node_rule_name(VALUE self) {
+static VALUE packcr_node_name(VALUE self) {
     node_t *node;
+    char *name;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
-    return rb_str_new2(node->data.rule.name);
+    switch (node->type) {
+    case NODE_RULE:
+        name = node->data.rule.name;
+        break;
+    case NODE_REFERENCE:
+        name = node->data.reference.name;
+        break;
+    default:
+        return Qnil;
+    }
+    return rb_str_new2(name);
 }
 
 static VALUE packcr_node_index(VALUE self) {
@@ -358,7 +369,7 @@ void Init_packcr(void) {
 
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
-    rb_define_method(cPackcr_Node, "rule_name", packcr_node_rule_name, 0);
+    rb_define_method(cPackcr_Node, "name", packcr_node_name, 0);
     rb_define_method(cPackcr_Node, "expr", packcr_node_expr, 0);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
