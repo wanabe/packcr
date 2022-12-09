@@ -1573,8 +1573,6 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     node_t *rule;
     node_t *n_p = NULL;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    char_array_t *buffer;
-    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
     if (match_identifier(rctx)) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
@@ -1590,15 +1588,23 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         if (match_string(rctx, "<-")) goto EXCEPTION;
         n_p = create_node(NODE_REFERENCE);
         if (r == VOID_VALUE) {
+            VALUE rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+            char *name;
+            rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
+            name = StringValuePtr(rname);
             assert(q >= p);
             n_p->data.reference.var = NULL;
             n_p->data.reference.index = VOID_VALUE;
-            n_p->data.reference.name = strndup_e(buffer->buf + p, q - p);
+            n_p->data.reference.name = strndup_e(name, strlen(name));
         }
         else {
+            VALUE rvar = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+            char *var;
+            rvar = rb_funcall(rvar, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
+            var = StringValuePtr(rvar);
             assert(s != VOID_VALUE); /* s should have a valid value when r has a valid value */
             assert(q >= p);
-            n_p->data.reference.var = strndup_e(buffer->buf + p, q - p);
+            n_p->data.reference.var = strndup_e(var, strlen(var));
             if (n_p->data.reference.var[0] == '_') {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Leading underscore in variable name '%s'\n",
                     RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), n_p->data.reference.var);
@@ -1614,7 +1620,13 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
                 n_p->data.reference.index = i;
             }
             assert(s >= r);
-            n_p->data.reference.name = strndup_e(buffer->buf + r, s - r);
+            {
+                VALUE rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+                char *name;
+                rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(r), SIZET2NUM(s - r));
+                name = StringValuePtr(rname);
+                n_p->data.reference.name = strndup_e(name, strlen(name));
+            }
         }
         n_p->data.reference.line = l;
         n_p->data.reference.col = m;
@@ -1645,10 +1657,13 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         if (match_number(rctx)) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             char *s;
+            VALUE rs = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+            rs = rb_funcall(rs, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
+            s = StringValuePtr(rs);
             match_spaces(rctx);
             n_p = create_node(NODE_EXPAND);
             assert(q >= p);
-            s = strndup_e(buffer->buf + p, q - p);
+            s = strndup_e(s, strlen(s));
             n_p->data.expand.index = string_to_size_t(s);
             if (n_p->data.expand.index == VOID_VALUE) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Invalid unsigned number '%s'\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), s);
@@ -1684,9 +1699,13 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     }
     else if (match_character_class(rctx)) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
+        char *charclass;
+        VALUE rcharclass = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+        rcharclass = rb_funcall(rcharclass, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
+        charclass = StringValuePtr(rcharclass);
         match_spaces(rctx);
         n_p = create_node(NODE_CHARCLASS);
-        n_p->data.charclass.value = strndup_e(buffer->buf + p + 1, q - p - 2);
+        n_p->data.charclass.value = strndup_e(charclass, strlen(charclass));
         if (!unescape_string(n_p->data.charclass.value, TRUE)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
             rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
@@ -1701,9 +1720,13 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     }
     else if (match_quotation_single(rctx) || match_quotation_double(rctx)) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
+        char *string;
+        VALUE rstring = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+        rstring = rb_funcall(rstring, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
+        string = StringValuePtr(rstring);
         match_spaces(rctx);
         n_p = create_node(NODE_STRING);
-        n_p->data.string.value = strndup_e(buffer->buf + p + 1, q - p - 2);
+        n_p->data.string.value = strndup_e(string, strlen(string));
         if (!unescape_string(n_p->data.string.value, FALSE)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
             rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
@@ -1716,11 +1739,15 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     else if (match_code_block(rctx)) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         VALUE rn_p, rcodes;
+        char *text;
+        VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+        rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
+        text = StringValuePtr(rtext);
         rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
         match_spaces(rctx);
         rn_p = create_action_node();
         TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
-        n_p->data.action.code.text = strndup_e(buffer->buf + p + 1, q - p - 2);
+        n_p->data.action.code.text = strndup_e(text, strlen(text));
         n_p->data.action.code.len = find_trailing_blanks(n_p->data.action.code.text);
         n_p->data.action.code.line = l;
         n_p->data.action.code.col = m;
@@ -1752,8 +1779,6 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
     node_t *n_t = NULL;
     const char t = RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('&'))) ? '&' : RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('!'))) ? '!' : '\0';
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    char_array_t *buffer;
-    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     if (t) match_spaces(rctx);
     n_p = parse_primary(rctx, rrule);
     if (n_p == NULL) goto EXCEPTION;
@@ -1805,11 +1830,15 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             VALUE rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
             VALUE rn_t;
+            char *text;
+            VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+            rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
+            text = StringValuePtr(rtext);
             match_spaces(rctx);
             rn_t = create_error_node();
             TypedData_Get_Struct(rn_t, node_t, &packcr_ptr_data_type, n_t);
             n_t->data.error.expr = n_r;
-            n_t->data.error.code.text = strndup_e(buffer->buf + p + 1, q - p - 2);
+            n_t->data.error.code.text = strndup_e(text, strlen(text));
             n_t->data.error.code.len = find_trailing_blanks(n_t->data.error.code.text);
             n_t->data.error.code.line = l;
             n_t->data.error.code.col = m;
@@ -1916,8 +1945,8 @@ static VALUE parse_rule(VALUE rctx) {
     node_t *n_r = NULL;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     VALUE rn_r;
-    char_array_t *buffer;
-    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
+    char *name;
+    VALUE rname;
     if (!match_identifier(rctx)) goto EXCEPTION;
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     match_spaces(rctx);
@@ -1928,7 +1957,10 @@ static VALUE parse_rule(VALUE rctx) {
     n_r->data.rule.expr = parse_expression(rctx, rn_r);
     if (n_r->data.rule.expr == NULL) goto EXCEPTION;
     assert(q >= p);
-    n_r->data.rule.name = strndup_e(buffer->buf + p, q - p);
+    rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+    rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
+    name = StringValuePtr(rname);
+    n_r->data.rule.name = strndup_e(name, strlen(name));
     n_r->data.rule.line = l;
     n_r->data.rule.col = m;
     return rn_r;
@@ -1950,8 +1982,6 @@ static void dump_options(VALUE rctx) {
 
 static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE output1, VALUE output2) {
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    char_array_t *buffer;
-    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     if (!match_string(rctx, name)) return FALSE;
     match_spaces(rctx);
     {
@@ -1963,14 +1993,22 @@ static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE outpu
             match_spaces(rctx);
             if (output1 != Qnil) {
                 code_block_t *c = code_block_array__create_entry(output1);
-                c->text = strndup_e(buffer->buf + p + 1, q - p - 2);
+                char *text;
+                VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+                rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
+                text = StringValuePtr(rtext);
+                c->text = strndup_e(text, strlen(text));
                 c->len = q - p - 2;
                 c->line = l;
                 c->col = m;
             }
             if (output2 != Qnil) {
                 code_block_t *c = code_block_array__create_entry(output2);
-                c->text = strndup_e(buffer->buf + p + 1, q - p - 2);
+                char *text;
+                VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+                rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
+                text = StringValuePtr(rtext);
+                c->text = strndup_e(text, strlen(text));
                 c->len = q - p - 2;
                 c->line = l;
                 c->col = m;
@@ -1996,12 +2034,15 @@ static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *
         const size_t mv = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
         size_t q;
         VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-        char_array_t *buffer;
-        TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
         if (match_quotation_single(rctx) || match_quotation_double(rctx)) {
             q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             match_spaces(rctx);
-            s = strndup_e(buffer->buf + p + 1, q - p - 2);
+            {
+                VALUE rs = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+                rs = rb_funcall(rs, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
+                s = StringValuePtr(rs);
+                s = strndup_e(s, strlen(s));
+            }
             if (!unescape_string(s, FALSE)) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
                 rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
