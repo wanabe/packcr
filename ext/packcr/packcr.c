@@ -222,33 +222,20 @@ static VALUE packcr_node_reference_var(VALUE self) {
     return rb_str_new2(node->data.reference.var);
 }
 
-static VALUE packcr_buffer_s_alloc(VALUE klass) {
-    char_array_t *buffer;
-    VALUE obj = TypedData_Make_Struct(klass, char_array_t, &packcr_ptr_data_type, buffer);
-
-    buffer->len = 0;
-    buffer->max = 0;
-    buffer->buf = NULL;
-
-    return obj;
-}
-
-static VALUE packcr_buffer_max(VALUE self) {
-    char_array_t *buffer;
-    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
-    return SIZET2NUM(buffer->max);
+static VALUE packcr_buffer_initialize(VALUE self) {
+    rb_ivar_set(self, rb_intern("@buf"), rb_str_new_cstr(""));
+    return self;
 }
 
 static VALUE packcr_buffer_len(VALUE self) {
-    char_array_t *buffer;
-    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
-    return SIZET2NUM(buffer->len);
+    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
+    return rb_funcall(buf, rb_intern("length"), 0);
 }
 
 static VALUE packcr_buffer_entry(VALUE self, VALUE rindex) {
-    char_array_t *buffer;
-    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
-    return INT2NUM(buffer->buf[NUM2SIZET(rindex)]);
+    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
+    VALUE ch = rb_funcall(buf, rb_intern("[]"), 1, rindex);
+    return rb_funcall(ch, rb_intern("ord"), 0);
 }
 
 static VALUE packcr_buffer_count_characters(VALUE self, VALUE rstart, VALUE rend) {
@@ -265,40 +252,24 @@ static VALUE packcr_buffer_count_characters(VALUE self, VALUE rstart, VALUE rend
 }
 
 static VALUE packcr_buffer_add(VALUE self, VALUE rch) {
-    char_array_t *buffer;
-    char ch = (char)NUM2INT(rch);
-    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
-    if (buffer->max <= buffer->len) {
-        const size_t n = buffer->len + 1;
-        size_t m = buffer->max;
-        if (m == 0) m = BUFFER_MIN_SIZE;
-        while (m < n && m != 0) m <<= 1;
-        if (m == 0) m = n; /* in case of shift overflow */
-        buffer->buf = (char *)realloc_e(buffer->buf, m);
-        buffer->max = m;
-    }
-    buffer->buf[buffer->len++] = ch;
+    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
+    rb_funcall(buf, rb_intern("concat"), 1, rch);
     return self;
 }
 
 static VALUE packcr_buffer_to_s(VALUE self) {
-    char_array_t *buffer;
-    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
-    return rb_str_new(buffer->buf, buffer->len);
+    return rb_ivar_get(self, rb_intern("@buf"));
 }
 
 static VALUE packcr_buffer_aset(VALUE self, VALUE pos, VALUE ch) {
-    char_array_t *buffer;
-    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
-    buffer->buf[NUM2SIZET(pos)] = NUM2SIZET(ch);
+    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
+    rb_funcall(buf, rb_intern("[]="), 2, pos, rb_funcall(ch, rb_intern("chr"), 0));
     return ch;
 }
 
 static VALUE packcr_buffer_add_pos(VALUE self, VALUE offset) {
-    char_array_t *buffer;
-    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
-    memmove(buffer->buf, buffer->buf + NUM2SIZET(offset), buffer->len - NUM2SIZET(offset));
-    buffer->len -= NUM2SIZET(offset);
+    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
+    rb_funcall(buf, rb_intern("[]="), 3, INT2NUM(0), offset, rb_str_new_cstr(""));
     return self;
 }
 
@@ -448,9 +419,8 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);
     rb_define_method(cPackcr_Node, "reference_var", packcr_node_reference_var, 0);
 
-    cPackcr_Buffer = rb_define_class_under(cPackcr, "Buffer", rb_cObject);
-    rb_define_alloc_func(cPackcr_Buffer, packcr_buffer_s_alloc);
-    rb_define_method(cPackcr_Buffer, "max", packcr_buffer_max, 0);
+    cPackcr_Buffer = rb_const_get(cPackcr, rb_intern("Buffer"));
+    rb_define_method(cPackcr_Buffer, "initialize", packcr_buffer_initialize, 0);
     rb_define_method(cPackcr_Buffer, "len", packcr_buffer_len, 0);
     rb_define_method(cPackcr_Buffer, "[]", packcr_buffer_entry, 1);
     rb_define_method(cPackcr_Buffer, "count_characters", packcr_buffer_count_characters, 2);

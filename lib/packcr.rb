@@ -753,6 +753,9 @@ end
 class Packcr::Context
 end
 
+class Packcr::Buffer
+end
+
 require "packcr.so"
 
 class Packcr::Node
@@ -866,8 +869,8 @@ class Packcr::Context
     end
   end
 
-  def refill_buffer(num)
-    while @buffer.len - @bufcur < num
+  def refill_buffer(num = nil)
+    while !num || @buffer.len - @bufcur < num
       c = @ifile.getc
       break if c.nil?
       @buffer.add(c.ord)
@@ -2331,7 +2334,7 @@ class Packcr::Context
       if @lines && !eof?
         sstream.write_line_directive(@iname, @linenum)
       end
-      while refill_buffer(@buffer.max) > 0
+      while refill_buffer > 0
         write_buffer(sstream)
         commit_buffer
       end
