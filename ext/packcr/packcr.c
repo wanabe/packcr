@@ -1,7 +1,7 @@
 #include <ruby.h>
 #include <ruby/encoding.h>
 
-VALUE cPackcr, cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Buffer, cPackcr_Generator;
+VALUE cPackcr, cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Generator;
 
 static void packcr_ptr_mark(void *ptr) {
 }
@@ -222,57 +222,6 @@ static VALUE packcr_node_reference_var(VALUE self) {
     return rb_str_new2(node->data.reference.var);
 }
 
-static VALUE packcr_buffer_initialize(VALUE self) {
-    rb_ivar_set(self, rb_intern("@buf"), rb_str_new_cstr(""));
-    return self;
-}
-
-static VALUE packcr_buffer_len(VALUE self) {
-    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
-    return rb_funcall(buf, rb_intern("length"), 0);
-}
-
-static VALUE packcr_buffer_entry(VALUE self, VALUE rindex) {
-    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
-    VALUE ch = rb_funcall(buf, rb_intern("[]"), 1, rindex);
-    return rb_funcall(ch, rb_intern("ord"), 0);
-}
-
-static VALUE packcr_buffer_count_characters(VALUE self, VALUE rstart, VALUE rend) {
-    size_t start = NUM2SIZET(rstart), end = NUM2SIZET(rend);
-    /* UTF-8 multibyte character support but without checking UTF-8 validity */
-    size_t n = 0, i = start;
-    while (i < end) {
-        const int c = (int)(unsigned char)NUM2SIZET(rb_funcall(self, rb_intern("[]"), 1, SIZET2NUM(i)));
-        if (c == 0) break;
-        n++;
-        i += (c < 0x80) ? 1 : ((c & 0xe0) == 0xc0) ? 2 : ((c & 0xf0) == 0xe0) ? 3 : ((c & 0xf8) == 0xf0) ? 4 : /* invalid code */ 1;
-    }
-    return SIZET2NUM(n);
-}
-
-static VALUE packcr_buffer_add(VALUE self, VALUE rch) {
-    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
-    rb_funcall(buf, rb_intern("concat"), 1, rch);
-    return self;
-}
-
-static VALUE packcr_buffer_to_s(VALUE self) {
-    return rb_ivar_get(self, rb_intern("@buf"));
-}
-
-static VALUE packcr_buffer_aset(VALUE self, VALUE pos, VALUE ch) {
-    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
-    rb_funcall(buf, rb_intern("[]="), 2, pos, rb_funcall(ch, rb_intern("chr"), 0));
-    return ch;
-}
-
-static VALUE packcr_buffer_add_pos(VALUE self, VALUE offset) {
-    VALUE buf = rb_ivar_get(self, rb_intern("@buf"));
-    rb_funcall(buf, rb_intern("[]="), 3, INT2NUM(0), offset, rb_str_new_cstr(""));
-    return self;
-}
-
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -418,16 +367,6 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);
     rb_define_method(cPackcr_Node, "reference_var", packcr_node_reference_var, 0);
-
-    cPackcr_Buffer = rb_const_get(cPackcr, rb_intern("Buffer"));
-    rb_define_method(cPackcr_Buffer, "initialize", packcr_buffer_initialize, 0);
-    rb_define_method(cPackcr_Buffer, "len", packcr_buffer_len, 0);
-    rb_define_method(cPackcr_Buffer, "[]", packcr_buffer_entry, 1);
-    rb_define_method(cPackcr_Buffer, "count_characters", packcr_buffer_count_characters, 2);
-    rb_define_method(cPackcr_Buffer, "add", packcr_buffer_add, 1);
-    rb_define_method(cPackcr_Buffer, "to_s", packcr_buffer_to_s, 0);
-    rb_define_method(cPackcr_Buffer, "[]=", packcr_buffer_aset, 2);
-    rb_define_method(cPackcr_Buffer, "add_pos", packcr_buffer_add_pos, 1);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
