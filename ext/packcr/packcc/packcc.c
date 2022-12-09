@@ -450,38 +450,6 @@ static bool_t is_valid_utf8_string(const char *str) {
     return (k == 0) ? TRUE : FALSE;
 }
 
-static size_t utf8_to_utf32(const char *seq, int *out) { /* without checking UTF-8 validity */
-    const int c = (int)(unsigned char)seq[0];
-    const size_t n =
-        (c == 0) ? 0 : (c < 0x80) ? 1 :
-        ((c & 0xe0) == 0xc0) ? 2 :
-        ((c & 0xf0) == 0xe0) ? 3 :
-        ((c & 0xf8) == 0xf0) ? 4 : 1;
-    int u = 0;
-    switch (n) {
-    case 0:
-    case 1:
-        u = c;
-        break;
-    case 2:
-        u = ((c & 0x1f) << 6) |
-            ((int)(unsigned char)seq[1] & 0x3f);
-        break;
-    case 3:
-        u = ((c & 0x0f) << 12) |
-            (((int)(unsigned char)seq[1] & 0x3f) << 6) |
-            (seq[1] ? ((int)(unsigned char)seq[2] & 0x3f) : 0);
-        break;
-    default:
-        u = ((c & 0x07) << 18) |
-            (((int)(unsigned char)seq[1] & 0x3f) << 12) |
-            (seq[1] ? (((int)(unsigned char)seq[2] & 0x3f) << 6) : 0) |
-            (seq[2] ? ((int)(unsigned char)seq[3] & 0x3f) : 0);
-    }
-    if (out) *out = u;
-    return n;
-}
-
 static bool_t unescape_string(char *str, bool_t cls) { /* cls: TRUE if used for character class matching */
     bool_t b = TRUE;
     size_t i, j;
@@ -2294,71 +2262,5 @@ static code_reach_t generate_matching_charclass_code(VALUE gen, const char *valu
         rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
         rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur++;\n"));
         return CODE_REACH__BOTH;
-    }
-}
-
-static code_reach_t generate_matching_utf8_charclass_code(VALUE gen, const char *value, int onfail, size_t indent, bool_t bare) {
-    const size_t n = (value != NULL) ? strlen(value) : 0;
-    if (value == NULL || n > 0) {
-        const bool_t a = (n > 0 && value[0] == '^') ? TRUE : FALSE;
-        size_t i = a ? 1 : 0;
-        if (!bare) {
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("{\n"));
-            indent += 4;
-        }
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("int u;\n"));
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("const size_t n = pcc_get_char_as_utf32(ctx, &u);\n"));
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-        stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (n == 0) goto L%04d;\n", onfail);
-        if (value != NULL && !(a && n == 1)) { /* not '.' or '[^]' */
-            int u0 = 0;
-            bool_t r = FALSE;
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2(a ? "if (\n" : "if (!(\n"));
-            while (i < n) {
-                int u = 0;
-                if (value[i] == '\\' && i + 1 < n) i++;
-                i += utf8_to_utf32(value + i, &u);
-                if (r) { /* character range */
-                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent + 4));
-                    stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "(u >= 0x%06x && u <= 0x%06x)%s\n", u0, u, (i < n) ? " ||" : "");
-                    u0 = 0;
-                    r = FALSE;
-                }
-                else if (
-                    value[i] != '-' ||
-                    i == n - 1 /* the individual '-' character is valid when it is at the first or the last position */
-                ) { /* single character */
-                    rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent + 4));
-                    stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "u == 0x%06x%s\n", u, (i < n) ? " ||" : "");
-                    u0 = 0;
-                    r = FALSE;
-                }
-                else {
-                    assert(value[i] == '-');
-                    i++;
-                    u0 = u;
-                    r = TRUE;
-                }
-            }
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), a ? ") goto L%04d;\n" : ")) goto L%04d;\n", onfail);
-        }
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("ctx->cur += n;\n"));
-        if (!bare) {
-            indent -= 4;
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write"), 1, rb_str_new2("}\n"));
-        }
-        return CODE_REACH__BOTH;
-    }
-    else {
-        rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2,  SIZET2NUM(' '), SIZET2NUM(indent));
-        stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "goto L%04d;\n", onfail);
-        return CODE_REACH__ALWAYS_FAIL;
     }
 }

@@ -162,6 +162,76 @@ class Packcr::Generator
     end
   end
 
+  def generate_matching_utf8_charclass_code(charclass, onfail, indent, bare)
+    if charclass && charclass.encoding != Encoding::UTF_8
+      charclass = charclass.dup.force_encoding(Encoding::UTF_8)
+    end
+    n = charclass&.length || 0
+    if charclass.nil? || n > 0
+      a = charclass && charclass[0] == '^'
+      i = a ? 1 : 0
+      if !bare
+        @stream.write " " * indent
+        @stream.write "{\n"
+        indent += 4
+      end
+      @stream.write " " * indent
+      @stream.write "int u;\n"
+      @stream.write " " * indent
+      @stream.write "const size_t n = pcc_get_char_as_utf32(ctx, &u);\n"
+      @stream.write " " * indent
+      @stream.write "if (n == 0) goto L#{"%04d" % onfail};\n"
+      if charclass && !(a && n == 1) # not '.' or '[^]'
+        u0 = 0
+        r = false
+        @stream.write " " * indent
+        @stream.write a ? "if (\n" : "if (!(\n"
+        while i < n
+          u = 0
+          if charclass[i] == '\\' && i + 1 < n
+            i += 1
+          end
+          u = charclass[i].ord
+          i += 1
+          if r
+            # character range
+            @stream.write " " * (indent + 4)
+            @stream.write "(u >= 0x#{"%06x" % u0 } && u <= 0x#{"%06x" % u})#{(i < n) ? " ||" : ""}\n"
+            u0 = 0
+            r = false
+          elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position
+            # single character
+            @stream.write " " * (indent + 4)
+            @stream.write "u == 0x#{"%06x" % u}#{(i < n) ? " ||" : ""}\n"
+            u0 = 0
+            r = false
+          else
+            unless charclass[i] == "-"
+              raise "unexpected charclass #{charclass[i]}"
+            end
+            i += 1
+            u0 = u
+            r = true
+          end
+        end
+        @stream.write " " * indent
+        @stream.write a ? ") goto L#{"%04d" % onfail};\n" : ")) goto L#{"%04d" % onfail};\n"
+      end
+      @stream.write " " * indent
+      @stream.write "ctx->cur += n;\n"
+      if !bare
+        indent -= 4
+        @stream.write " " * indent
+        @stream.write "}\n"
+      end
+      return Packcr::CODE_REACH__BOTH
+    else
+      @stream.write " " * indent
+      @stream.write "goto L#{"%04d" % onfail};\n"
+      return Packcr::CODE_REACH__ALWAYS_FAIL
+    end
+  end
+
   def generate_quantifying_code(expr, min, max, onfail, indent, bare)
     if max > 1 || max < 0
       if !bare
@@ -529,7 +599,7 @@ class Packcr::Generator
 
     if error
       @stream.write " " * indent
-      @stream.write "memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n"
+      @stream.write "memset(&null, 0, sizeof(pcc_value_t /* in case */\n"
       @stream.write " " * indent
       @stream.write "thunk->data.leaf.action(ctx, thunk, &null);\n"
       @stream.write " " * indent

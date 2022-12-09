@@ -1,4 +1,5 @@
 #include <ruby.h>
+#include <ruby/encoding.h>
 
 VALUE cPackcr, cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Buffer, cPackcr_Generator;
 
@@ -381,9 +382,18 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     case NODE_STRING:
         return rb_funcall(gen, rb_intern("generate_matching_string_code"), 4, rb_str_new2(node->data.string.value), ronfail, rindent, rbare);
     case NODE_CHARCLASS:
-        return RB_TEST(rb_ivar_get(gen, rb_intern("@ascii"))) ?
-               INT2NUM(generate_matching_charclass_code(gen, node->data.charclass.value, onfail, indent, bare)) :
-               INT2NUM(generate_matching_utf8_charclass_code(gen, node->data.charclass.value, onfail, indent, bare));
+        if (RB_TEST(rb_ivar_get(gen, rb_intern("@ascii")))) {
+            return INT2NUM(generate_matching_charclass_code(gen, node->data.charclass.value, onfail, indent, bare));
+        } else {
+            VALUE charclass;
+            if (node->data.charclass.value == NULL) {
+                charclass = Qnil;
+            } else {
+                rb_encoding *enc = rb_utf8_encoding();
+                charclass = rb_enc_str_new_cstr(node->data.charclass.value, enc);
+            }
+            return rb_funcall(gen, rb_intern("generate_matching_utf8_charclass_code"), 4, charclass, ronfail, rindent, rbare);
+        }
     case NODE_QUANTITY:
         return rb_funcall(gen, rb_intern("generate_quantifying_code"), 6, rb_funcall(rnode, rb_intern("expr"), 0), INT2NUM(node->data.quantity.min), INT2NUM(node->data.quantity.max), ronfail, rindent, rbare);
     case NODE_PREDICATE:
