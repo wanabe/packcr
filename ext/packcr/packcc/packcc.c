@@ -1371,23 +1371,6 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_identifier(VALUE rctx) {
-    if (
-        RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('a'), INT2NUM('z'))) ||
-        RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('A'), INT2NUM('Z'))) ||
-        RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('_')))
-    ) {
-        while (
-            RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('a'), INT2NUM('z'))) ||
-            RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('A'), INT2NUM('Z'))) ||
-            RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('0'), INT2NUM('9'))) ||
-            RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('_')))
-        );
-        return TRUE;
-    }
-    return FALSE;
-}
-
 static bool_t match_code_block(VALUE rctx) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
@@ -1446,14 +1429,14 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     node_t *n_p = NULL;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
-    if (match_identifier(rctx)) {
+    if (RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0))) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         size_t r = VOID_VALUE, s = VOID_VALUE;
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM(':')))) {
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             r = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-            if (!match_identifier(rctx)) goto EXCEPTION;
+            if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0))) goto EXCEPTION;
             s = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         }
@@ -1819,7 +1802,7 @@ static VALUE parse_rule(VALUE rctx) {
     VALUE rn_r;
     char *name;
     VALUE rname;
-    if (!match_identifier(rctx)) goto EXCEPTION;
+    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0))) goto EXCEPTION;
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("<-")))) goto EXCEPTION;
@@ -1994,7 +1977,7 @@ static bool_t parse(VALUE rctx) {
             else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('%')))) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Invalid directive\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
                 rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                match_identifier(rctx);
+                RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0));
                 RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
                 b = TRUE;
             }
@@ -2010,7 +1993,7 @@ static bool_t parse(VALUE rctx) {
                     rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
                     rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
                     rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-                    if (!match_identifier(rctx) && !RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
+                    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0)) && !RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
                     continue;
                 }
                 rrules = rb_ivar_get(rctx, rb_intern("@rules"));

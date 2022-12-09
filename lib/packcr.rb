@@ -1119,6 +1119,14 @@ class Packcr::Context
     return false
   end
 
+  def match_identifier
+    if match_character_range("a".ord, "z".ord) || match_character_range("A".ord, "Z".ord) || match_character("_".ord)
+      nil while match_character_range("a".ord, "z".ord) || match_character_range("A".ord, "Z".ord) || match_character_range("0".ord, "9".ord) || match_character("_".ord)
+      return true
+    end
+    false
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
