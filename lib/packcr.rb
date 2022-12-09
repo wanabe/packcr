@@ -1074,6 +1074,34 @@ class Packcr::Context
     false
   end
 
+  def match_directive_c
+    match_section_line_continuable_("#")
+  end
+
+  def match_comment
+    match_section_line_("#")
+  end
+
+  def match_comment_c
+    match_section_block_("/*", "*/", "C comment")
+  end
+
+  def match_comment_cxx
+    match_section_line_("//")
+  end
+
+  def match_quotation_single
+    match_quotation_("\'", "\'", "single quotation")
+  end
+
+  def match_quotation_double
+    match_quotation_("\"", "\"", "double quotation")
+  end
+
+  def match_character_class
+    match_quotation_("[", "]", "character class")
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)

@@ -1371,37 +1371,9 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_directive_c(VALUE rctx) {
-    return RB_TEST(rb_funcall(rctx, rb_intern("match_section_line_continuable_"), 1, rb_str_new_cstr("#")));
-}
-
-static bool_t match_comment(VALUE rctx) {
-    return RB_TEST(rb_funcall(rctx, rb_intern("match_section_line_"), 1, rb_str_new_cstr("#")));
-}
-
-static bool_t match_comment_c(VALUE rctx) {
-    return RB_TEST(rb_funcall(rctx, rb_intern("match_section_block_"), 3, rb_str_new_cstr("/*"), rb_str_new_cstr("*/"), rb_str_new_cstr("C comment")));
-}
-
-static bool_t match_comment_cxx(VALUE rctx) {
-    return RB_TEST(rb_funcall(rctx, rb_intern("match_section_line_"), 1, rb_str_new_cstr("//")));
-}
-
-static bool_t match_quotation_single(VALUE rctx) {
-    return rb_funcall(rctx, rb_intern("match_quotation_"), 3, rb_str_new_cstr("\'"), rb_str_new_cstr("\'"), rb_str_new_cstr("single quotation"));
-}
-
-static bool_t match_quotation_double(VALUE rctx) {
-    return rb_funcall(rctx, rb_intern("match_quotation_"), 3, rb_str_new_cstr("\""), rb_str_new_cstr("\""), rb_str_new_cstr("double quotation"));
-}
-
-static bool_t match_character_class(VALUE rctx) {
-    return rb_funcall(rctx, rb_intern("match_quotation_"), 3, rb_str_new_cstr("["), rb_str_new_cstr("]"), rb_str_new_cstr("character class"));
-}
-
 static bool_t match_spaces(VALUE rctx) {
     size_t n = 0;
-    while (RB_TEST(rb_funcall(rctx, rb_intern("match_blank"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0)) || match_comment(rctx)) n++;
+    while (RB_TEST(rb_funcall(rctx, rb_intern("match_blank"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_comment"), 0))) n++;
     return (n > 0) ? TRUE : FALSE;
 }
 
@@ -1442,11 +1414,11 @@ static bool_t match_code_block(VALUE rctx) {
                 break;
             }
             if (
-                match_directive_c(rctx) ||
-                match_comment_c(rctx) ||
-                match_comment_cxx(rctx) ||
-                match_quotation_single(rctx) ||
-                match_quotation_double(rctx)
+                RB_TEST(rb_funcall(rctx, rb_intern("match_directive_c"), 0)) ||
+                RB_TEST(rb_funcall(rctx, rb_intern("match_comment_c"), 0)) ||
+                RB_TEST(rb_funcall(rctx, rb_intern("match_comment_cxx"), 0)) ||
+                RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_single"), 0)) ||
+                RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_double"), 0))
             ) continue;
             if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('{')))) {
                 d++;
@@ -1611,7 +1583,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             rb_ivar_set(rctx, rb_intern("@utf8"), Qtrue);
         }
     }
-    else if (match_character_class(rctx)) {
+    else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character_class"), 0))) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         char *charclass;
         VALUE rcharclass = rb_funcall(rbuffer, rb_intern("to_s"), 0);
@@ -1632,7 +1604,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             rb_ivar_set(rctx, rb_intern("@utf8"), Qtrue);
         }
     }
-    else if (match_quotation_single(rctx) || match_quotation_double(rctx)) {
+    else if (RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_single"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_double"), 0))) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         char *string;
         VALUE rstring = rb_funcall(rbuffer, rb_intern("to_s"), 0);
@@ -1952,7 +1924,7 @@ static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *
         const size_t mv = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
         size_t q;
         VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-        if (match_quotation_single(rctx) || match_quotation_double(rctx)) {
+        if (RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_single"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_double"), 0))) {
             q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             match_spaces(rctx);
             {
