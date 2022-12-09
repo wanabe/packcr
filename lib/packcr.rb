@@ -889,6 +889,16 @@ class Packcr::Context
     @bufcur = 0
   end
 
+  def write_buffer(stream)
+    n = @buffer.len
+    text = @buffer.to_s
+    if n > 0 && text[-1] == "\r"
+      text = text[0..-2]
+    end
+    stream.write_text(text)
+    @bufcur = n
+  end
+
   def match_character(ch)
     if refill_buffer(1) >= 1
       if @buffer[@bufcur].ord == ch
@@ -2322,7 +2332,7 @@ class Packcr::Context
         sstream.write_line_directive(@iname, @linenum)
       end
       while refill_buffer(@buffer.max) > 0
-        sstream.write_context_buffer(self)
+        write_buffer(sstream)
         commit_buffer
       end
     end

@@ -337,23 +337,6 @@ static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rinde
     return self;
 }
 
-static VALUE packcr_stream_write_context_buffer(VALUE self, VALUE rctx) {
-    size_t n;
-    VALUE rbuffer;
-    VALUE text, last;
-
-    rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    n = NUM2SIZET(rb_funcall(rbuffer, rb_intern("len"), 0));
-    text = rb_funcall(rbuffer, rb_intern("to_s"), 0);
-    last = rb_funcall(rb_funcall(text, rb_intern("[]"), 1, INT2NUM(-1)), rb_intern("ord"), 0);
-    if (n > 0 && (char)NUM2SIZET(last) == '\r') {
-        text = rb_funcall(text, rb_intern("[]="), 3, INT2NUM(-1), INT2NUM(1), rb_str_new2(""));
-    }
-    rb_funcall(self, rb_intern("write_text"), 1, text);
-    rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(n));
-    return self;
-}
-
 static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfail, VALUE rindent, VALUE rbare) {
     const node_t *node;
     int onfail = NUM2INT(ronfail);
@@ -478,7 +461,6 @@ void Init_packcr(void) {
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
-    rb_define_method(cPackcr_Stream, "write_context_buffer", packcr_stream_write_context_buffer, 1);
 
     cPackcr_Generator = rb_const_get(cPackcr, rb_intern("Generator"));
     rb_define_method(cPackcr_Generator, "generate_code", packcr_generator_generate_code, 4);
