@@ -1376,10 +1376,12 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
 static bool_t match_string(VALUE rctx, const char *str) {
     const size_t n = strlen(str);
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    char_array_t *buffer;
-    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
     if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(n))) >= n) {
-        if (strncmp(buffer->buf + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))), str, n) == 0) {
+        VALUE rbuf = rb_funcall(rbuffer, rb_intern("to_s"), 0);
+        char *buf;
+        rbuf = rb_funcall(rbuf, rb_intern("[]"), 2, rb_ivar_get(rctx, rb_intern("@bufcur")), SIZET2NUM(n));
+        buf = StringValuePtr(rbuf);
+        if (strncmp(buf, str, n) == 0) {
             rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) + n));
             return TRUE;
         }
