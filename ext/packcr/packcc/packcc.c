@@ -1371,14 +1371,6 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_number(VALUE rctx) {
-    if (RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('0'), INT2NUM('9')))) {
-        while (RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('0'), INT2NUM('9'))));
-        return TRUE;
-    }
-    return FALSE;
-}
-
 static bool_t match_identifier(VALUE rctx) {
     if (
         RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('a'), INT2NUM('z'))) ||
@@ -1534,7 +1526,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         size_t p;
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-        if (match_number(rctx)) {
+        if (RB_TEST(rb_funcall(rctx, rb_intern("match_number"), 0))) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             char *s;
             VALUE rs = rb_funcall(rbuffer, rb_intern("to_s"), 0);
