@@ -1371,23 +1371,6 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_section_block_(VALUE rctx, const char *left, const char *right, const char *name) {
-    const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-    if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(left)))) {
-        while (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(right)))) {
-            if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in %s\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                break;
-            }
-            if (!RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
-        }
-        return TRUE;
-    }
-    return FALSE;
-}
-
 static bool_t match_quotation_(VALUE rctx, const char *left, const char *right, const char *name) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
@@ -1424,7 +1407,7 @@ static bool_t match_comment(VALUE rctx) {
 }
 
 static bool_t match_comment_c(VALUE rctx) {
-    return match_section_block_(rctx, "/*", "*/", "C comment");
+    return RB_TEST(rb_funcall(rctx, rb_intern("match_section_block_"), 3, rb_str_new_cstr("/*"), rb_str_new_cstr("*/"), rb_str_new_cstr("C comment")));
 }
 
 static bool_t match_comment_cxx(VALUE rctx) {
