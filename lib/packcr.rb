@@ -876,6 +876,19 @@ class Packcr::Context
     return @buffer.len - @bufcur
   end
 
+  def commit_buffer
+    if @buffer.len < @bufcur
+      raise "unexpected buffer state: length(#{@buffer.len}), current(#{@bufcur})"
+    end
+    if @linepos < @bufpos + @bufcur
+	    count = @ascii ? @bufcur : @buffer.count_characters(0, @bufcur)
+      @charnum += count
+    end
+    @buffer.add_pos(@bufcur)
+    @bufpos = @bufpos + @bufcur
+    @bufcur = 0
+  end
+
   def match_character(ch)
     if refill_buffer(1) >= 1
       if @buffer[@bufcur].ord == ch
