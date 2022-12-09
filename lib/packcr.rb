@@ -1045,6 +1045,34 @@ class Packcr::Context
     false
   end
 
+  def match_quotation_(left, right, name)
+    l = @linenum
+    m = column_number
+    if match_string(left)
+      while !match_string(right)
+        if eof?
+          warn "#{@iname}:#{l + 1}:#{m + 1}: Premature EOF in #{name}\n"
+          @errnum += 1
+          break
+        end
+        if match_character("\\".ord)
+          if !eol?
+            match_character_any
+          end
+        else
+          if eol?
+            warn "#{@iname}:#{l + 1}:#{m + 1}: Premature EOF in #{name}\n"
+            @errnum += 1
+            break
+          end
+          match_character_any
+        end
+      end
+      return true
+    end
+    false
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
