@@ -1371,12 +1371,6 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_spaces(VALUE rctx) {
-    size_t n = 0;
-    while (RB_TEST(rb_funcall(rctx, rb_intern("match_blank"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_comment"), 0))) n++;
-    return (n > 0) ? TRUE : FALSE;
-}
-
 static bool_t match_number(VALUE rctx) {
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('0'), INT2NUM('9')))) {
         while (RB_TEST(rb_funcall(rctx, rb_intern("match_character_range"), 2, INT2NUM('0'), INT2NUM('9'))));
@@ -1463,13 +1457,13 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     if (match_identifier(rctx)) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         size_t r = VOID_VALUE, s = VOID_VALUE;
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM(':')))) {
-            match_spaces(rctx);
+            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             r = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             if (!match_identifier(rctx)) goto EXCEPTION;
             s = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-            match_spaces(rctx);
+            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         }
         if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("<-")))) goto EXCEPTION;
         n_p = create_node(NODE_REFERENCE);
@@ -1518,14 +1512,14 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         n_p->data.reference.col = m;
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('(')))) {
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_p = parse_expression(rctx, rrule);
         if (n_p == NULL) goto EXCEPTION;
         if (!RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM(')')))) goto EXCEPTION;
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('<')))) {
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_p = create_node(NODE_CAPTURE);
         n_p->data.capture.index = rule->data.rule.capts.len;
         node_const_array__add(&rule->data.rule.capts, n_p);
@@ -1534,11 +1528,11 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             rule->data.rule.capts.len = n_p->data.capture.index;
             goto EXCEPTION;
         }
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('$')))) {
         size_t p;
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         if (match_number(rctx)) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
@@ -1546,7 +1540,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             VALUE rs = rb_funcall(rbuffer, rb_intern("to_s"), 0);
             rs = rb_funcall(rs, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
             s = StringValuePtr(rs);
-            match_spaces(rctx);
+            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             n_p = create_node(NODE_EXPAND);
             assert(q >= p);
             s = strndup_e(s, strlen(s));
@@ -1576,7 +1570,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         }
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('.')))) {
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_p = create_node(NODE_CHARCLASS);
         n_p->data.charclass.value = NULL;
         if (!RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii")))) {
@@ -1589,7 +1583,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         VALUE rcharclass = rb_funcall(rbuffer, rb_intern("to_s"), 0);
         rcharclass = rb_funcall(rcharclass, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
         charclass = StringValuePtr(rcharclass);
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_p = create_node(NODE_CHARCLASS);
         n_p->data.charclass.value = strndup_e(charclass, strlen(charclass));
         if (!unescape_string(n_p->data.charclass.value, TRUE)) {
@@ -1610,7 +1604,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         VALUE rstring = rb_funcall(rbuffer, rb_intern("to_s"), 0);
         rstring = rb_funcall(rstring, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
         string = StringValuePtr(rstring);
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_p = create_node(NODE_STRING);
         n_p->data.string.value = strndup_e(string, strlen(string));
         if (!unescape_string(n_p->data.string.value, FALSE)) {
@@ -1630,7 +1624,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
         text = StringValuePtr(rtext);
         rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_p = create_action_node();
         TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
         n_p->data.action.code.text = strndup_e(text, strlen(text));
@@ -1665,25 +1659,25 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
     node_t *n_t = NULL;
     const char t = RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('&'))) ? '&' : RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('!'))) ? '!' : '\0';
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    if (t) match_spaces(rctx);
+    if (t) RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     n_p = parse_primary(rctx, rrule);
     if (n_p == NULL) goto EXCEPTION;
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('*')))) {
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_q = create_node(NODE_QUANTITY);
         n_q->data.quantity.min = 0;
         n_q->data.quantity.max = -1;
         n_q->data.quantity.expr = n_p;
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('+')))) {
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_q = create_node(NODE_QUANTITY);
         n_q->data.quantity.min = 1;
         n_q->data.quantity.max = -1;
         n_q->data.quantity.expr = n_p;
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('?')))) {
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_q = create_node(NODE_QUANTITY);
         n_q->data.quantity.min = 0;
         n_q->data.quantity.max = 1;
@@ -1708,7 +1702,7 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
     }
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('~')))) {
         size_t p, l, m;
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
         m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
@@ -1720,7 +1714,7 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
             VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
             rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
             text = StringValuePtr(rtext);
-            match_spaces(rctx);
+            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             rn_t = create_error_node();
             TypedData_Get_Struct(rn_t, node_t, &packcr_ptr_data_type, n_t);
             n_t->data.error.expr = n_r;
@@ -1801,7 +1795,7 @@ static node_t *parse_expression(VALUE rctx, VALUE rrule) {
         a_s = &n_e->data.alternate.nodes;
         node_array__add(a_s, n_s);
         while (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('/')))) {
-            match_spaces(rctx);
+            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             n_s = parse_sequence(rctx, rrule);
             if (n_s == NULL) goto EXCEPTION;
             node_array__add(a_s, n_s);
@@ -1835,9 +1829,9 @@ static VALUE parse_rule(VALUE rctx) {
     VALUE rname;
     if (!match_identifier(rctx)) goto EXCEPTION;
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-    match_spaces(rctx);
+    RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("<-")))) goto EXCEPTION;
-    match_spaces(rctx);
+    RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     rn_r = create_rule_node();
     TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
     n_r->data.rule.expr = parse_expression(rctx, rn_r);
@@ -1869,14 +1863,14 @@ static void dump_options(VALUE rctx) {
 static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE output1, VALUE output2) {
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(name)))) return FALSE;
-    match_spaces(rctx);
+    RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     {
         const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
         const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
         if (match_code_block(rctx)) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-            match_spaces(rctx);
+            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             if (output1 != Qnil) {
                 code_block_t *c;
                 VALUE rc = code_block_array__create_entry(output1);
@@ -1916,7 +1910,7 @@ static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(name)))) return FALSE;
-    match_spaces(rctx);
+    RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     {
         char *s = NULL;
         const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
@@ -1926,7 +1920,7 @@ static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *
         VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
         if (RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_single"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_double"), 0))) {
             q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-            match_spaces(rctx);
+            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             {
                 VALUE rs = rb_funcall(rbuffer, rb_intern("to_s"), 0);
                 rs = rb_funcall(rs, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
@@ -1984,7 +1978,7 @@ static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *
 static bool_t parse(VALUE rctx) {
     {
         bool_t b = TRUE;
-        match_spaces(rctx);
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         for (;;) {
             size_t l, m, n, o;
             if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0)) || match_footer_start(rctx)) break;
@@ -2009,7 +2003,7 @@ static bool_t parse(VALUE rctx) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Invalid directive\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
                 rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
                 match_identifier(rctx);
-                match_spaces(rctx);
+                RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
                 b = TRUE;
             }
             else {
@@ -2024,7 +2018,7 @@ static bool_t parse(VALUE rctx) {
                     rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
                     rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
                     rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-                    if (!match_identifier(rctx) && !match_spaces(rctx)) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
+                    if (!match_identifier(rctx) && !RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
                     continue;
                 }
                 rrules = rb_ivar_get(rctx, rb_intern("@rules"));

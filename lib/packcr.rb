@@ -1102,6 +1102,14 @@ class Packcr::Context
     match_quotation_("[", "]", "character class")
   end
 
+  def match_spaces
+    n = 0
+    while match_blank || eol? || match_comment
+      n += 1
+    end
+    n > 0
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
