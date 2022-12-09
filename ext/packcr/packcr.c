@@ -291,6 +291,13 @@ static VALUE packcr_buffer_to_s(VALUE self) {
     return rb_str_new(buffer->buf, buffer->len);
 }
 
+static VALUE packcr_buffer_aset(VALUE self, VALUE pos, VALUE ch) {
+    char_array_t *buffer;
+    TypedData_Get_Struct(self, char_array_t, &packcr_ptr_data_type, buffer);
+    buffer->buf[NUM2SIZET(pos)] = NUM2SIZET(ch);
+    return ch;
+}
+
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -479,6 +486,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Buffer, "count_characters", packcr_buffer_count_characters, 2);
     rb_define_method(cPackcr_Buffer, "add", packcr_buffer_add, 1);
     rb_define_method(cPackcr_Buffer, "to_s", packcr_buffer_to_s, 0);
+    rb_define_method(cPackcr_Buffer, "[]=", packcr_buffer_aset, 2);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);

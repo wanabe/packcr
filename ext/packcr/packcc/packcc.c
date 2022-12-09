@@ -1544,10 +1544,8 @@ static bool_t match_code_block(VALUE rctx) {
             else {
                 if (!RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0))) {
                     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-                    char_array_t *buffer;
-                    TypedData_Get_Struct(rbuffer, char_array_t, &packcr_ptr_data_type, buffer);
                     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('$')))) {
-                        buffer->buf[NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur"))) - 1] = '_';
+                        rb_funcall(rbuffer, rb_intern("[]="), 2, rb_funcall(rb_ivar_get(rctx, rb_intern("@bufcur")), rb_intern("pred"), 0), SIZET2NUM('_'));
                     }
                     else {
                         RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
