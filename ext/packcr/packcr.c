@@ -357,7 +357,6 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
     const node_t *node;
     int onfail = NUM2INT(ronfail);
     size_t indent = NUM2SIZET(rindent);
-    bool_t bare = RB_TEST(rbare);
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     if (node == NULL) {
         print_error("Internal error [%d]\n", __LINE__);
@@ -383,7 +382,13 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
         return rb_funcall(gen, rb_intern("generate_matching_string_code"), 4, rb_str_new2(node->data.string.value), ronfail, rindent, rbare);
     case NODE_CHARCLASS:
         if (RB_TEST(rb_ivar_get(gen, rb_intern("@ascii")))) {
-            return INT2NUM(generate_matching_charclass_code(gen, node->data.charclass.value, onfail, indent, bare));
+            VALUE charclass;
+            if (node->data.charclass.value == NULL) {
+                charclass = Qnil;
+            } else {
+                charclass = rb_str_new_cstr(node->data.charclass.value);
+            }
+            return rb_funcall(gen, rb_intern("generate_matching_charclass_code"), 4, charclass, ronfail, rindent, rbare);
         } else {
             VALUE charclass;
             if (node->data.charclass.value == NULL) {
