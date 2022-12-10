@@ -1285,6 +1285,58 @@ class Packcr::Context
     EOS
   end
 
+  def verify_captures(node, capts = [])
+    if !node
+      return
+    end
+
+    case node.type
+    when Packcr::Node::RULE
+      raise "Internal error"
+    when Packcr::Node::REFERENCE, Packcr::Node::STRING, Packcr::Node::CHARCLASS
+    when Packcr::Node::QUANTITY
+      verify_captures(node.expr, capts)
+    when Packcr::Node::PREDICATE
+      verify_captures(node.expr, capts)
+    when Packcr::Node::SEQUENCE
+      node.nodes.each do |child_node|
+        verify_captures(child_node, capts)
+      end
+    when Packcr::Node::ALTERNATE
+      m = capts.length
+      nodes = node.nodes
+      v = capts.dup
+      node.nodes.each do |child_node|
+        v = v[0, m]
+        verify_captures(child_node, v)
+        v[m...-1].each do |added_node|
+          capts.push(added_node)
+        end
+      end
+    when Packcr::Node::CAPTURE
+      verify_captures(node.expr, capts)
+      capts.push(node)
+    when Packcr::Node::EXPAND
+      found = capts.any? do |capt|
+        unless capt.type == Packcr::Node::CAPTURE
+          raise "unexpected capture: #{capt.type}"
+        end
+        node.index == capt.index
+      end
+      if !found && node.index != Packcr::VOID_VALUE
+        warn "#{@iname}:#{node.line + 1}:#{node.col + 1}: Capture #{node.index + 1} not available at this position\n"
+        @errnum += 1
+      end
+    when Packcr::Node::ACTION
+      node.capts = capts
+    when Packcr::Node::ERROR
+      node.capts = capts
+      verify_captures(node.expr, capts)
+    else
+      raise "Internal error"
+    end
+  end
+
   def parse
     match_spaces
 
