@@ -1835,12 +1835,4 @@ static void parse(VALUE rctx) {
             verify_captures(rctx, node->data.rule.expr, NULL);
         }
     }
-    if (RB_TEST(rb_ivar_get(rctx, rb_intern("@debug")))) {
-        size_t i;
-        VALUE rrules = rb_ivar_get(rctx, rb_intern("@rules"));
-        for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
-            VALUE rnode = rb_ary_entry(rrules, i);
-            rb_funcall(rnode, rb_intern("debug_dump"), 1, INT2NUM(0));
-        }
-    }
 }

@@ -827,7 +827,7 @@ class Packcr::Node
     @codes = []
   end
 
-  def debug_dump(indent)
+  def debug_dump(indent = 0)
     case type
     when Packcr::Node::RULE
       $stdout.print "#{" " * indent}Rule(name:'#{name}', ref:#{ref}, vars.len:#{vars.length}, capts.len:#{capts.length}, codes.len:#{codes.length}) {\n"
@@ -1291,6 +1291,7 @@ class Packcr::Context
     _parse
 
     if @debug
+      @rules.each(&:debug_dump)
       dump_options
     end
 
