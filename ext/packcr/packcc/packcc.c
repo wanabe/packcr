@@ -982,7 +982,9 @@ static const node_t *lookup_rulehash(VALUE rctx, const char *name) {
     return node;
 }
 
-static void link_references(VALUE rctx, node_t *node) {
+static void link_references(VALUE rctx, VALUE rnode) {
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     if (node == NULL) return;
     switch (node->type) {
     case NODE_RULE:
@@ -1006,36 +1008,38 @@ static void link_references(VALUE rctx, node_t *node) {
     case NODE_CHARCLASS:
         break;
     case NODE_QUANTITY:
-        link_references(rctx, node->data.quantity.expr);
+        link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
         break;
     case NODE_PREDICATE:
-        link_references(rctx, node->data.predicate.expr);
+        link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
         break;
     case NODE_SEQUENCE:
         {
             size_t i;
-            for (i = 0; i < node->data.sequence.nodes.len; i++) {
-                link_references(rctx, node->data.sequence.nodes.buf[i]);
+            VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
+            for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
+                link_references(rctx, rb_ary_entry(rnodes, i));
             }
         }
         break;
     case NODE_ALTERNATE:
         {
             size_t i;
-            for (i = 0; i < node->data.alternate.nodes.len; i++) {
-                link_references(rctx, node->data.alternate.nodes.buf[i]);
+            VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
+            for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
+                link_references(rctx, rb_ary_entry(rnodes, i));
             }
         }
         break;
     case NODE_CAPTURE:
-        link_references(rctx, node->data.capture.expr);
+        link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
         break;
     case NODE_EXPAND:
         break;
     case NODE_ACTION:
         break;
     case NODE_ERROR:
-        link_references(rctx, node->data.error.expr);
+        link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
         break;
     default:
         print_error("Internal error [%d]\n", __LINE__);
@@ -1632,7 +1636,7 @@ static void parse(VALUE rctx) {
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             rnode = rb_ary_entry(rrules, i);
             TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-            link_references(rctx, node->data.rule.expr);
+            link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
         }
         for (i = 1; i < (size_t)RARRAY_LEN(rrules); i++) {
             rnode = rb_ary_entry(rrules, i);
