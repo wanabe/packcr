@@ -10,8 +10,11 @@ class Packcr
 
   def run
     Context.new(@path.to_s, **@opt) do |ctx|
-      if !ctx.parse || !ctx.generate
-        raise "PackCC error"
+      if !ctx.parse
+        raise "PackCR error: can't parse"
+      end
+      if !ctx.generate
+        raise "PackCR error: can't generate"
       end
     end
   end
