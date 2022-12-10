@@ -1253,10 +1253,21 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         fprintf(stdout, "%*s}\n", indent, "");
         break;
     case NODE_REFERENCE:
-        fprintf(stdout, "%*sReference(var:'%s', index:", indent, "", node->data.reference.var);
-        dump_integer_value(node->data.reference.index);
-        fprintf(stdout, ", name:'%s', rule:'%s')\n", node->data.reference.name,
-            (node->data.reference.rule) ? node->data.reference.rule->data.rule.name : NULL);
+        {
+            VALUE rvar = rb_funcall(rnode, rb_intern("var"), 0);
+            VALUE rname = rb_funcall(rnode, rb_intern("name"), 0);
+            VALUE rrule = rb_funcall(rnode, rb_intern("rule"), 0);
+            VALUE rrule_name;
+            if (NIL_P(rrule)) {
+                rrule_name = rb_str_new_cstr("(null)");
+            } else {
+                rrule_name = rb_funcall(rrule, rb_intern("name"), 0);
+            }
+            fprintf(stdout, "%*sReference(var:'%s', index:", indent, "", NIL_P(rvar) ? "(null)" : StringValuePtr(rvar));
+            dump_integer_value(node->data.reference.index);
+            fprintf(stdout, ", name:'%s', rule:'%s')\n", StringValuePtr(rname),
+                StringValuePtr(rrule_name));
+        }
         break;
     case NODE_STRING:
         fprintf(stdout, "%*sString(value:'", indent, "");
