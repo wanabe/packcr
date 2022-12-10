@@ -399,6 +399,7 @@ void Init_packcr(void) {
     VALUE cPackcr_Context;
 
     cPackcr = rb_const_get(rb_cObject, rb_intern("Packcr"));
+    rb_const_set(rb_cObject, rb_intern("VOID_VALUE"), SIZET2NUM(VOID_VALUE));
 
     cPackcr_Context = rb_const_get(cPackcr, rb_intern("Context"));
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);

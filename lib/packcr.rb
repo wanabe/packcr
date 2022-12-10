@@ -53,6 +53,15 @@ class Packcr
         end
       end
     end
+
+    def dump_integer_value(value)
+      if value == VOID_VALUE
+        $stdout.print "void"
+      else
+        $stdout.print value
+      end
+      $stdout.flush
+    end
   end
 end
 

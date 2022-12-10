@@ -1224,15 +1224,6 @@ static void dump_escaped_string(const char *str) {
     }
 }
 
-static void dump_integer_value(size_t value) {
-    if (value == VOID_VALUE) {
-        fprintf(stdout, "void");
-    }
-    else {
-        fprintf(stdout, FMT_LU, (ulong_t)value);
-    }
-}
-
 static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
@@ -1264,7 +1255,8 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
                 rrule_name = rb_funcall(rrule, rb_intern("name"), 0);
             }
             fprintf(stdout, "%*sReference(var:'%s', index:", indent, "", NIL_P(rvar) ? "(null)" : StringValuePtr(rvar));
-            dump_integer_value(node->data.reference.index);
+            fflush(stdout);
+            rb_funcall(cPackcr, rb_intern("dump_integer_value"), 1, SIZET2NUM(node->data.reference.index));
             fprintf(stdout, ", name:'%s', rule:'%s')\n", StringValuePtr(rname),
                 StringValuePtr(rrule_name));
         }
@@ -1321,7 +1313,8 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         break;
     case NODE_CAPTURE:
         fprintf(stdout, "%*sCapture(index:", indent, "");
-        dump_integer_value(node->data.capture.index);
+        fflush(stdout);
+        rb_funcall(cPackcr, rb_intern("dump_integer_value"), 1, SIZET2NUM(node->data.capture.index));
         fprintf(stdout, ") {\n");
         {
             VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.capture.expr);
@@ -1331,12 +1324,14 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         break;
     case NODE_EXPAND:
         fprintf(stdout, "%*sExpand(index:", indent, "");
-        dump_integer_value(node->data.expand.index);
+        fflush(stdout);
+        rb_funcall(cPackcr, rb_intern("dump_integer_value"), 1, SIZET2NUM(node->data.expand.index));
         fprintf(stdout, ")\n");
         break;
     case NODE_ACTION:
         fprintf(stdout, "%*sAction(index:", indent, "");
-        dump_integer_value(node->data.action.index);
+        fflush(stdout);
+        rb_funcall(cPackcr, rb_intern("dump_integer_value"), 1, SIZET2NUM(node->data.action.index));
         fprintf(stdout, ", code:{");
         dump_escaped_string(node->data.action.code.text);
         fprintf(stdout, "}, vars:");
@@ -1357,7 +1352,8 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         break;
     case NODE_ERROR:
         fprintf(stdout, "%*sError(index:", indent, "");
-        dump_integer_value(node->data.error.index);
+        fflush(stdout);
+        rb_funcall(cPackcr, rb_intern("dump_integer_value"), 1, SIZET2NUM(node->data.error.index));
         fprintf(stdout, ", code:{");
         dump_escaped_string(node->data.error.code.text);
         fprintf(stdout, "}, vars:\n");
