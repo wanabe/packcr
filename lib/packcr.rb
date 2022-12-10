@@ -2447,7 +2447,7 @@ class Packcr::Context
 
           code.vars.each do |ref|
             sstream.write(<<~EOS)
-              #define #{ref.reference_var} (*__pcc_in->data.leaf.values.buf[#{ref.index}])
+              #define #{ref.var} (*__pcc_in->data.leaf.values.buf[#{ref.index}])
             EOS
           end
 
@@ -2483,7 +2483,7 @@ class Packcr::Context
 
           code.vars.reverse_each do |ref|
             sstream.write(<<~EOS)
-              #undef #{ref.reference_var}
+              #undef #{ref.var}
             EOS
           end
 
