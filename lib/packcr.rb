@@ -1170,10 +1170,22 @@ class Packcr::Context
     match_string("%%")
   end
 
+  def dump_options
+    $stdout.print <<~EOS
+      value_type: '#{value_type}'
+      auxil_type: '#{auxil_type}'
+      prefix: '#{prefix}'
+    EOS
+  end
+
   def parse
     match_spaces
 
     _parse
+
+    if @debug
+      dump_options
+    end
 
     @errnum.zero?
   end

@@ -1783,12 +1783,6 @@ EXCEPTION:;
     return Qnil;
 }
 
-static void dump_options(VALUE rctx) {
-    fprintf(stdout, "value_type: '%s'\n", RSTRING_PTR(rb_funcall(rctx, rb_intern("value_type"), 0)));
-    fprintf(stdout, "auxil_type: '%s'\n", RSTRING_PTR(rb_funcall(rctx, rb_intern("auxil_type"), 0)));
-    fprintf(stdout, "prefix: '%s'\n", RSTRING_PTR(rb_funcall(rctx, rb_intern("prefix"), 0)));
-}
-
 static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE output1, VALUE output2) {
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(name)))) return FALSE;
@@ -2006,6 +2000,6 @@ static void parse(VALUE rctx) {
             VALUE rnode = rb_ary_entry(rrules, i);
             dump_node(rctx, rnode, 0);
         }
-        dump_options(rctx);
+        fflush(stdout);
     }
 }
