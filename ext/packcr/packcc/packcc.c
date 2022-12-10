@@ -1135,9 +1135,11 @@ static void verify_variables(VALUE rctx, VALUE rnode, node_const_array_t *vars) 
     }
 }
 
-static void verify_captures(VALUE rctx, node_t *node, node_const_array_t *capts) {
+static void verify_captures(VALUE rctx, VALUE rnode, node_const_array_t *capts) {
     node_const_array_t a;
     const bool_t b = (capts == NULL) ? TRUE : FALSE;
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     if (node == NULL) return;
     if (b) {
         node_const_array__init(&a);
@@ -1154,28 +1156,30 @@ static void verify_captures(VALUE rctx, node_t *node, node_const_array_t *capts)
     case NODE_CHARCLASS:
         break;
     case NODE_QUANTITY:
-        verify_captures(rctx, node->data.quantity.expr, capts);
+        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), capts);
         break;
     case NODE_PREDICATE:
-        verify_captures(rctx, node->data.predicate.expr, capts);
+        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), capts);
         break;
     case NODE_SEQUENCE:
         {
             size_t i;
-            for (i = 0; i < node->data.sequence.nodes.len; i++) {
-                verify_captures(rctx, node->data.sequence.nodes.buf[i], capts);
+            VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
+            for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
+                verify_captures(rctx, rb_ary_entry(rnodes, i), capts);
             }
         }
         break;
     case NODE_ALTERNATE:
         {
             size_t i, j, m = capts->len;
+            VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
             node_const_array_t v;
             node_const_array__init(&v);
             node_const_array__copy(&v, capts);
-            for (i = 0; i < node->data.alternate.nodes.len; i++) {
+            for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
                 v.len = m;
-                verify_captures(rctx, node->data.alternate.nodes.buf[i], &v);
+                verify_captures(rctx, rb_ary_entry(rnodes, i), &v);
                 for (j = m; j < v.len; j++) {
                     node_const_array__add(capts, v.buf[j]);
                 }
@@ -1184,7 +1188,7 @@ static void verify_captures(VALUE rctx, node_t *node, node_const_array_t *capts)
         }
         break;
     case NODE_CAPTURE:
-        verify_captures(rctx, node->data.capture.expr, capts);
+        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), capts);
         node_const_array__add(capts, node);
         break;
     case NODE_EXPAND:
@@ -1206,7 +1210,7 @@ static void verify_captures(VALUE rctx, node_t *node, node_const_array_t *capts)
         break;
     case NODE_ERROR:
         node_const_array__copy(&node->data.error.capts, capts);
-        verify_captures(rctx, node->data.error.expr, capts);
+        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), capts);
         break;
     default:
         print_error("Internal error [%d]\n", __LINE__);
@@ -1830,13 +1834,11 @@ static void parse(VALUE rctx) {
     {
         size_t i;
         VALUE rrules;
-        node_t *node;
         rrules = rb_ivar_get(rctx, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             VALUE rnode = rb_ary_entry(rrules, i);
-            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
             verify_variables(rctx, rb_funcall(rnode, rb_intern("expr"), 0), NULL);
-            verify_captures(rctx, node->data.rule.expr, NULL);
+            verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), NULL);
         }
     }
 }
