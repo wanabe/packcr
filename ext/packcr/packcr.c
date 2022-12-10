@@ -199,6 +199,18 @@ static VALUE packcr_node_neg(VALUE self) {
     }
 }
 
+static VALUE packcr_node_ref(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_RULE:
+        return INT2NUM(node->data.rule.ref);
+    default:
+        return Qnil;
+    }
+}
+
 static VALUE packcr_node_expr(VALUE self) {
     node_t *node;
     node_t *expr;
@@ -376,6 +388,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "nodes", packcr_node_nodes, 0);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);
+    rb_define_method(cPackcr_Node, "ref", packcr_node_ref, 0);
     rb_define_method(cPackcr_Node, "reference_var", packcr_node_reference_var, 0);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));

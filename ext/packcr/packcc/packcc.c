@@ -1241,12 +1241,13 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     case NODE_RULE:
         {
             VALUE rcodes = rb_ivar_get(rnode, rb_intern("@codes"));
+            VALUE rname = rb_funcall(rnode, rb_intern("name"), 0);
             fprintf(stdout, "%*sRule(name:'%s', ref:%d, vars.len:" FMT_LU ", capts.len:" FMT_LU ", codes.len:" FMT_LU ") {\n",
-                indent, "", node->data.rule.name, node->data.rule.ref,
-                (ulong_t)node->data.rule.vars.len, (ulong_t)node->data.rule.capts.len, NIL_P(rcodes) ? 0 : (ulong_t) NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0)));
+                indent, "", StringValuePtr(rname), NUM2INT(rb_funcall(rnode, rb_intern("ref"), 0)),
+                (ulong_t)RARRAY_LEN(rb_funcall(rnode, rb_intern("vars"), 0)), (ulong_t)RARRAY_LEN(rb_funcall(rnode, rb_intern("capts"), 0)), NIL_P(rcodes) ? 0 : (ulong_t) NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0)));
         }
         {
-            VALUE rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node->data.rule.expr);
+            VALUE rexpr = rb_funcall(rnode, rb_intern("expr"), 0);
             dump_node(rctx, rexpr, indent + 2);
         }
         fprintf(stdout, "%*s}\n", indent, "");
