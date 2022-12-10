@@ -1285,6 +1285,64 @@ class Packcr::Context
     EOS
   end
 
+  def verify_variables(node, vars = [])
+    if !node
+      return
+    end
+
+    case node.type
+    when Packcr::Node::RULE
+      raise "Internal error"
+    when Packcr::Node::REFERENCE
+      if node.index != VOID_VALUE
+        found = vars.any? do |var|
+          unless var.type == Packcr::Node::REFERENCE
+            raise "unexpected var: #{var.type}"
+          end
+          node.index == var.index
+        end
+        if !found
+          vars.push(node)
+        end
+      end
+    when Packcr::Node::STRING, Packcr::Node::CHARCLASS
+    when Packcr::Node::QUANTITY
+      verify_variables(node.expr, vars)
+    when Packcr::Node::PREDICATE
+      verify_variables(node.expr, vars)
+    when Packcr::Node::SEQUENCE
+      node.nodes.each do |child_node|
+        verify_variables(child_node, vars)
+      end
+    when Packcr::Node::ALTERNATE
+      m = vars.length
+      nodes = node.nodes
+      v = vars.dup
+      node.nodes.each do |child_node|
+        v = v[0, m]
+        verify_variables(child_node, v)
+        v[m...-1].each do |added_node|
+          found = vars[m...-1].any? do |added_var|
+            added_node.index == added_var.index
+          end
+          if !found
+            vars.push(added_node)
+          end
+        end
+      end
+    when Packcr::Node::CAPTURE
+      verify_variables(node.expr, vars)
+    when Packcr::Node::EXPAND
+    when Packcr::Node::ACTION
+      node.vars = vars
+    when Packcr::Node::ERROR
+      node.vars = vars
+      verify_variables(node.expr, vars)
+    else
+      raise "Internal error"
+    end
+  end
+
   def verify_captures(node, capts = [])
     if !node
       return

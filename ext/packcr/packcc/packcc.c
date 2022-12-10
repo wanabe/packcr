@@ -1043,78 +1043,6 @@ static void link_references(VALUE rctx, node_t *node) {
     }
 }
 
-static void verify_variables(VALUE rctx, VALUE rnode, VALUE rvars) {
-    node_t *node;
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    if (node == NULL) return;
-    switch (node->type) {
-    case NODE_RULE:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    case NODE_REFERENCE:
-        if (node->data.reference.index != VOID_VALUE) {
-            size_t i;
-            for (i = 0; i < (size_t)RARRAY_LEN(rvars); i++) {
-                //assert(vars->buf[i]->type == NODE_REFERENCE);
-                if (rb_funcall(rnode, rb_intern("index"), 0) == rb_funcall(rb_ary_entry(rvars, i), rb_intern("index"), 0)) break;
-            }
-            if (i == (size_t)RARRAY_LEN(rvars)) rb_ary_push(rvars, rnode);
-        }
-        break;
-    case NODE_STRING:
-        break;
-    case NODE_CHARCLASS:
-        break;
-    case NODE_QUANTITY:
-        verify_variables(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rvars);
-        break;
-    case NODE_PREDICATE:
-        verify_variables(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rvars);
-        break;
-    case NODE_SEQUENCE:
-        {
-            size_t i;
-            VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
-            for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
-                verify_variables(rctx, rb_ary_entry(rnodes, i), rvars);
-            }
-        }
-        break;
-    case NODE_ALTERNATE:
-        {
-            size_t i, j, k, m = RARRAY_LEN(rvars);
-            VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
-            VALUE rv = rb_funcall(rvars, rb_intern("dup"), 0);
-            for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
-                rv = rb_funcall(rv, rb_intern("[]"), 2, INT2NUM(0), SIZET2NUM(m));
-                verify_variables(rctx, rb_ary_entry(rnodes, i), rv);
-                for (j = m; j < (size_t)RARRAY_LEN(rv); j++) {
-                    for (k = m; k < (size_t)RARRAY_LEN(rvars); k++) {
-                        if (rb_funcall(rb_ary_entry(rv, j), rb_intern("index"), 0) == rb_funcall(rb_ary_entry(rvars, k), rb_intern("index"), 0)) break;
-                    }
-                    if (k == (size_t)RARRAY_LEN(rvars)) rb_ary_push(rvars, rb_ary_entry(rv, j));
-                }
-            }
-        }
-        break;
-    case NODE_CAPTURE:
-        verify_variables(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rvars);
-        break;
-    case NODE_EXPAND:
-        break;
-    case NODE_ACTION:
-        rb_funcall(rnode, rb_intern("vars="), 1, rvars);
-        break;
-    case NODE_ERROR:
-        rb_funcall(rnode, rb_intern("vars="), 1, rvars);
-        verify_variables(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rvars);
-        break;
-    default:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    }
-}
-
 static node_t *parse_expression(VALUE rctx, VALUE rrule);
 
 static node_t *parse_primary(VALUE rctx, VALUE rrule) {
@@ -1731,7 +1659,7 @@ static void parse(VALUE rctx) {
         rrules = rb_ivar_get(rctx, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             VALUE rnode = rb_ary_entry(rrules, i);
-            verify_variables(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rb_ary_new());
+            rb_funcall(rctx, rb_intern("verify_variables"), 1, rb_funcall(rnode, rb_intern("expr"), 0));
             rb_funcall(rctx, rb_intern("verify_captures"), 1, rb_funcall(rnode, rb_intern("expr"), 0));
         }
     }
