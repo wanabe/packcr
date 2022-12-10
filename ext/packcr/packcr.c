@@ -306,6 +306,34 @@ static VALUE packcr_node_value(VALUE self) {
     return Qnil;
 }
 
+static VALUE packcr_node_min(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_QUANTITY:
+        return INT2NUM(node->data.quantity.min);
+    default:
+        return Qnil;
+    }
+}
+
+static VALUE packcr_node_max(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_QUANTITY:
+        return INT2NUM(node->data.quantity.max);
+    case NODE_SEQUENCE:
+        return SIZET2NUM(node->data.sequence.nodes.max);
+    case NODE_ALTERNATE:
+        return SIZET2NUM(node->data.alternate.nodes.max);
+    default:
+        return Qnil;
+    }
+}
+
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -442,6 +470,8 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "var", packcr_node_var, 0);
     rb_define_method(cPackcr_Node, "rule", packcr_node_rule, 0);
     rb_define_method(cPackcr_Node, "value", packcr_node_value, 0);
+    rb_define_method(cPackcr_Node, "min", packcr_node_min, 0);
+    rb_define_method(cPackcr_Node, "max", packcr_node_max, 0);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
