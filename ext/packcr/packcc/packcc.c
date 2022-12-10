@@ -1213,17 +1213,6 @@ static void verify_captures(VALUE rctx, node_t *node, node_const_array_t *capts)
     }
 }
 
-static void dump_escaped_string(const char *str) {
-    if (str == NULL) {
-        fprintf(stdout, "null");
-        return;
-    }
-    while (*str) {
-        VALUE s = rb_funcall(cPackcr, rb_intern("escape_character"), 1, INT2NUM(*str++));
-        fprintf(stdout, "%s", RSTRING_PTR(s));
-    }
-}
-
 static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
@@ -1263,22 +1252,14 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         break;
     case NODE_STRING:
         fprintf(stdout, "%*sString(value:'", indent, "");
-        {
-            VALUE rvalue = rb_funcall(rnode, rb_intern("value"), 0);
-            dump_escaped_string(StringValuePtr(rvalue));
-        }
+        fflush(stdout);
+        rb_funcall(cPackcr, rb_intern("dump_escaped_string"), 1, rb_funcall(rnode, rb_intern("value"), 0));
         fprintf(stdout, "')\n");
         break;
     case NODE_CHARCLASS:
         fprintf(stdout, "%*sCharclass(value:'", indent, "");
-        {
-            VALUE rvalue = rb_funcall(rnode, rb_intern("value"), 0);
-            if (NIL_P(rvalue)) {
-                dump_escaped_string(NULL);
-            } else {
-                dump_escaped_string(StringValuePtr(rvalue));
-            }
-        }
+        fflush(stdout);
+        rb_funcall(cPackcr, rb_intern("dump_escaped_string"), 1, rb_funcall(rnode, rb_intern("value"), 0));
         fprintf(stdout, "')\n");
         break;
     case NODE_QUANTITY:
@@ -1345,8 +1326,8 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         fprintf(stdout, ", code:{");
         {
             VALUE rcode = rb_funcall(rnode, rb_intern("code"), 0);
-            VALUE rtext = rb_funcall(rcode, rb_intern("text"), 0);
-            dump_escaped_string(StringValuePtr(rtext));
+            fflush(stdout);
+            rb_funcall(cPackcr, rb_intern("dump_escaped_string"), 1, rb_funcall(rcode, rb_intern("text"), 0));
         }
         fprintf(stdout, "}, vars:");
         if (node->data.action.vars.len + node->data.action.capts.len > 0) {
@@ -1371,8 +1352,8 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         fprintf(stdout, ", code:{");
         {
             VALUE rcode = rb_funcall(rnode, rb_intern("code"), 0);
-            VALUE rtext = rb_funcall(rcode, rb_intern("text"), 0);
-            dump_escaped_string(StringValuePtr(rtext));
+            fflush(stdout);
+            rb_funcall(cPackcr, rb_intern("dump_escaped_string"), 1, rb_funcall(rcode, rb_intern("text"), 0));
         }
         fprintf(stdout, "}, vars:\n");
         {

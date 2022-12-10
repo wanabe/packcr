@@ -62,6 +62,18 @@ class Packcr
       end
       $stdout.flush
     end
+
+    def dump_escaped_string(str)
+      if !str
+        $stdout.print "null"
+        $stdout.flush
+        return
+      end
+      str.each_byte do |c|
+        $stdout.print escape_character(c)
+      end
+      $stdout.flush
+    end
   end
 end
 
