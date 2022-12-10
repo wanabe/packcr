@@ -274,6 +274,31 @@ static VALUE packcr_node_rule(VALUE self) {
     return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, rule);
 }
 
+static VALUE packcr_node_value(VALUE self) {
+    node_t *node;
+    char *value;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_STRING:
+        value = node->data.string.value;
+        if (value != NULL) {
+            return rb_str_new_cstr(value);
+        }
+        break;
+    case NODE_CHARCLASS:
+        value = node->data.charclass.value;
+        if (value != NULL) {
+            rb_encoding *enc = rb_utf8_encoding();
+            return rb_enc_str_new_cstr(value, enc);
+        }
+        break;
+    default:
+        value = NULL;
+    }
+    return Qnil;
+}
+
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -334,25 +359,12 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
         }
         return INT2NUM(CODE_REACH__BOTH);
     case NODE_STRING:
-        return rb_funcall(gen, rb_intern("generate_matching_string_code"), 4, rb_str_new2(node->data.string.value), ronfail, rindent, rbare);
+        return rb_funcall(gen, rb_intern("generate_matching_string_code"), 4, rb_funcall(rnode, rb_intern("value"), 0), ronfail, rindent, rbare);
     case NODE_CHARCLASS:
         if (RB_TEST(rb_ivar_get(gen, rb_intern("@ascii")))) {
-            VALUE charclass;
-            if (node->data.charclass.value == NULL) {
-                charclass = Qnil;
-            } else {
-                charclass = rb_str_new_cstr(node->data.charclass.value);
-            }
-            return rb_funcall(gen, rb_intern("generate_matching_charclass_code"), 4, charclass, ronfail, rindent, rbare);
+            return rb_funcall(gen, rb_intern("generate_matching_charclass_code"), 4, rb_funcall(rnode, rb_intern("value"), 0), ronfail, rindent, rbare);
         } else {
-            VALUE charclass;
-            if (node->data.charclass.value == NULL) {
-                charclass = Qnil;
-            } else {
-                rb_encoding *enc = rb_utf8_encoding();
-                charclass = rb_enc_str_new_cstr(node->data.charclass.value, enc);
-            }
-            return rb_funcall(gen, rb_intern("generate_matching_utf8_charclass_code"), 4, charclass, ronfail, rindent, rbare);
+            return rb_funcall(gen, rb_intern("generate_matching_utf8_charclass_code"), 4, rb_funcall(rnode, rb_intern("value"), 0), ronfail, rindent, rbare);
         }
     case NODE_QUANTITY:
         return rb_funcall(gen, rb_intern("generate_quantifying_code"), 6, rb_funcall(rnode, rb_intern("expr"), 0), INT2NUM(node->data.quantity.min), INT2NUM(node->data.quantity.max), ronfail, rindent, rbare);
@@ -421,6 +433,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "ref", packcr_node_ref, 0);
     rb_define_method(cPackcr_Node, "var", packcr_node_var, 0);
     rb_define_method(cPackcr_Node, "rule", packcr_node_rule, 0);
+    rb_define_method(cPackcr_Node, "value", packcr_node_value, 0);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);

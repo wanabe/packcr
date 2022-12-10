@@ -1263,12 +1263,22 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         break;
     case NODE_STRING:
         fprintf(stdout, "%*sString(value:'", indent, "");
-        dump_escaped_string(node->data.string.value);
+        {
+            VALUE rvalue = rb_funcall(rnode, rb_intern("value"), 0);
+            dump_escaped_string(StringValuePtr(rvalue));
+        }
         fprintf(stdout, "')\n");
         break;
     case NODE_CHARCLASS:
         fprintf(stdout, "%*sCharclass(value:'", indent, "");
-        dump_escaped_string(node->data.charclass.value);
+        {
+            VALUE rvalue = rb_funcall(rnode, rb_intern("value"), 0);
+            if (NIL_P(rvalue)) {
+                dump_escaped_string(NULL);
+            } else {
+                dump_escaped_string(StringValuePtr(rvalue));
+            }
+        }
         fprintf(stdout, "')\n");
         break;
     case NODE_QUANTITY:
@@ -1522,16 +1532,16 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         charclass = StringValuePtr(rcharclass);
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_p = create_node(NODE_CHARCLASS);
-        n_p->data.charclass.value = strndup_e(charclass, strlen(charclass));
-        if (!unescape_string(n_p->data.charclass.value, TRUE)) {
+        charclass = n_p->data.charclass.value = strndup_e(charclass, strlen(charclass));
+        if (!unescape_string(charclass, TRUE)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
             rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
-        if (!RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii"))) && !is_valid_utf8_string(n_p->data.charclass.value)) {
+        if (!RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii"))) && !is_valid_utf8_string(charclass)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Invalid UTF-8 string\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
             rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
-        if (!RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii"))) && n_p->data.charclass.value[0] != '\0') {
+        if (!RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii"))) && charclass[0] != '\0') {
             rb_ivar_set(rctx, rb_intern("@utf8"), Qtrue);
         }
     }
@@ -1543,12 +1553,12 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         string = StringValuePtr(rstring);
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         n_p = create_node(NODE_STRING);
-        n_p->data.string.value = strndup_e(string, strlen(string));
-        if (!unescape_string(n_p->data.string.value, FALSE)) {
+        string = n_p->data.string.value = strndup_e(string, strlen(string));
+        if (!unescape_string(string, FALSE)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
             rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
-        if (!RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii"))) && !is_valid_utf8_string(n_p->data.string.value)) {
+        if (!RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii"))) && !is_valid_utf8_string(string)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Invalid UTF-8 string\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
             rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
