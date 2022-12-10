@@ -825,14 +825,6 @@ static void node_const_array__clear(node_const_array_t *array) {
     array->len = 0;
 }
 
-static void node_const_array__copy(node_const_array_t *array, const node_const_array_t *src) {
-    size_t i;
-    node_const_array__clear(array);
-    for (i = 0; i < src->len; i++) {
-        node_const_array__add(array, src->buf[i]);
-    }
-}
-
 static void node_const_array__term(node_const_array_t *array) {
     free((node_t **)array->buf);
 }
@@ -1141,16 +1133,10 @@ static void verify_variables(VALUE rctx, VALUE rnode, VALUE rvars) {
     }
 }
 
-static void verify_captures(VALUE rctx, VALUE rnode, node_const_array_t *capts) {
-    node_const_array_t a;
-    const bool_t b = (capts == NULL) ? TRUE : FALSE;
+static void verify_captures(VALUE rctx, VALUE rnode, VALUE rcapts) {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     if (node == NULL) return;
-    if (b) {
-        node_const_array__init(&a);
-        capts = &a;
-    }
     switch (node->type) {
     case NODE_RULE:
         print_error("Internal error [%d]\n", __LINE__);
@@ -1162,49 +1148,46 @@ static void verify_captures(VALUE rctx, VALUE rnode, node_const_array_t *capts) 
     case NODE_CHARCLASS:
         break;
     case NODE_QUANTITY:
-        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), capts);
+        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rcapts);
         break;
     case NODE_PREDICATE:
-        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), capts);
+        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rcapts);
         break;
     case NODE_SEQUENCE:
         {
             size_t i;
             VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
             for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
-                verify_captures(rctx, rb_ary_entry(rnodes, i), capts);
+                verify_captures(rctx, rb_ary_entry(rnodes, i), rcapts);
             }
         }
         break;
     case NODE_ALTERNATE:
         {
-            size_t i, j, m = capts->len;
+            size_t i, j, m = RARRAY_LEN(rcapts);
             VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
-            node_const_array_t v;
-            node_const_array__init(&v);
-            node_const_array__copy(&v, capts);
+            VALUE rv = rb_funcall(rcapts, rb_intern("dup"), 0);
             for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
-                v.len = m;
-                verify_captures(rctx, rb_ary_entry(rnodes, i), &v);
-                for (j = m; j < v.len; j++) {
-                    node_const_array__add(capts, v.buf[j]);
+                rv = rb_funcall(rv, rb_intern("[]"), 2, INT2NUM(0), SIZET2NUM(m));
+                verify_captures(rctx, rb_ary_entry(rnodes, i), rv);
+                for (j = m; j < (size_t)RARRAY_LEN(rv); j++) {
+                    rb_ary_push(rcapts, rb_ary_entry(rv, j));
                 }
             }
-            node_const_array__term(&v);
         }
         break;
     case NODE_CAPTURE:
-        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), capts);
-        node_const_array__add(capts, node);
+        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rcapts);
+        rb_ary_push(rcapts, rnode);
         break;
     case NODE_EXPAND:
         {
             size_t i;
-            for (i = 0; i < capts->len; i++) {
-                assert(capts->buf[i]->type == NODE_CAPTURE);
-                if (node->data.expand.index == capts->buf[i]->data.capture.index) break;
+            for (i = 0; i < (size_t)RARRAY_LEN(rcapts); i++) {
+                //assert(capts->buf[i]->type == NODE_CAPTURE);
+                if (rb_funcall(rnode, rb_intern("index"), 0) == rb_funcall(rb_ary_entry(rcapts, i), rb_intern("index"), 0)) break;
             }
-            if (i >= capts->len && node->data.expand.index != VOID_VALUE) {
+            if (i >= (size_t)RARRAY_LEN(rcapts) && node->data.expand.index != VOID_VALUE) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Capture " FMT_LU " not available at this position\n",
                     RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(node->data.expand.line + 1), (ulong_t)(node->data.expand.col + 1), (ulong_t)(node->data.expand.index + 1));
                 rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
@@ -1212,18 +1195,33 @@ static void verify_captures(VALUE rctx, VALUE rnode, node_const_array_t *capts) 
         }
         break;
     case NODE_ACTION:
-        node_const_array__copy(&node->data.action.capts, capts);
+        node_const_array__clear(&node->data.action.capts);
+        {
+            size_t i;
+            for (i = 0; i < (size_t)RARRAY_LEN(rcapts); i++) {
+                VALUE rcapt = rb_ary_entry(rcapts, i);
+                node_t *capt;
+                TypedData_Get_Struct(rcapt, node_t, &packcr_ptr_data_type, capt);
+                node_const_array__add(&node->data.action.capts, capt);
+            }
+        }
         break;
     case NODE_ERROR:
-        node_const_array__copy(&node->data.error.capts, capts);
-        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), capts);
+        node_const_array__clear(&node->data.error.capts);
+        {
+            size_t i;
+            for (i = 0; i < (size_t)RARRAY_LEN(rcapts); i++) {
+                VALUE rcapt = rb_ary_entry(rcapts, i);
+                node_t *capt;
+                TypedData_Get_Struct(rcapt, node_t, &packcr_ptr_data_type, capt);
+                node_const_array__add(&node->data.error.capts, capt);
+            }
+        }
+        verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rcapts);
         break;
     default:
         print_error("Internal error [%d]\n", __LINE__);
         exit(-1);
-    }
-    if (b) {
-        node_const_array__term(&a);
     }
 }
 
@@ -1844,7 +1842,7 @@ static void parse(VALUE rctx) {
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             VALUE rnode = rb_ary_entry(rrules, i);
             verify_variables(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rb_ary_new());
-            verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), NULL);
+            verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rb_ary_new());
         }
     }
 }
