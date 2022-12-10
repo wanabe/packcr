@@ -1400,6 +1400,11 @@ class Packcr::Context
 
     _parse
 
+    @rules.each do |rule|
+      verify_variables(rule.expr)
+      verify_captures(rule.expr)
+    end
+
     if @debug
       @rules.each(&:debug_dump)
       dump_options

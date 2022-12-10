@@ -1653,14 +1653,4 @@ static void parse(VALUE rctx) {
             }
         }
     }
-    {
-        size_t i;
-        VALUE rrules;
-        rrules = rb_ivar_get(rctx, rb_intern("@rules"));
-        for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
-            VALUE rnode = rb_ary_entry(rrules, i);
-            rb_funcall(rctx, rb_intern("verify_variables"), 1, rb_funcall(rnode, rb_intern("expr"), 0));
-            rb_funcall(rctx, rb_intern("verify_captures"), 1, rb_funcall(rnode, rb_intern("expr"), 0));
-        }
-    }
 }
