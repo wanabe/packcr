@@ -1904,10 +1904,9 @@ static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *
     return TRUE;
 }
 
-static bool_t parse(VALUE rctx) {
+static void parse(VALUE rctx) {
     {
         bool_t b = TRUE;
-        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         for (;;) {
             size_t l, m, n, o;
             if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_footer_start"), 0))) break;
@@ -2009,6 +2008,4 @@ static bool_t parse(VALUE rctx) {
         }
         dump_options(rctx);
     }
-
-    return RB_TEST(rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("zero?"), 0)) ? TRUE : FALSE;
 }
