@@ -34,6 +34,13 @@ static VALUE packcr_code_block_s_alloc(VALUE klass) {
     return obj;
 }
 
+static VALUE packcr_code_block_text(VALUE self) {
+    code_block_t *code;
+    TypedData_Get_Struct(self, code_block_t, &packcr_ptr_data_type, code);
+
+    return rb_str_new2(code->text);
+}
+
 static VALUE packcr_node_s_alloc(VALUE klass) {
     node_t *node;
     VALUE obj = TypedData_Make_Struct(klass, node_t, &packcr_ptr_data_type, node);
@@ -419,6 +426,7 @@ void Init_packcr(void) {
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
+    rb_define_method(cPackcr_CodeBlock, "text", packcr_code_block_text, 0);
 
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);

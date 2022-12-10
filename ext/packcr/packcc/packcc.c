@@ -1343,7 +1343,11 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         fflush(stdout);
         rb_funcall(cPackcr, rb_intern("dump_integer_value"), 1, SIZET2NUM(node->data.action.index));
         fprintf(stdout, ", code:{");
-        dump_escaped_string(node->data.action.code.text);
+        {
+            VALUE rcode = rb_funcall(rnode, rb_intern("code"), 0);
+            VALUE rtext = rb_funcall(rcode, rb_intern("text"), 0);
+            dump_escaped_string(StringValuePtr(rtext));
+        }
         fprintf(stdout, "}, vars:");
         if (node->data.action.vars.len + node->data.action.capts.len > 0) {
             size_t i;
@@ -1365,7 +1369,11 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
         fflush(stdout);
         rb_funcall(cPackcr, rb_intern("dump_integer_value"), 1, SIZET2NUM(node->data.error.index));
         fprintf(stdout, ", code:{");
-        dump_escaped_string(node->data.error.code.text);
+        {
+            VALUE rcode = rb_funcall(rnode, rb_intern("code"), 0);
+            VALUE rtext = rb_funcall(rcode, rb_intern("text"), 0);
+            dump_escaped_string(StringValuePtr(rtext));
+        }
         fprintf(stdout, "}, vars:\n");
         {
             size_t i;
@@ -1574,8 +1582,8 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_p = create_action_node();
         TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
-        n_p->data.action.code.text = strndup_e(text, strlen(text));
-        n_p->data.action.code.len = find_trailing_blanks(n_p->data.action.code.text);
+        text = n_p->data.action.code.text = strndup_e(text, strlen(text));
+        n_p->data.action.code.len = find_trailing_blanks(text);
         n_p->data.action.code.line = l;
         n_p->data.action.code.col = m;
         n_p->data.action.index = NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0));
@@ -1665,8 +1673,8 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
             rn_t = create_error_node();
             TypedData_Get_Struct(rn_t, node_t, &packcr_ptr_data_type, n_t);
             n_t->data.error.expr = n_r;
-            n_t->data.error.code.text = strndup_e(text, strlen(text));
-            n_t->data.error.code.len = find_trailing_blanks(n_t->data.error.code.text);
+            text = n_t->data.error.code.text = strndup_e(text, strlen(text));
+            n_t->data.error.code.len = find_trailing_blanks(text);
             n_t->data.error.code.line = l;
             n_t->data.error.code.col = m;
             n_t->data.error.index = NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0));
