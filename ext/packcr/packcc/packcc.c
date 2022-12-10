@@ -1840,7 +1840,7 @@ static void parse(VALUE rctx) {
         VALUE rrules = rb_ivar_get(rctx, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             VALUE rnode = rb_ary_entry(rrules, i);
-            rb_funcall(cPackcr, rb_intern("dump_node"), 2, rnode, INT2NUM(0));
+            rb_funcall(rnode, rb_intern("debug_dump"), 1, INT2NUM(0));
         }
     }
 }
