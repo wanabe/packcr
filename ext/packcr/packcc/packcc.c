@@ -1371,10 +1371,6 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_footer_start(VALUE rctx) {
-    return RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("%%")));
-}
-
 static node_t *parse_expression(VALUE rctx, VALUE rrule);
 
 static node_t *parse_primary(VALUE rctx, VALUE rrule) {
@@ -1914,7 +1910,7 @@ static bool_t parse(VALUE rctx) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         for (;;) {
             size_t l, m, n, o;
-            if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0)) || match_footer_start(rctx)) break;
+            if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_footer_start"), 0))) break;
             l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
             m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
             n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
