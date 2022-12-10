@@ -1400,6 +1400,16 @@ class Packcr::Context
 
     _parse
 
+    @rules[1..-1].each do |rule|
+      if rule.ref == 0
+        warn "#{@iname}:#{rule.line + 1}:#{rule.col + 1}: Never used rule '#{rule.name}'\n"
+        @errnum += 1
+      elsif rule.ref < 0 # impossible?
+        warn "#{@iname}:#{rule.line + 1}:#{rule.col + 1}: Multiple definition of rule '#{rule.name}'\n"
+        @errnum += 1
+      end
+    end
+
     @rules.each do |rule|
       verify_variables(rule.expr)
       verify_captures(rule.expr)

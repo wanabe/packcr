@@ -398,6 +398,38 @@ static VALUE packcr_node_type(VALUE self) {
     return INT2NUM(node->type);
 }
 
+static VALUE packcr_node_line(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_RULE:
+        return SIZET2NUM(node->data.rule.line);
+    case NODE_REFERENCE:
+        return SIZET2NUM(node->data.reference.line);
+    case NODE_EXPAND:
+        return SIZET2NUM(node->data.expand.line);
+    default:
+        return Qnil;
+    }
+}
+
+static VALUE packcr_node_col(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_RULE:
+        return SIZET2NUM(node->data.rule.col);
+    case NODE_REFERENCE:
+        return SIZET2NUM(node->data.reference.col);
+    case NODE_EXPAND:
+        return SIZET2NUM(node->data.expand.col);
+    default:
+        return Qnil;
+    }
+}
+
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -552,6 +584,8 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "min", packcr_node_min, 0);
     rb_define_method(cPackcr_Node, "max", packcr_node_max, 0);
     rb_define_method(cPackcr_Node, "type", packcr_node_type, 0);
+    rb_define_method(cPackcr_Node, "line", packcr_node_line, 0);
+    rb_define_method(cPackcr_Node, "col", packcr_node_col, 0);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);

@@ -1630,31 +1630,11 @@ static void parse(VALUE rctx) {
     {
         size_t i;
         VALUE rrules, rnode;
-        node_t *node;
         rb_funcall(rctx, rb_intern("make_rulehash"), 0);
         rrules = rb_ivar_get(rctx, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             rnode = rb_ary_entry(rrules, i);
-            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
             link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
-        }
-        for (i = 1; i < (size_t)RARRAY_LEN(rrules); i++) {
-            rnode = rb_ary_entry(rrules, i);
-            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-            if (node->data.rule.ref == 0) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Never used rule '%s'\n",
-                    RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))),
-                    (ulong_t)(node->data.rule.line + 1), (ulong_t)(node->data.rule.col + 1),
-                    node->data.rule.name);
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-            }
-            else if (node->data.rule.ref < 0) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Multiple definition of rule '%s'\n",
-                    RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))),
-                    (ulong_t)(node->data.rule.line + 1), (ulong_t)(node->data.rule.col + 1),
-                    node->data.rule.name);
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-            }
         }
     }
 }
