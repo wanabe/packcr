@@ -270,8 +270,6 @@ static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rinde
 
 static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfail, VALUE rindent, VALUE rbare) {
     const node_t *node;
-    int onfail = NUM2INT(ronfail);
-    size_t indent = NUM2SIZET(rindent);
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     if (node == NULL) {
         print_error("Internal error [%d]\n", __LINE__);
@@ -283,14 +281,14 @@ static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfai
         exit(-1);
     case NODE_REFERENCE:
         if (node->data.reference.index != VOID_VALUE) {
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2, SIZET2NUM(' '), SIZET2NUM(indent));
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2, SIZET2NUM(' '), rindent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, &(chunk->values.buf[" FMT_LU "]))) goto L%04d;\n",
-                node->data.reference.name, (ulong_t)node->data.reference.index, onfail);
+                node->data.reference.name, (ulong_t)node->data.reference.index, NUM2INT(ronfail));
         }
         else {
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2, SIZET2NUM(' '), SIZET2NUM(indent));
+            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2, SIZET2NUM(' '), rindent);
             stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, NULL)) goto L%04d;\n",
-                node->data.reference.name, onfail);
+                node->data.reference.name, NUM2INT(ronfail));
         }
         return INT2NUM(CODE_REACH__BOTH);
     case NODE_STRING:
