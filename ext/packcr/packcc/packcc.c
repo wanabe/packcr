@@ -1371,48 +1371,6 @@ static void dump_node(VALUE rctx, VALUE rnode, const int indent) {
     }
 }
 
-static bool_t match_code_block(VALUE rctx) {
-    const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-    if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('{')))) {
-        int d = 1;
-        for (;;) {
-            if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0))) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Premature EOF in code block\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                break;
-            }
-            if (
-                RB_TEST(rb_funcall(rctx, rb_intern("match_directive_c"), 0)) ||
-                RB_TEST(rb_funcall(rctx, rb_intern("match_comment_c"), 0)) ||
-                RB_TEST(rb_funcall(rctx, rb_intern("match_comment_cxx"), 0)) ||
-                RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_single"), 0)) ||
-                RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_double"), 0))
-            ) continue;
-            if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('{')))) {
-                d++;
-            }
-            else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('}')))) {
-                d--;
-                if (d == 0) break;
-            }
-            else {
-                if (!RB_TEST(rb_funcall(rctx, rb_intern("eol?"), 0))) {
-                    VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-                    if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('$')))) {
-                        rb_funcall(rbuffer, rb_intern("[]="), 2, rb_funcall(rb_ivar_get(rctx, rb_intern("@bufcur")), rb_intern("pred"), 0), SIZET2NUM('_'));
-                    }
-                    else {
-                        RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
-                    }
-                }
-            }
-        }
-        return TRUE;
-    }
-    return FALSE;
-}
-
 static bool_t match_footer_start(VALUE rctx) {
     return RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("%%")));
 }
@@ -1591,7 +1549,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
     }
-    else if (match_code_block(rctx)) {
+    else if (RB_TEST(rb_funcall(rctx, rb_intern("match_code_block"), 0))) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         VALUE rn_p, rcodes;
         char *text;
@@ -1681,7 +1639,7 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
         p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
         m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-        if (match_code_block(rctx)) {
+        if (RB_TEST(rb_funcall(rctx, rb_intern("match_code_block"), 0))) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             VALUE rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
             VALUE rn_t;
@@ -1843,7 +1801,7 @@ static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE outpu
         const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
         const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-        if (match_code_block(rctx)) {
+        if (RB_TEST(rb_funcall(rctx, rb_intern("match_code_block"), 0))) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             if (output1 != Qnil) {

@@ -1127,6 +1127,42 @@ class Packcr::Context
     false
   end
 
+  def match_code_block
+    l = @linenum
+    m = column_number
+    if match_character("{".ord)
+      d = 1
+      while true
+        if eof?
+          warn "#{@iname}:#{l + 1}:#{m + 1}: Premature EOF in code block\n"
+          @errnum += 1
+          break
+        end
+        if match_directive_c || match_comment_c || match_comment_cxx || match_quotation_single || match_quotation_double
+          next
+        end
+        if match_character("{".ord)
+          d += 1
+        elsif match_character("}".ord)
+          d -= 1
+          if d == 0
+            break
+          end
+        else
+          if !eol?
+            if match_character("$".ord)
+              @buffer[@bufcur - 1] = "_".ord
+            else
+              match_character_any
+            end
+          end
+        end
+      end
+      return true
+    end
+    return false
+  end
+
   def generate
     File.open(@hname, "wt") do |hio|
       hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
