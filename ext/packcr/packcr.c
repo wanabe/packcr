@@ -240,14 +240,20 @@ static VALUE packcr_node_expr(VALUE self) {
 
 static VALUE packcr_node_var(VALUE self) {
     node_t *node;
+    char *var;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
     switch (node->type) {
     case NODE_REFERENCE:
-        return rb_str_new2(node->data.reference.var);
+        var = node->data.reference.var;
+        break;
     default:
+        var = NULL;
+    }
+    if (var == NULL) {
         return Qnil;
     }
+    return rb_str_new2(var);
 }
 
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
