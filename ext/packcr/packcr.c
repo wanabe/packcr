@@ -334,6 +334,12 @@ static VALUE packcr_node_max(VALUE self) {
     }
 }
 
+static VALUE packcr_node_type(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+    return INT2NUM(node->type);
+}
+
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -457,6 +463,19 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_CodeBlock, "text", packcr_code_block_text, 0);
 
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
+    rb_const_set(cPackcr_Node, rb_intern("RULE"), INT2NUM(NODE_RULE));
+    rb_const_set(cPackcr_Node, rb_intern("REFERENCE"), INT2NUM(NODE_REFERENCE));
+    rb_const_set(cPackcr_Node, rb_intern("STRING"), INT2NUM(NODE_STRING));
+    rb_const_set(cPackcr_Node, rb_intern("CHARCLASS"), INT2NUM(NODE_CHARCLASS));
+    rb_const_set(cPackcr_Node, rb_intern("QUANTITY"), INT2NUM(NODE_QUANTITY));
+    rb_const_set(cPackcr_Node, rb_intern("PREDICATE"), INT2NUM(NODE_PREDICATE));
+    rb_const_set(cPackcr_Node, rb_intern("SEQUENCE"), INT2NUM(NODE_SEQUENCE));
+    rb_const_set(cPackcr_Node, rb_intern("ALTERNATE"), INT2NUM(NODE_ALTERNATE));
+    rb_const_set(cPackcr_Node, rb_intern("CAPTURE"), INT2NUM(NODE_CAPTURE));
+    rb_const_set(cPackcr_Node, rb_intern("EXPAND"), INT2NUM(NODE_EXPAND));
+    rb_const_set(cPackcr_Node, rb_intern("ACTION"), INT2NUM(NODE_ACTION));
+    rb_const_set(cPackcr_Node, rb_intern("ERROR"), INT2NUM(NODE_ERROR));
+
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
     rb_define_method(cPackcr_Node, "name", packcr_node_name, 0);
     rb_define_method(cPackcr_Node, "expr", packcr_node_expr, 0);
@@ -472,6 +491,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "value", packcr_node_value, 0);
     rb_define_method(cPackcr_Node, "min", packcr_node_min, 0);
     rb_define_method(cPackcr_Node, "max", packcr_node_max, 0);
+    rb_define_method(cPackcr_Node, "type", packcr_node_type, 0);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);

@@ -60,19 +60,110 @@ class Packcr
       else
         $stdout.print value
       end
-      $stdout.flush
     end
 
     def dump_escaped_string(str)
       if !str
         $stdout.print "null"
-        $stdout.flush
         return
       end
       str.each_byte do |c|
         $stdout.print escape_character(c)
       end
-      $stdout.flush
+    end
+
+    def dump_node(node, indent)
+      if !node
+        return
+      end
+
+      case node.type
+      when Packcr::Node::RULE
+        name = node.name
+        $stdout.print "#{" " * indent}Rule(name:'#{node.name}', ref:#{node.ref}, vars.len:#{node.vars.length}, capts.len:#{node.capts.length}, codes.len:#{node.codes.length}) {\n"
+        dump_node(node.expr, indent + 2);
+        $stdout.print "#{" " * indent}}\n"
+      when Packcr::Node::REFERENCE
+        $stdout.print "#{" " * indent}Reference(var:'#{node.var || "(null)"}', index:"
+        Packcr.dump_integer_value(node.index)
+        $stdout.print ", name:'#{node.name}', rule:'#{node.rule&.name || "(null)"}')\n"
+      when Packcr::Node::STRING
+        $stdout.print "#{" " * indent}String(value:'"
+        Packcr.dump_escaped_string(node.value)
+        $stdout.print "')\n"
+      when Packcr::Node::CHARCLASS
+        $stdout.print "#{" " * indent}Charclass(value:'"
+        Packcr.dump_escaped_string(node.value)
+        $stdout.print "')\n"
+      when Packcr::Node::QUANTITY
+        $stdout.print "#{" " * indent}Quantity(min:#{node.min}, max:#{node.max}) {\n"
+        dump_node(node.expr, indent + 2)
+        $stdout.print "#{" " * indent}}\n"
+      when Packcr::Node::PREDICATE
+        $stdout.print "#{" " * indent}Predicate(neg:#{node.neg ? 1 : 0}) {\n"
+        dump_node(node.expr, indent + 2)
+        $stdout.print "#{" " * indent}}\n"
+      when Packcr::Node::SEQUENCE
+        $stdout.print "#{" " * indent}Sequence(max:#{node.max}, len:#{node.nodes.length}) {\n"
+        node.nodes.each do |child_node|
+          dump_node(child_node, indent + 2)
+        end
+        $stdout.print "#{" " * indent}}\n"
+      when Packcr::Node::ALTERNATE
+        $stdout.print "#{" " * indent}Alternate(max:#{node.max}, len:#{node.nodes.length}) {\n"
+        node.nodes.each do |child_node|
+          dump_node(child_node, indent + 2)
+        end
+        $stdout.print "#{" " * indent}}\n"
+      when Packcr::Node::CAPTURE
+        $stdout.print "#{" " * indent}Capture(index:"
+        Packcr.dump_integer_value(node.index)
+        $stdout.print ") {\n"
+        dump_node(node.expr, indent + 2)
+        $stdout.print "#{" " * indent}}\n"
+      when Packcr::Node::EXPAND
+        $stdout.print "#{" " * indent}Expand(index:"
+        Packcr.dump_integer_value(node.index)
+        $stdout.print ")\n"
+      when Packcr::Node::ACTION
+        $stdout.print "#{" " * indent}Action(index:"
+        Packcr.dump_integer_value(node.index)
+        $stdout.print ", code:{"
+        Packcr.dump_escaped_string(node.code.text)
+        $stdout.print "}, vars:"
+
+        vars = node.vars
+        capts = node.capts
+        if vars.length + capts.length > 0
+          $stdout.print "\n"
+          vars.each do |ref|
+            $stdout.print "#{" " * (indent + 2)}'#{ref.var}'\n"
+          end
+          capts.each do |capt|
+            $stdout.print "#{" " * (indent + 2)}$#{capt.index + 1}\n"
+          end
+          $stdout.print "#{" " * indent})\n"
+        else
+          $stdout.print "none)\n"
+        end
+      when Packcr::Node::ERROR
+        $stdout.print "#{" " * indent}Error(index:"
+        Packcr.dump_integer_value(node.index)
+        $stdout.print ", code:{"
+        Packcr.dump_escaped_string(node.code.text)
+        $stdout.print "}, vars:\n"
+        node.vars.each do |ref|
+          $stdout.print "#{" " * (indent + 2)}'#{ref.var}'\n"
+        end
+        node.capts.each do |capt|
+          $stdout.print "#{" " * (indent + 2)}$#{capt.index + 1}\n"
+        end
+        $stdout.print "#{" " * indent}) {\n"
+        dump_node(node.expr, indent + 2)
+        $stdout.print "#{" " * indent}}\n"
+      else
+        raise "Internal error"
+      end
     end
   end
 end
