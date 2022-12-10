@@ -120,6 +120,35 @@ static VALUE packcr_node_vars(VALUE self) {
     return vars;
 }
 
+static VALUE packcr_node_set_vars(VALUE self, VALUE vars) {
+    node_t *node;
+    node_const_array_t *v;
+    size_t i;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        v = &node->data.action.vars;
+        break;
+    case NODE_ERROR:
+        v = &node->data.error.vars;
+        break;
+    case NODE_RULE:
+        v = &node->data.rule.vars;
+        break;
+    default:
+        return Qnil;
+    }
+    node_const_array__clear(v);
+    for (i = 0; i < (size_t)RARRAY_LEN(vars); i++) {
+        VALUE rnode = rb_ary_entry(vars, i);
+        node_t *node;
+        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+        node_const_array__add(v, node);
+    }
+    return vars;
+}
+
 static VALUE packcr_node_capts(VALUE self) {
     node_t *node;
     VALUE capts = rb_ary_new();
@@ -145,6 +174,35 @@ static VALUE packcr_node_capts(VALUE self) {
         node_t *node = (node_t *)v->buf[k++];
         VALUE rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
         rb_ary_push(capts, rnode);
+    }
+    return capts;
+}
+
+static VALUE packcr_node_set_capts(VALUE self, VALUE capts) {
+    node_t *node;
+    node_const_array_t *v;
+    size_t i;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        v = &node->data.action.capts;
+        break;
+    case NODE_ERROR:
+        v = &node->data.error.capts;
+        break;
+    case NODE_RULE:
+        v = &node->data.rule.capts;
+        break;
+    default:
+        return Qnil;
+    }
+    node_const_array__clear(v);
+    for (i = 0; i < (size_t)RARRAY_LEN(capts); i++) {
+        VALUE rnode = rb_ary_entry(capts, i);
+        node_t *node;
+        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+        node_const_array__add(v, node);
     }
     return capts;
 }
@@ -481,7 +539,9 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "expr", packcr_node_expr, 0);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
+    rb_define_method(cPackcr_Node, "vars=", packcr_node_set_vars, 1);
     rb_define_method(cPackcr_Node, "capts", packcr_node_capts, 0);
+    rb_define_method(cPackcr_Node, "capts=", packcr_node_set_capts, 1);
     rb_define_method(cPackcr_Node, "nodes", packcr_node_nodes, 0);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);

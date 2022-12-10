@@ -825,17 +825,6 @@ static void node_const_array__clear(node_const_array_t *array) {
     array->len = 0;
 }
 
-static void node_const_array__copy(node_const_array_t *array, VALUE rsrc) {
-    size_t i;
-    node_const_array__clear(array);
-    for (i = 0; i < (size_t)RARRAY_LEN(rsrc); i++) {
-        VALUE rnode = rb_ary_entry(rsrc, i);
-        node_t *node;
-        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-        node_const_array__add(array, node);
-    }
-}
-
 static void node_const_array__term(node_const_array_t *array) {
     free((node_t **)array->buf);
 }
@@ -1114,10 +1103,10 @@ static void verify_variables(VALUE rctx, VALUE rnode, VALUE rvars) {
     case NODE_EXPAND:
         break;
     case NODE_ACTION:
-        node_const_array__copy(&node->data.action.vars, rvars);
+        rb_funcall(rnode, rb_intern("vars="), 1, rvars);
         break;
     case NODE_ERROR:
-        node_const_array__copy(&node->data.error.vars, rvars);
+        rb_funcall(rnode, rb_intern("vars="), 1, rvars);
         verify_variables(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rvars);
         break;
     default:
@@ -1188,10 +1177,10 @@ static void verify_captures(VALUE rctx, VALUE rnode, VALUE rcapts) {
         }
         break;
     case NODE_ACTION:
-        node_const_array__copy(&node->data.action.capts, rcapts);
+        rb_funcall(rnode, rb_intern("capts="), 1, rcapts);
         break;
     case NODE_ERROR:
-        node_const_array__copy(&node->data.error.capts, rcapts);
+        rb_funcall(rnode, rb_intern("capts="), 1, rcapts);
         verify_captures(rctx, rb_funcall(rnode, rb_intern("expr"), 0), rcapts);
         break;
     default:
