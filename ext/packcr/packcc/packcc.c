@@ -849,13 +849,19 @@ static VALUE create_predicate_node() {
     return rnode;
 }
 
+static VALUE create_sequence_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_SEQUENCE;
+    node_array__init(&node->data.sequence.nodes);
+    return rnode;
+}
+
 static node_t *create_node(node_type_t type) {
     node_t *const node = (node_t *)malloc_e(sizeof(node_t));
     node->type = type;
     switch (node->type) {
-    case NODE_SEQUENCE:
-        node_array__init(&node->data.sequence.nodes);
-        break;
     case NODE_ALTERNATE:
         node_array__init(&node->data.alternate.nodes);
         break;
@@ -1249,11 +1255,13 @@ static node_t *parse_sequence(VALUE rctx, VALUE rrule) {
     node_t *n_t = NULL;
     node_t *n_u = NULL;
     node_t *n_s = NULL;
+    VALUE rn_s;
     n_t = parse_term(rctx, rrule);
     if (n_t == NULL) goto EXCEPTION;
     n_u = parse_term(rctx, rrule);
     if (n_u != NULL) {
-        n_s = create_node(NODE_SEQUENCE);
+        rn_s = create_sequence_node();
+        TypedData_Get_Struct(rn_s, node_t, &packcr_ptr_data_type, n_s);
         a_t = &n_s->data.sequence.nodes;
         node_array__add(a_t, n_t);
         node_array__add(a_t, n_u);
