@@ -1439,6 +1439,32 @@ class Packcr::Context
     end
   end
 
+  def parse_directive_include(name, *outputs)
+    if !match_string(name)
+      return false
+    end
+
+    match_spaces
+
+    pos = @bufcur
+    l = @linenum
+    m = column_number
+    if match_code_block
+      q = @bufcur
+      match_spaces
+      outputs.each do |output|
+        code = Packcr::CodeBlock.new
+        output.push(code)
+        text = @buffer.to_s[pos + 1, q - pos - 2]
+        code.init(text, q - pos - 2, l, m)
+      end
+    else
+      warn "#{@iname}:#{l + 1}:#{m + 1}: Illegal #{name} syntax\n"
+      @errnum += 1
+    end
+    true
+  end
+
   def parse
     match_spaces
 
@@ -1447,7 +1473,16 @@ class Packcr::Context
       if eof? || match_footer_start
         break
       end
-      b = _parse(b)
+      if (parse_directive_include("%earlysource", @esource) ||
+          parse_directive_include("%earlycommon", @esource, @eheader) ||
+          parse_directive_include("%source", @source) ||
+          parse_directive_include("%header", @header) ||
+          parse_directive_include("%common", @source, @header))
+        b = true
+      else
+        b = _parse(b)
+      end
+      commit_buffer
     end
 
     commit_buffer
