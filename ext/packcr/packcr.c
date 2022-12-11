@@ -833,78 +833,6 @@ static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rinde
     return self;
 }
 
-static VALUE packcr_generator_generate_code(VALUE gen, VALUE rnode, VALUE ronfail, VALUE rindent, VALUE rbare) {
-    const node_t *node;
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    if (node == NULL) {
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    }
-    switch (node->type) {
-    case NODE_RULE:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    case NODE_REFERENCE:
-        if (node->data.reference.index != VOID_VALUE) {
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2, SIZET2NUM(' '), rindent);
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, &(chunk->values.buf[" FMT_LU "]))) goto L%04d;\n",
-                node->data.reference.name, (ulong_t)node->data.reference.index, NUM2INT(ronfail));
-        }
-        else {
-            rb_funcall(rb_ivar_get(gen, rb_intern("@stream")), rb_intern("write_characters"), 2, SIZET2NUM(' '), rindent);
-            stream__printf(rb_ivar_get(gen, rb_intern("@stream")), "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_%s, &chunk->thunks, NULL)) goto L%04d;\n",
-                node->data.reference.name, NUM2INT(ronfail));
-        }
-        return INT2NUM(CODE_REACH__BOTH);
-    case NODE_STRING:
-        return rb_funcall(gen, rb_intern("generate_matching_string_code"), 4, rb_funcall(rnode, rb_intern("value"), 0), ronfail, rindent, rbare);
-    case NODE_CHARCLASS:
-        if (RB_TEST(rb_ivar_get(gen, rb_intern("@ascii")))) {
-            return rb_funcall(gen, rb_intern("generate_matching_charclass_code"), 4, rb_funcall(rnode, rb_intern("value"), 0), ronfail, rindent, rbare);
-        } else {
-            return rb_funcall(gen, rb_intern("generate_matching_utf8_charclass_code"), 4, rb_funcall(rnode, rb_intern("value"), 0), ronfail, rindent, rbare);
-        }
-    case NODE_QUANTITY:
-        return rb_funcall(gen, rb_intern("generate_quantifying_code"), 6, rb_funcall(rnode, rb_intern("expr"), 0), INT2NUM(node->data.quantity.min), INT2NUM(node->data.quantity.max), ronfail, rindent, rbare);
-    case NODE_PREDICATE:
-        return rb_funcall(gen, rb_intern("generate_predicating_code"), 5, rb_funcall(rnode, rb_intern("expr"), 0), rb_funcall(rnode, rb_intern("neg"), 0), ronfail, rindent, rbare);
-    case NODE_SEQUENCE:
-        return rb_funcall(gen, rb_intern("generate_sequential_code"), 4, rb_funcall(rnode, rb_intern("nodes"), 0), ronfail, rindent, rbare);
-    case NODE_ALTERNATE:
-        return rb_funcall(gen, rb_intern("generate_alternative_code"), 4, rb_funcall(rnode, rb_intern("nodes"), 0), ronfail, rindent, rbare);
-    case NODE_CAPTURE:
-        return rb_funcall(
-            gen, rb_intern("generate_capturing_code"), 5,
-            rb_funcall(rnode, rb_intern("expr"), 0),
-            SIZET2NUM(node->data.capture.index),
-            ronfail, rindent, rbare
-        );
-    case NODE_EXPAND:
-        return rb_funcall(gen, rb_intern("generate_expanding_code"), 4, rb_funcall(rnode, rb_intern("index"), 0), ronfail, rindent, rbare);
-    case NODE_ACTION:
-        return rb_funcall(
-            gen, rb_intern("generate_thunking_action_code"), 7,
-            SIZET2NUM(node->data.action.index),
-            rb_funcall(rnode, rb_intern("vars"), 0),
-            rb_funcall(rnode, rb_intern("capts"), 0),
-            Qfalse,
-            ronfail, rindent, rbare
-        );
-    case NODE_ERROR:
-        return rb_funcall(
-            gen, rb_intern("generate_thunking_error_code"), 7,
-            rb_funcall(rnode, rb_intern("expr"), 0),
-            SIZET2NUM(node->data.error.index),
-            rb_funcall(rnode, rb_intern("vars"), 0),
-            rb_funcall(rnode, rb_intern("capts"), 0),
-            ronfail, rindent, rbare
-        );
-    default:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    }
-}
-
 void Init_packcr(void) {
     VALUE cPackcr_Context;
 
@@ -975,5 +903,4 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
 
     cPackcr_Generator = rb_const_get(cPackcr, rb_intern("Generator"));
-    rb_define_method(cPackcr_Generator, "generate_code", packcr_generator_generate_code, 4);
 }

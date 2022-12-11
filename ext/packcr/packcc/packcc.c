@@ -369,42 +369,6 @@ static size_t find_trailing_blanks(const char *str) {
     return j;
 }
 
-__attribute__((format(printf, 2, 3)))
-static int stream__printf(VALUE stream, const char *format, ...) {
-    {
-#define M 1024
-        char s[M], *p = NULL;
-        int n = 0;
-        size_t l = 0;
-        {
-            va_list a;
-            va_start(a, format);
-            n = vsnprintf(NULL, 0, format, a);
-            va_end(a);
-            if (n < 0) {
-                print_error("Internal error\n");
-                exit(2);
-            }
-            l = (size_t)n + 1;
-        }
-        p = (l > M) ? (char *)malloc_e(l) : s;
-        {
-            va_list a;
-            va_start(a, format);
-            n = vsnprintf(p, l, format, a);
-            va_end(a);
-            if (n < 0 || (size_t)n >= l) {
-                print_error("Internal error\n");
-                exit(2);
-            }
-        }
-        rb_funcall(stream, rb_intern("write"), 1, rb_str_new2(p));
-        if (p != s) free(p);
-        return n;
-#undef M
-    }
-}
-
 static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, const char *fname) {
     bool_t b = FALSE;
     size_t i, j, k;

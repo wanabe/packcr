@@ -779,6 +779,52 @@ class Packcr::Generator
     end
     return r
   end
+
+  def generate_code(node, onfail, indent, bare)
+    if !node
+      raise "Internal error"
+    end
+    case node.type
+    when ::Packcr::Node::RULE
+      raise "Internal error"
+    when ::Packcr::Node::REFERENCE
+      if node.index != VOID_VALUE
+        @stream.write " " * indent
+        @stream.write "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{node.name}, &chunk->thunks, &(chunk->values.buf[#{node.index}]))) goto L#{"%04d" % onfail};\n"
+      else
+        @stream.write " " * indent
+        @stream.write "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{node.name}, &chunk->thunks, NULL)) goto L#{"%04d" % onfail};\n"
+      end
+      return Packcr::CODE_REACH__BOTH
+    when ::Packcr::Node::STRING
+      return generate_matching_string_code(node.value, onfail, indent, bare)
+    when ::Packcr::Node::CHARCLASS
+      if @ascii
+        return generate_matching_charclass_code(node.value, onfail, indent, bare)
+      else
+        return generate_matching_utf8_charclass_code(node.value, onfail, indent, bare)
+      end
+    when ::Packcr::Node::QUANTITY
+      return generate_quantifying_code(node.expr, node.min, node.max, onfail, indent, bare)
+    when ::Packcr::Node::PREDICATE
+      return generate_predicating_code(node.expr, node.neg, onfail, indent, bare)
+    when ::Packcr::Node::SEQUENCE
+      return generate_sequential_code(node.nodes, onfail, indent, bare)
+    when ::Packcr::Node::ALTERNATE
+      return generate_alternative_code(node.nodes, onfail, indent, bare)
+    when ::Packcr::Node::CAPTURE
+      return generate_capturing_code(node.expr, node.index, onfail, indent, bare)
+    when ::Packcr::Node::EXPAND
+      return generate_expanding_code(node.index, onfail, indent, bare)
+    when ::Packcr::Node::ACTION
+      return generate_thunking_action_code(node.index, node.vars, node.capts, false, onfail, indent, bare)
+    when ::Packcr::Node::ERROR
+      return generate_thunking_error_code(node.expr, node.index, node.vars, node.capts, onfail, indent, bare)
+    else
+      raise "Internal error"
+    end
+  end
+
 end
 
 class Packcr::Context
