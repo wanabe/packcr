@@ -802,6 +802,7 @@ static VALUE create_reference_node() {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_REFERENCE;
+    rb_funcall(rnode, rb_intern("var="), 1, Qnil);
     node->data.reference.var = NULL;
     node->data.reference.index = VOID_VALUE;
     node->data.reference.name = NULL;
@@ -974,18 +975,16 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
             name = StringValuePtr(rname);
             assert(q >= p);
-            n_p->data.reference.var = NULL;
+            rb_funcall(rn_p, rb_intern("var="), 1, Qnil);
             n_p->data.reference.index = VOID_VALUE;
             n_p->data.reference.name = strndup_e(name, strlen(name));
         }
         else {
             VALUE rvar = rb_funcall(rbuffer, rb_intern("to_s"), 0);
-            char *var;
             rvar = rb_funcall(rvar, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
-            var = StringValuePtr(rvar);
             assert(s != VOID_VALUE); /* s should have a valid value when r has a valid value */
             assert(q >= p);
-            n_p->data.reference.var = strndup_e(var, strlen(var));
+            rb_funcall(rn_p, rb_intern("var="), 1, rvar);
             if (n_p->data.reference.var[0] == '_') {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Leading underscore in variable name '%s'\n",
                     RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), n_p->data.reference.var);

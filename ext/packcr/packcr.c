@@ -335,6 +335,25 @@ static VALUE packcr_node_var(VALUE self) {
     return rb_str_new2(var);
 }
 
+static VALUE packcr_node_set_var(VALUE self, VALUE var) {
+    node_t *node;
+    char *cvar;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_REFERENCE:
+        if (NIL_P(var)) {
+            node->data.reference.var = NULL;
+        } else {
+            cvar = StringValuePtr(var);
+            node->data.reference.var = strndup_e(cvar, strlen(cvar));
+        }
+        return var;
+    default:
+        return var;
+    }
+}
+
 static VALUE packcr_node_rule(VALUE self) {
     node_t *node;
     node_t *rule;
@@ -618,6 +637,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);
     rb_define_method(cPackcr_Node, "ref", packcr_node_ref, 0);
     rb_define_method(cPackcr_Node, "var", packcr_node_var, 0);
+    rb_define_method(cPackcr_Node, "var=", packcr_node_set_var, 1);
     rb_define_method(cPackcr_Node, "rule", packcr_node_rule, 0);
     rb_define_method(cPackcr_Node, "rule=", packcr_node_set_rule, 1);
     rb_define_method(cPackcr_Node, "value", packcr_node_value, 0);
