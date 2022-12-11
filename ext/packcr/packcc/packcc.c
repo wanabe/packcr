@@ -778,7 +778,7 @@ static VALUE create_action_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_ACTION;
     code_block__init(&node->data.action.code);
-    node->data.action.index = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     node_const_array__init(&node->data.action.vars);
     node_const_array__init(&node->data.action.capts);
     return rnode;
@@ -791,7 +791,7 @@ static VALUE create_error_node() {
     node->type = NODE_ERROR;
     node->data.error.expr = NULL;
     code_block__init(&node->data.error.code);
-    node->data.error.index = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     node_const_array__init(&node->data.error.vars);
     node_const_array__init(&node->data.error.capts);
     return rnode;
@@ -804,7 +804,7 @@ static VALUE create_reference_node() {
     node->type = NODE_REFERENCE;
     rb_funcall(rnode, rb_intern("var="), 1, Qnil);
     node->data.reference.var = NULL;
-    node->data.reference.index = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     node->data.reference.name = NULL;
     node->data.reference.rule = NULL;
     node->data.reference.line = VOID_VALUE;
@@ -874,7 +874,7 @@ static VALUE create_capture_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_CAPTURE;
     node->data.capture.expr = NULL;
-    node->data.capture.index = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     return rnode;
 }
 
@@ -883,7 +883,7 @@ static VALUE create_expand_node() {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_EXPAND;
-    node->data.expand.index = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     node->data.expand.line = VOID_VALUE;
     node->data.expand.col = VOID_VALUE;
     return rnode;
@@ -976,7 +976,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
             name = StringValuePtr(rname);
             assert(q >= p);
             rb_funcall(rn_p, rb_intern("var="), 1, Qnil);
-            n_p->data.reference.index = VOID_VALUE;
+            rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
             n_p->data.reference.name = strndup_e(name, strlen(name));
         }
         else {
@@ -997,7 +997,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
                     if (strcmp(n_p->data.reference.var, rule->data.rule.vars.buf[i]->data.reference.var) == 0) break;
                 }
                 if (i == rule->data.rule.vars.len) node_const_array__add(&rule->data.rule.vars, n_p);
-                n_p->data.reference.index = i;
+                rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(i));
             }
             assert(s >= r);
             {
@@ -1026,7 +1026,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_p = create_capture_node();
         TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
-        n_p->data.capture.index = rule->data.rule.capts.len;
+        rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(rule->data.rule.capts.len));
         node_const_array__add(&rule->data.rule.capts, n_p);
         {
             VALUE rexpr = parse_expression(rctx, rrule);
@@ -1057,7 +1057,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
             TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
             assert(q >= p);
             s = strndup_e(s, strlen(s));
-            n_p->data.expand.index = string_to_size_t(s);
+            rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(string_to_size_t(s)));
             if (n_p->data.expand.index == VOID_VALUE) {
                 print_error("%s:" FMT_LU ":" FMT_LU ": Invalid unsigned number '%s'\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), s);
                 rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
@@ -1069,7 +1069,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
             else if (s[0] == '0') {
                 print_error("%s:" FMT_LU ":" FMT_LU ": 0-prefixed number not allowed\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
                 rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                n_p->data.expand.index = 0;
+                rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(0));
             }
             free(s);
             if (n_p->data.expand.index > 0 && n_p->data.expand.index != VOID_VALUE) {
@@ -1147,7 +1147,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
         n_p->data.action.code.len = find_trailing_blanks(text);
         n_p->data.action.code.line = l;
         n_p->data.action.code.col = m;
-        n_p->data.action.index = NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0));
+        rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0))));
         rb_ary_push(rcodes, rn_p);
     }
     else {
@@ -1250,7 +1250,7 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
             n_t->data.error.code.len = find_trailing_blanks(text);
             n_t->data.error.code.line = l;
             n_t->data.error.code.col = m;
-            n_t->data.error.index = NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0));
+            rb_funcall(rn_t, rb_intern("index="), 1, SIZET2NUM(NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0))));
             rb_ary_push(rcodes, rn_t);
         }
         else {
@@ -1370,11 +1370,11 @@ static VALUE parse_rule(VALUE rctx) {
         VALUE rexpr = parse_expression(rctx, rn_r);
         if (NIL_P(rexpr)) {
             n_r->data.rule.expr = NULL;
+            goto EXCEPTION;
         } else {
             TypedData_Get_Struct(rexpr, node_t, &packcr_ptr_data_type, n_r->data.rule.expr);
         }
     }
-    if (n_r->data.rule.expr == NULL) goto EXCEPTION;
     assert(q >= p);
     rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
     rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
