@@ -390,6 +390,27 @@ static VALUE packcr_node_nodes(VALUE self) {
     return nodes;
 }
 
+static VALUE packcr_node_set_nodes(VALUE self, VALUE rnodes) {
+    node_t *node;
+    node_array_t *a;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_SEQUENCE:
+        a = &node->data.sequence.nodes;
+        break;
+    case NODE_ALTERNATE:
+        a = &node->data.alternate.nodes;
+        break;
+    default:
+        return Qnil;
+    }
+    if (NIL_P(rnodes)) {
+        node_array__init(a);
+    }
+    return rnodes;
+}
+
 static VALUE packcr_node_code(VALUE self) {
     node_t *node;
     code_block_t *code;
@@ -861,7 +882,7 @@ void Init_packcr(void) {
 
     cPackcr_Context = rb_const_get(cPackcr, rb_intern("Context"));
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);
-    rb_define_method(cPackcr_Context, "parse_expression", parse_expression, 1);
+    rb_define_method(cPackcr_Context, "parse_sequence", parse_sequence, 1);
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
@@ -898,6 +919,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "capts=", packcr_node_set_capts, 1);
     rb_define_method(cPackcr_Node, "add_capt", packcr_node_add_capt, 1);
     rb_define_method(cPackcr_Node, "nodes", packcr_node_nodes, 0);
+    rb_define_method(cPackcr_Node, "nodes=", packcr_node_set_nodes, 1);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);
     rb_define_method(cPackcr_Node, "neg=", packcr_node_set_neg, 1);

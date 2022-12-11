@@ -1108,6 +1108,13 @@ class Packcr::Node
       node.col = VOID_VALUE
       node
     end
+
+    def create_alternate_node
+      node = Packcr::Node.new
+      node.type = Packcr::Node::ALTERNATE
+      node.nodes = nil
+      node
+    end
   end
 end
 
@@ -1717,6 +1724,40 @@ class Packcr::Context
   end
 
   class StopParsing < StandardError
+  end
+
+  def parse_expression(rule)
+    pos = @bufcur
+    l = @linenum
+    n = @charnum
+    o = @linepos
+    n_s = parse_sequence(rule)
+    if !n_s
+      raise StopParsing
+    end
+    q = @bufcur
+    if (match_character("/".ord))
+      @bufcur = q
+      n_e = Packcr::Node.create_alternate_node
+      n_e.add_node(n_s)
+      while match_character("/".ord)
+        match_spaces
+        n_s = parse_sequence(rule)
+        if !n_s
+          raise StopParsing
+        end
+        n_e.add_node(n_s)
+      end
+    else
+      n_e = n_s
+    end
+    return n_e
+  rescue StopParsing
+    @bufcur = pos
+    @linenum = l
+    @charnum = n
+    @linepos = o
+    return nil
   end
 
   def parse_rule
