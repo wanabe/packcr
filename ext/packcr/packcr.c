@@ -211,12 +211,15 @@ static VALUE packcr_node_set_vars(VALUE self, VALUE vars) {
         TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
         node_const_array__add(v, node);
     }
+    rb_ivar_set(self, rb_intern("@vars"), vars);
     return vars;
 }
 
 static VALUE packcr_node_add_var(VALUE self, VALUE rnode) {
     node_t *node;
     node_const_array_t *v;
+    size_t i = 0;
+    VALUE vars = rb_ary_new();
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
     switch (node->type) {
@@ -234,6 +237,12 @@ static VALUE packcr_node_add_var(VALUE self, VALUE rnode) {
     }
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node_const_array__add(v, node);
+    while (i < v->len) {
+        node_t *node = (node_t *)v->buf[i++];
+        VALUE rvar = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
+        rb_ary_push(vars, rvar);
+    }
+    rb_ivar_set(self, rb_intern("@vars"), vars);
     return rnode;
 }
 
@@ -263,6 +272,7 @@ static VALUE packcr_node_capts(VALUE self) {
         VALUE rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
         rb_ary_push(capts, rnode);
     }
+    rb_ivar_set(self, rb_intern("@capts"), capts);
     return capts;
 }
 
@@ -292,12 +302,15 @@ static VALUE packcr_node_set_capts(VALUE self, VALUE capts) {
         TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
         node_const_array__add(v, node);
     }
+    rb_ivar_set(self, rb_intern("@capts"), capts);
     return capts;
 }
 
 static VALUE packcr_node_add_capt(VALUE self, VALUE rnode) {
     node_t *node;
     node_const_array_t *v;
+    size_t i;
+    VALUE capts;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
     switch (node->type) {
@@ -315,6 +328,15 @@ static VALUE packcr_node_add_capt(VALUE self, VALUE rnode) {
     }
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node_const_array__add(v, node);
+
+    i = 0;
+    capts = rb_ary_new();
+    while (i < v->len) {
+        node_t *node = (node_t *)v->buf[i++];
+        VALUE rcapt = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
+        rb_ary_push(capts, rcapt);
+    }
+    rb_ivar_set(self, rb_intern("@capts"), capts);
     return rnode;
 }
 
@@ -322,7 +344,7 @@ static VALUE packcr_node_nodes(VALUE self) {
     node_t *node;
     VALUE nodes = rb_ary_new();
     node_array_t *a;
-    size_t k;
+    size_t i = 0;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
     switch (node->type) {
@@ -335,18 +357,19 @@ static VALUE packcr_node_nodes(VALUE self) {
     default:
         return Qnil;
     }
-    k = 0;
-    while (k < a->len) {
-        node_t *n = (node_t *)a->buf[k++];
+    while (i < a->len) {
+        node_t *n = (node_t *)a->buf[i++];
         VALUE rn = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, n);
         rb_ary_push(nodes, rn);
     }
+    rb_ivar_set(self, rb_intern("@nodes"), nodes);
     return nodes;
 }
 
 static VALUE packcr_node_code(VALUE self) {
     node_t *node;
     code_block_t *code;
+    VALUE rcode;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
     switch (node->type) {
@@ -359,7 +382,9 @@ static VALUE packcr_node_code(VALUE self) {
     default:
         return Qnil;
     }
-    return TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code);
+    rcode = TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code);
+    rb_ivar_set(self, rb_intern("@code"), rcode);
+    return rcode;
 }
 
 static VALUE packcr_node_neg(VALUE self) {
@@ -417,6 +442,7 @@ static VALUE packcr_node_set_ref(VALUE self, VALUE ref) {
 static VALUE packcr_node_expr(VALUE self) {
     node_t *node;
     node_t *expr;
+    VALUE rexpr;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
     switch (node->type) {
@@ -438,7 +464,9 @@ static VALUE packcr_node_expr(VALUE self) {
     default:
         return Qnil;
     }
-    return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, expr);
+    rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, expr);
+    rb_ivar_set(self, rb_intern("@expr"), rexpr);
+    return rexpr;
 }
 
 static VALUE packcr_node_set_expr(VALUE self, VALUE rexpr) {
@@ -468,6 +496,7 @@ static VALUE packcr_node_set_expr(VALUE self, VALUE rexpr) {
     if (NIL_P(rexpr)) {
         *e = NULL;
     } else {
+        rb_ivar_set(self, rb_intern("@expr"), rexpr);
         TypedData_Get_Struct(rexpr, node_t, &packcr_ptr_data_type, *e);
     }
     return rexpr;
@@ -513,6 +542,7 @@ static VALUE packcr_node_set_var(VALUE self, VALUE var) {
 static VALUE packcr_node_rule(VALUE self) {
     node_t *node;
     node_t *rule;
+    VALUE rrule;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
 
     switch (node->type) {
@@ -525,7 +555,9 @@ static VALUE packcr_node_rule(VALUE self) {
     if (rule == NULL) {
         return Qnil;
     }
-    return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, rule);
+    rrule = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, rule);
+    rb_ivar_set(self, rb_intern("@rule"), rrule);
+    return rrule;
 }
 
 static VALUE packcr_node_set_rule(VALUE self, VALUE rrule) {
@@ -537,6 +569,7 @@ static VALUE packcr_node_set_rule(VALUE self, VALUE rrule) {
     switch (node->type) {
     case NODE_REFERENCE:
         node->data.reference.rule = rule;
+        rb_ivar_set(self, rb_intern("@rule"), rrule);
         return rrule;
     default:
         return Qnil;
@@ -737,6 +770,8 @@ static VALUE packcr_node_add_ref(VALUE self) {
 static VALUE packcr_node_add_node(VALUE self, VALUE child) {
     node_t *node, *cchild;
     node_array_t *a;
+    VALUE rnodes;
+    size_t i;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
     TypedData_Get_Struct(child, node_t, &packcr_ptr_data_type, cchild);
 
@@ -751,6 +786,15 @@ static VALUE packcr_node_add_node(VALUE self, VALUE child) {
         return Qnil;
     }
     node_array__add(a, cchild);
+
+    i = 0;
+    rnodes = rb_ary_new();
+    while (i < a->len) {
+        node_t *n = (node_t *)a->buf[i++];
+        VALUE rn = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, n);
+        rb_ary_push(rnodes, rn);
+    }
+    rb_ivar_set(self, rb_intern("@nodes"), rnodes);
     return self;
 }
 
