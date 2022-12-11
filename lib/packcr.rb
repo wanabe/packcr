@@ -177,6 +177,89 @@ class Packcr::Stream
     end
     write("\"\n")
   end
+
+  def write_code_block(code, indent, fname)
+    b = false
+    i = j = k = nil
+    text = code.text
+    ptr = text.b
+    len = code.len
+    lineno = code.line
+    if len == VOID_VALUE
+      return # for safety
+    end
+
+    j, k = Packcr.find_first_trailing_space(ptr, 0, len)
+    i = 0
+    while i < j
+      if ptr[i] != " " && ptr[i] != "\v" && ptr[i] != "\f" && ptr[i] != "\t"
+        break
+      end
+      i += 1
+    end
+    if i < j
+      if @line
+        write_line_directive(fname, lineno)
+      end
+      if ptr[i] != "#"
+        write " " * indent
+      end
+      write_text(ptr[i, j - i])
+      putc "\n".ord
+      b = true
+    else
+      lineno += 1
+    end
+    if k < len
+      m = VOID_VALUE
+      i = k
+      while i < len
+        j, h = Packcr.find_first_trailing_space(ptr, i, len)
+        if i < j
+          if @line && !b
+            write_line_directive(fname, lineno)
+          end
+          if ptr[i] != "#"
+            l, = Packcr.count_indent_spaces(ptr, i, j)
+            if m == VOID_VALUE || m > l
+              m = l
+            end
+          end
+          b = true
+        elsif !b
+          k = h
+          lineno += 1
+        end
+        i = h
+      end
+
+      i = k
+      while i < len
+        j, h = Packcr.find_first_trailing_space(ptr, i, len)
+        if i < j
+          l, i = Packcr.count_indent_spaces(ptr, i, j)
+          if ptr[i] != "#"
+            if m == VOID_VALUE
+              raise "m must have a valid value"
+            end
+            unless l >= m
+              raise "invalid l:#{l}, m:#{m}"
+            end
+            write " " * (l - m + indent)
+          end
+          write_text(ptr[i, j - i])
+          putc "\n"
+          b = true
+        elsif h < len
+          putc "\n"
+        end
+        i = h
+      end
+    end
+    if @line && b
+      write_line_directive(@name, @line)
+    end
+  end
 end
 
 class Packcr::Generator

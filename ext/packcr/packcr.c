@@ -840,13 +840,6 @@ static VALUE packcr_context_parse_rule(VALUE self) {
     return parse_rule(self);
 }
 
-static VALUE packcr_stream_write_code_block(VALUE self, VALUE rcode, VALUE rindent, VALUE rfname) {
-    size_t indent = NUM2SIZET(rindent);
-    const char *fname = StringValuePtr(rfname);
-    stream__write_code_block(self, rcode, indent, fname);
-    return self;
-}
-
 void Init_packcr(void) {
     VALUE cPackcr_Context;
 
@@ -916,7 +909,6 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "add_node", packcr_node_add_node, 1);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
-    rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
 
     cPackcr_Generator = rb_const_get(cPackcr, rb_intern("Generator"));
 }

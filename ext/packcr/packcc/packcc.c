@@ -309,18 +309,6 @@ static size_t string_to_size_t(const char *str) {
 #undef M
 }
 
-static size_t find_first_trailing_space(const char *str, size_t start, size_t end, size_t *next) {
-    VALUE ret = rb_funcall(cPackcr, rb_intern("find_first_trailing_space"), 3, rb_str_new_cstr(str), SIZET2NUM(start), SIZET2NUM(end));
-    if (next) *next = NUM2SIZET(rb_ary_entry(ret, 1));
-    return NUM2SIZET(rb_ary_entry(ret, 0));
-}
-
-static size_t count_indent_spaces(const char *str, size_t start, size_t end, size_t *next) {
-    VALUE ret = rb_funcall(cPackcr, rb_intern("count_indent_spaces"), 3, rb_str_new_cstr(str), SIZET2NUM(start), SIZET2NUM(end));
-    if (next) *next = NUM2SIZET(rb_ary_entry(ret, 1));
-    return NUM2SIZET(rb_ary_entry(ret, 0));
-}
-
 static size_t find_trailing_blanks(const char *str) {
     size_t i, j;
     for (j = 0, i = 0; str[i]; i++) {
@@ -334,88 +322,6 @@ static size_t find_trailing_blanks(const char *str) {
         ) j = i + 1;
     }
     return j;
-}
-
-static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, const char *fname) {
-    bool_t b = FALSE;
-    size_t i, j, k;
-    const char *ptr;
-    size_t len;
-    size_t lineno;
-    VALUE rtext = rb_funcall(rcode, rb_intern("text"), 0);
-    ptr = StringValuePtr(rtext);
-    len = NUM2SIZET(rb_funcall(rcode, rb_intern("len"), 0));
-    lineno = NUM2SIZET(rb_funcall(rcode, rb_intern("line"), 0));
-    if (len == VOID_VALUE) return; /* for safety */
-    j = find_first_trailing_space(ptr, 0, len, &k);
-    for (i = 0; i < j; i++) {
-        if (
-            ptr[i] != ' '  &&
-            ptr[i] != '\v' &&
-            ptr[i] != '\f' &&
-            ptr[i] != '\t'
-        ) break;
-    }
-    if (i < j) {
-        VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
-        if (!NIL_P(rline))
-            rb_funcall(stream, rb_intern("write_line_directive"), 2, rb_str_new2(fname), SIZET2NUM(lineno));
-        if (ptr[i] != '#')
-            rb_funcall(stream, rb_intern("write_characters"), 2, SIZET2NUM(' '), SIZET2NUM(indent));
-        rb_funcall(stream, rb_intern("write_text"), 1, rb_str_new(ptr + i, j - i));
-        rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
-        b = TRUE;
-    }
-    else {
-        lineno++;
-    }
-    if (k < len) {
-        size_t m = VOID_VALUE;
-        size_t h;
-        for (i = k; i < len; i = h) {
-            j = find_first_trailing_space(ptr, i, len, &h);
-            if (i < j) {
-                VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
-                if (!NIL_P(rline) && !b)
-                    rb_funcall(stream, rb_intern("write_line_directive"), 2, rb_str_new2(fname), SIZET2NUM(lineno));
-                if (ptr[i] != '#') {
-                    const size_t l = count_indent_spaces(ptr, i, j, NULL);
-                    if (m == VOID_VALUE || m > l) m = l;
-                }
-                b = TRUE;
-            }
-            else {
-                if (!b) {
-                    k = h;
-                    lineno++;
-                }
-            }
-        }
-        for (i = k; i < len; i = h) {
-            j = find_first_trailing_space(ptr, i, len, &h);
-            if (i < j) {
-                const size_t l = count_indent_spaces(ptr, i, j, &i);
-                if (ptr[i] != '#') {
-                    assert(m != VOID_VALUE); /* m must have a valid value */
-                    assert(l >= m);
-                    rb_funcall(stream, rb_intern("write_characters"), 2, SIZET2NUM(' '), SIZET2NUM(l - m + indent));
-                }
-                rb_funcall(stream, rb_intern("write_text"), 1, rb_str_new(ptr + i, j - i));
-                rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
-                b = TRUE;
-            }
-            else if (h < len) {
-                rb_funcall(stream, rb_intern("putc"), 1, INT2NUM('\n'));
-            }
-        }
-    }
-    {
-        VALUE rline = rb_ivar_get(stream, rb_intern("@line"));
-        if (!NIL_P(rline) && b) {
-            VALUE rname = rb_ivar_get(stream, rb_intern("@name"));
-            rb_funcall(stream, rb_intern("write_line_directive"), 2, rname, rline);
-        }
-    }
 }
 
 static void code_block__init(code_block_t *code) {
