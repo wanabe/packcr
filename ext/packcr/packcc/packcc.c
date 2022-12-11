@@ -316,24 +316,9 @@ static size_t find_first_trailing_space(const char *str, size_t start, size_t en
 }
 
 static size_t count_indent_spaces(const char *str, size_t start, size_t end, size_t *next) {
-    size_t n = 0, i;
-    for (i = start; i < end; i++) {
-        switch (str[i]) {
-        case ' ':
-        case '\v':
-        case '\f':
-            n++;
-            break;
-        case '\t':
-            n = (n + 8) & ~7;
-            break;
-        default:
-            if (next) *next = i;
-            return n;
-        }
-    }
-    if (next) *next = end;
-    return n;
+    VALUE ret = rb_funcall(cPackcr, rb_intern("count_indent_spaces"), 3, rb_str_new_cstr(str), SIZET2NUM(start), SIZET2NUM(end));
+    if (next) *next = NUM2SIZET(rb_ary_entry(ret, 1));
+    return NUM2SIZET(rb_ary_entry(ret, 0));
 }
 
 static size_t find_trailing_blanks(const char *str) {

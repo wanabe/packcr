@@ -104,6 +104,23 @@ class Packcr
       end
       return j, e
     end
+
+    def count_indent_spaces(str, s, e)
+      n = 0
+      i = s
+      while i < e
+        case str[i]
+        when " ", "\v", "\f"
+          n += 1
+        when "\t"
+          n = (n + 8) & ~7
+        else
+          return n, i
+        end
+        i += 1
+      end
+      return n, e
+    end
   end
 end
 
