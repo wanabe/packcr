@@ -811,13 +811,19 @@ static VALUE create_reference_node() {
     return rnode;
 }
 
+static VALUE create_string_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_STRING;
+    node->data.string.value = NULL;
+    return rnode;
+}
+
 static node_t *create_node(node_type_t type) {
     node_t *const node = (node_t *)malloc_e(sizeof(node_t));
     node->type = type;
     switch (node->type) {
-    case NODE_STRING:
-        node->data.string.value = NULL;
-        break;
     case NODE_CHARCLASS:
         node->data.charclass.value = NULL;
         break;
@@ -1069,7 +1075,8 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         rstring = rb_funcall(rstring, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
         string = StringValuePtr(rstring);
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-        n_p = create_node(NODE_STRING);
+        rn_p = create_string_node();
+        TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
         string = n_p->data.string.value = strndup_e(string, strlen(string));
         if (!unescape_string(string, FALSE)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
