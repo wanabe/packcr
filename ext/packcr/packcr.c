@@ -218,12 +218,17 @@ static VALUE packcr_node_set_vars(VALUE self, VALUE vars) {
     default:
         return Qnil;
     }
-    node_const_array__clear(v);
-    for (i = 0; i < (size_t)RARRAY_LEN(vars); i++) {
-        VALUE rnode = rb_ary_entry(vars, i);
-        node_t *node;
-        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-        node_const_array__add(v, node);
+    if (NIL_P(vars)) {
+        node_const_array__init(v);
+        vars = rb_ary_new();
+    } else {
+        node_const_array__clear(v);
+        for (i = 0; i < (size_t)RARRAY_LEN(vars); i++) {
+            VALUE rnode = rb_ary_entry(vars, i);
+            node_t *node;
+            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+            node_const_array__add(v, node);
+        }
     }
     rb_ivar_set(self, rb_intern("@vars"), vars);
     return vars;
@@ -309,12 +314,17 @@ static VALUE packcr_node_set_capts(VALUE self, VALUE capts) {
     default:
         return Qnil;
     }
-    node_const_array__clear(v);
-    for (i = 0; i < (size_t)RARRAY_LEN(capts); i++) {
-        VALUE rnode = rb_ary_entry(capts, i);
-        node_t *node;
-        TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-        node_const_array__add(v, node);
+    if (NIL_P(capts)) {
+        node_const_array__init(v);
+        capts = rb_ary_new();
+    } else {
+        node_const_array__clear(v);
+        for (i = 0; i < (size_t)RARRAY_LEN(capts); i++) {
+            VALUE rnode = rb_ary_entry(capts, i);
+            node_t *node;
+            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+            node_const_array__add(v, node);
+        }
     }
     rb_ivar_set(self, rb_intern("@capts"), capts);
     return capts;
@@ -699,6 +709,13 @@ static VALUE packcr_node_type(VALUE self) {
     return INT2NUM(node->type);
 }
 
+static VALUE packcr_node_set_type(VALUE self, VALUE rtype) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+    node->type = NUM2INT(rtype);
+    return rtype;
+}
+
 static VALUE packcr_node_line(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -836,10 +853,6 @@ static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     return self;
 }
 
-static VALUE packcr_context_parse_rule(VALUE self) {
-    return parse_rule(self);
-}
-
 void Init_packcr(void) {
     VALUE cPackcr_Context;
 
@@ -848,7 +861,7 @@ void Init_packcr(void) {
 
     cPackcr_Context = rb_const_get(cPackcr, rb_intern("Context"));
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);
-    rb_define_method(cPackcr_Context, "parse_rule", packcr_context_parse_rule, 0);
+    rb_define_method(cPackcr_Context, "parse_expression", parse_expression, 1);
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
@@ -901,6 +914,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "max", packcr_node_max, 0);
     rb_define_method(cPackcr_Node, "max=", packcr_node_set_max, 1);
     rb_define_method(cPackcr_Node, "type", packcr_node_type, 0);
+    rb_define_method(cPackcr_Node, "type=", packcr_node_set_type, 1);
     rb_define_method(cPackcr_Node, "line", packcr_node_line, 0);
     rb_define_method(cPackcr_Node, "line=", packcr_node_set_line, 1);
     rb_define_method(cPackcr_Node, "col", packcr_node_col, 0);

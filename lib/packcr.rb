@@ -1094,6 +1094,21 @@ class Packcr::Node
       raise "Internal error"
     end
   end
+
+  class << self
+    def create_rule_node
+      node = Packcr::Node.new
+      node.type = Packcr::Node::RULE
+      node.name = nil
+      node.expr = nil
+      node.ref = 0
+      node.vars = nil
+      node.capts = nil
+      node.line = VOID_VALUE
+      node.col = VOID_VALUE
+      node
+    end
+  end
 end
 
 class Packcr::Context
@@ -1699,6 +1714,49 @@ class Packcr::Context
       end
     end
     return true
+  end
+
+  class StopParsing < StandardError
+  end
+
+  def parse_rule
+    pos = @bufcur
+    l = @linenum
+    m = column_number
+    n = @charnum
+    o = @linepos
+    if !match_identifier
+      raise StopParsing
+    end
+
+    q = @bufcur
+    match_spaces
+    if !match_string("<-")
+      raise StopParsing
+    end
+    match_spaces
+
+    n_r = Packcr::Node.create_rule_node
+    expr = parse_expression(n_r)
+    n_r.expr = expr
+    if !expr
+      raise StopParsing
+    end
+    unless q >= pos
+      raise "Internal error"
+    end
+    name = @buffer.to_s
+    name = name[pos, q - pos]
+    n_r.name = name
+    n_r.line = l
+    n_r.col = m
+    n_r
+  rescue StopParsing
+    @bufcur = pos
+    @linenum = l
+    @charnum = n
+    @linepos = o
+    return nil
   end
 
   def parse
