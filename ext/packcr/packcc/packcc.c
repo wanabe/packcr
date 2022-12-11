@@ -797,18 +797,24 @@ static VALUE create_error_node() {
     return rnode;
 }
 
+static VALUE create_reference_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_REFERENCE;
+    node->data.reference.var = NULL;
+    node->data.reference.index = VOID_VALUE;
+    node->data.reference.name = NULL;
+    node->data.reference.rule = NULL;
+    node->data.reference.line = VOID_VALUE;
+    node->data.reference.col = VOID_VALUE;
+    return rnode;
+}
+
 static node_t *create_node(node_type_t type) {
     node_t *const node = (node_t *)malloc_e(sizeof(node_t));
     node->type = type;
     switch (node->type) {
-    case NODE_REFERENCE:
-        node->data.reference.var = NULL;
-        node->data.reference.index = VOID_VALUE;
-        node->data.reference.name = NULL;
-        node->data.reference.rule = NULL;
-        node->data.reference.line = VOID_VALUE;
-        node->data.reference.col = VOID_VALUE;
-        break;
     case NODE_STRING:
         node->data.string.value = NULL;
         break;
@@ -908,6 +914,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
     node_t *rule;
     node_t *n_p = NULL;
+    VALUE rn_p;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0))) {
@@ -922,7 +929,8 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         }
         if (RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("<-")))) goto EXCEPTION;
-        n_p = create_node(NODE_REFERENCE);
+        rn_p = create_reference_node();
+        TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
         if (r == VOID_VALUE) {
             VALUE rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
             char *name;
