@@ -1120,7 +1120,6 @@ static VALUE parse_rule(VALUE rctx) {
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
     size_t q;
-    node_t *n_r = NULL;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     VALUE rn_r;
     VALUE rname;
@@ -1130,14 +1129,11 @@ static VALUE parse_rule(VALUE rctx) {
     if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr("<-")))) goto EXCEPTION;
     RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     rn_r = create_rule_node();
-    TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
     {
         VALUE rexpr = parse_expression(rctx, rn_r);
+        rb_funcall(rn_r, rb_intern("expr="), 1, rexpr);
         if (NIL_P(rexpr)) {
-            rb_funcall(rn_r, rb_intern("expr="), 1, Qnil);;
             goto EXCEPTION;
-        } else {
-            TypedData_Get_Struct(rexpr, node_t, &packcr_ptr_data_type, n_r->data.rule.expr);
         }
     }
     assert(q >= p);
@@ -1149,7 +1145,6 @@ static VALUE parse_rule(VALUE rctx) {
     return rn_r;
 
 EXCEPTION:;
-    destroy_node(n_r);
     rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(p));
     rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
