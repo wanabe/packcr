@@ -1066,7 +1066,7 @@ class Packcr::Context
 
   def match_character(ch)
     if refill_buffer(1) >= 1
-      if @buffer[@bufcur].ord == ch
+      if @buffer[@bufcur].ord == ch.ord
         @bufcur += 1
         return true
       end
@@ -1551,6 +1551,12 @@ class Packcr::Context
           parse_directive_string("%auxil", "@auxil_type", must_not_be_empty: true, must_not_be_void: true) ||
           parse_directive_string("%prefix", "@prefix", must_not_be_empty: true, must_be_identifier: true)
         )
+        b = true
+      elsif match_character("%")
+        warn "#{@iname}:#{@linenum + 1}:#{column_number + 1}: Invalid directive"
+        @errnum += 1
+        match_identifier
+        match_spaces
         b = true
       else
         b = _parse(b)

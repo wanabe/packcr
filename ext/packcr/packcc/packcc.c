@@ -1312,35 +1312,26 @@ EXCEPTION:;
 
 static VALUE parse(VALUE rctx, bool_t b) {
     size_t l, m, n, o;
+    VALUE rnode, rrules;
     l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
-    if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('%')))) {
-        print_error("%s:" FMT_LU ":" FMT_LU ": Invalid directive\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-        rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-        RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0));
-        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-        b = TRUE;
-    }
-    else {
-        VALUE rnode, rrules;
-        rnode = parse_rule(rctx);
-        if (rnode == Qnil) {
-            if (b) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Illegal rule syntax\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                b = FALSE;
-            }
-            rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
-            rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
-            rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-            if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0)) && !RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
-        } else {
-            rrules = rb_ivar_get(rctx, rb_intern("@rules"));
-            rb_ary_push(rrules, rnode);
-            b = TRUE;
+    rnode = parse_rule(rctx);
+    if (rnode == Qnil) {
+        if (b) {
+            print_error("%s:" FMT_LU ":" FMT_LU ": Illegal rule syntax\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
+            rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
+            b = FALSE;
         }
+        rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
+        rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
+        rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
+        if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0)) && !RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
+    } else {
+        rrules = rb_ivar_get(rctx, rb_intern("@rules"));
+        rb_ary_push(rrules, rnode);
+        b = TRUE;
     }
     return b ? Qtrue : Qfalse;
 }
