@@ -549,6 +549,26 @@ static VALUE packcr_node_col(VALUE self) {
     }
 }
 
+static VALUE packcr_node_set_col(VALUE self, VALUE col) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_RULE:
+        node->data.rule.col = NUM2SIZET(col);
+        break;
+    case NODE_REFERENCE:
+        node->data.reference.col = NUM2SIZET(col);
+        break;
+    case NODE_EXPAND:
+        node->data.expand.col = NUM2SIZET(col);
+        break;
+    default:
+        return Qnil;
+    }
+    return col;
+}
+
 static VALUE packcr_node_add_ref(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -740,6 +760,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "line", packcr_node_line, 0);
     rb_define_method(cPackcr_Node, "line=", packcr_node_set_line, 1);
     rb_define_method(cPackcr_Node, "col", packcr_node_col, 0);
+    rb_define_method(cPackcr_Node, "col=", packcr_node_set_col, 1);
     rb_define_method(cPackcr_Node, "add_ref", packcr_node_add_ref, 0);
     rb_define_method(cPackcr_Node, "add_node", packcr_node_add_node, 1);
 

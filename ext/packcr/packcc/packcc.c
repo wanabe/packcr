@@ -768,7 +768,7 @@ static VALUE create_rule_node() {
     node_const_array__init(&node->data.rule.vars);
     node_const_array__init(&node->data.rule.capts);
     rb_funcall(rnode, rb_intern("line="), 1, SIZET2NUM(VOID_VALUE));
-    node->data.rule.col = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("col="), 1, SIZET2NUM(VOID_VALUE));
     return rnode;
 }
 
@@ -808,7 +808,7 @@ static VALUE create_reference_node() {
     rb_funcall(rnode, rb_intern("name="), 1, Qnil);
     node->data.reference.rule = NULL;
     rb_funcall(rnode, rb_intern("line="), 1, SIZET2NUM(VOID_VALUE));
-    node->data.reference.col = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("col="), 1, SIZET2NUM(VOID_VALUE));
     return rnode;
 }
 
@@ -885,7 +885,7 @@ static VALUE create_expand_node() {
     node->type = NODE_EXPAND;
     rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     rb_funcall(rnode, rb_intern("line="), 1, SIZET2NUM(VOID_VALUE));
-    node->data.expand.col = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("col="), 1, SIZET2NUM(VOID_VALUE));
     return rnode;
 }
 
@@ -1005,7 +1005,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
             }
         }
         rb_funcall(rn_p, rb_intern("line="), 1, SIZET2NUM(l));
-        n_p->data.reference.col = m;
+        rb_funcall(rn_p, rb_intern("col="), 1, SIZET2NUM(m));
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('(')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
@@ -1071,7 +1071,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
             if (n_p->data.expand.index > 0 && n_p->data.expand.index != VOID_VALUE) {
                 n_p->data.expand.index--;
                 rb_funcall(rn_p, rb_intern("line="), 1, SIZET2NUM(l));
-                n_p->data.expand.col = m;
+                rb_funcall(rn_p, rb_intern("col="), 1, SIZET2NUM(m));
             }
         }
         else {
@@ -1367,7 +1367,7 @@ static VALUE parse_rule(VALUE rctx) {
     rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
     rb_funcall(rn_r, rb_intern("name="), 1, rname);
     rb_funcall(rn_r, rb_intern("line="), 1, SIZET2NUM(l));
-    n_r->data.rule.col = m;
+    rb_funcall(rn_r, rb_intern("col="), 1, SIZET2NUM(m));
     return rn_r;
 
 EXCEPTION:;
