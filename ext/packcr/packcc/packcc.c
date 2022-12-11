@@ -960,24 +960,24 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_q = create_quantity_node();
         TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
-        n_q->data.quantity.min = 0;
-        n_q->data.quantity.max = -1;
+        rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(0));
+        rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(-1));
         rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('+')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_q = create_quantity_node();
         TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
-        n_q->data.quantity.min = 1;
-        n_q->data.quantity.max = -1;
+        rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(1));
+        rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(-1));
         rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('?')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_q = create_quantity_node();
         TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
-        n_q->data.quantity.min = 0;
-        n_q->data.quantity.max = 1;
+        rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(0));
+        rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(1));
         rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
     }
     else {
@@ -988,13 +988,13 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
     case '&':
         rn_r = create_predicate_node();
         TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
-        n_r->data.predicate.neg = FALSE;
+        rb_funcall(rn_r, rb_intern("neg="), 1, Qfalse);
         rb_funcall(rn_r, rb_intern("expr="), 1, rn_q);
         break;
     case '!':
         rn_r = create_predicate_node();
         TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
-        n_r->data.predicate.neg = TRUE;
+        rb_funcall(rn_r, rb_intern("neg="), 1, Qtrue);
         rb_funcall(rn_r, rb_intern("expr="), 1, rn_q);
         break;
     default:

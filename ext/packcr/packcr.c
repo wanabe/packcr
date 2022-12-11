@@ -375,6 +375,20 @@ static VALUE packcr_node_neg(VALUE self) {
     }
 }
 
+static VALUE packcr_node_set_neg(VALUE self, VALUE neg) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_PREDICATE:
+        node->data.predicate.neg = RB_TEST(neg) ? TRUE : FALSE;
+        return neg;
+        break;
+    default:
+        return Qnil;
+    }
+}
+
 static VALUE packcr_node_ref(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -590,6 +604,19 @@ static VALUE packcr_node_min(VALUE self) {
     }
 }
 
+static VALUE packcr_node_set_min(VALUE self, VALUE rmin) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_QUANTITY:
+        node->data.quantity.min = NUM2INT(rmin);
+        return rmin;
+    default:
+        return Qnil;
+    }
+}
+
 static VALUE packcr_node_max(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -601,6 +628,19 @@ static VALUE packcr_node_max(VALUE self) {
         return SIZET2NUM(node->data.sequence.nodes.max);
     case NODE_ALTERNATE:
         return SIZET2NUM(node->data.alternate.nodes.max);
+    default:
+        return Qnil;
+    }
+}
+
+static VALUE packcr_node_set_max(VALUE self, VALUE rmax) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_QUANTITY:
+        node->data.quantity.max = NUM2INT(rmax);
+        return rmax;
     default:
         return Qnil;
     }
@@ -866,6 +906,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "nodes", packcr_node_nodes, 0);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);
+    rb_define_method(cPackcr_Node, "neg=", packcr_node_set_neg, 1);
     rb_define_method(cPackcr_Node, "ref", packcr_node_ref, 0);
     rb_define_method(cPackcr_Node, "ref=", packcr_node_set_ref, 1);
     rb_define_method(cPackcr_Node, "var", packcr_node_var, 0);
@@ -875,7 +916,9 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "value", packcr_node_value, 0);
     rb_define_method(cPackcr_Node, "value=", packcr_node_set_value, 1);
     rb_define_method(cPackcr_Node, "min", packcr_node_min, 0);
+    rb_define_method(cPackcr_Node, "min=", packcr_node_set_min, 1);
     rb_define_method(cPackcr_Node, "max", packcr_node_max, 0);
+    rb_define_method(cPackcr_Node, "max=", packcr_node_set_max, 1);
     rb_define_method(cPackcr_Node, "type", packcr_node_type, 0);
     rb_define_method(cPackcr_Node, "line", packcr_node_line, 0);
     rb_define_method(cPackcr_Node, "line=", packcr_node_set_line, 1);
