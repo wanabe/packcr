@@ -820,13 +820,19 @@ static VALUE create_string_node() {
     return rnode;
 }
 
+static VALUE create_charclass_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_CHARCLASS;
+    node->data.charclass.value = NULL;
+    return rnode;
+}
+
 static node_t *create_node(node_type_t type) {
     node_t *const node = (node_t *)malloc_e(sizeof(node_t));
     node->type = type;
     switch (node->type) {
-    case NODE_CHARCLASS:
-        node->data.charclass.value = NULL;
-        break;
     case NODE_QUANTITY:
         node->data.quantity.min = node->data.quantity.max = 0;
         node->data.quantity.expr = NULL;
@@ -1041,7 +1047,8 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('.')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-        n_p = create_node(NODE_CHARCLASS);
+        rn_p = create_charclass_node();
+        TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
         n_p->data.charclass.value = NULL;
         if (!RB_TEST(rb_ivar_get(rctx, rb_intern("@ascii")))) {
             rb_ivar_set(rctx, rb_intern("@utf8"), Qtrue);
@@ -1054,7 +1061,8 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
         rcharclass = rb_funcall(rcharclass, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
         charclass = StringValuePtr(rcharclass);
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-        n_p = create_node(NODE_CHARCLASS);
+        rn_p = create_charclass_node();
+        TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
         charclass = n_p->data.charclass.value = strndup_e(charclass, strlen(charclass));
         if (!unescape_string(charclass, TRUE)) {
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
