@@ -20,6 +20,17 @@ class Packcr
   end
 
   class << self
+    def is_identifier_string(str)
+      str =~ /\A(?!\d)\w+\z/
+    end
+
+    def unescape_string(str, is_charclass)
+      if is_charclass
+        str.gsub!("\\" * 2) { "\\" * 4 }
+      end
+      str.replace "\"#{str}\"".undump
+    end
+
     def escape_character(c)
       ch = c.ord
       case ch
@@ -1465,6 +1476,63 @@ class Packcr::Context
     true
   end
 
+  def parse_directive_string(name, varname, must_not_be_empty: false, must_not_be_void: false, must_be_identifier: false)
+    l = @linenum
+    m = column_number
+    if !match_string(name)
+      return false
+    end
+
+    match_spaces
+    pos = @bufcur
+    lv = @linenum
+    mv = column_number
+    s = nil
+    if match_quotation_single || match_quotation_double
+      q = @bufcur
+      match_spaces
+      s = @buffer.to_s[pos + 1, q - pos - 2]
+      if !Packcr.unescape_string(s, false)
+        warn "#{@iname}:#{lv + 1}:#{mv + 1}: Illegal escape sequence"
+        @errnum += 1
+      end
+    else
+      warn "#{@iname}:#{l + 1}:#{m + 1}: Illegal #{name} syntax"
+      @errnum += 1
+    end
+
+    if s
+      valid = true
+      s.sub!(/\A\s+/, "")
+      s.sub!(/\s+\z/, "")
+      is_empty = must_not_be_empty && s !~ /[^\s]/
+      if is_empty
+        warn "#{@iname}:#{lv + 1}:#{mv + 1}: Empty string"
+        @errnum += 1
+        vaild = false
+      end
+      if must_not_be_void && s == "void"
+        warn "#{@iname}:#{lv + 1}:#{mv + 1}: 'void' not allowed"
+        @errnum += 1
+        vaild = false
+      end
+      if !is_empty && must_be_identifier && !Packcr.is_identifier_string(s)
+        warn "#{@iname}:#{lv + 1}:#{mv + 1}: Invalid identifier"
+        @errnum += 1
+        valid = false
+      end
+      if instance_variable_get(varname) != nil
+        warn "#{@iname}:#{l + 1}:#{m + 1}: Multiple #{name} definition"
+        @errnum += 1
+        valid
+      end
+      if valid
+        instance_variable_set(varname, s)
+      end
+    end
+    return true
+  end
+
   def parse
     match_spaces
 
@@ -1473,11 +1541,16 @@ class Packcr::Context
       if eof? || match_footer_start
         break
       end
-      if (parse_directive_include("%earlysource", @esource) ||
+      if (
+          parse_directive_include("%earlysource", @esource) ||
           parse_directive_include("%earlycommon", @esource, @eheader) ||
           parse_directive_include("%source", @source) ||
           parse_directive_include("%header", @header) ||
-          parse_directive_include("%common", @source, @header))
+          parse_directive_include("%common", @source, @header) ||
+          parse_directive_string("%value", "@value_type", must_not_be_empty: true, must_not_be_void: true) ||
+          parse_directive_string("%auxil", "@auxil_type", must_not_be_empty: true, must_not_be_void: true) ||
+          parse_directive_string("%prefix", "@prefix", must_not_be_empty: true, must_be_identifier: true)
+        )
         b = true
       else
         b = _parse(b)

@@ -354,39 +354,6 @@ static size_t count_indent_spaces(const char *str, size_t start, size_t end, siz
     return n;
 }
 
-static bool_t is_filled_string(const char *str) {
-    size_t i;
-    for (i = 0; str[i]; i++) {
-        if (
-            str[i] != ' '  &&
-            str[i] != '\v' &&
-            str[i] != '\f' &&
-            str[i] != '\t' &&
-            str[i] != '\n' &&
-            str[i] != '\r'
-        ) return TRUE;
-    }
-    return FALSE;
-}
-
-static bool_t is_identifier_string(const char *str) {
-    size_t i;
-    if (!(
-        (str[0] >= 'a' && str[0] <= 'z') ||
-        (str[0] >= 'A' && str[0] <= 'Z') ||
-        str[0] == '_'
-    )) return FALSE;
-    for (i = 1; str[i]; i++) {
-        if (!(
-            (str[i] >= 'a' && str[i] <= 'z') ||
-            (str[i] >= 'A' && str[i] <= 'Z') ||
-            (str[i] >= '0' && str[i] <= '9') ||
-            str[i] == '_'
-        )) return FALSE;
-    }
-    return TRUE;
-}
-
 static bool_t is_valid_utf8_string(const char *str) {
     int k = 0, n = 0, u = 0;
     size_t i;
@@ -587,39 +554,6 @@ static bool_t unescape_string(char *str, bool_t cls) { /* cls: TRUE if used for 
     }
     str[j] = '\0';
     return b;
-}
-
-static void remove_leading_blanks(char *str) {
-    size_t i, j;
-    for (i = 0; str[i]; i++) {
-        if (
-            str[i] != ' '  &&
-            str[i] != '\v' &&
-            str[i] != '\f' &&
-            str[i] != '\t' &&
-            str[i] != '\n' &&
-            str[i] != '\r'
-        ) break;
-    }
-    for (j = 0; str[i]; i++) {
-        str[j++] = str[i];
-    }
-    str[j] = '\0';
-}
-
-static void remove_trailing_blanks(char *str) {
-    size_t i, j;
-    for (j = 0, i = 0; str[i]; i++) {
-        if (
-            str[i] != ' '  &&
-            str[i] != '\v' &&
-            str[i] != '\f' &&
-            str[i] != '\t' &&
-            str[i] != '\n' &&
-            str[i] != '\r'
-        ) j = i + 1;
-    }
-    str[j] = '\0';
 }
 
 static size_t find_trailing_blanks(const char *str) {
@@ -1376,89 +1310,13 @@ EXCEPTION:;
     return Qnil;
 }
 
-static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *varname, string_flag_t mode) {
-    const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(name)))) return FALSE;
-    RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-    {
-        char *s = NULL;
-        const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-        const size_t lv = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-        const size_t mv = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-        size_t q;
-        VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-        if (RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_single"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_quotation_double"), 0))) {
-            q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-            {
-                VALUE rs = rb_funcall(rbuffer, rb_intern("to_s"), 0);
-                rs = rb_funcall(rs, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
-                s = StringValuePtr(rs);
-                s = strndup_e(s, strlen(s));
-            }
-            if (!unescape_string(s, FALSE)) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Illegal escape sequence\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-            }
-        }
-        else {
-            print_error("%s:" FMT_LU ":" FMT_LU ": Illegal %s syntax\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-            rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-        }
-        if (s != NULL) {
-            string_flag_t f = STRING_FLAG__NONE;
-            bool_t b = TRUE;
-            remove_leading_blanks(s);
-            remove_trailing_blanks(s);
-            assert((mode & ~7) == 0);
-            if ((mode & STRING_FLAG__NOTEMPTY) && !is_filled_string(s)) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Empty string\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                f |= STRING_FLAG__NOTEMPTY;
-            }
-            if ((mode & STRING_FLAG__NOTVOID) && strcmp(s, "void") == 0) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": 'void' not allowed\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                f |= STRING_FLAG__NOTVOID;
-            }
-            if ((mode & STRING_FLAG__IDENTIFIER) && !is_identifier_string(s)) {
-                if (!(f & STRING_FLAG__NOTEMPTY)) {
-                    print_error("%s:" FMT_LU ":" FMT_LU ": Invalid identifier\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(lv + 1), (ulong_t)(mv + 1));
-                    rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                }
-                f |= STRING_FLAG__IDENTIFIER;
-            }
-            if (rb_ivar_get(rctx, rb_intern(varname)) != Qnil) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Multiple %s definition\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                b = FALSE;
-            }
-            if (f == STRING_FLAG__NONE && b) {
-                rb_ivar_set(rctx, rb_intern(varname), rb_str_new2(s));
-            }
-            else {
-                free(s); s = NULL;
-            }
-        }
-    }
-    return TRUE;
-}
-
 static VALUE parse(VALUE rctx, bool_t b) {
     size_t l, m, n, o;
     l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
-    if (
-        parse_directive_string_(rctx, "%value", "@value_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
-        parse_directive_string_(rctx, "%auxil", "@auxil_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
-        parse_directive_string_(rctx, "%prefix", "@prefix", STRING_FLAG__NOTEMPTY | STRING_FLAG__IDENTIFIER)
-    ) {
-        b = TRUE;
-    }
-    else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('%')))) {
+    if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('%')))) {
         print_error("%s:" FMT_LU ":" FMT_LU ": Invalid directive\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
         rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
         RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0));
@@ -1478,11 +1336,11 @@ static VALUE parse(VALUE rctx, bool_t b) {
             rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
             rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
             if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0)) && !RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
-            return b ? Qtrue : Qfalse;
+        } else {
+            rrules = rb_ivar_get(rctx, rb_intern("@rules"));
+            rb_ary_push(rrules, rnode);
+            b = TRUE;
         }
-        rrules = rb_ivar_get(rctx, rb_intern("@rules"));
-        rb_ary_push(rrules, rnode);
-        b = TRUE;
     }
     return b ? Qtrue : Qfalse;
 }
