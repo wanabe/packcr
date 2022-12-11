@@ -508,6 +508,30 @@ static VALUE packcr_node_value(VALUE self) {
     return Qnil;
 }
 
+static VALUE packcr_node_set_value(VALUE self, VALUE value) {
+    node_t *node;
+    char **v;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_STRING:
+        v = &node->data.string.value;
+        break;
+    case NODE_CHARCLASS:
+        v = &node->data.charclass.value;
+        break;
+    default:
+        return Qnil;
+    }
+    if (NIL_P(value)) {
+        *v = NULL;
+    } else {
+        char *src = StringValuePtr(value);
+        *v = strndup_e(src, strlen(src));
+    }
+    return value;
+}
+
 static VALUE packcr_node_min(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -801,6 +825,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "rule", packcr_node_rule, 0);
     rb_define_method(cPackcr_Node, "rule=", packcr_node_set_rule, 1);
     rb_define_method(cPackcr_Node, "value", packcr_node_value, 0);
+    rb_define_method(cPackcr_Node, "value=", packcr_node_set_value, 1);
     rb_define_method(cPackcr_Node, "min", packcr_node_min, 0);
     rb_define_method(cPackcr_Node, "max", packcr_node_max, 0);
     rb_define_method(cPackcr_Node, "type", packcr_node_type, 0);
