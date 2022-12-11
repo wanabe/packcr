@@ -764,7 +764,7 @@ static VALUE create_rule_node() {
     node->type = NODE_RULE;
     rb_funcall(rnode, rb_intern("name="), 1, Qnil);
     rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
-    node->data.rule.ref = 0;
+    rb_funcall(rnode, rb_intern("ref="), 1, SIZET2NUM(0));
     node_const_array__init(&node->data.rule.vars);
     node_const_array__init(&node->data.rule.capts);
     rb_funcall(rnode, rb_intern("line="), 1, SIZET2NUM(VOID_VALUE));
