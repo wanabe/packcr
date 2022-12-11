@@ -375,11 +375,10 @@ static void stream__write_code_block(VALUE stream, VALUE rcode, size_t indent, c
     const char *ptr;
     size_t len;
     size_t lineno;
-    code_block_t *code_block;
-    TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, code_block);
-    ptr = code_block->text;
-    len = code_block->len;
-    lineno = code_block->line;
+    VALUE rtext = rb_funcall(rcode, rb_intern("text"), 0);
+    ptr = StringValuePtr(rtext);
+    len = NUM2SIZET(rb_funcall(rcode, rb_intern("len"), 0));
+    lineno = NUM2SIZET(rb_funcall(rcode, rb_intern("line"), 0));
     if (len == VOID_VALUE) return; /* for safety */
     j = find_first_trailing_space(ptr, 0, len, &k);
     for (i = 0; i < j; i++) {

@@ -41,6 +41,20 @@ static VALUE packcr_code_block_text(VALUE self) {
     return rb_str_new2(code->text);
 }
 
+static VALUE packcr_code_block_len(VALUE self) {
+    code_block_t *code;
+    TypedData_Get_Struct(self, code_block_t, &packcr_ptr_data_type, code);
+
+    return SIZET2NUM(code->len);
+}
+
+static VALUE packcr_code_block_line(VALUE self) {
+    code_block_t *code;
+    TypedData_Get_Struct(self, code_block_t, &packcr_ptr_data_type, code);
+
+    return SIZET2NUM(code->line);
+}
+
 static VALUE packcr_code_block_init(VALUE self, VALUE text, VALUE len, VALUE line, VALUE col) {
     code_block_t *code;
     char *ctext;
@@ -846,6 +860,8 @@ void Init_packcr(void) {
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
     rb_define_method(cPackcr_CodeBlock, "text", packcr_code_block_text, 0);
+    rb_define_method(cPackcr_CodeBlock, "len", packcr_code_block_len, 0);
+    rb_define_method(cPackcr_CodeBlock, "line", packcr_code_block_line, 0);
     rb_define_method(cPackcr_CodeBlock, "init", packcr_code_block_init, 4);
 
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
