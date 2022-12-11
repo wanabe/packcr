@@ -944,7 +944,7 @@ static void destroy_node(node_t *node) {
 
 static VALUE parse_expression(VALUE rctx, VALUE rrule);
 
-static node_t *parse_primary(VALUE rctx, VALUE rrule) {
+static VALUE parse_primary(VALUE rctx, VALUE rrule) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
@@ -1134,7 +1134,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_code_block"), 0))) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-        VALUE rn_p, rcodes;
+        VALUE rcodes;
         char *text;
         VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
         rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
@@ -1153,7 +1153,7 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
     else {
         goto EXCEPTION;
     }
-    return n_p;
+    return rn_p;
 
 EXCEPTION:;
     destroy_node(n_p);
@@ -1161,7 +1161,7 @@ EXCEPTION:;
     rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
     rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-    return NULL;
+    return Qnil;
 }
 
 static node_t *parse_term(VALUE rctx, VALUE rrule) {
@@ -1173,11 +1173,16 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
     node_t *n_q = NULL;
     node_t *n_r = NULL;
     node_t *n_t = NULL;
-    VALUE rn_r, rn_q;
+    VALUE rn_p, rn_r, rn_q;
     const char t = RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('&'))) ? '&' : RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('!'))) ? '!' : '\0';
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     if (t) RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-    n_p = parse_primary(rctx, rrule);
+    rn_p = parse_primary(rctx, rrule);
+    if (NIL_P(rn_p)) {
+        n_p = NULL;
+    } else {
+        TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
+    }
     if (n_p == NULL) goto EXCEPTION;
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('*')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
