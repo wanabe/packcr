@@ -1095,30 +1095,31 @@ class Packcr::Node
     end
   end
 
-  class << self
-    def create_rule_node
-      node = Packcr::Node.new
-      node.type = Packcr::Node::RULE
-      node.name = nil
-      node.expr = nil
-      node.ref = 0
-      node.vars = nil
-      node.capts = nil
-      node.line = VOID_VALUE
-      node.col = VOID_VALUE
-      node
+  class RuleNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::RULE
+      self.name = nil
+      self.expr = nil
+      self.ref = 0
+      self.vars = nil
+      self.capts = nil
+      self.line = VOID_VALUE
+      self.col = VOID_VALUE
     end
+  end
 
-    def create_alternate_node
-      node = Packcr::Node.new
-      node.type = Packcr::Node::ALTERNATE
-      node.nodes = nil
-      node
+  class AlternateNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::ALTERNATE
+      self.nodes = nil
     end
   end
 
   class SequenceNode < Packcr::Node
     def initialize
+      super
       self.type = Packcr::Node::SEQUENCE
       self.nodes = nil
     end
@@ -1774,7 +1775,7 @@ class Packcr::Context
     q = @bufcur
     if (match_character("/".ord))
       @bufcur = q
-      n_e = Packcr::Node.create_alternate_node
+      n_e = Packcr::Node::AlternateNode.new
       n_e.add_node(n_s)
       while match_character("/".ord)
         match_spaces
@@ -1813,7 +1814,7 @@ class Packcr::Context
     end
     match_spaces
 
-    n_r = Packcr::Node.create_rule_node
+    n_r = Packcr::Node::RuleNode.new
     expr = parse_expression(n_r)
     n_r.expr = expr
     if !expr
