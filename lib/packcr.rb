@@ -1442,7 +1442,13 @@ class Packcr::Context
   def parse
     match_spaces
 
-    _parse
+    b = true
+    while true
+      if eof? || match_footer_start
+        break
+      end
+      b = _parse(b)
+    end
 
     commit_buffer
 

@@ -1497,56 +1497,51 @@ static bool_t parse_directive_string_(VALUE rctx, const char *name, const char *
     return TRUE;
 }
 
-static void parse(VALUE rctx) {
-    {
-        bool_t b = TRUE;
-        for (;;) {
-            size_t l, m, n, o;
-            if (RB_TEST(rb_funcall(rctx, rb_intern("eof?"), 0)) || RB_TEST(rb_funcall(rctx, rb_intern("match_footer_start"), 0))) break;
-            l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-            m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-            n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
-            o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
-            if (
-                parse_directive_include_(rctx, "%earlysource", rb_ivar_get(rctx, rb_intern("@esource")), Qnil) ||
-                parse_directive_include_(rctx, "%earlyheader", rb_ivar_get(rctx, rb_intern("@eheader")), Qnil) ||
-                parse_directive_include_(rctx, "%earlycommon", rb_ivar_get(rctx, rb_intern("@esource")), rb_ivar_get(rctx, rb_intern("@eheader"))) ||
-                parse_directive_include_(rctx, "%source", rb_ivar_get(rctx, rb_intern("@source")), Qnil) ||
-                parse_directive_include_(rctx, "%header", rb_ivar_get(rctx, rb_intern("@header")), Qnil) ||
-                parse_directive_include_(rctx, "%common", rb_ivar_get(rctx, rb_intern("@source")), rb_ivar_get(rctx, rb_intern("@header"))) ||
-                parse_directive_string_(rctx, "%value", "@value_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
-                parse_directive_string_(rctx, "%auxil", "@auxil_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
-                parse_directive_string_(rctx, "%prefix", "@prefix", STRING_FLAG__NOTEMPTY | STRING_FLAG__IDENTIFIER)
-            ) {
-                b = TRUE;
-            }
-            else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('%')))) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": Invalid directive\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0));
-                RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-                b = TRUE;
-            }
-            else {
-                VALUE rnode, rrules;
-                rnode = parse_rule(rctx);
-                if (rnode == Qnil) {
-                    if (b) {
-                        print_error("%s:" FMT_LU ":" FMT_LU ": Illegal rule syntax\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
-                        rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-                        b = FALSE;
-                    }
-                    rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
-                    rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
-                    rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-                    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0)) && !RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
-                    continue;
-                }
-                rrules = rb_ivar_get(rctx, rb_intern("@rules"));
-                rb_ary_push(rrules, rnode);
-                b = TRUE;
-            }
-            rb_funcall(rctx, rb_intern("commit_buffer"), 0);
-        }
+static VALUE parse(VALUE rctx, bool_t b) {
+    size_t l, m, n, o;
+    l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
+    m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
+    n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
+    o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
+    if (
+        parse_directive_include_(rctx, "%earlysource", rb_ivar_get(rctx, rb_intern("@esource")), Qnil) ||
+        parse_directive_include_(rctx, "%earlyheader", rb_ivar_get(rctx, rb_intern("@eheader")), Qnil) ||
+        parse_directive_include_(rctx, "%earlycommon", rb_ivar_get(rctx, rb_intern("@esource")), rb_ivar_get(rctx, rb_intern("@eheader"))) ||
+        parse_directive_include_(rctx, "%source", rb_ivar_get(rctx, rb_intern("@source")), Qnil) ||
+        parse_directive_include_(rctx, "%header", rb_ivar_get(rctx, rb_intern("@header")), Qnil) ||
+        parse_directive_include_(rctx, "%common", rb_ivar_get(rctx, rb_intern("@source")), rb_ivar_get(rctx, rb_intern("@header"))) ||
+        parse_directive_string_(rctx, "%value", "@value_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
+        parse_directive_string_(rctx, "%auxil", "@auxil_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
+        parse_directive_string_(rctx, "%prefix", "@prefix", STRING_FLAG__NOTEMPTY | STRING_FLAG__IDENTIFIER)
+    ) {
+        b = TRUE;
     }
+    else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('%')))) {
+        print_error("%s:" FMT_LU ":" FMT_LU ": Invalid directive\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
+        rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
+        RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0));
+        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
+        b = TRUE;
+    }
+    else {
+        VALUE rnode, rrules;
+        rnode = parse_rule(rctx);
+        if (rnode == Qnil) {
+            if (b) {
+                print_error("%s:" FMT_LU ":" FMT_LU ": Illegal rule syntax\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1));
+                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
+                b = FALSE;
+            }
+            rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
+            rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
+            rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
+            if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0)) && !RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0))) RB_TEST(rb_funcall(rctx, rb_intern("match_character_any"), 0));
+            return b ? Qtrue : Qfalse;
+        }
+        rrules = rb_ivar_get(rctx, rb_intern("@rules"));
+        rb_ary_push(rrules, rnode);
+        b = TRUE;
+    }
+    rb_funcall(rctx, rb_intern("commit_buffer"), 0);
+    return b ? Qtrue : Qfalse;
 }
