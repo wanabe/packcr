@@ -1553,13 +1553,35 @@ class Packcr::Context
         )
         b = true
       elsif match_character("%")
-        warn "#{@iname}:#{@linenum + 1}:#{column_number + 1}: Invalid directive"
+        l = @linenum
+        m = column_number
+        warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid directive"
         @errnum += 1
         match_identifier
         match_spaces
         b = true
       else
-        b = _parse(b)
+        l = @linenum
+        m = column_number
+        n = @charnum
+        o = @linepos
+        node = parse_rule
+        if node == nil
+          if b
+            warn "#{@iname}:#{l + 1}:#{m + 1}: Illegal rule syntax"
+            @errnum += 1
+            b = false
+          end
+          @linenum = l
+          @charnum = n
+          @linepos = o
+          if !match_identifier && !match_spaces
+            match_character_any
+          end
+        else
+          @rules.push(node)
+          b = true
+        end
       end
       commit_buffer
     end
