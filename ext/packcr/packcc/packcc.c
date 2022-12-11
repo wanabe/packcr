@@ -970,18 +970,6 @@ static void destroy_node(node_t *node) {
     }
 }
 
-static const node_t *lookup_rulehash(VALUE rctx, const char *name) {
-    node_t *node;
-    VALUE rname = rb_str_new2(name);
-    VALUE rrulehash = rb_ivar_get(rctx, rb_intern("@rulehash"));
-    VALUE rnode = rb_hash_aref(rrulehash, rname);
-    if (rnode == Qnil) {
-        return NULL;
-    }
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    return node;
-}
-
 static void link_references(VALUE rctx, VALUE rnode) {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
@@ -991,16 +979,21 @@ static void link_references(VALUE rctx, VALUE rnode) {
         print_error("Internal error [%d]\n", __LINE__);
         exit(-1);
     case NODE_REFERENCE:
-        node->data.reference.rule = lookup_rulehash(rctx, node->data.reference.name);
-        if (node->data.reference.rule == NULL) {
-            print_error("%s:" FMT_LU ":" FMT_LU ": No definition of rule '%s'\n",
-                RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(node->data.reference.line + 1), (ulong_t)(node->data.reference.col + 1),
-                node->data.reference.name);
-            rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-        }
-        else {
-            assert(node->data.reference.rule->type == NODE_RULE);
-            ((node_t *)node->data.reference.rule)->data.rule.ref++;
+        {
+            VALUE rname = rb_funcall(rnode, rb_intern("name"), 0);
+            VALUE rrulehash = rb_ivar_get(rctx, rb_intern("@rulehash"));
+            VALUE rrule = rb_hash_aref(rrulehash, rname);
+            if (NIL_P(rrule)) {
+                print_error("%s:" FMT_LU ":" FMT_LU ": No definition of rule '%s'\n",
+                    RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(node->data.reference.line + 1), (ulong_t)(node->data.reference.col + 1),
+                    node->data.reference.name);
+                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
+            }
+            else {
+                //assert(rule->type == NODE_RULE);
+                rb_funcall(rrule, rb_intern("add_ref"), 0);
+                rb_funcall(rnode, rb_intern("rule="), 1, rrule);
+            }
         }
         break;
     case NODE_STRING:

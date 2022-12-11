@@ -339,6 +339,21 @@ static VALUE packcr_node_rule(VALUE self) {
     return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, rule);
 }
 
+static VALUE packcr_node_set_rule(VALUE self, VALUE rrule) {
+    node_t *node;
+    node_t *rule;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+    TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
+
+    switch (node->type) {
+    case NODE_REFERENCE:
+        node->data.reference.rule = rule;
+        return rrule;
+    default:
+        return Qnil;
+    }
+}
+
 static VALUE packcr_node_value(VALUE self) {
     node_t *node;
     char *value;
@@ -428,6 +443,16 @@ static VALUE packcr_node_col(VALUE self) {
     default:
         return Qnil;
     }
+}
+
+static VALUE packcr_node_add_ref(VALUE self) {
+    node_t *node;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    if (node->type == NODE_RULE) {
+        node->data.rule.ref++;
+    }
+    return self;
 }
 
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
@@ -580,12 +605,14 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "ref", packcr_node_ref, 0);
     rb_define_method(cPackcr_Node, "var", packcr_node_var, 0);
     rb_define_method(cPackcr_Node, "rule", packcr_node_rule, 0);
+    rb_define_method(cPackcr_Node, "rule=", packcr_node_set_rule, 1);
     rb_define_method(cPackcr_Node, "value", packcr_node_value, 0);
     rb_define_method(cPackcr_Node, "min", packcr_node_min, 0);
     rb_define_method(cPackcr_Node, "max", packcr_node_max, 0);
     rb_define_method(cPackcr_Node, "type", packcr_node_type, 0);
     rb_define_method(cPackcr_Node, "line", packcr_node_line, 0);
     rb_define_method(cPackcr_Node, "col", packcr_node_col, 0);
+    rb_define_method(cPackcr_Node, "add_ref", packcr_node_add_ref, 0);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);
