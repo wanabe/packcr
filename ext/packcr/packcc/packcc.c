@@ -310,27 +310,9 @@ static size_t string_to_size_t(const char *str) {
 }
 
 static size_t find_first_trailing_space(const char *str, size_t start, size_t end, size_t *next) {
-    size_t j = start, i;
-    for (i = start; i < end; i++) {
-        switch (str[i]) {
-        case ' ':
-        case '\v':
-        case '\f':
-        case '\t':
-            continue;
-        case '\n':
-            if (next) *next = i + 1;
-            return j;
-        case '\r':
-            if (i + 1 < end && str[i + 1] == '\n') i++;
-            if (next) *next = i + 1;
-            return j;
-        default:
-            j = i + 1;
-        }
-    }
-    if (next) *next = end;
-    return j;
+    VALUE ret = rb_funcall(cPackcr, rb_intern("find_first_trailing_space"), 3, rb_str_new_cstr(str), SIZET2NUM(start), SIZET2NUM(end));
+    if (next) *next = NUM2SIZET(rb_ary_entry(ret, 1));
+    return NUM2SIZET(rb_ary_entry(ret, 0));
 }
 
 static size_t count_indent_spaces(const char *str, size_t start, size_t end, size_t *next) {

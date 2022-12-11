@@ -82,6 +82,28 @@ class Packcr
         $stdout.print escape_character(c)
       end
     end
+
+    def find_first_trailing_space(str, s, e)
+      i = j = s
+      while i < e
+        case str[i]
+        when " ", "\v", "\f", "\t"
+          i += 1
+          next
+        when "\n"
+          return j, i + 1
+        when "\r"
+          if (i + 1 < e && str[i + 1] == "\n")
+            i += 1
+          end
+          return j, i + 1
+        else
+          j = i + 1
+          i += 1
+        end
+      end
+      return j, e
+    end
   end
 end
 
