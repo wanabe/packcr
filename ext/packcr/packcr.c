@@ -214,6 +214,29 @@ static VALUE packcr_node_set_vars(VALUE self, VALUE vars) {
     return vars;
 }
 
+static VALUE packcr_node_add_var(VALUE self, VALUE rnode) {
+    node_t *node;
+    node_const_array_t *v;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        v = &node->data.action.vars;
+        break;
+    case NODE_ERROR:
+        v = &node->data.error.vars;
+        break;
+    case NODE_RULE:
+        v = &node->data.rule.vars;
+        break;
+    default:
+        return Qnil;
+    }
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node_const_array__add(v, node);
+    return rnode;
+}
+
 static VALUE packcr_node_capts(VALUE self) {
     node_t *node;
     VALUE capts = rb_ary_new();
@@ -270,6 +293,29 @@ static VALUE packcr_node_set_capts(VALUE self, VALUE capts) {
         node_const_array__add(v, node);
     }
     return capts;
+}
+
+static VALUE packcr_node_add_capt(VALUE self, VALUE rnode) {
+    node_t *node;
+    node_const_array_t *v;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        v = &node->data.action.capts;
+        break;
+    case NODE_ERROR:
+        v = &node->data.error.capts;
+        break;
+    case NODE_RULE:
+        v = &node->data.rule.capts;
+        break;
+    default:
+        return Qnil;
+    }
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node_const_array__add(v, node);
+    return rnode;
 }
 
 static VALUE packcr_node_nodes(VALUE self) {
@@ -813,8 +859,10 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "index=", packcr_node_set_index, 1);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);
     rb_define_method(cPackcr_Node, "vars=", packcr_node_set_vars, 1);
+    rb_define_method(cPackcr_Node, "add_var", packcr_node_add_var, 1);
     rb_define_method(cPackcr_Node, "capts", packcr_node_capts, 0);
     rb_define_method(cPackcr_Node, "capts=", packcr_node_set_capts, 1);
+    rb_define_method(cPackcr_Node, "add_capt", packcr_node_add_capt, 1);
     rb_define_method(cPackcr_Node, "nodes", packcr_node_nodes, 0);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);

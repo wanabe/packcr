@@ -792,7 +792,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
                     assert(rule->data.rule.vars.buf[i]->type == NODE_REFERENCE);
                     if (strcmp(n_p->data.reference.var, rule->data.rule.vars.buf[i]->data.reference.var) == 0) break;
                 }
-                if (i == rule->data.rule.vars.len) node_const_array__add(&rule->data.rule.vars, n_p);
+                if (i == rule->data.rule.vars.len) rb_funcall(rrule, rb_intern("add_var"), 1, rn_p);
                 rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(i));
             }
             assert(s >= r);
@@ -821,7 +821,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
         rn_p = create_capture_node();
         TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
         rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(rule->data.rule.capts.len));
-        node_const_array__add(&rule->data.rule.capts, n_p);
+        rb_funcall(rrule, rb_intern("add_capt"), 1, rn_p);
         {
             VALUE rexpr = parse_expression(rctx, rrule);
             if (NIL_P(rexpr)) {
