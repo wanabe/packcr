@@ -1395,6 +1395,50 @@ class Packcr::Context
     end
   end
 
+  def link_references(node)
+    if !node
+      return
+    end
+
+    case node.type
+    when Packcr::Node::RULE
+      raise "Internal error"
+    when Packcr::Node::REFERENCE
+      name = node.name
+      rule = @rulehash[name]
+      if !rule
+        warn "#{@iname}:#{node.line + 1}:#{node.col + 1}: No definition of rule '#{node.name}'\n"
+        @errnum += 1
+      else
+        unless rule.type == Packcr::Node::RULE
+          raise "unexpected node type #{rule.type}"
+        end
+        rule.add_ref
+        node.rule = rule
+      end
+    when Packcr::Node::STRING, Packcr::Node::CHARCLASS
+    when Packcr::Node::QUANTITY
+      link_references(node.expr)
+    when Packcr::Node::PREDICATE
+      link_references(node.expr)
+    when Packcr::Node::SEQUENCE
+      node.nodes.each do |child_node|
+        link_references(child_node)
+      end
+    when Packcr::Node::ALTERNATE
+      node.nodes.each do |child_node|
+        link_references(child_node)
+      end
+    when Packcr::Node::CAPTURE
+      link_references(node.expr)
+    when Packcr::Node::EXPAND, Packcr::Node::ACTION
+    when Packcr::Node::ERROR
+      link_references(node.expr)
+    else
+      raise "Internal error"
+    end
+  end
+
   def parse
     match_spaces
 

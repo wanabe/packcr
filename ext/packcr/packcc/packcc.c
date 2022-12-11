@@ -970,76 +970,6 @@ static void destroy_node(node_t *node) {
     }
 }
 
-static void link_references(VALUE rctx, VALUE rnode) {
-    node_t *node;
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    if (node == NULL) return;
-    switch (node->type) {
-    case NODE_RULE:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    case NODE_REFERENCE:
-        {
-            VALUE rname = rb_funcall(rnode, rb_intern("name"), 0);
-            VALUE rrulehash = rb_ivar_get(rctx, rb_intern("@rulehash"));
-            VALUE rrule = rb_hash_aref(rrulehash, rname);
-            if (NIL_P(rrule)) {
-                print_error("%s:" FMT_LU ":" FMT_LU ": No definition of rule '%s'\n",
-                    RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(node->data.reference.line + 1), (ulong_t)(node->data.reference.col + 1),
-                    node->data.reference.name);
-                rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
-            }
-            else {
-                //assert(rule->type == NODE_RULE);
-                rb_funcall(rrule, rb_intern("add_ref"), 0);
-                rb_funcall(rnode, rb_intern("rule="), 1, rrule);
-            }
-        }
-        break;
-    case NODE_STRING:
-        break;
-    case NODE_CHARCLASS:
-        break;
-    case NODE_QUANTITY:
-        link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
-        break;
-    case NODE_PREDICATE:
-        link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
-        break;
-    case NODE_SEQUENCE:
-        {
-            size_t i;
-            VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
-            for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
-                link_references(rctx, rb_ary_entry(rnodes, i));
-            }
-        }
-        break;
-    case NODE_ALTERNATE:
-        {
-            size_t i;
-            VALUE rnodes = rb_funcall(rnode, rb_intern("nodes"), 0);
-            for (i = 0; i < (size_t)RARRAY_LEN(rnodes); i++) {
-                link_references(rctx, rb_ary_entry(rnodes, i));
-            }
-        }
-        break;
-    case NODE_CAPTURE:
-        link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
-        break;
-    case NODE_EXPAND:
-        break;
-    case NODE_ACTION:
-        break;
-    case NODE_ERROR:
-        link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
-        break;
-    default:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    }
-}
-
 static node_t *parse_expression(VALUE rctx, VALUE rrule);
 
 static node_t *parse_primary(VALUE rctx, VALUE rrule) {
@@ -1627,7 +1557,7 @@ static void parse(VALUE rctx) {
         rrules = rb_ivar_get(rctx, rb_intern("@rules"));
         for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
             rnode = rb_ary_entry(rrules, i);
-            link_references(rctx, rb_funcall(rnode, rb_intern("expr"), 0));
+            rb_funcall(rctx, rb_intern("link_references"), 1, rb_funcall(rnode, rb_intern("expr"), 0));
         }
     }
 }
