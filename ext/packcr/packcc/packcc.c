@@ -767,12 +767,6 @@ static void code_block__term(code_block_t *code) {
     free(code->text);
 }
 
-static VALUE code_block_array__create_entry(VALUE array) {
-    VALUE rcode = rb_funcall(cPackcr_CodeBlock, rb_intern("new"),0);
-    rb_ary_push(array, rcode);
-    return rcode;
-}
-
 static void node_array__init(node_array_t *array) {
     array->len = 0;
     array->max = 0;
@@ -1382,9 +1376,9 @@ EXCEPTION:;
     return Qnil;
 }
 
-static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE output1, VALUE output2) {
+static bool_t parse_directive_include_(VALUE rctx, VALUE rname, VALUE output1, VALUE output2) {
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rb_str_new_cstr(name)))) return FALSE;
+    if (!RB_TEST(rb_funcall(rctx, rb_intern("match_string"), 1, rname))) return FALSE;
     RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     {
         const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
@@ -1394,33 +1388,22 @@ static bool_t parse_directive_include_(VALUE rctx, const char *name, VALUE outpu
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             if (output1 != Qnil) {
-                code_block_t *c;
-                VALUE rc = code_block_array__create_entry(output1);
-                TypedData_Get_Struct(rc, code_block_t, &packcr_ptr_data_type, c);
-                char *text;
+                VALUE rc = rb_funcall(cPackcr_CodeBlock, rb_intern("new"), 0);
+                rb_ary_push(output1, rc);
                 VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
                 rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
-                text = StringValuePtr(rtext);
-                c->text = strndup_e(text, strlen(text));
-                c->len = q - p - 2;
-                c->line = l;
-                c->col = m;
+                rb_funcall(rc, rb_intern("init"), 4, rtext, SIZET2NUM(q - p - 2), SIZET2NUM(l), SIZET2NUM(m));
             }
             if (output2 != Qnil) {
-                code_block_t *c;
-                VALUE rc = code_block_array__create_entry(output2);
-                TypedData_Get_Struct(rc, code_block_t, &packcr_ptr_data_type, c);
-                char *text;
+                VALUE rc = rb_funcall(cPackcr_CodeBlock, rb_intern("new"), 0);
+                rb_ary_push(output2, rc);
                 VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
                 rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
-                text = StringValuePtr(rtext);
-                c->text = strndup_e(text, strlen(text));
-                c->len = q - p - 2;
-                c->line = l;
-                c->col = m;
+                rb_funcall(rc, rb_intern("init"), 4, rtext, SIZET2NUM(q - p - 2), SIZET2NUM(l), SIZET2NUM(m));
             }
         }
         else {
+            char *name = StringValuePtr(rname);
             print_error("%s:" FMT_LU ":" FMT_LU ": Illegal %s syntax\n", RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@iname"))), (ulong_t)(l + 1), (ulong_t)(m + 1), name);
             rb_ivar_set(rctx, rb_intern("@errnum"), rb_funcall(rb_ivar_get(rctx, rb_intern("@errnum")), rb_intern("succ"), 0));
         }
@@ -1504,12 +1487,11 @@ static VALUE parse(VALUE rctx, bool_t b) {
     n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
     if (
-        parse_directive_include_(rctx, "%earlysource", rb_ivar_get(rctx, rb_intern("@esource")), Qnil) ||
-        parse_directive_include_(rctx, "%earlyheader", rb_ivar_get(rctx, rb_intern("@eheader")), Qnil) ||
-        parse_directive_include_(rctx, "%earlycommon", rb_ivar_get(rctx, rb_intern("@esource")), rb_ivar_get(rctx, rb_intern("@eheader"))) ||
-        parse_directive_include_(rctx, "%source", rb_ivar_get(rctx, rb_intern("@source")), Qnil) ||
-        parse_directive_include_(rctx, "%header", rb_ivar_get(rctx, rb_intern("@header")), Qnil) ||
-        parse_directive_include_(rctx, "%common", rb_ivar_get(rctx, rb_intern("@source")), rb_ivar_get(rctx, rb_intern("@header"))) ||
+        parse_directive_include_(rctx, rb_str_new_cstr("%earlysource"), rb_ivar_get(rctx, rb_intern("@esource")), Qnil) ||
+        parse_directive_include_(rctx, rb_str_new_cstr("%earlycommon"), rb_ivar_get(rctx, rb_intern("@esource")), rb_ivar_get(rctx, rb_intern("@eheader"))) ||
+        parse_directive_include_(rctx, rb_str_new_cstr("%source"), rb_ivar_get(rctx, rb_intern("@source")), Qnil) ||
+        parse_directive_include_(rctx, rb_str_new_cstr("%header"), rb_ivar_get(rctx, rb_intern("@header")), Qnil) ||
+        parse_directive_include_(rctx, rb_str_new_cstr("%common"), rb_ivar_get(rctx, rb_intern("@source")), rb_ivar_get(rctx, rb_intern("@header"))) ||
         parse_directive_string_(rctx, "%value", "@value_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
         parse_directive_string_(rctx, "%auxil", "@auxil_type", STRING_FLAG__NOTEMPTY | STRING_FLAG__NOTVOID) ||
         parse_directive_string_(rctx, "%prefix", "@prefix", STRING_FLAG__NOTEMPTY | STRING_FLAG__IDENTIFIER)

@@ -41,6 +41,20 @@ static VALUE packcr_code_block_text(VALUE self) {
     return rb_str_new2(code->text);
 }
 
+static VALUE packcr_code_block_init(VALUE self, VALUE text, VALUE len, VALUE line, VALUE col) {
+    code_block_t *code;
+    char *ctext;
+    TypedData_Get_Struct(self, code_block_t, &packcr_ptr_data_type, code);
+
+    ctext = StringValuePtr(text);
+    code->text = strndup_e(ctext, strlen(ctext));
+    code->len = NUM2SIZET(len);
+    code->line = NUM2SIZET(line);
+    code->col = NUM2SIZET(col);
+
+    return self;
+}
+
 static VALUE packcr_node_s_alloc(VALUE klass) {
     node_t *node;
     VALUE obj = TypedData_Make_Struct(klass, node_t, &packcr_ptr_data_type, node);
@@ -575,6 +589,7 @@ void Init_packcr(void) {
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
     rb_define_method(cPackcr_CodeBlock, "text", packcr_code_block_text, 0);
+    rb_define_method(cPackcr_CodeBlock, "init", packcr_code_block_init, 4);
 
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_const_set(cPackcr_Node, rb_intern("RULE"), INT2NUM(NODE_RULE));
