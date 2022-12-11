@@ -80,6 +80,31 @@ static VALUE packcr_node_name(VALUE self) {
     return rb_str_new2(name);
 }
 
+static VALUE packcr_node_set_name(VALUE self, VALUE name) {
+    node_t *node;
+    char **n;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_RULE:
+        n = &node->data.rule.name;
+        break;
+    case NODE_REFERENCE:
+        n = &node->data.reference.name;
+        break;
+    default:
+        return Qnil;
+    }
+
+    if (NIL_P(name)) {
+        *n = NULL;
+    } else {
+        char *src = StringValuePtr(name);
+        *n = strndup_e(src, strlen(src));
+    }
+    return name;
+}
+
 static VALUE packcr_node_index(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -672,6 +697,7 @@ void Init_packcr(void) {
 
     rb_define_alloc_func(cPackcr_Node, packcr_node_s_alloc);
     rb_define_method(cPackcr_Node, "name", packcr_node_name, 0);
+    rb_define_method(cPackcr_Node, "name=", packcr_node_set_name, 1);
     rb_define_method(cPackcr_Node, "expr", packcr_node_expr, 0);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "index=", packcr_node_set_index, 1);

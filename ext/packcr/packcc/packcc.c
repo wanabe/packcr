@@ -762,7 +762,7 @@ static VALUE create_rule_node() {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_RULE;
-    node->data.rule.name = NULL;
+    rb_funcall(rnode, rb_intern("name="), 1, Qnil);
     node->data.rule.expr = NULL;
     node->data.rule.ref = 0;
     node_const_array__init(&node->data.rule.vars);
@@ -805,7 +805,7 @@ static VALUE create_reference_node() {
     rb_funcall(rnode, rb_intern("var="), 1, Qnil);
     node->data.reference.var = NULL;
     rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
-    node->data.reference.name = NULL;
+    rb_funcall(rnode, rb_intern("name="), 1, Qnil);
     node->data.reference.rule = NULL;
     node->data.reference.line = VOID_VALUE;
     node->data.reference.col = VOID_VALUE;
@@ -971,13 +971,11 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
         TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
         if (r == VOID_VALUE) {
             VALUE rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
-            char *name;
             rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
-            name = StringValuePtr(rname);
             assert(q >= p);
             rb_funcall(rn_p, rb_intern("var="), 1, Qnil);
             rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
-            n_p->data.reference.name = strndup_e(name, strlen(name));
+            rb_funcall(rn_p, rb_intern("name="), 1, rname);
         }
         else {
             VALUE rvar = rb_funcall(rbuffer, rb_intern("to_s"), 0);
@@ -1002,10 +1000,8 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
             assert(s >= r);
             {
                 VALUE rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
-                char *name;
                 rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(r), SIZET2NUM(s - r));
-                name = StringValuePtr(rname);
-                n_p->data.reference.name = strndup_e(name, strlen(name));
+                rb_funcall(rn_p, rb_intern("name="), 1, rname);
             }
         }
         n_p->data.reference.line = l;
@@ -1357,7 +1353,6 @@ static VALUE parse_rule(VALUE rctx) {
     node_t *n_r = NULL;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     VALUE rn_r;
-    char *name;
     VALUE rname;
     if (!RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0))) goto EXCEPTION;
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
@@ -1378,8 +1373,7 @@ static VALUE parse_rule(VALUE rctx) {
     assert(q >= p);
     rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
     rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
-    name = StringValuePtr(rname);
-    n_r->data.rule.name = strndup_e(name, strlen(name));
+    rb_funcall(rn_r, rb_intern("name="), 1, rname);
     n_r->data.rule.line = l;
     n_r->data.rule.col = m;
     return rn_r;
