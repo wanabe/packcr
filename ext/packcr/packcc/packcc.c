@@ -877,20 +877,15 @@ static VALUE create_capture_node() {
     return rnode;
 }
 
-static node_t *create_node(node_type_t type) {
-    node_t *const node = (node_t *)malloc_e(sizeof(node_t));
-    node->type = type;
-    switch (node->type) {
-    case NODE_EXPAND:
-        node->data.expand.index = VOID_VALUE;
-        node->data.expand.line = VOID_VALUE;
-        node->data.expand.col = VOID_VALUE;
-        break;
-    default:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    }
-    return node;
+static VALUE create_expand_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_EXPAND;
+    node->data.expand.index = VOID_VALUE;
+    node->data.expand.line = VOID_VALUE;
+    node->data.expand.col = VOID_VALUE;
+    return rnode;
 }
 
 static void destroy_node(node_t *node) {
@@ -1048,7 +1043,8 @@ static node_t *parse_primary(VALUE rctx, VALUE rrule) {
             rs = rb_funcall(rs, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
             s = StringValuePtr(rs);
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-            n_p = create_node(NODE_EXPAND);
+            rn_p = create_expand_node();
+            TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
             assert(q >= p);
             s = strndup_e(s, strlen(s));
             n_p->data.expand.index = string_to_size_t(s);
