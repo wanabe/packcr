@@ -767,7 +767,7 @@ static VALUE create_rule_node() {
     node->data.rule.ref = 0;
     node_const_array__init(&node->data.rule.vars);
     node_const_array__init(&node->data.rule.capts);
-    node->data.rule.line = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("line="), 1, SIZET2NUM(VOID_VALUE));
     node->data.rule.col = VOID_VALUE;
     return rnode;
 }
@@ -807,7 +807,7 @@ static VALUE create_reference_node() {
     rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     rb_funcall(rnode, rb_intern("name="), 1, Qnil);
     node->data.reference.rule = NULL;
-    node->data.reference.line = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("line="), 1, SIZET2NUM(VOID_VALUE));
     node->data.reference.col = VOID_VALUE;
     return rnode;
 }
@@ -884,7 +884,7 @@ static VALUE create_expand_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_EXPAND;
     rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
-    node->data.expand.line = VOID_VALUE;
+    rb_funcall(rnode, rb_intern("line="), 1, SIZET2NUM(VOID_VALUE));
     node->data.expand.col = VOID_VALUE;
     return rnode;
 }
@@ -1004,7 +1004,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
                 rb_funcall(rn_p, rb_intern("name="), 1, rname);
             }
         }
-        n_p->data.reference.line = l;
+        rb_funcall(rn_p, rb_intern("line="), 1, SIZET2NUM(l));
         n_p->data.reference.col = m;
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('(')))) {
@@ -1070,7 +1070,7 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
             free(s);
             if (n_p->data.expand.index > 0 && n_p->data.expand.index != VOID_VALUE) {
                 n_p->data.expand.index--;
-                n_p->data.expand.line = l;
+                rb_funcall(rn_p, rb_intern("line="), 1, SIZET2NUM(l));
                 n_p->data.expand.col = m;
             }
         }
@@ -1130,19 +1130,15 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_code_block"), 0))) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-        VALUE rcodes;
-        char *text;
+        VALUE rcodes, rcode;
         VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
         rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
-        text = StringValuePtr(rtext);
         rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_p = create_action_node();
         TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
-        text = n_p->data.action.code.text = strndup_e(text, strlen(text));
-        n_p->data.action.code.len = find_trailing_blanks(text);
-        n_p->data.action.code.line = l;
-        n_p->data.action.code.col = m;
+        rcode = rb_funcall(rn_p, rb_intern("code"), 0);
+        rb_funcall(rcode, rb_intern("init"), 4, rtext, SIZET2NUM(find_trailing_blanks(StringValuePtr(rtext))), SIZET2NUM(l), SIZET2NUM(m));
         rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0))));
         rb_ary_push(rcodes, rn_p);
     }
@@ -1233,19 +1229,15 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
         m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
         if (RB_TEST(rb_funcall(rctx, rb_intern("match_code_block"), 0))) {
             const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-            VALUE rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
-            char *text;
+            VALUE rcode, rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
             VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
             rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
-            text = StringValuePtr(rtext);
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             rn_t = create_error_node();
             TypedData_Get_Struct(rn_t, node_t, &packcr_ptr_data_type, n_t);
             n_t->data.error.expr = n_r;
-            text = n_t->data.error.code.text = strndup_e(text, strlen(text));
-            n_t->data.error.code.len = find_trailing_blanks(text);
-            n_t->data.error.code.line = l;
-            n_t->data.error.code.col = m;
+            rcode = rb_funcall(rn_t, rb_intern("code"), 0);
+            rb_funcall(rcode, rb_intern("init"), 4, rtext, SIZET2NUM(find_trailing_blanks(StringValuePtr(rtext))), SIZET2NUM(l), SIZET2NUM(m));
             rb_funcall(rn_t, rb_intern("index="), 1, SIZET2NUM(NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0))));
             rb_ary_push(rcodes, rn_t);
         }
@@ -1374,7 +1366,7 @@ static VALUE parse_rule(VALUE rctx) {
     rname = rb_funcall(rbuffer, rb_intern("to_s"), 0);
     rname = rb_funcall(rname, rb_intern("[]"), 2, SIZET2NUM(p), SIZET2NUM(q - p));
     rb_funcall(rn_r, rb_intern("name="), 1, rname);
-    n_r->data.rule.line = l;
+    rb_funcall(rn_r, rb_intern("line="), 1, SIZET2NUM(l));
     n_r->data.rule.col = m;
     return rn_r;
 
