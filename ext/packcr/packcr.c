@@ -882,7 +882,7 @@ void Init_packcr(void) {
 
     cPackcr_Context = rb_const_get(cPackcr, rb_intern("Context"));
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);
-    rb_define_method(cPackcr_Context, "parse_sequence", parse_sequence, 1);
+    rb_define_method(cPackcr_Context, "parse_term", parse_term, 1);
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);

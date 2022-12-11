@@ -1116,6 +1116,13 @@ class Packcr::Node
       node
     end
   end
+
+  class SequenceNode < Packcr::Node
+    def initialize
+      self.type = Packcr::Node::SEQUENCE
+      self.nodes = nil
+    end
+  end
 end
 
 class Packcr::Context
@@ -1724,6 +1731,35 @@ class Packcr::Context
   end
 
   class StopParsing < StandardError
+  end
+
+  def parse_sequence(rule)
+    pos = @bufcur
+    l = @linenum
+    n = @charnum
+    o = @linepos
+    n_t = parse_term(rule)
+    if !n_t
+      raise StopParsing
+    end
+    n_u = parse_term(rule);
+    if n_u
+      n_s = Packcr::Node::SequenceNode.new
+      n_s.add_node(n_t)
+      n_s.add_node(n_u)
+      while (n_t = parse_term(rule))
+        n_s.add_node(n_t)
+      end
+    else
+      n_s = n_t
+    end
+    n_s
+  rescue StopParsing
+    @bufcur = pos
+    @linenum = l
+    @charnum = n
+    @linepos = o
+    return nil
   end
 
   def parse_expression(rule)

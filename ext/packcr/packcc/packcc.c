@@ -473,16 +473,6 @@ static VALUE create_predicate_node() {
     return rnode;
 }
 
-static VALUE create_sequence_node() {
-    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
-    node_t *node;
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    node->type = NODE_SEQUENCE;
-    node_array__init(&node->data.sequence.nodes);
-    rb_ivar_set(rnode, rb_intern("@nodes"), rb_ary_new());
-    return rnode;
-}
-
 static VALUE create_capture_node() {
     VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
     node_t *node;
@@ -829,38 +819,6 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
         rn_t = rn_r;
     }
     return rn_t;
-
-EXCEPTION:;
-    rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(p));
-    rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
-    rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
-    rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-    return Qnil;
-}
-
-static VALUE parse_sequence(VALUE rctx, VALUE rrule) {
-    const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-    const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
-    const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
-    VALUE rn_t, rn_u, rn_s;
-    rn_t = parse_term(rctx, rrule);
-    if (NIL_P(rn_t)) {
-        goto EXCEPTION;
-    }
-    rn_u = parse_term(rctx, rrule);
-    if (!NIL_P(rn_u)) {
-        rn_s = create_sequence_node();
-        rb_funcall(rn_s, rb_intern("add_node"), 1, rn_t);
-        rb_funcall(rn_s, rb_intern("add_node"), 1, rn_u);
-        while (!NIL_P(rn_t = parse_term(rctx, rrule))) {
-            rb_funcall(rn_s, rb_intern("add_node"), 1, rn_t);
-        }
-    }
-    else {
-        rn_s = rn_t;
-    }
-    return rn_s;
 
 EXCEPTION:;
     rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(p));
