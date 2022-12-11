@@ -748,10 +748,8 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
     const size_t m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
-    node_t *rule;
     VALUE rn_p;
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_identifier"), 0))) {
         const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
         size_t r = VOID_VALUE, s = VOID_VALUE;
@@ -786,11 +784,13 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
             }
             {
                 size_t i;
-                for (i = 0; i < rule->data.rule.vars.len; i++) {
-                    assert(rule->data.rule.vars.buf[i]->type == NODE_REFERENCE);
-                    if (strcmp(StringValuePtr(rvar), rule->data.rule.vars.buf[i]->data.reference.var) == 0) break;
+                VALUE rvars = rb_funcall(rrule, rb_intern("vars"), 0);
+                for (i = 0; i < (size_t)RARRAY_LEN(rvars); i++) {
+                    VALUE rvar2 = rb_funcall(rb_ary_entry(rvars, i), rb_intern("var"), 0);
+                    //assert(rule->data.rule.vars.buf[i]->type == NODE_REFERENCE);
+                    if (RB_TEST(rb_funcall(rvar, rb_intern("=="), 1, rvar2))) break;
                 }
-                if (i == rule->data.rule.vars.len) rb_funcall(rrule, rb_intern("add_var"), 1, rn_p);
+                if (i == (size_t)RARRAY_LEN(rvars)) rb_funcall(rrule, rb_intern("add_var"), 1, rn_p);
                 rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(i));
             }
             assert(s >= r);
@@ -813,9 +813,10 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('<')))) {
+        VALUE rcapts = rb_funcall(rrule, rb_intern("capts"), 0);
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_p = create_capture_node();
-        rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(rule->data.rule.capts.len));
+        rb_funcall(rn_p, rb_intern("index="), 1, SIZET2NUM(RARRAY_LEN(rcapts)));
         rb_funcall(rrule, rb_intern("add_capt"), 1, rn_p);
         {
             VALUE rexpr = parse_expression(rctx, rrule);
