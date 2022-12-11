@@ -858,13 +858,19 @@ static VALUE create_sequence_node() {
     return rnode;
 }
 
+static VALUE create_alternate_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_ALTERNATE;
+    node_array__init(&node->data.alternate.nodes);
+    return rnode;
+}
+
 static node_t *create_node(node_type_t type) {
     node_t *const node = (node_t *)malloc_e(sizeof(node_t));
     node->type = type;
     switch (node->type) {
-    case NODE_ALTERNATE:
-        node_array__init(&node->data.alternate.nodes);
-        break;
     case NODE_CAPTURE:
         node->data.capture.expr = NULL;
         node->data.capture.index = VOID_VALUE;
@@ -1291,12 +1297,14 @@ static node_t *parse_expression(VALUE rctx, VALUE rrule) {
     node_array_t *a_s = NULL;
     node_t *n_s = NULL;
     node_t *n_e = NULL;
+    VALUE rn_e;
     n_s = parse_sequence(rctx, rrule);
     if (n_s == NULL) goto EXCEPTION;
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('/')))) {
         rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(q));
-        n_e = create_node(NODE_ALTERNATE);
+        rn_e = create_alternate_node();
+        TypedData_Get_Struct(rn_e, node_t, &packcr_ptr_data_type, n_e);
         a_s = &n_e->data.alternate.nodes;
         node_array__add(a_s, n_s);
         while (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('/')))) {
