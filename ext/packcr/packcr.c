@@ -488,6 +488,26 @@ static VALUE packcr_node_add_ref(VALUE self) {
     return self;
 }
 
+static VALUE packcr_node_add_node(VALUE self, VALUE child) {
+    node_t *node, *cchild;
+    node_array_t *a;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+    TypedData_Get_Struct(child, node_t, &packcr_ptr_data_type, cchild);
+
+    switch (node->type) {
+    case NODE_SEQUENCE:
+        a = &node->data.sequence.nodes;
+        break;
+    case NODE_ALTERNATE:
+        a = &node->data.alternate.nodes;
+        break;
+    default:
+        return Qnil;
+    }
+    node_array__add(a, cchild);
+    return self;
+}
+
 static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
     VALUE path, arg, hash;
 
@@ -647,6 +667,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "line", packcr_node_line, 0);
     rb_define_method(cPackcr_Node, "col", packcr_node_col, 0);
     rb_define_method(cPackcr_Node, "add_ref", packcr_node_add_ref, 0);
+    rb_define_method(cPackcr_Node, "add_node", packcr_node_add_node, 1);
 
     cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
     rb_define_method(cPackcr_Stream, "write_code_block", packcr_stream_write_code_block, 3);

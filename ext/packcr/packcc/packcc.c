@@ -1277,17 +1277,12 @@ static VALUE parse_sequence(VALUE rctx, VALUE rrule) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
-    node_array_t *a_t = NULL;
-    node_t *n_t = NULL;
     node_t *n_u = NULL;
-    node_t *n_s = NULL;
     VALUE rn_t, rn_u, rn_s;
     rn_t = parse_term(rctx, rrule);
     if (NIL_P(rn_t)) {
-        n_t = NULL;
         goto EXCEPTION;
     }
-    TypedData_Get_Struct(rn_t, node_t, &packcr_ptr_data_type, n_t);
     rn_u = parse_term(rctx, rrule);
     if (NIL_P(rn_u)) {
         n_u = NULL;
@@ -1296,13 +1291,10 @@ static VALUE parse_sequence(VALUE rctx, VALUE rrule) {
     }
     if (n_u != NULL) {
         rn_s = create_sequence_node();
-        TypedData_Get_Struct(rn_s, node_t, &packcr_ptr_data_type, n_s);
-        a_t = &n_s->data.sequence.nodes;
-        node_array__add(a_t, n_t);
-        node_array__add(a_t, n_u);
+        rb_funcall(rn_s, rb_intern("add_node"), 1, rn_t);
+        rb_funcall(rn_s, rb_intern("add_node"), 1, rn_u);
         while (!NIL_P(rn_t = parse_term(rctx, rrule))) {
-            TypedData_Get_Struct(rn_t, node_t, &packcr_ptr_data_type, n_t);
-            node_array__add(a_t, n_t);
+            rb_funcall(rn_s, rb_intern("add_node"), 1, rn_t);
         }
     }
     else {
@@ -1324,32 +1316,21 @@ static VALUE parse_expression(VALUE rctx, VALUE rrule) {
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
     size_t q;
-    node_array_t *a_s = NULL;
-    node_t *n_s = NULL;
     node_t *n_e = NULL;
     VALUE rn_e, rn_s;
     rn_s = parse_sequence(rctx, rrule);
-    if (NIL_P(rn_s)) {
-        n_s = NULL;
-        goto EXCEPTION;
-    }
-    TypedData_Get_Struct(rn_s, node_t, &packcr_ptr_data_type, n_s);
+    if (NIL_P(rn_s)) goto EXCEPTION;
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('/')))) {
         rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(q));
         rn_e = create_alternate_node();
         TypedData_Get_Struct(rn_e, node_t, &packcr_ptr_data_type, n_e);
-        a_s = &n_e->data.alternate.nodes;
-        node_array__add(a_s, n_s);
+        rb_funcall(rn_e, rb_intern("add_node"), 1, rn_s);
         while (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('/')))) {
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             rn_s = parse_sequence(rctx, rrule);
-            if (NIL_P(rn_s)) {
-                n_s = NULL;
-                goto EXCEPTION;
-            }
-            TypedData_Get_Struct(rn_s, node_t, &packcr_ptr_data_type, n_s);
-            node_array__add(a_s, n_s);
+            if (NIL_P(rn_s)) goto EXCEPTION;
+            rb_funcall(rn_e, rb_intern("add_node"), 1, rn_s);
         }
     }
     else {
