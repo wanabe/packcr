@@ -1272,7 +1272,7 @@ EXCEPTION:;
     return Qnil;
 }
 
-static node_t *parse_sequence(VALUE rctx, VALUE rrule) {
+static VALUE parse_sequence(VALUE rctx, VALUE rrule) {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
@@ -1306,16 +1306,16 @@ static node_t *parse_sequence(VALUE rctx, VALUE rrule) {
         }
     }
     else {
-        n_s = n_t;
+        rn_s = rn_t;
     }
-    return n_s;
+    return rn_s;
 
 EXCEPTION:;
     rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(p));
     rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
     rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-    return NULL;
+    return Qnil;
 }
 
 static VALUE parse_expression(VALUE rctx, VALUE rrule) {
@@ -1328,9 +1328,12 @@ static VALUE parse_expression(VALUE rctx, VALUE rrule) {
     node_t *n_s = NULL;
     node_t *n_e = NULL;
     VALUE rn_e, rn_s;
-    n_s = parse_sequence(rctx, rrule);
-    if (n_s == NULL) goto EXCEPTION;
-    rn_s = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, n_s);
+    rn_s = parse_sequence(rctx, rrule);
+    if (NIL_P(rn_s)) {
+        n_s = NULL;
+        goto EXCEPTION;
+    }
+    TypedData_Get_Struct(rn_s, node_t, &packcr_ptr_data_type, n_s);
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('/')))) {
         rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(q));
@@ -1340,8 +1343,12 @@ static VALUE parse_expression(VALUE rctx, VALUE rrule) {
         node_array__add(a_s, n_s);
         while (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('/')))) {
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-            n_s = parse_sequence(rctx, rrule);
-            if (n_s == NULL) goto EXCEPTION;
+            rn_s = parse_sequence(rctx, rrule);
+            if (NIL_P(rn_s)) {
+                n_s = NULL;
+                goto EXCEPTION;
+            }
+            TypedData_Get_Struct(rn_s, node_t, &packcr_ptr_data_type, n_s);
             node_array__add(a_s, n_s);
         }
     }
