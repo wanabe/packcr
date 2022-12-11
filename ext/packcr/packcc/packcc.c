@@ -942,24 +942,15 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
     const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
     const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
     const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
-    node_t *n_p = NULL;
-    node_t *n_q = NULL;
-    node_t *n_r = NULL;
     VALUE rn_p, rn_r, rn_q, rn_t;
     const char t = RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('&'))) ? '&' : RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('!'))) ? '!' : '\0';
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     if (t) RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     rn_p = parse_primary(rctx, rrule);
-    if (NIL_P(rn_p)) {
-        n_p = NULL;
-    } else {
-        TypedData_Get_Struct(rn_p, node_t, &packcr_ptr_data_type, n_p);
-    }
-    if (n_p == NULL) goto EXCEPTION;
+    if (NIL_P(rn_p)) goto EXCEPTION;
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('*')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_q = create_quantity_node();
-        TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
         rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(0));
         rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(-1));
         rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
@@ -967,7 +958,6 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('+')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_q = create_quantity_node();
-        TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
         rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(1));
         rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(-1));
         rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
@@ -975,30 +965,25 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('?')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
         rn_q = create_quantity_node();
-        TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
         rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(0));
         rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(1));
         rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
     }
     else {
-        n_q = n_p;
         rn_q = rn_p;
     }
     switch (t) {
     case '&':
         rn_r = create_predicate_node();
-        TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
         rb_funcall(rn_r, rb_intern("neg="), 1, Qfalse);
         rb_funcall(rn_r, rb_intern("expr="), 1, rn_q);
         break;
     case '!':
         rn_r = create_predicate_node();
-        TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
         rb_funcall(rn_r, rb_intern("neg="), 1, Qtrue);
         rb_funcall(rn_r, rb_intern("expr="), 1, rn_q);
         break;
     default:
-        n_r = n_q;
         rn_r = rn_q;
     }
     if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('~')))) {
@@ -1030,7 +1015,6 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
     return rn_t;
 
 EXCEPTION:;
-    destroy_node(n_r);
     rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(p));
     rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
     rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
