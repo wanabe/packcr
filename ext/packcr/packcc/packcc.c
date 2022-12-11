@@ -565,6 +565,8 @@ static VALUE create_rule_node() {
     rb_funcall(rnode, rb_intern("ref="), 1, SIZET2NUM(0));
     node_const_array__init(&node->data.rule.vars);
     node_const_array__init(&node->data.rule.capts);
+    rb_funcall(rnode, rb_intern("vars="), 1, rb_ary_new());
+    rb_funcall(rnode, rb_intern("capts="), 1, rb_ary_new());
     rb_funcall(rnode, rb_intern("line="), 1, SIZET2NUM(VOID_VALUE));
     rb_funcall(rnode, rb_intern("col="), 1, SIZET2NUM(VOID_VALUE));
     return rnode;
@@ -579,6 +581,8 @@ static VALUE create_action_node() {
     rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     node_const_array__init(&node->data.action.vars);
     node_const_array__init(&node->data.action.capts);
+    rb_funcall(rnode, rb_intern("vars="), 1, rb_ary_new());
+    rb_funcall(rnode, rb_intern("capts="), 1, rb_ary_new());
     return rnode;
 }
 
@@ -592,6 +596,8 @@ static VALUE create_error_node() {
     rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     node_const_array__init(&node->data.error.vars);
     node_const_array__init(&node->data.error.capts);
+    rb_funcall(rnode, rb_intern("vars="), 1, rb_ary_new());
+    rb_funcall(rnode, rb_intern("capts="), 1, rb_ary_new());
     return rnode;
 }
 
@@ -654,6 +660,7 @@ static VALUE create_sequence_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_SEQUENCE;
     node_array__init(&node->data.sequence.nodes);
+    rb_ivar_set(rnode, rb_intern("@nodes"), rb_ary_new());
     return rnode;
 }
 
@@ -663,6 +670,7 @@ static VALUE create_alternate_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_ALTERNATE;
     node_array__init(&node->data.alternate.nodes);
+    rb_ivar_set(rnode, rb_intern("@nodes"), rb_ary_new());
     return rnode;
 }
 
