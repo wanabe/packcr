@@ -1548,16 +1548,5 @@ static void parse(VALUE rctx) {
             }
             rb_funcall(rctx, rb_intern("commit_buffer"), 0);
         }
-        rb_funcall(rctx, rb_intern("commit_buffer"), 0);
-    }
-    {
-        size_t i;
-        VALUE rrules, rnode;
-        rb_funcall(rctx, rb_intern("make_rulehash"), 0);
-        rrules = rb_ivar_get(rctx, rb_intern("@rules"));
-        for (i = 0; i < (size_t)RARRAY_LEN(rrules); i++) {
-            rnode = rb_ary_entry(rrules, i);
-            rb_funcall(rctx, rb_intern("link_references"), 1, rb_funcall(rnode, rb_intern("expr"), 0));
-        }
     }
 }
