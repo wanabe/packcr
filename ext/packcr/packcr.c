@@ -368,6 +368,38 @@ static VALUE packcr_node_expr(VALUE self) {
     return TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, expr);
 }
 
+static VALUE packcr_node_set_expr(VALUE self, VALUE rexpr) {
+    node_t *node;
+    node_t **e;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_RULE:
+        e = &node->data.rule.expr;
+        break;
+    case NODE_QUANTITY:
+        e = &node->data.quantity.expr;
+        break;
+    case NODE_PREDICATE:
+        e = &node->data.predicate.expr;
+        break;
+    case NODE_CAPTURE:
+        e = &node->data.capture.expr;
+        break;
+    case NODE_ERROR:
+        e = &node->data.error.expr;
+        break;
+    default:
+        return Qnil;
+    }
+    if (NIL_P(rexpr)) {
+        *e = NULL;
+    } else {
+        TypedData_Get_Struct(rexpr, node_t, &packcr_ptr_data_type, *e);
+    }
+    return rexpr;
+}
+
 static VALUE packcr_node_var(VALUE self) {
     node_t *node;
     char *var;
@@ -739,6 +771,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "name", packcr_node_name, 0);
     rb_define_method(cPackcr_Node, "name=", packcr_node_set_name, 1);
     rb_define_method(cPackcr_Node, "expr", packcr_node_expr, 0);
+    rb_define_method(cPackcr_Node, "expr=", packcr_node_set_expr, 1);
     rb_define_method(cPackcr_Node, "index", packcr_node_index, 0);
     rb_define_method(cPackcr_Node, "index=", packcr_node_set_index, 1);
     rb_define_method(cPackcr_Node, "vars", packcr_node_vars, 0);

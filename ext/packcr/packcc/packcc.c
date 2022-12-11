@@ -763,7 +763,7 @@ static VALUE create_rule_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_RULE;
     rb_funcall(rnode, rb_intern("name="), 1, Qnil);
-    node->data.rule.expr = NULL;
+    rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
     node->data.rule.ref = 0;
     node_const_array__init(&node->data.rule.vars);
     node_const_array__init(&node->data.rule.capts);
@@ -789,7 +789,7 @@ static VALUE create_error_node() {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_ERROR;
-    node->data.error.expr = NULL;
+    rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
     code_block__init(&node->data.error.code);
     rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     node_const_array__init(&node->data.error.vars);
@@ -836,7 +836,7 @@ static VALUE create_quantity_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_QUANTITY;
     node->data.quantity.min = node->data.quantity.max = 0;
-    node->data.quantity.expr = NULL;
+    rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
     return rnode;
 }
 
@@ -846,7 +846,7 @@ static VALUE create_predicate_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_PREDICATE;
     node->data.predicate.neg = FALSE;
-    node->data.predicate.expr = NULL;
+    rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
     return rnode;
 }
 
@@ -873,7 +873,7 @@ static VALUE create_capture_node() {
     node_t *node;
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_CAPTURE;
-    node->data.capture.expr = NULL;
+    rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
     rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
     return rnode;
 }
@@ -1027,14 +1027,14 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
         {
             VALUE rexpr = parse_expression(rctx, rrule);
             if (NIL_P(rexpr)) {
-                n_p->data.capture.expr = NULL;
+                rb_funcall(rn_p, rb_intern("expr="), 1, Qnil);;
             } else {
                 TypedData_Get_Struct(rexpr, node_t, &packcr_ptr_data_type, n_p->data.capture.expr);
             }
-        }
-        if (n_p->data.capture.expr == NULL || !RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('>')))) {
-            rule->data.rule.capts.len = n_p->data.capture.index;
-            goto EXCEPTION;
+            if (NIL_P(rexpr) || !RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('>')))) {
+                rule->data.rule.capts.len = n_p->data.capture.index;
+                goto EXCEPTION;
+            }
         }
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
     }
@@ -1164,7 +1164,6 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
     node_t *n_p = NULL;
     node_t *n_q = NULL;
     node_t *n_r = NULL;
-    node_t *n_t = NULL;
     VALUE rn_p, rn_r, rn_q, rn_t;
     const char t = RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('&'))) ? '&' : RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('!'))) ? '!' : '\0';
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
@@ -1182,7 +1181,7 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
         TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
         n_q->data.quantity.min = 0;
         n_q->data.quantity.max = -1;
-        n_q->data.quantity.expr = n_p;
+        rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('+')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
@@ -1190,7 +1189,7 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
         TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
         n_q->data.quantity.min = 1;
         n_q->data.quantity.max = -1;
-        n_q->data.quantity.expr = n_p;
+        rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
     }
     else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('?')))) {
         RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
@@ -1198,7 +1197,7 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
         TypedData_Get_Struct(rn_q, node_t, &packcr_ptr_data_type, n_q);
         n_q->data.quantity.min = 0;
         n_q->data.quantity.max = 1;
-        n_q->data.quantity.expr = n_p;
+        rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
     }
     else {
         n_q = n_p;
@@ -1209,13 +1208,13 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
         rn_r = create_predicate_node();
         TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
         n_r->data.predicate.neg = FALSE;
-        n_r->data.predicate.expr = n_q;
+        rb_funcall(rn_r, rb_intern("expr="), 1, rn_q);
         break;
     case '!':
         rn_r = create_predicate_node();
         TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
         n_r->data.predicate.neg = TRUE;
-        n_r->data.predicate.expr = n_q;
+        rb_funcall(rn_r, rb_intern("expr="), 1, rn_q);
         break;
     default:
         n_r = n_q;
@@ -1234,8 +1233,7 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
             rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
             RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
             rn_t = create_error_node();
-            TypedData_Get_Struct(rn_t, node_t, &packcr_ptr_data_type, n_t);
-            n_t->data.error.expr = n_r;
+            rb_funcall(rn_t, rb_intern("expr="), 1, rn_r);
             rcode = rb_funcall(rn_t, rb_intern("code"), 0);
             rb_funcall(rcode, rb_intern("init"), 4, rtext, SIZET2NUM(find_trailing_blanks(StringValuePtr(rtext))), SIZET2NUM(l), SIZET2NUM(m));
             rb_funcall(rn_t, rb_intern("index="), 1, SIZET2NUM(NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0))));
@@ -1246,7 +1244,6 @@ static VALUE parse_term(VALUE rctx, VALUE rrule) {
         }
     }
     else {
-        n_t = n_r;
         rn_t = rn_r;
     }
     return rn_t;
@@ -1356,7 +1353,7 @@ static VALUE parse_rule(VALUE rctx) {
     {
         VALUE rexpr = parse_expression(rctx, rn_r);
         if (NIL_P(rexpr)) {
-            n_r->data.rule.expr = NULL;
+            rb_funcall(rn_r, rb_intern("expr="), 1, Qnil);;
             goto EXCEPTION;
         } else {
             TypedData_Get_Struct(rexpr, node_t, &packcr_ptr_data_type, n_r->data.rule.expr);
