@@ -839,14 +839,20 @@ static VALUE create_quantity_node() {
     return rnode;
 }
 
+static VALUE create_predicate_node() {
+    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
+    node_t *node;
+    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
+    node->type = NODE_PREDICATE;
+    node->data.predicate.neg = FALSE;
+    node->data.predicate.expr = NULL;
+    return rnode;
+}
+
 static node_t *create_node(node_type_t type) {
     node_t *const node = (node_t *)malloc_e(sizeof(node_t));
     node->type = type;
     switch (node->type) {
-    case NODE_PREDICATE:
-        node->data.predicate.neg = FALSE;
-        node->data.predicate.expr = NULL;
-        break;
     case NODE_SEQUENCE:
         node_array__init(&node->data.sequence.nodes);
         break;
@@ -1142,7 +1148,7 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
     node_t *n_q = NULL;
     node_t *n_r = NULL;
     node_t *n_t = NULL;
-    VALUE rn_q;
+    VALUE rn_r, rn_q;
     const char t = RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('&'))) ? '&' : RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('!'))) ? '!' : '\0';
     VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
     if (t) RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
@@ -1177,12 +1183,14 @@ static node_t *parse_term(VALUE rctx, VALUE rrule) {
     }
     switch (t) {
     case '&':
-        n_r = create_node(NODE_PREDICATE);
+        rn_r = create_predicate_node();
+        TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
         n_r->data.predicate.neg = FALSE;
         n_r->data.predicate.expr = n_q;
         break;
     case '!':
-        n_r = create_node(NODE_PREDICATE);
+        rn_r = create_predicate_node();
+        TypedData_Get_Struct(rn_r, node_t, &packcr_ptr_data_type, n_r);
         n_r->data.predicate.neg = TRUE;
         n_r->data.predicate.expr = n_q;
         break;
