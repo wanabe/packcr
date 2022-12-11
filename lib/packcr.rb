@@ -1456,7 +1456,7 @@ class Packcr::Context
     @rules.each do |rule|
       link_references(rule.expr)
     end
-    @rules[1..-1].each do |rule|
+    @rules[1..-1]&.each do |rule|
       if rule.ref == 0
         warn "#{@iname}:#{rule.line + 1}:#{rule.col + 1}: Never used rule '#{rule.name}'\n"
         @errnum += 1
