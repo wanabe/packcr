@@ -143,6 +143,17 @@ class Packcr
   end
 end
 
+class Packcr::CodeBlock
+  attr_reader :text, :len, :line
+
+  def initialize(text = nil, len = 0, line = VOID_VALUE, col = VOID_VALUE)
+    @text = text
+    @len = len
+    @line = line
+    @col = col
+  end
+end
+
 class Packcr::Stream
   def initialize(io, name, line)
     @io = io
@@ -1782,10 +1793,8 @@ class Packcr::Context
       q = @bufcur
       match_spaces
       outputs.each do |output|
-        code = Packcr::CodeBlock.new
+        code = Packcr::CodeBlock.new(@buffer.to_s[pos + 1, q - pos - 2], q - pos - 2, l, m)
         output.push(code)
-        text = @buffer.to_s[pos + 1, q - pos - 2]
-        code.init(text, q - pos - 2, l, m)
       end
     else
       warn "#{@iname}:#{l + 1}:#{m + 1}: Illegal #{name} syntax\n"
@@ -2027,8 +2036,7 @@ undef p
       codes = rule.codes
       match_spaces
       n_p = Packcr::Node::ActionNode.new
-      code = n_p.code
-      code.init(text, Packcr.find_trailing_blanks(text), l, m)
+      n_p.code = Packcr::CodeBlock.new(text, Packcr.find_trailing_blanks(text), l, m)
       n_p.index = codes.length
       codes.push(n_p)
     else
@@ -2110,8 +2118,7 @@ undef p
         match_spaces
         n_t = Packcr::Node::ErrorNode.new
         n_t.expr = n_r
-        code = n_t.code
-        code.init(text, Packcr.find_trailing_blanks(text), l2, m);
+        n_t.code = Packcr::CodeBlock.new(text, Packcr.find_trailing_blanks(text), l2, m);
         n_t.index = rcodes.length
         @codes.push(n_t)
       else
