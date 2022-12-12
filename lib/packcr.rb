@@ -105,6 +105,25 @@ class Packcr
       return j, e
     end
 
+    def find_trailing_blanks(str)
+      j = 0
+      i = 0
+      while str[i]
+        if (
+              str[i] != " "  &&
+              str[i] != "\v" &&
+              str[i] != "\f" &&
+              str[i] != "\t" &&
+              str[i] != "\n" &&
+              str[i] != "\r"
+            )
+          j = i + 1
+        end
+        i += 1
+      end
+      return j
+    end
+
     def count_indent_spaces(str, s, e)
       n = 0
       i = s
@@ -1109,6 +1128,35 @@ class Packcr::Node
     end
   end
 
+  class ReferenceNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::REFERENCE
+      self.var = nil
+      self.index = VOID_VALUE
+      self.name = nil
+      self.rule = nil
+      self.line = VOID_VALUE
+      self.col = VOID_VALUE
+    end
+  end
+
+  class StringNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::STRING;
+      self.value = nil
+    end
+  end
+
+  class CharclassNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::CHARCLASS
+      self.value = nil
+    end
+  end
+
   class QuantityNode < Packcr::Node
     def initialize
       super
@@ -1140,6 +1188,36 @@ class Packcr::Node
       super
       self.type = Packcr::Node::ALTERNATE
       self.nodes = nil
+    end
+  end
+
+  class CaptureNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::CAPTURE
+      self.expr = nil
+      self.index = VOID_VALUE
+    end
+  end
+
+  class ExpandNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::EXPAND
+      self.index = VOID_VALUE
+      self.line = VOID_VALUE
+      self.col = VOID_VALUE
+    end
+  end
+
+  class ActionNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::ACTION
+      self.code = nil
+      self.index = VOID_VALUE
+      self.vars = nil
+      self.capts = nil
     end
   end
 
@@ -1762,6 +1840,195 @@ class Packcr::Context
   end
 
   class StopParsing < StandardError
+  end
+undef p
+  def parse_primary(rule)
+    pos = @bufcur
+    l = @linenum
+    m = column_number
+    n = @charnum
+    o = @linepos
+    if match_identifier
+      q = @bufcur
+      r = s = VOID_VALUE
+      match_spaces
+      if match_character(":".ord)
+        match_spaces
+        r = @bufcur
+        if !match_identifier
+          raise StopParsing
+        end
+        s = @bufcur
+        match_spaces
+      end
+      if match_string("<-")
+        raise StopParsing
+      end
+
+      n_p = Packcr::Node::ReferenceNode.new
+      if r == VOID_VALUE
+        name = @buffer.to_s
+        name = name[pos, q - pos]
+        unless q >= pos
+          raise "Internal error"
+        end
+        n_p.var = nil
+        n_p.index = VOID_VALUE
+        n_p.name = name
+      else
+        var = @buffer.to_s
+        var = var[pos, q - pos]
+        unless s != VOID_VALUE # s should have a valid value when r has a valid value
+          raise "Internal error"
+        end
+        unless q >= pos
+          raise "Internal error"
+        end
+
+        n_p.var = var
+        if var.ord == "_".ord
+          warn "#{@iname}:#{l + 1}:#{m + 1}: Leading underscore in variable name '#{var}'"
+          @errnum += 1
+        end
+
+        i = rule.vars.index do |ref|
+          unless ref.type == ::Packcr::Node::REFERENCE
+            raise "Internal error"
+          end
+          var == ref.var
+        end
+        if !i
+          i = rule.vars.length
+          rule.add_var(n_p)
+        end
+        n_p.index = i
+        unless s >= r
+          raise "Internal error"
+        end
+
+        name = @buffer.to_s
+        name = name[r, s - r]
+        n_p.name = name
+      end
+      n_p.line = l
+      n_p.col = m
+    elsif match_character("(")
+      match_spaces
+      n_p = parse_expression(rule)
+      if !n_p
+        raise StopParsing
+      end
+      if !match_character(")")
+        raise StopParsing
+      end
+      match_spaces
+    elsif match_character("<")
+      capts = rule.capts
+      match_spaces
+      n_p = Packcr::Node::CaptureNode.new
+      n_p.index = capts.length
+      rule.add_capt(n_p)
+      expr = parse_expression(rule)
+      n_p.expr = expr
+      if !expr || !match_character(">")
+        rule.capts = rule.capts[0, n_p.index]
+        raise StopParsing
+      end
+      match_spaces
+    elsif match_character("$")
+      match_spaces
+      pos2 = @bufcur
+      if match_number
+        q = @bufcur
+        s = @buffer.to_s
+        s = s[pos2, q - pos2]
+        match_spaces
+        n_p = Packcr::Node::ExpandNode.new
+        unless q >= pos2
+          raise StopParsing
+        end
+        index = s.to_i
+        n_p.index = index
+        if index == VOID_VALUE
+          warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid unsigned number '#{s}'"
+          @errnum += 1
+        elsif index == 0
+          warn "#{@iname}:#{l + 1}:#{m + 1}: 0 not allowed"
+          @errnum += 1
+        elsif s.ord == "0".ord
+          warn "#{@iname}:#{l + 1}:#{m + 1}: 0-prefixed number not allowed"
+          @errnum += 1
+          n_p.index = 0
+        end
+        if index > 0 && index != VOID_VALUE
+          n_p.index = index - 1
+          n_p.line = l
+          n_p.col = m
+        end
+      else
+        raise StopParsing
+      end
+    elsif match_character(".")
+      match_spaces
+      n_p = Packcr::Node::CharclassNode.new
+      n_p.value = nil
+      if !@ascii
+        @utf8 = true
+      end
+    elsif match_character_class
+      q = @bufcur
+      charclass = @buffer.to_s
+      charclass = charclass[pos + 1, q - pos - 2]
+      match_spaces
+      n_p = Packcr::Node::CharclassNode.new
+      Packcr.unescape_string(charclass, true)
+      if !@ascii
+        charclass.force_encoding(Encoding::UTF_8)
+      end
+      if !@ascii && !charclass.valid_encoding?
+        warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid UTF-8 string"
+        @errnum += 1
+      end
+      if !@ascii && !charclass.empty?
+        @utf8 = true
+      end
+      n_p.value = charclass
+    elsif match_quotation_single || match_quotation_double
+      q = @bufcur
+      string = @buffer.to_s
+      string = string[pos + 1, q - pos - 2]
+      match_spaces
+      n_p = ::Packcr::Node::StringNode.new
+      Packcr.unescape_string(string, true)
+      if !@ascii
+        string.force_encoding(Encoding::UTF_8)
+      end
+      if !@ascii && !string.valid_encoding?
+        warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid UTF-8 string"
+        @errnum += 1
+      end
+      n_p.value = string
+    elsif match_code_block
+      q = @bufcur
+      text = @buffer.to_s
+      text = text[pos + 1, q - pos - 2]
+      codes = rule.codes
+      match_spaces
+      n_p = Packcr::Node::ActionNode.new
+      code = n_p.code
+      code.init(text, Packcr.find_trailing_blanks(text), l, m)
+      n_p.index = codes.length
+      codes.push(n_p)
+    else
+      raise StopParsing
+    end
+    n_p
+  rescue StopParsing
+    @bufcur = pos
+    @linenum = l
+    @charnum = n
+    @linepos = o
+    return nil
   end
 
   def parse_term(rule)

@@ -432,6 +432,31 @@ static VALUE packcr_node_code(VALUE self) {
     return rcode;
 }
 
+static VALUE packcr_node_set_code(VALUE self, VALUE rcode) {
+    node_t *node;
+    code_block_t *code, *c;
+    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
+
+    switch (node->type) {
+    case NODE_ACTION:
+        code = &node->data.action.code;
+        break;
+    case NODE_ERROR:
+        code = &node->data.error.code;
+        break;
+    default:
+        return Qnil;
+    }
+    if (NIL_P(rcode)) {
+        code_block__init(code);
+    } else {
+        TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, c);
+        *code = *c;
+    }
+    rb_ivar_set(self, rb_intern("@code"), rcode);
+    return rcode;
+}
+
 static VALUE packcr_node_neg(VALUE self) {
     node_t *node;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
@@ -609,11 +634,15 @@ static VALUE packcr_node_set_rule(VALUE self, VALUE rrule) {
     node_t *node;
     node_t *rule;
     TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-    TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
 
     switch (node->type) {
     case NODE_REFERENCE:
-        node->data.reference.rule = rule;
+        if (NIL_P(rrule)) {
+            node->data.reference.rule = NULL;
+        } else {
+            TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
+            node->data.reference.rule = rule;
+        }
         rb_ivar_set(self, rb_intern("@rule"), rrule);
         return rrule;
     default:
@@ -882,7 +911,6 @@ void Init_packcr(void) {
 
     cPackcr_Context = rb_const_get(cPackcr, rb_intern("Context"));
     rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);
-    rb_define_method(cPackcr_Context, "parse_primary", parse_primary, 1);
 
     cPackcr_CodeBlock = rb_define_class_under(cPackcr, "CodeBlock", rb_cObject);
     rb_define_alloc_func(cPackcr_CodeBlock, packcr_code_block_s_alloc);
@@ -921,6 +949,7 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "nodes", packcr_node_nodes, 0);
     rb_define_method(cPackcr_Node, "nodes=", packcr_node_set_nodes, 1);
     rb_define_method(cPackcr_Node, "code", packcr_node_code, 0);
+    rb_define_method(cPackcr_Node, "code=", packcr_node_set_code, 1);
     rb_define_method(cPackcr_Node, "neg", packcr_node_neg, 0);
     rb_define_method(cPackcr_Node, "neg=", packcr_node_set_neg, 1);
     rb_define_method(cPackcr_Node, "ref", packcr_node_ref, 0);
