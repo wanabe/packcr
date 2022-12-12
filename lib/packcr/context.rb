@@ -2321,7 +2321,7 @@ class Packcr
         @rules.each do |rule|
           rule.codes.each do |code|
             sstream.write(<<~EOS)
-              static void pcc_action_#{rule.name}_#{code.index}(#{@prefix}_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+              static void pcc_action_#{rule.name}_#{code.index}(#{prefix}_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
               #define auxil (__pcc_ctx->auxil)
               #define __ (*__pcc_out)
             EOS
