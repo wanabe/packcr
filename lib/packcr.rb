@@ -936,10 +936,10 @@ class Packcr::Generator
     if !node
       raise "Internal error"
     end
-    case node.type
-    when ::Packcr::Node::RULE
+    case node
+    when ::Packcr::Node::RuleNode
       raise "Internal error"
-    when ::Packcr::Node::REFERENCE
+    when ::Packcr::Node::ReferenceNode
       if node.index != nil
         @stream.write " " * indent
         @stream.write "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{node.name}, &chunk->thunks, &(chunk->values.buf[#{node.index}]))) goto L#{"%04d" % onfail};\n"
@@ -948,29 +948,29 @@ class Packcr::Generator
         @stream.write "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{node.name}, &chunk->thunks, NULL)) goto L#{"%04d" % onfail};\n"
       end
       return Packcr::CODE_REACH__BOTH
-    when ::Packcr::Node::STRING
+    when ::Packcr::Node::StringNode
       return generate_matching_string_code(node.value, onfail, indent, bare)
-    when ::Packcr::Node::CHARCLASS
+    when ::Packcr::Node::CharclassNode
       if @ascii
         return generate_matching_charclass_code(node.value, onfail, indent, bare)
       else
         return generate_matching_utf8_charclass_code(node.value, onfail, indent, bare)
       end
-    when ::Packcr::Node::QUANTITY
+    when ::Packcr::Node::QuantityNode
       return generate_quantifying_code(node.expr, node.min, node.max, onfail, indent, bare)
-    when ::Packcr::Node::PREDICATE
+    when ::Packcr::Node::PredicateNode
       return generate_predicating_code(node.expr, node.neg, onfail, indent, bare)
-    when ::Packcr::Node::SEQUENCE
+    when ::Packcr::Node::SequenceNode
       return generate_sequential_code(node.nodes, onfail, indent, bare)
-    when ::Packcr::Node::ALTERNATE
+    when ::Packcr::Node::AlternateNode
       return generate_alternative_code(node.nodes, onfail, indent, bare)
-    when ::Packcr::Node::CAPTURE
+    when ::Packcr::Node::CaptureNode
       return generate_capturing_code(node.expr, node.index, onfail, indent, bare)
-    when ::Packcr::Node::EXPAND
+    when ::Packcr::Node::ExpandNode
       return generate_expanding_code(node.index, onfail, indent, bare)
-    when ::Packcr::Node::ACTION
+    when ::Packcr::Node::ActionNode
       return generate_thunking_action_code(node.index, node.vars, node.capts, false, onfail, indent, bare)
-    when ::Packcr::Node::ERROR
+    when ::Packcr::Node::ErrorNode
       return generate_thunking_error_code(node.expr, node.index, node.vars, node.capts, onfail, indent, bare)
     else
       raise "Internal error"
@@ -1033,7 +1033,7 @@ class Packcr::Node
   attr_reader :codes
 
   attr_accessor :name, :expr, :index, :index, :vars, :capts, :nodes, :code, :neg, :ref, :var, :rule
-  attr_accessor :value, :min, :max, :type, :line, :col
+  attr_accessor :value, :min, :max, :line, :col
 
   def add_var(var)
     @vars << var
@@ -1057,54 +1057,54 @@ class Packcr::Node
   end
 
   def debug_dump(indent = 0)
-    case type
-    when Packcr::Node::RULE
+    case self
+    when Packcr::Node::RuleNode
       $stdout.print "#{" " * indent}Rule(name:'#{name}', ref:#{ref}, vars.len:#{vars.length}, capts.len:#{capts.length}, codes.len:#{codes.length}) {\n"
       expr.debug_dump(indent + 2);
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::REFERENCE
+    when Packcr::Node::ReferenceNode
       $stdout.print "#{" " * indent}Reference(var:'#{var || "(null)"}', index:"
       Packcr.dump_integer_value(index)
       $stdout.print ", name:'#{name}', rule:'#{rule&.name || "(null)"}')\n"
-    when Packcr::Node::STRING
+    when Packcr::Node::StringNode
       $stdout.print "#{" " * indent}String(value:'"
       Packcr.dump_escaped_string(value)
       $stdout.print "')\n"
-    when Packcr::Node::CHARCLASS
+    when Packcr::Node::CharclassNode
       $stdout.print "#{" " * indent}Charclass(value:'"
       Packcr.dump_escaped_string(value)
       $stdout.print "')\n"
-    when Packcr::Node::QUANTITY
+    when Packcr::Node::QuantityNode
       $stdout.print "#{" " * indent}Quantity(min:#{min}, max:#{max}) {\n"
       expr.debug_dump(indent + 2)
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::PREDICATE
+    when Packcr::Node::PredicateNode
       $stdout.print "#{" " * indent}Predicate(neg:#{neg ? 1 : 0}) {\n"
       expr.debug_dump(indent + 2)
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::SEQUENCE
+    when Packcr::Node::SequenceNode
       $stdout.print "#{" " * indent}Sequence(max:#{max}, len:#{nodes.length}) {\n"
       nodes.each do |child_node|
         child_node.debug_dump(indent + 2)
       end
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::ALTERNATE
+    when Packcr::Node::AlternateNode
       $stdout.print "#{" " * indent}Alternate(max:#{max}, len:#{nodes.length}) {\n"
       nodes.each do |child_node|
         child_node.debug_dump(indent + 2)
       end
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::CAPTURE
+    when Packcr::Node::CaptureNode
       $stdout.print "#{" " * indent}Capture(index:"
       Packcr.dump_integer_value(index)
       $stdout.print ") {\n"
       expr.debug_dump(indent + 2)
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::EXPAND
+    when Packcr::Node::ExpandNode
       $stdout.print "#{" " * indent}Expand(index:"
       Packcr.dump_integer_value(index)
       $stdout.print ")\n"
-    when Packcr::Node::ACTION
+    when Packcr::Node::ActionNode
       $stdout.print "#{" " * indent}Action(index:"
       Packcr.dump_integer_value(index)
       $stdout.print ", code:{"
@@ -1125,7 +1125,7 @@ class Packcr::Node
       else
         $stdout.print "none)\n"
       end
-    when Packcr::Node::ERROR
+    when Packcr::Node::ErrorNode
       $stdout.print "#{" " * indent}Error(index:"
       Packcr.dump_integer_value(index)
       $stdout.print ", code:{"
@@ -1148,7 +1148,6 @@ class Packcr::Node
   class RuleNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::RULE
       self.name = nil
       self.expr = nil
       self.ref = 0
@@ -1162,7 +1161,6 @@ class Packcr::Node
   class ReferenceNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::REFERENCE
       self.var = nil
       self.index = nil
       self.name = nil
@@ -1175,7 +1173,6 @@ class Packcr::Node
   class StringNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::STRING;
       self.value = nil
     end
   end
@@ -1183,7 +1180,6 @@ class Packcr::Node
   class CharclassNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::CHARCLASS
       self.value = nil
     end
   end
@@ -1191,7 +1187,6 @@ class Packcr::Node
   class QuantityNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::QUANTITY
       self.min = self.max = 0
       self.expr = nil
     end
@@ -1200,7 +1195,6 @@ class Packcr::Node
   class PredicateNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::PREDICATE
       self.neg = false
       self.expr = nil
     end
@@ -1209,7 +1203,6 @@ class Packcr::Node
   class SequenceNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::SEQUENCE
       self.nodes = []
     end
 
@@ -1223,7 +1216,6 @@ class Packcr::Node
   class AlternateNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::ALTERNATE
       self.nodes = []
     end
 
@@ -1237,7 +1229,6 @@ class Packcr::Node
   class CaptureNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::CAPTURE
       self.expr = nil
       self.index = nil
     end
@@ -1246,7 +1237,6 @@ class Packcr::Node
   class ExpandNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::EXPAND
       self.index = nil
       self.line = nil
       self.col = nil
@@ -1256,7 +1246,6 @@ class Packcr::Node
   class ActionNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::ACTION
       self.code = Packcr::CodeBlock.new
       self.index = nil
       self.vars = []
@@ -1267,7 +1256,6 @@ class Packcr::Node
   class ErrorNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::ERROR
       self.expr = nil
       self.code = Packcr::CodeBlock.new
       self.index = nil
@@ -1658,14 +1646,14 @@ class Packcr::Context
       return
     end
 
-    case node.type
-    when Packcr::Node::RULE
+    case node
+    when Packcr::Node::RuleNode
       raise "Internal error"
-    when Packcr::Node::REFERENCE
+    when Packcr::Node::ReferenceNode
       if node.index != nil
         found = vars.any? do |var|
-          unless var.type == Packcr::Node::REFERENCE
-            raise "unexpected var: #{var.type}"
+          unless var.is_a?(Packcr::Node::ReferenceNode)
+            raise "unexpected var: #{var.class}"
           end
           node.index == var.index
         end
@@ -1673,16 +1661,16 @@ class Packcr::Context
           vars.push(node)
         end
       end
-    when Packcr::Node::STRING, Packcr::Node::CHARCLASS
-    when Packcr::Node::QUANTITY
+    when Packcr::Node::StringNode, Packcr::Node::CharclassNode
+    when Packcr::Node::QuantityNode
       verify_variables(node.expr, vars)
-    when Packcr::Node::PREDICATE
+    when Packcr::Node::PredicateNode
       verify_variables(node.expr, vars)
-    when Packcr::Node::SEQUENCE
+    when Packcr::Node::SequenceNode
       node.nodes.each do |child_node|
         verify_variables(child_node, vars)
       end
-    when Packcr::Node::ALTERNATE
+    when Packcr::Node::AlternateNode
       m = vars.length
       nodes = node.nodes
       v = vars.dup
@@ -1698,12 +1686,12 @@ class Packcr::Context
           end
         end
       end
-    when Packcr::Node::CAPTURE
+    when Packcr::Node::CaptureNode
       verify_variables(node.expr, vars)
-    when Packcr::Node::EXPAND
-    when Packcr::Node::ACTION
+    when Packcr::Node::ExpandNode
+    when Packcr::Node::ActionNode
       node.vars = vars
-    when Packcr::Node::ERROR
+    when Packcr::Node::ErrorNode
       node.vars = vars
       verify_variables(node.expr, vars)
     else
@@ -1716,19 +1704,19 @@ class Packcr::Context
       return
     end
 
-    case node.type
-    when Packcr::Node::RULE
+    case node
+    when Packcr::Node::RuleNode
       raise "Internal error"
-    when Packcr::Node::REFERENCE, Packcr::Node::STRING, Packcr::Node::CHARCLASS
-    when Packcr::Node::QUANTITY
+    when Packcr::Node::ReferenceNode, Packcr::Node::StringNode, Packcr::Node::CharclassNode
+    when Packcr::Node::QuantityNode
       verify_captures(node.expr, capts)
-    when Packcr::Node::PREDICATE
+    when Packcr::Node::PredicateNode
       verify_captures(node.expr, capts)
-    when Packcr::Node::SEQUENCE
+    when Packcr::Node::SequenceNode
       node.nodes.each do |child_node|
         verify_captures(child_node, capts)
       end
-    when Packcr::Node::ALTERNATE
+    when Packcr::Node::AlternateNode
       m = capts.length
       nodes = node.nodes
       v = capts.dup
@@ -1739,13 +1727,13 @@ class Packcr::Context
           capts.push(added_node)
         end
       end
-    when Packcr::Node::CAPTURE
+    when Packcr::Node::CaptureNode
       verify_captures(node.expr, capts)
       capts.push(node)
-    when Packcr::Node::EXPAND
+    when Packcr::Node::ExpandNode
       found = capts.any? do |capt|
-        unless capt.type == Packcr::Node::CAPTURE
-          raise "unexpected capture: #{capt.type}"
+        unless capt.is_a?(Packcr::Node::CaptureNode)
+          raise "unexpected capture: #{capt.class}"
         end
         node.index == capt.index
       end
@@ -1753,9 +1741,9 @@ class Packcr::Context
         warn "#{@iname}:#{node.line + 1}:#{node.col + 1}: Capture #{node.index + 1} not available at this position\n"
         @errnum += 1
       end
-    when Packcr::Node::ACTION
+    when Packcr::Node::ActionNode
       node.capts = capts
-    when Packcr::Node::ERROR
+    when Packcr::Node::ErrorNode
       node.capts = capts
       verify_captures(node.expr, capts)
     else
@@ -1768,39 +1756,39 @@ class Packcr::Context
       return
     end
 
-    case node.type
-    when Packcr::Node::RULE
+    case node
+    when Packcr::Node::RuleNode
       raise "Internal error"
-    when Packcr::Node::REFERENCE
+    when Packcr::Node::ReferenceNode
       name = node.name
       rule = @rulehash[name]
       if !rule
         warn "#{@iname}:#{node.line + 1}:#{node.col + 1}: No definition of rule '#{node.name}'\n"
         @errnum += 1
       else
-        unless rule.type == Packcr::Node::RULE
-          raise "unexpected node type #{rule.type}"
+        unless rule.is_a?(Packcr::Node::RuleNode)
+          raise "unexpected node type #{rule.class}"
         end
         rule.add_ref
         node.rule = rule
       end
-    when Packcr::Node::STRING, Packcr::Node::CHARCLASS
-    when Packcr::Node::QUANTITY
+    when Packcr::Node::StringNode, Packcr::Node::CharclassNode
+    when Packcr::Node::QuantityNode
       link_references(node.expr)
-    when Packcr::Node::PREDICATE
+    when Packcr::Node::PredicateNode
       link_references(node.expr)
-    when Packcr::Node::SEQUENCE
+    when Packcr::Node::SequenceNode
       node.nodes.each do |child_node|
         link_references(child_node)
       end
-    when Packcr::Node::ALTERNATE
+    when Packcr::Node::AlternateNode
       node.nodes.each do |child_node|
         link_references(child_node)
       end
-    when Packcr::Node::CAPTURE
+    when Packcr::Node::CaptureNode
       link_references(node.expr)
-    when Packcr::Node::EXPAND, Packcr::Node::ACTION
-    when Packcr::Node::ERROR
+    when Packcr::Node::ExpandNode, Packcr::Node::ActionNode
+    when Packcr::Node::ErrorNode
       link_references(node.expr)
     else
       raise "Internal error"
@@ -1941,8 +1929,8 @@ undef p
         end
 
         i = rule.vars.index do |ref|
-          unless ref.type == ::Packcr::Node::REFERENCE
-            raise "Internal error"
+          unless ref.is_a?(Packcr::Node::ReferenceNode)
+            raise "Unexpected node type: #{ref.class}"
           end
           var == ref.var
         end
