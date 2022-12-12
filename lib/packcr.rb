@@ -1055,54 +1055,183 @@ class Packcr::Node
   end
 
   def debug_dump(indent = 0)
-    case self
-    when Packcr::Node::RuleNode
+    # raise "Internal error"
+  end
+
+  class RuleNode < Packcr::Node
+    def initialize
+      super
+      self.name = nil
+      self.expr = nil
+      self.ref = 0
+      self.vars = []
+      self.capts = []
+      self.line = nil
+      self.col = nil
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Rule(name:'#{name}', ref:#{ref}, vars.len:#{vars.length}, capts.len:#{capts.length}, codes.len:#{codes.length}) {\n"
-      expr.debug_dump(indent + 2);
+      expr.debug_dump(indent + 2)
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::ReferenceNode
+    end
+  end
+
+  class ReferenceNode < Packcr::Node
+    def initialize
+      super
+      self.var = nil
+      self.index = nil
+      self.name = nil
+      self.rule = nil
+      self.line = nil
+      self.col = nil
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Reference(var:'#{var || "(null)"}', index:"
       Packcr.dump_integer_value(index)
       $stdout.print ", name:'#{name}', rule:'#{rule&.name || "(null)"}')\n"
-    when Packcr::Node::StringNode
+    end
+  end
+
+  class StringNode < Packcr::Node
+    def initialize
+      super
+      self.value = nil
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}String(value:'"
       Packcr.dump_escaped_string(value)
       $stdout.print "')\n"
-    when Packcr::Node::CharclassNode
+    end
+  end
+
+  class CharclassNode < Packcr::Node
+    def initialize
+      super
+      self.value = nil
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Charclass(value:'"
       Packcr.dump_escaped_string(value)
       $stdout.print "')\n"
-    when Packcr::Node::QuantityNode
+    end
+  end
+
+  class QuantityNode < Packcr::Node
+    def initialize
+      super
+      self.min = self.max = 0
+      self.expr = nil
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Quantity(min:#{min}, max:#{max}) {\n"
       expr.debug_dump(indent + 2)
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::PredicateNode
+    end
+  end
+
+  class PredicateNode < Packcr::Node
+    def initialize
+      super
+      self.neg = false
+      self.expr = nil
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Predicate(neg:#{neg ? 1 : 0}) {\n"
       expr.debug_dump(indent + 2)
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::SequenceNode
+    end
+  end
+
+  class SequenceNode < Packcr::Node
+    def initialize
+      super
+      self.nodes = []
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Sequence(max:#{max}, len:#{nodes.length}) {\n"
       nodes.each do |child_node|
         child_node.debug_dump(indent + 2)
       end
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::AlternateNode
+    end
+
+    def max
+      m = 1
+      m <<= 1 while m < @nodes.length
+      m
+    end
+  end
+
+  class AlternateNode < Packcr::Node
+    def initialize
+      super
+      self.nodes = []
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Alternate(max:#{max}, len:#{nodes.length}) {\n"
       nodes.each do |child_node|
         child_node.debug_dump(indent + 2)
       end
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::CaptureNode
+    end
+
+    def max
+      m = 1
+      m <<= 1 while m < @nodes.length
+      m
+    end
+  end
+
+  class CaptureNode < Packcr::Node
+    def initialize
+      super
+      self.expr = nil
+      self.index = nil
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Capture(index:"
       Packcr.dump_integer_value(index)
       $stdout.print ") {\n"
       expr.debug_dump(indent + 2)
       $stdout.print "#{" " * indent}}\n"
-    when Packcr::Node::ExpandNode
+    end
+  end
+
+  class ExpandNode < Packcr::Node
+    def initialize
+      super
+      self.index = nil
+      self.line = nil
+      self.col = nil
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Expand(index:"
       Packcr.dump_integer_value(index)
       $stdout.print ")\n"
-    when Packcr::Node::ActionNode
+    end
+  end
+
+  class ActionNode < Packcr::Node
+    def initialize
+      super
+      self.code = Packcr::CodeBlock.new
+      self.index = nil
+      self.vars = []
+      self.capts = []
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Action(index:"
       Packcr.dump_integer_value(index)
       $stdout.print ", code:{"
@@ -1123,7 +1252,20 @@ class Packcr::Node
       else
         $stdout.print "none)\n"
       end
-    when Packcr::Node::ErrorNode
+    end
+  end
+
+  class ErrorNode < Packcr::Node
+    def initialize
+      super
+      self.expr = nil
+      self.code = Packcr::CodeBlock.new
+      self.index = nil
+      self.vars = []
+      self.capts = []
+    end
+
+    def debug_dump(indent = 0)
       $stdout.print "#{" " * indent}Error(index:"
       Packcr.dump_integer_value(index)
       $stdout.print ", code:{"
@@ -1138,127 +1280,6 @@ class Packcr::Node
       $stdout.print "#{" " * indent}) {\n"
       expr.debug_dump(indent + 2)
       $stdout.print "#{" " * indent}}\n"
-    else
-      raise "Internal error"
-    end
-  end
-
-  class RuleNode < Packcr::Node
-    def initialize
-      super
-      self.name = nil
-      self.expr = nil
-      self.ref = 0
-      self.vars = []
-      self.capts = []
-      self.line = nil
-      self.col = nil
-    end
-  end
-
-  class ReferenceNode < Packcr::Node
-    def initialize
-      super
-      self.var = nil
-      self.index = nil
-      self.name = nil
-      self.rule = nil
-      self.line = nil
-      self.col = nil
-    end
-  end
-
-  class StringNode < Packcr::Node
-    def initialize
-      super
-      self.value = nil
-    end
-  end
-
-  class CharclassNode < Packcr::Node
-    def initialize
-      super
-      self.value = nil
-    end
-  end
-
-  class QuantityNode < Packcr::Node
-    def initialize
-      super
-      self.min = self.max = 0
-      self.expr = nil
-    end
-  end
-
-  class PredicateNode < Packcr::Node
-    def initialize
-      super
-      self.neg = false
-      self.expr = nil
-    end
-  end
-
-  class SequenceNode < Packcr::Node
-    def initialize
-      super
-      self.nodes = []
-    end
-
-    def max
-      m = 1
-      m <<= 1 while m < @nodes.length
-      m
-    end
-  end
-
-  class AlternateNode < Packcr::Node
-    def initialize
-      super
-      self.nodes = []
-    end
-
-    def max
-      m = 1
-      m <<= 1 while m < @nodes.length
-      m
-    end
-  end
-
-  class CaptureNode < Packcr::Node
-    def initialize
-      super
-      self.expr = nil
-      self.index = nil
-    end
-  end
-
-  class ExpandNode < Packcr::Node
-    def initialize
-      super
-      self.index = nil
-      self.line = nil
-      self.col = nil
-    end
-  end
-
-  class ActionNode < Packcr::Node
-    def initialize
-      super
-      self.code = Packcr::CodeBlock.new
-      self.index = nil
-      self.vars = []
-      self.capts = []
-    end
-  end
-
-  class ErrorNode < Packcr::Node
-    def initialize
-      super
-      self.expr = nil
-      self.code = Packcr::CodeBlock.new
-      self.index = nil
-      self.vars = []
-      self.capts = []
     end
   end
 end
