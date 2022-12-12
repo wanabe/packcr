@@ -1201,7 +1201,7 @@ class Packcr
 
         EOS
 
-        if @prefix != "pcc"
+        if prefix != "pcc"
           sstream.write(<<~EOS)
             typedef #{prefix}_context_t pcc_context_t;
 
