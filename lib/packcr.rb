@@ -1031,6 +1031,26 @@ require "packcr.so"
 
 class Packcr::Node
   attr_reader :codes
+
+  attr_accessor :name, :expr, :index, :index, :vars, :capts, :nodes, :code, :neg, :ref, :var, :rule
+  attr_accessor :value, :min, :max, :type, :line, :col
+
+  def add_var(var)
+    @vars << var
+  end
+
+  def add_capt(capt)
+    @capts << capt
+  end
+
+  def add_node(node)
+    @nodes << node
+  end
+
+  def add_ref
+    @ref += 1
+  end
+
   def initialize
     super
     @codes = []
@@ -1132,8 +1152,8 @@ class Packcr::Node
       self.name = nil
       self.expr = nil
       self.ref = 0
-      self.vars = nil
-      self.capts = nil
+      self.vars = []
+      self.capts = []
       self.line = VOID_VALUE
       self.col = VOID_VALUE
     end
@@ -1190,7 +1210,7 @@ class Packcr::Node
     def initialize
       super
       self.type = Packcr::Node::SEQUENCE
-      self.nodes = nil
+      self.nodes = []
     end
 
     def max
@@ -1204,7 +1224,7 @@ class Packcr::Node
     def initialize
       super
       self.type = Packcr::Node::ALTERNATE
-      self.nodes = nil
+      self.nodes = []
     end
 
     def max
@@ -1239,8 +1259,8 @@ class Packcr::Node
       self.type = Packcr::Node::ACTION
       self.code = Packcr::CodeBlock.new
       self.index = VOID_VALUE
-      self.vars = nil
-      self.capts = nil
+      self.vars = []
+      self.capts = []
     end
   end
 
@@ -1251,8 +1271,8 @@ class Packcr::Node
       self.expr = nil
       self.code = Packcr::CodeBlock.new
       self.index = VOID_VALUE
-      self.vars = nil
-      self.capts = nil
+      self.vars = []
+      self.capts = []
     end
   end
 end

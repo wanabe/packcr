@@ -242,36 +242,3 @@ typedef enum code_reach_tag {
     CODE_REACH__ALWAYS_SUCCEED = 1,
     CODE_REACH__ALWAYS_FAIL = -1
 } code_reach_t;
-
-static const char *g_cmdname = "packcc"; /* replaced later with actual one */
-
-__attribute__((format(printf, 1, 2)))
-static int print_error(const char *format, ...) {
-    int n;
-    va_list a;
-    va_start(a, format);
-    n = fprintf(stderr, "%s: ", g_cmdname);
-    if (n >= 0) {
-        const int k = vfprintf(stderr, format, a);
-        if (k < 0) n = k; else n += k;
-    }
-    va_end(a);
-    return n;
-}
-
-static void *malloc_e(size_t size) {
-    void *const p = malloc(size);
-    if (p == NULL) {
-        print_error("Out of memory\n");
-        exit(3);
-    }
-    return p;
-}
-
-static char *strndup_e(const char *str, size_t len) {
-    const size_t m = strnlen(str, len);
-    char *const s = (char *)malloc_e(m + 1);
-    memcpy(s, str, m);
-    s[m] = '\0';
-    return s;
-}
