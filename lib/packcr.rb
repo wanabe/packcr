@@ -1027,8 +1027,6 @@ class Packcr::Buffer
   end
 end
 
-require "packcr.so"
-
 class Packcr::Node
   attr_reader :codes
 

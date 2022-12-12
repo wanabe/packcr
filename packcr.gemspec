@@ -10,8 +10,7 @@ Gem::Specification.new "packcr", "0.0.1" do |s|
   s.authors    = ["wanabe"]
   s.licenses   = ["MIT"]
 
-  s.files      = Dir.glob("{lib/**/*.rb,ext/**/*.{c,h}}")
-  s.extensions = %w[ext/packcr/extconf.rb]
+  s.files      = Dir.glob("lib/**/*.rb")
 
   s.add_development_dependency "rake-compiler"
 end

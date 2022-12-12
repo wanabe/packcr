@@ -3,4 +3,3 @@ Gemfile.lock
 *.so
 *.gem
 /tmp/
-/ext/packcr/Makefile
