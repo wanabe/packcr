@@ -1181,6 +1181,12 @@ class Packcr::Node
       self.type = Packcr::Node::SEQUENCE
       self.nodes = nil
     end
+
+    def max
+      m = 1
+      m <<= 1 while m < @nodes.length
+      m
+    end
   end
 
   class AlternateNode < Packcr::Node
@@ -1188,6 +1194,12 @@ class Packcr::Node
       super
       self.type = Packcr::Node::ALTERNATE
       self.nodes = nil
+    end
+
+    def max
+      m = 1
+      m <<= 1 while m < @nodes.length
+      m
     end
   end
 
@@ -1214,7 +1226,7 @@ class Packcr::Node
     def initialize
       super
       self.type = Packcr::Node::ACTION
-      self.code = nil
+      self.code = Packcr::CodeBlock.new
       self.index = VOID_VALUE
       self.vars = nil
       self.capts = nil
@@ -1226,7 +1238,7 @@ class Packcr::Node
       super
       self.type = Packcr::Node::ERROR
       self.expr = nil
-      self.code = nil
+      self.code = Packcr::CodeBlock.new
       self.index = VOID_VALUE
       self.vars = nil
       self.capts = nil

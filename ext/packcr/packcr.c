@@ -171,288 +171,58 @@ static VALUE packcr_node_set_index(VALUE self, VALUE index) {
 }
 
 static VALUE packcr_node_vars(VALUE self) {
-    node_t *node;
-    VALUE vars = rb_ary_new();
-    node_const_array_t *v;
-    size_t k;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_ACTION:
-        v = &node->data.action.vars;
-        break;
-    case NODE_ERROR:
-        v = &node->data.error.vars;
-        break;
-    case NODE_RULE:
-        v = &node->data.rule.vars;
-        break;
-    default:
-        return Qnil;
-    }
-    k = 0;
-    while (k < v->len) {
-        node_t *node = (node_t *)v->buf[k++];
-        VALUE rvar = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
-        rb_ary_push(vars, rvar);
-    }
-    return vars;
+    return rb_ivar_get(self, rb_intern("@vars"));
 }
 
 static VALUE packcr_node_set_vars(VALUE self, VALUE vars) {
-    node_t *node;
-    node_const_array_t *v;
-    size_t i;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_ACTION:
-        v = &node->data.action.vars;
-        break;
-    case NODE_ERROR:
-        v = &node->data.error.vars;
-        break;
-    case NODE_RULE:
-        v = &node->data.rule.vars;
-        break;
-    default:
-        return Qnil;
-    }
     if (NIL_P(vars)) {
-        node_const_array__init(v);
         vars = rb_ary_new();
-    } else {
-        node_const_array__clear(v);
-        for (i = 0; i < (size_t)RARRAY_LEN(vars); i++) {
-            VALUE rnode = rb_ary_entry(vars, i);
-            node_t *node;
-            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-            node_const_array__add(v, node);
-        }
     }
     rb_ivar_set(self, rb_intern("@vars"), vars);
     return vars;
 }
 
 static VALUE packcr_node_add_var(VALUE self, VALUE rnode) {
-    node_t *node;
-    node_const_array_t *v;
-    size_t i = 0;
-    VALUE vars = rb_ary_new();
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_ACTION:
-        v = &node->data.action.vars;
-        break;
-    case NODE_ERROR:
-        v = &node->data.error.vars;
-        break;
-    case NODE_RULE:
-        v = &node->data.rule.vars;
-        break;
-    default:
-        return Qnil;
-    }
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    node_const_array__add(v, node);
-    while (i < v->len) {
-        node_t *node = (node_t *)v->buf[i++];
-        VALUE rvar = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
-        rb_ary_push(vars, rvar);
-    }
-    rb_ivar_set(self, rb_intern("@vars"), vars);
+    VALUE rvars = rb_ivar_get(self, rb_intern("@vars"));
+    rb_ary_push(rvars, rnode);
     return rnode;
 }
 
 static VALUE packcr_node_capts(VALUE self) {
-    node_t *node;
-    VALUE capts = rb_ary_new();
-    node_const_array_t *v;
-    size_t k;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_ACTION:
-        v = &node->data.action.capts;
-        break;
-    case NODE_ERROR:
-        v = &node->data.error.capts;
-        break;
-    case NODE_RULE:
-        v = &node->data.rule.capts;
-        break;
-    default:
-        return Qnil;
-    }
-    k = 0;
-    while (k < v->len) {
-        node_t *node = (node_t *)v->buf[k++];
-        VALUE rnode = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
-        rb_ary_push(capts, rnode);
-    }
-    rb_ivar_set(self, rb_intern("@capts"), capts);
-    return capts;
+    return rb_ivar_get(self, rb_intern("@capts"));
 }
 
 static VALUE packcr_node_set_capts(VALUE self, VALUE capts) {
-    node_t *node;
-    node_const_array_t *v;
-    size_t i;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_ACTION:
-        v = &node->data.action.capts;
-        break;
-    case NODE_ERROR:
-        v = &node->data.error.capts;
-        break;
-    case NODE_RULE:
-        v = &node->data.rule.capts;
-        break;
-    default:
-        return Qnil;
-    }
     if (NIL_P(capts)) {
-        node_const_array__init(v);
         capts = rb_ary_new();
-    } else {
-        node_const_array__clear(v);
-        for (i = 0; i < (size_t)RARRAY_LEN(capts); i++) {
-            VALUE rnode = rb_ary_entry(capts, i);
-            node_t *node;
-            TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-            node_const_array__add(v, node);
-        }
     }
     rb_ivar_set(self, rb_intern("@capts"), capts);
     return capts;
 }
 
 static VALUE packcr_node_add_capt(VALUE self, VALUE rnode) {
-    node_t *node;
-    node_const_array_t *v;
-    size_t i;
-    VALUE capts;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_ACTION:
-        v = &node->data.action.capts;
-        break;
-    case NODE_ERROR:
-        v = &node->data.error.capts;
-        break;
-    case NODE_RULE:
-        v = &node->data.rule.capts;
-        break;
-    default:
-        return Qnil;
-    }
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    node_const_array__add(v, node);
-
-    i = 0;
-    capts = rb_ary_new();
-    while (i < v->len) {
-        node_t *node = (node_t *)v->buf[i++];
-        VALUE rcapt = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, node);
-        rb_ary_push(capts, rcapt);
-    }
-    rb_ivar_set(self, rb_intern("@capts"), capts);
+    VALUE rcapts = rb_ivar_get(self, rb_intern("@capts"));
+    rb_ary_push(rcapts, rnode);
     return rnode;
 }
 
 static VALUE packcr_node_nodes(VALUE self) {
-    node_t *node;
-    VALUE nodes = rb_ary_new();
-    node_array_t *a;
-    size_t i = 0;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_SEQUENCE:
-        a = &node->data.sequence.nodes;
-        break;
-    case NODE_ALTERNATE:
-        a = &node->data.alternate.nodes;
-        break;
-    default:
-        return Qnil;
-    }
-    while (i < a->len) {
-        node_t *n = (node_t *)a->buf[i++];
-        VALUE rn = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, n);
-        rb_ary_push(nodes, rn);
-    }
-    rb_ivar_set(self, rb_intern("@nodes"), nodes);
-    return nodes;
+    return rb_ivar_get(self, rb_intern("@nodes"));
 }
 
 static VALUE packcr_node_set_nodes(VALUE self, VALUE rnodes) {
-    node_t *node;
-    node_array_t *a;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_SEQUENCE:
-        a = &node->data.sequence.nodes;
-        break;
-    case NODE_ALTERNATE:
-        a = &node->data.alternate.nodes;
-        break;
-    default:
-        return Qnil;
-    }
     if (NIL_P(rnodes)) {
-        node_array__init(a);
+        rnodes = rb_ary_new();
     }
+    rb_ivar_set(self, rb_intern("@nodes"), rnodes);
     return rnodes;
 }
 
 static VALUE packcr_node_code(VALUE self) {
-    node_t *node;
-    code_block_t *code;
-    VALUE rcode;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_ACTION:
-        code = &node->data.action.code;
-        break;
-    case NODE_ERROR:
-        code = &node->data.error.code;
-        break;
-    default:
-        return Qnil;
-    }
-    rcode = TypedData_Wrap_Struct(cPackcr_CodeBlock, &packcr_ptr_data_type, code);
-    rb_ivar_set(self, rb_intern("@code"), rcode);
-    return rcode;
+    return rb_ivar_get(self, rb_intern("@code"));
 }
 
 static VALUE packcr_node_set_code(VALUE self, VALUE rcode) {
-    node_t *node;
-    code_block_t *code, *c;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_ACTION:
-        code = &node->data.action.code;
-        break;
-    case NODE_ERROR:
-        code = &node->data.error.code;
-        break;
-    default:
-        return Qnil;
-    }
-    if (NIL_P(rcode)) {
-        code_block__init(code);
-    } else {
-        TypedData_Get_Struct(rcode, code_block_t, &packcr_ptr_data_type, c);
-        *code = *c;
-    }
     rb_ivar_set(self, rb_intern("@code"), rcode);
     return rcode;
 }
@@ -510,65 +280,11 @@ static VALUE packcr_node_set_ref(VALUE self, VALUE ref) {
 }
 
 static VALUE packcr_node_expr(VALUE self) {
-    node_t *node;
-    node_t *expr;
-    VALUE rexpr;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_RULE:
-        expr = node->data.rule.expr;
-        break;
-    case NODE_QUANTITY:
-        expr = node->data.quantity.expr;
-        break;
-    case NODE_PREDICATE:
-        expr = node->data.predicate.expr;
-        break;
-    case NODE_CAPTURE:
-        expr = node->data.capture.expr;
-        break;
-    case NODE_ERROR:
-        expr = node->data.error.expr;
-        break;
-    default:
-        return Qnil;
-    }
-    rexpr = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, expr);
-    rb_ivar_set(self, rb_intern("@expr"), rexpr);
-    return rexpr;
+    return rb_ivar_get(self, rb_intern("@expr"));
 }
 
 static VALUE packcr_node_set_expr(VALUE self, VALUE rexpr) {
-    node_t *node;
-    node_t **e;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_RULE:
-        e = &node->data.rule.expr;
-        break;
-    case NODE_QUANTITY:
-        e = &node->data.quantity.expr;
-        break;
-    case NODE_PREDICATE:
-        e = &node->data.predicate.expr;
-        break;
-    case NODE_CAPTURE:
-        e = &node->data.capture.expr;
-        break;
-    case NODE_ERROR:
-        e = &node->data.error.expr;
-        break;
-    default:
-        return Qnil;
-    }
-    if (NIL_P(rexpr)) {
-        *e = NULL;
-    } else {
-        rb_ivar_set(self, rb_intern("@expr"), rexpr);
-        TypedData_Get_Struct(rexpr, node_t, &packcr_ptr_data_type, *e);
-    }
+    rb_ivar_set(self, rb_intern("@expr"), rexpr);
     return rexpr;
 }
 
@@ -610,44 +326,12 @@ static VALUE packcr_node_set_var(VALUE self, VALUE var) {
 }
 
 static VALUE packcr_node_rule(VALUE self) {
-    node_t *node;
-    node_t *rule;
-    VALUE rrule;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_REFERENCE:
-        rule = (node_t *)node->data.reference.rule;
-        break;
-    default:
-        rule = NULL;
-    }
-    if (rule == NULL) {
-        return Qnil;
-    }
-    rrule = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, rule);
-    rb_ivar_set(self, rb_intern("@rule"), rrule);
-    return rrule;
+    return rb_ivar_get(self, rb_intern("@rule"));
 }
 
 static VALUE packcr_node_set_rule(VALUE self, VALUE rrule) {
-    node_t *node;
-    node_t *rule;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-
-    switch (node->type) {
-    case NODE_REFERENCE:
-        if (NIL_P(rrule)) {
-            node->data.reference.rule = NULL;
-        } else {
-            TypedData_Get_Struct(rrule, node_t, &packcr_ptr_data_type, rule);
-            node->data.reference.rule = rule;
-        }
-        rb_ivar_set(self, rb_intern("@rule"), rrule);
-        return rrule;
-    default:
-        return Qnil;
-    }
+    rb_ivar_set(self, rb_intern("@rule"), rrule);
+    return rrule;
 }
 
 static VALUE packcr_node_value(VALUE self) {
@@ -849,33 +533,8 @@ static VALUE packcr_node_add_ref(VALUE self) {
 }
 
 static VALUE packcr_node_add_node(VALUE self, VALUE child) {
-    node_t *node, *cchild;
-    node_array_t *a;
-    VALUE rnodes;
-    size_t i;
-    TypedData_Get_Struct(self, node_t, &packcr_ptr_data_type, node);
-    TypedData_Get_Struct(child, node_t, &packcr_ptr_data_type, cchild);
-
-    switch (node->type) {
-    case NODE_SEQUENCE:
-        a = &node->data.sequence.nodes;
-        break;
-    case NODE_ALTERNATE:
-        a = &node->data.alternate.nodes;
-        break;
-    default:
-        return Qnil;
-    }
-    node_array__add(a, cchild);
-
-    i = 0;
-    rnodes = rb_ary_new();
-    while (i < a->len) {
-        node_t *n = (node_t *)a->buf[i++];
-        VALUE rn = TypedData_Wrap_Struct(cPackcr_Node, &packcr_ptr_data_type, n);
-        rb_ary_push(rnodes, rn);
-    }
-    rb_ivar_set(self, rb_intern("@nodes"), rnodes);
+    VALUE rnodes = rb_ivar_get(self, rb_intern("@nodes"));
+    rb_ary_push(rnodes, child);
     return self;
 }
 

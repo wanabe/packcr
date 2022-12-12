@@ -130,20 +130,17 @@ typedef enum node_type_tag {
 typedef struct node_tag node_t;
 
 typedef struct node_array_tag {
-    node_t **buf;
     size_t max;
     size_t len;
 } node_array_t;
 
 typedef struct node_const_array_tag {
-    const node_t **buf;
     size_t max;
     size_t len;
 } node_const_array_t;
 
 typedef struct node_rule_tag {
     char *name;
-    node_t *expr;
     int ref; /* mutable */
     node_const_array_t vars;
     node_const_array_t capts;
@@ -155,7 +152,6 @@ typedef struct node_reference_tag {
     char *var; /* NULL if no variable name */
     size_t index;
     char *name;
-    const node_t *rule;
     size_t line;
     size_t col;
 } node_reference_t;
@@ -171,12 +167,10 @@ typedef struct node_charclass_tag {
 typedef struct node_quantity_tag {
     int min;
     int max;
-    node_t *expr;
 } node_quantity_t;
 
 typedef struct node_predicate_tag {
     bool_t neg;
-    node_t *expr;
 } node_predicate_t;
 
 typedef struct node_sequence_tag {
@@ -188,7 +182,6 @@ typedef struct node_alternate_tag {
 } node_alternate_t;
 
 typedef struct node_capture_tag {
-    node_t *expr;
     size_t index;
 } node_capture_t;
 
@@ -206,7 +199,6 @@ typedef struct node_action_tag {
 } node_action_t;
 
 typedef struct node_error_tag {
-    node_t *expr;
     code_block_t code;
     size_t index;
     node_const_array_t vars;
@@ -276,139 +268,10 @@ static void *malloc_e(size_t size) {
     return p;
 }
 
-static void *realloc_e(void *ptr, size_t size) {
-    void *const p = realloc(ptr, size);
-    if (p == NULL) {
-        print_error("Out of memory\n");
-        exit(3);
-    }
-    return p;
-}
-
 static char *strndup_e(const char *str, size_t len) {
     const size_t m = strnlen(str, len);
     char *const s = (char *)malloc_e(m + 1);
     memcpy(s, str, m);
     s[m] = '\0';
     return s;
-}
-
-static void code_block__init(code_block_t *code) {
-    code->text = NULL;
-    code->len = 0;
-    code->line = VOID_VALUE;
-    code->col = VOID_VALUE;
-}
-
-static void code_block__term(code_block_t *code) {
-    free(code->text);
-}
-
-static void node_array__init(node_array_t *array) {
-    array->len = 0;
-    array->max = 0;
-    array->buf = NULL;
-}
-
-static void node_array__add(node_array_t *array, node_t *node) {
-    if (array->max <= array->len) {
-        const size_t n = array->len + 1;
-        size_t m = array->max;
-        if (m == 0) m = ARRAY_MIN_SIZE;
-        while (m < n && m != 0) m <<= 1;
-        if (m == 0) m = n; /* in case of shift overflow */
-        array->buf = (node_t **)realloc_e(array->buf, sizeof(node_t *) * m);
-        array->max = m;
-    }
-    array->buf[array->len++] = node;
-}
-
-static void destroy_node(node_t *node);
-
-static void node_array__term(node_array_t *array) {
-    while (array->len > 0) {
-        array->len--;
-        destroy_node(array->buf[array->len]);
-    }
-    free(array->buf);
-}
-
-static void node_const_array__init(node_const_array_t *array) {
-    array->len = 0;
-    array->max = 0;
-    array->buf = NULL;
-}
-
-static void node_const_array__add(node_const_array_t *array, const node_t *node) {
-    if (array->max <= array->len) {
-        const size_t n = array->len + 1;
-        size_t m = array->max;
-        if (m == 0) m = ARRAY_MIN_SIZE;
-        while (m < n && m != 0) m <<= 1;
-        if (m == 0) m = n; /* in case of shift overflow */
-        array->buf = (const node_t **)realloc_e((node_t **)array->buf, sizeof(const node_t *) * m);
-        array->max = m;
-    }
-    array->buf[array->len++] = node;
-}
-
-static void node_const_array__clear(node_const_array_t *array) {
-    array->len = 0;
-}
-
-static void node_const_array__term(node_const_array_t *array) {
-    free((node_t **)array->buf);
-}
-
-static void destroy_node(node_t *node) {
-    if (node == NULL) return;
-    switch (node->type) {
-    case NODE_RULE:
-        node_const_array__term(&node->data.rule.capts);
-        node_const_array__term(&node->data.rule.vars);
-        destroy_node(node->data.rule.expr);
-        free(node->data.rule.name);
-        break;
-    case NODE_REFERENCE:
-        free(node->data.reference.name);
-        free(node->data.reference.var);
-        break;
-    case NODE_STRING:
-        free(node->data.string.value);
-        break;
-    case NODE_CHARCLASS:
-        free(node->data.charclass.value);
-        break;
-    case NODE_QUANTITY:
-        destroy_node(node->data.quantity.expr);
-        break;
-    case NODE_PREDICATE:
-        destroy_node(node->data.predicate.expr);
-        break;
-    case NODE_SEQUENCE:
-        node_array__term(&node->data.sequence.nodes);
-        break;
-    case NODE_ALTERNATE:
-        node_array__term(&node->data.alternate.nodes);
-        break;
-    case NODE_CAPTURE:
-        destroy_node(node->data.capture.expr);
-        break;
-    case NODE_EXPAND:
-        break;
-    case NODE_ACTION:
-        node_const_array__term(&node->data.action.capts);
-        node_const_array__term(&node->data.action.vars);
-        code_block__term(&node->data.action.code);
-        break;
-    case NODE_ERROR:
-        node_const_array__term(&node->data.error.capts);
-        node_const_array__term(&node->data.error.vars);
-        code_block__term(&node->data.error.code);
-        destroy_node(node->data.error.expr);
-        break;
-    default:
-        print_error("Internal error [%d]\n", __LINE__);
-        exit(-1);
-    }
 }
