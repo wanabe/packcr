@@ -1,4 +1,4 @@
-Gem::Specification.new "packcr", "0.0.1" do |s|
+Gem::Specification.new do |s|
   version_module = Module.new do
     version_rb = File.join(__dir__, "lib/packcr/version.rb")
     module_eval(File.read(version_rb), version_rb)
