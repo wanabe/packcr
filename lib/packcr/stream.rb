@@ -46,11 +46,16 @@ class Packcr
     end
 
     def write_line_directive(fname, lineno)
+      return unless @line
       write("#line #{lineno + 1} \"")
       fname.each_byte do |b|
         write(Packcr.escape_character(b))
       end
       write("\"\n")
+    end
+
+    def write_output_line_directive
+      write_line_directive(@name, @line)
     end
 
     def write_code_block(code, indent, fname)
@@ -73,9 +78,7 @@ class Packcr
         i += 1
       end
       if i < j
-        if @line
-          write_line_directive(fname, lineno)
-        end
+        write_line_directive(fname, lineno)
         if ptr[i] != "#"
           write " " * indent
         end
@@ -91,7 +94,7 @@ class Packcr
         while i < len
           j, h = Packcr.find_first_trailing_space(ptr, i, len)
           if i < j
-            if @line && !b
+            if !b
               write_line_directive(fname, lineno)
             end
             if ptr[i] != "#"
@@ -131,8 +134,8 @@ class Packcr
           i = h
         end
       end
-      if @line && b
-        write_line_directive(@name, @line)
+      if b
+        write_output_line_directive
       end
     end
   end
