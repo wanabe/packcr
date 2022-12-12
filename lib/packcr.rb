@@ -1897,7 +1897,7 @@ class Packcr::Context
 
   class StopParsing < StandardError
   end
-undef p
+
   def parse_primary(rule)
     pos = @bufcur
     l = @linenum
