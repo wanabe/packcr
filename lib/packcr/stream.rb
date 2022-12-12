@@ -6,19 +6,6 @@ class Packcr
       @line = line
     end
 
-    def putc(c)
-      @io.putc(c)
-      if @line && c.chr == "\n"
-        @line += 1
-      end
-    end
-
-    def write_characters(c, n)
-      n.times do
-        putc(c)
-      end
-    end
-
     def write(s)
       @io.write(s)
       if @line
@@ -27,22 +14,7 @@ class Packcr
     end
 
     def write_text(s)
-      skip_char = nil
-
-      s.each_byte do |c|
-        if c == skip_char
-          skip_char = nil
-          next
-        end
-        skip_char = nil
-
-        if c == 0xd
-          skip_char = 0xa
-          putc(0xa)
-        else
-          putc(c)
-        end
-      end
+      write s.gsub(/\r\n/, "\n")
     end
 
     def write_line_directive(fname, lineno)
@@ -83,7 +55,7 @@ class Packcr
           write " " * indent
         end
         write_text(ptr[i, j - i])
-        putc "\n".ord
+        write "\n"
         b = true
       else
         lineno += 1
@@ -126,10 +98,10 @@ class Packcr
               write " " * (l - m + indent)
             end
             write_text(ptr[i, j - i])
-            putc "\n"
+            write "\n"
             b = true
           elsif h < len
-            putc "\n"
+            write "\n"
           end
           i = h
         end

@@ -2451,7 +2451,7 @@ class Packcr
 
         eol?
         if !eof?
-          sstream.putc("\n")
+          sstream.write("\n")
         end
         commit_buffer
         if @lines && !eof?
