@@ -7,7 +7,6 @@ VALUE cPackcr, cPackcr_Node;
 
 void Init_packcr(void) {
     cPackcr = rb_const_get(rb_cObject, rb_intern("Packcr"));
-    rb_const_set(rb_cObject, rb_intern("VOID_VALUE"), SIZET2NUM(VOID_VALUE));
 
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_const_set(cPackcr_Node, rb_intern("RULE"), INT2NUM(NODE_RULE));

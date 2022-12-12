@@ -66,7 +66,7 @@ class Packcr
     end
 
     def dump_integer_value(value)
-      if value == VOID_VALUE
+      if value == nil
         $stdout.print "void"
       else
         $stdout.print value
@@ -146,7 +146,7 @@ end
 class Packcr::CodeBlock
   attr_reader :text, :len, :line
 
-  def initialize(text = nil, len = 0, line = VOID_VALUE, col = VOID_VALUE)
+  def initialize(text = nil, len = 0, line = nil, col = nil)
     @text = text
     @len = len
     @line = line
@@ -215,7 +215,7 @@ class Packcr::Stream
     ptr = text.b
     len = code.len
     lineno = code.line
-    if len == VOID_VALUE
+    if len == nil
       return # for safety
     end
 
@@ -241,7 +241,7 @@ class Packcr::Stream
       lineno += 1
     end
     if k < len
-      m = VOID_VALUE
+      m = nil
       i = k
       while i < len
         j, h = Packcr.find_first_trailing_space(ptr, i, len)
@@ -251,7 +251,7 @@ class Packcr::Stream
           end
           if ptr[i] != "#"
             l, = Packcr.count_indent_spaces(ptr, i, j)
-            if m == VOID_VALUE || m > l
+            if m == nil || m > l
               m = l
             end
           end
@@ -269,7 +269,7 @@ class Packcr::Stream
         if i < j
           l, i = Packcr.count_indent_spaces(ptr, i, j)
           if ptr[i] != "#"
-            if m == VOID_VALUE
+            if m == nil
               raise "m must have a valid value"
             end
             unless l >= m
@@ -940,7 +940,7 @@ class Packcr::Generator
     when ::Packcr::Node::RULE
       raise "Internal error"
     when ::Packcr::Node::REFERENCE
-      if node.index != VOID_VALUE
+      if node.index != nil
         @stream.write " " * indent
         @stream.write "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{node.name}, &chunk->thunks, &(chunk->values.buf[#{node.index}]))) goto L#{"%04d" % onfail};\n"
       else
@@ -1154,8 +1154,8 @@ class Packcr::Node
       self.ref = 0
       self.vars = []
       self.capts = []
-      self.line = VOID_VALUE
-      self.col = VOID_VALUE
+      self.line = nil
+      self.col = nil
     end
   end
 
@@ -1164,11 +1164,11 @@ class Packcr::Node
       super
       self.type = Packcr::Node::REFERENCE
       self.var = nil
-      self.index = VOID_VALUE
+      self.index = nil
       self.name = nil
       self.rule = nil
-      self.line = VOID_VALUE
-      self.col = VOID_VALUE
+      self.line = nil
+      self.col = nil
     end
   end
 
@@ -1239,7 +1239,7 @@ class Packcr::Node
       super
       self.type = Packcr::Node::CAPTURE
       self.expr = nil
-      self.index = VOID_VALUE
+      self.index = nil
     end
   end
 
@@ -1247,9 +1247,9 @@ class Packcr::Node
     def initialize
       super
       self.type = Packcr::Node::EXPAND
-      self.index = VOID_VALUE
-      self.line = VOID_VALUE
-      self.col = VOID_VALUE
+      self.index = nil
+      self.line = nil
+      self.col = nil
     end
   end
 
@@ -1258,7 +1258,7 @@ class Packcr::Node
       super
       self.type = Packcr::Node::ACTION
       self.code = Packcr::CodeBlock.new
-      self.index = VOID_VALUE
+      self.index = nil
       self.vars = []
       self.capts = []
     end
@@ -1270,7 +1270,7 @@ class Packcr::Node
       self.type = Packcr::Node::ERROR
       self.expr = nil
       self.code = Packcr::CodeBlock.new
-      self.index = VOID_VALUE
+      self.index = nil
       self.vars = []
       self.capts = []
     end
@@ -1662,7 +1662,7 @@ class Packcr::Context
     when Packcr::Node::RULE
       raise "Internal error"
     when Packcr::Node::REFERENCE
-      if node.index != VOID_VALUE
+      if node.index != nil
         found = vars.any? do |var|
           unless var.type == Packcr::Node::REFERENCE
             raise "unexpected var: #{var.type}"
@@ -1749,7 +1749,7 @@ class Packcr::Context
         end
         node.index == capt.index
       end
-      if !found && node.index != Packcr::VOID_VALUE
+      if !found && node.index != Packcr::nil
         warn "#{@iname}:#{node.line + 1}:#{node.col + 1}: Capture #{node.index + 1} not available at this position\n"
         @errnum += 1
       end
@@ -1899,7 +1899,7 @@ undef p
     o = @linepos
     if match_identifier
       q = @bufcur
-      r = s = VOID_VALUE
+      r = s = nil
       match_spaces
       if match_character(":".ord)
         match_spaces
@@ -1915,19 +1915,19 @@ undef p
       end
 
       n_p = Packcr::Node::ReferenceNode.new
-      if r == VOID_VALUE
+      if r == nil
         name = @buffer.to_s
         name = name[pos, q - pos]
         unless q >= pos
           raise "Internal error"
         end
         n_p.var = nil
-        n_p.index = VOID_VALUE
+        n_p.index = nil
         n_p.name = name
       else
         var = @buffer.to_s
         var = var[pos, q - pos]
-        unless s != VOID_VALUE # s should have a valid value when r has a valid value
+        unless s != nil # s should have a valid value when r has a valid value
           raise "Internal error"
         end
         unless q >= pos
@@ -1998,7 +1998,7 @@ undef p
         end
         index = s.to_i
         n_p.index = index
-        if index == VOID_VALUE
+        if index == nil
           warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid unsigned number '#{s}'"
           @errnum += 1
         elsif index == 0
@@ -2009,7 +2009,7 @@ undef p
           @errnum += 1
           n_p.index = 0
         end
-        if index > 0 && index != VOID_VALUE
+        if index > 0 && index != nil
           n_p.index = index - 1
           n_p.line = l
           n_p.col = m
