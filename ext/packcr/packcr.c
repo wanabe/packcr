@@ -1,7 +1,7 @@
 #include <ruby.h>
 #include <ruby/encoding.h>
 
-VALUE cPackcr, cPackcr_CodeBlock, cPackcr_Node, cPackcr_Stream, cPackcr_Generator;
+VALUE cPackcr, cPackcr_Node;
 
 static void packcr_ptr_mark(void *ptr) {
 }
@@ -548,8 +548,4 @@ void Init_packcr(void) {
     rb_define_method(cPackcr_Node, "col=", packcr_node_set_col, 1);
     rb_define_method(cPackcr_Node, "add_ref", packcr_node_add_ref, 0);
     rb_define_method(cPackcr_Node, "add_node", packcr_node_add_node, 1);
-
-    cPackcr_Stream = rb_const_get(cPackcr, rb_intern("Stream"));
-
-    cPackcr_Generator = rb_const_get(cPackcr, rb_intern("Generator"));
 }
