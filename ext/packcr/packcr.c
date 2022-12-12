@@ -491,38 +491,9 @@ static VALUE packcr_node_add_node(VALUE self, VALUE child) {
     return self;
 }
 
-static VALUE packcr_context_initialize(int argc, VALUE *argv, VALUE self) {
-    VALUE path, arg, hash;
-
-    rb_scan_args(argc, argv, "1:", &arg, &hash);
-    path = rb_check_string_type(arg);
-    if (NIL_P(path)) {
-        rb_raise(rb_eArgError, "bad path: %"PRIsVALUE, rb_inspect(arg));
-    }
-
-    if (NIL_P(hash)) {
-        rb_funcall(self, rb_intern("init"), 1, path);
-    } else {
-        VALUE  args[2];
-        args[0] = path;
-        args[1] = hash;
-        rb_funcallv_kw(self, rb_intern("init"), 2, args, 1);
-    }
-
-    if (rb_block_given_p()) {
-        rb_yield(self);
-    }
-    return self;
-}
-
 void Init_packcr(void) {
-    VALUE cPackcr_Context;
-
     cPackcr = rb_const_get(rb_cObject, rb_intern("Packcr"));
     rb_const_set(rb_cObject, rb_intern("VOID_VALUE"), SIZET2NUM(VOID_VALUE));
-
-    cPackcr_Context = rb_const_get(cPackcr, rb_intern("Context"));
-    rb_define_method(cPackcr_Context, "initialize", packcr_context_initialize, -1);
 
     cPackcr_Node = rb_define_class_under(cPackcr, "Node", rb_cObject);
     rb_const_set(cPackcr_Node, rb_intern("RULE"), INT2NUM(NODE_RULE));

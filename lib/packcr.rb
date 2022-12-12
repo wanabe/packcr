@@ -1258,7 +1258,11 @@ class Packcr::Node
 end
 
 class Packcr::Context
-  def init(path, lines: false, debug: false, ascii: false)
+  def initialize(path, lines: false, debug: false, ascii: false)
+    if !path
+      raise ArgumentError, "bad path: #{path}";
+    end
+
     @iname = path
     @ifile = File.open(path, "rb")
     dirname = File.dirname(path)
@@ -1290,6 +1294,10 @@ class Packcr::Context
     @rules = []
     @rulehash = {}
     @buffer = Packcr::Buffer.new
+
+    if block_given?
+      yield(self)
+    end
   end
 
   def value_type
