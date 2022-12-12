@@ -405,21 +405,6 @@ static VALUE create_action_node() {
     return rnode;
 }
 
-static VALUE create_error_node() {
-    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
-    node_t *node;
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    node->type = NODE_ERROR;
-    rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
-    code_block__init(&node->data.error.code);
-    rb_funcall(rnode, rb_intern("index="), 1, SIZET2NUM(VOID_VALUE));
-    node_const_array__init(&node->data.error.vars);
-    node_const_array__init(&node->data.error.capts);
-    rb_funcall(rnode, rb_intern("vars="), 1, rb_ary_new());
-    rb_funcall(rnode, rb_intern("capts="), 1, rb_ary_new());
-    return rnode;
-}
-
 static VALUE create_reference_node() {
     VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
     node_t *node;
@@ -450,26 +435,6 @@ static VALUE create_charclass_node() {
     TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
     node->type = NODE_CHARCLASS;
     node->data.charclass.value = NULL;
-    return rnode;
-}
-
-static VALUE create_quantity_node() {
-    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
-    node_t *node;
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    node->type = NODE_QUANTITY;
-    node->data.quantity.min = node->data.quantity.max = 0;
-    rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
-    return rnode;
-}
-
-static VALUE create_predicate_node() {
-    VALUE rnode = rb_funcall(cPackcr_Node, rb_intern("new"), 0);
-    node_t *node;
-    TypedData_Get_Struct(rnode, node_t, &packcr_ptr_data_type, node);
-    node->type = NODE_PREDICATE;
-    node->data.predicate.neg = FALSE;
-    rb_funcall(rnode, rb_intern("expr="), 1, Qnil);;
     return rnode;
 }
 
@@ -734,91 +699,6 @@ static VALUE parse_primary(VALUE rctx, VALUE rrule) {
         goto EXCEPTION;
     }
     return rn_p;
-
-EXCEPTION:;
-    rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(p));
-    rb_ivar_set(rctx, rb_intern("@linenum"), SIZET2NUM(l));
-    rb_ivar_set(rctx, rb_intern("@charnum"), SIZET2NUM(n));
-    rb_ivar_set(rctx, rb_intern("@linepos"), SIZET2NUM(o));
-    return Qnil;
-}
-
-static VALUE parse_term(VALUE rctx, VALUE rrule) {
-    const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-    const size_t l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-    const size_t n = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@charnum")));
-    const size_t o = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linepos")));
-    VALUE rn_p, rn_r, rn_q, rn_t;
-    const char t = RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('&'))) ? '&' : RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('!'))) ? '!' : '\0';
-    VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    if (t) RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-    rn_p = parse_primary(rctx, rrule);
-    if (NIL_P(rn_p)) goto EXCEPTION;
-    if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('*')))) {
-        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-        rn_q = create_quantity_node();
-        rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(0));
-        rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(-1));
-        rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
-    }
-    else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('+')))) {
-        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-        rn_q = create_quantity_node();
-        rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(1));
-        rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(-1));
-        rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
-    }
-    else if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('?')))) {
-        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-        rn_q = create_quantity_node();
-        rb_funcall(rn_q, rb_intern("min="), 1, INT2NUM(0));
-        rb_funcall(rn_q, rb_intern("max="), 1, INT2NUM(1));
-        rb_funcall(rn_q, rb_intern("expr="), 1, rn_p);
-    }
-    else {
-        rn_q = rn_p;
-    }
-    switch (t) {
-    case '&':
-        rn_r = create_predicate_node();
-        rb_funcall(rn_r, rb_intern("neg="), 1, Qfalse);
-        rb_funcall(rn_r, rb_intern("expr="), 1, rn_q);
-        break;
-    case '!':
-        rn_r = create_predicate_node();
-        rb_funcall(rn_r, rb_intern("neg="), 1, Qtrue);
-        rb_funcall(rn_r, rb_intern("expr="), 1, rn_q);
-        break;
-    default:
-        rn_r = rn_q;
-    }
-    if (RB_TEST(rb_funcall(rctx, rb_intern("match_character"), 1, INT2NUM('~')))) {
-        size_t p, l, m;
-        RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-        p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-        l = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@linenum")));
-        m = NUM2SIZET(rb_funcall(rctx, rb_intern("column_number"), 0));
-        if (RB_TEST(rb_funcall(rctx, rb_intern("match_code_block"), 0))) {
-            const size_t q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@bufcur")));
-            VALUE rcode, rcodes = rb_ivar_get(rrule, rb_intern("@codes"));
-            VALUE rtext = rb_funcall(rbuffer, rb_intern("to_s"), 0);
-            rtext = rb_funcall(rtext, rb_intern("[]"), 2, SIZET2NUM(p + 1), SIZET2NUM(q - p - 2));
-            RB_TEST(rb_funcall(rctx, rb_intern("match_spaces"), 0));
-            rn_t = create_error_node();
-            rb_funcall(rn_t, rb_intern("expr="), 1, rn_r);
-            rcode = rb_funcall(rn_t, rb_intern("code"), 0);
-            rb_funcall(rcode, rb_intern("init"), 4, rtext, SIZET2NUM(find_trailing_blanks(StringValuePtr(rtext))), SIZET2NUM(l), SIZET2NUM(m));
-            rb_funcall(rn_t, rb_intern("index="), 1, SIZET2NUM(NUM2SIZET(rb_funcall(rcodes, rb_intern("length"), 0))));
-            rb_ary_push(rcodes, rn_t);
-        }
-        else {
-            goto EXCEPTION;
-        }
-    }
-    else {
-        rn_t = rn_r;
-    }
-    return rn_t;
 
 EXCEPTION:;
     rb_ivar_set(rctx, rb_intern("@bufcur"), SIZET2NUM(p));

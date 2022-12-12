@@ -1109,11 +1109,21 @@ class Packcr::Node
     end
   end
 
-  class AlternateNode < Packcr::Node
+  class QuantityNode < Packcr::Node
     def initialize
       super
-      self.type = Packcr::Node::ALTERNATE
-      self.nodes = nil
+      self.type = Packcr::Node::QUANTITY
+      self.min = self.max = 0
+      self.expr = nil
+    end
+  end
+
+  class PredicateNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::PREDICATE
+      self.neg = false
+      self.expr = nil
     end
   end
 
@@ -1122,6 +1132,26 @@ class Packcr::Node
       super
       self.type = Packcr::Node::SEQUENCE
       self.nodes = nil
+    end
+  end
+
+  class AlternateNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::ALTERNATE
+      self.nodes = nil
+    end
+  end
+
+  class ErrorNode < Packcr::Node
+    def initialize
+      super
+      self.type = Packcr::Node::ERROR
+      self.expr = nil
+      self.code = nil
+      self.index = VOID_VALUE
+      self.vars = nil
+      self.capts = nil
     end
   end
 end
@@ -1732,6 +1762,92 @@ class Packcr::Context
   end
 
   class StopParsing < StandardError
+  end
+
+  def parse_term(rule)
+    pos = @bufcur
+    l = @linenum
+    n = @charnum
+    o = @linepos
+    if match_character("&")
+      t = "&".ord
+    elsif match_character("!")
+      t = "!".ord
+    else
+      t = 0
+    end
+    if t
+      match_spaces
+    end
+
+    n_p = parse_primary(rule)
+    if !n_p
+      raise StopParsing
+    end
+    if match_character("*")
+      match_spaces
+      n_q = Packcr::Node::QuantityNode.new
+      n_q.min = 0
+      n_q.max = -1
+      n_q.expr = n_p
+    elsif match_character("+")
+      match_spaces
+      n_q = Packcr::Node::QuantityNode.new
+      n_q.min = 1
+      n_q.max = -1
+      n_q.expr = n_p
+    elsif match_character("?")
+      match_spaces
+      n_q = Packcr::Node::QuantityNode.new
+      n_q.min = 0
+      n_q.max = 1
+      n_q.expr = n_p
+    else
+      n_q = n_p
+    end
+
+    case t
+    when "&".ord
+      n_r = Packcr::Node::PredicateNode.new
+      n_r.neg = false
+      n_r.expr = n_q
+    when "!".ord
+      n_r = Packcr::Node::PredicateNode.new
+      n_r.neg = true
+      n_r.expr = n_q
+    else
+      n_r = n_q
+    end
+
+    if match_character("~")
+      match_spaces
+      pos2 = @bufcur
+      l2 = @linenum
+      m = column_number
+      if match_code_block
+        q = @bufcur
+        text = @buffer.to_s
+        text = text, [pos2 + 1, q - pos2 - 2]
+        match_spaces
+        n_t = Packcr::Node::ErrorNode.new
+        n_t.expr = n_r
+        code = n_t.code
+        code.init(text, Packcr.find_trailing_blanks(text), l2, m);
+        n_t.index = rcodes.length
+        @codes.push(n_t)
+      else
+        raise StopParsing
+      end
+    else
+      n_t = n_r
+    end
+    n_t
+  rescue StopParsing
+    @bufcur = pos
+    @linenum = l
+    @charnum = n
+    @linepos = o
+    return nil
   end
 
   def parse_sequence(rule)
