@@ -1,0 +1,51 @@
+<%- @rules.each do |node| -%>
+static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx);
+<%- end -%>
+
+<%- @rules.each do |node| -%>
+static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx) {
+    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
+    chunk->pos = ctx->cur;
+    PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
+    ctx->level++;
+    pcc_value_table__resize(ctx->auxil, &chunk->values, <%= node.vars.length %>);
+    pcc_capture_table__resize(ctx->auxil, &chunk->capts, <%= node.capts.length %>);
+<%-   if node.vars.length > 0 -%>
+    pcc_value_table__clear(ctx->auxil, &chunk->values);
+<%-   end -%>
+<%-   str_io = StringIO.new -%>
+<%-   g = ::Packcr::Generator.new(str_io, node, @ascii) -%>
+<%-   r = g.generate_code(node.expr, 0, 4, false) -%>
+<%= str_io.string -%>
+    ctx->level--;
+    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+    return chunk;
+<%-   if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+L0000:;
+    ctx->level--;
+    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+    pcc_thunk_chunk__destroy(ctx, chunk);
+    return NULL;
+<%-   end -%>
+}
+
+<%- end -%>
+<%= prefix %>_context_t *<%= prefix %>_create(<%= auxil_def %>auxil) {
+    return pcc_context__create(auxil);
+}
+
+int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
+<%- if !@rules.empty? -%>
+    if (pcc_apply_rule(ctx, pcc_evaluate_rule_<%= @rules[0].name %>, &ctx->thunks, ret))
+        pcc_do_action(ctx, &ctx->thunks, ret);
+    else
+        PCC_ERROR(ctx->auxil);
+    pcc_commit_buffer(ctx);
+<%- end -%>
+    pcc_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);
+    return pcc_refill_buffer(ctx, 1) >= 1;
+}
+
+void <%= prefix %>_destroy(<%= prefix %>_context_t *ctx) {
+    pcc_context__destroy(ctx);
+}

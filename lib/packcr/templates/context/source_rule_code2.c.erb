@@ -1,0 +1,15 @@
+<% code.capts.reverse_each do |capture| -%>
+#undef _<%= capture.index + 1 %>e
+#undef _<%= capture.index + 1 %>s
+#undef _<%= capture.index + 1 %>
+<% end -%>
+#undef _0e
+#undef _0s
+#undef _0
+<% code.vars.reverse_each do |ref| -%>
+#undef <%= ref.var %>
+<% end -%>
+#undef __
+#undef auxil
+}
+

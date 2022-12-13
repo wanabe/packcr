@@ -1,0 +1,23 @@
+#ifdef _MSC_VER
+#undef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif /* _MSC_VER */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifndef _MSC_VER
+#if defined __GNUC__ && defined _WIN32 /* MinGW */
+#ifndef PCC_USE_SYSTEM_STRNLEN
+#define strnlen(str, maxlen) pcc_strnlen(str, maxlen)
+static size_t pcc_strnlen(const char *str, size_t maxlen) {
+    size_t i;
+    for (i = 0; i < maxlen && str[i]; i++);
+    return i;
+}
+#endif /* !PCC_USE_SYSTEM_STRNLEN */
+#endif /* defined __GNUC__ && defined _WIN32 */
+#endif /* !_MSC_VER */
+
+#include "<%= @hname %>"
+
