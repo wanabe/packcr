@@ -81,50 +81,7 @@ class Packcr
         a = charclass && charclass[0] == '^'
         i = a ? 1 : 0
         generate_block(indent, bare) do |indent|
-          @stream.write " " * indent
-          @stream.write "int u;\n"
-          @stream.write " " * indent
-          @stream.write "const size_t n = pcc_get_char_as_utf32(ctx, &u);\n"
-          @stream.write " " * indent
-          @stream.write "if (n == 0) goto L#{"%04d" % onfail};\n"
-          if charclass && !(a && n == 1) # not '.' or '[^]'
-            u0 = 0
-            r = false
-            @stream.write " " * indent
-            @stream.write a ? "if (\n" : "if (!(\n"
-            while i < n
-              u = 0
-              if charclass[i] == '\\' && i + 1 < n
-                i += 1
-              end
-              u = charclass[i].ord
-              i += 1
-              if r
-                # character range
-                @stream.write " " * (indent + 4)
-                @stream.write "(u >= 0x#{"%06x" % u0 } && u <= 0x#{"%06x" % u})#{(i < n) ? " ||" : ""}\n"
-                u0 = 0
-                r = false
-              elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position
-                # single character
-                @stream.write " " * (indent + 4)
-                @stream.write "u == 0x#{"%06x" % u}#{(i < n) ? " ||" : ""}\n"
-                u0 = 0
-                r = false
-              else
-                unless charclass[i] == "-"
-                  raise "unexpected charclass #{charclass[i]}"
-                end
-                i += 1
-                u0 = u
-                r = true
-              end
-            end
-            @stream.write " " * indent
-            @stream.write a ? ") goto L#{"%04d" % onfail};\n" : ")) goto L#{"%04d" % onfail};\n"
-          end
-          @stream.write " " * indent
-          @stream.write "ctx->cur += n;\n"
+          @stream.write Packcr.template("generator/matching_charclass_utf8.c.erb", binding, indent: indent)
         end
         return Packcr::CODE_REACH__BOTH
       else
