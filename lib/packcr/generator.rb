@@ -78,11 +78,7 @@ class Packcr
               @stream.write "ctx->cur++;\n"
               return Packcr::CODE_REACH__BOTH
             else
-              if !bare
-                @stream.write " " * indent
-                @stream.write "{\n"
-                indent += 4
-              end
+            generate_block(indent, bare) do |indent|
               @stream.write " " * indent
               @stream.write "char c;\n"
               @stream.write " " * indent
@@ -122,11 +118,7 @@ class Packcr
               end
               @stream.write " " * indent
               @stream.write "ctx->cur++;\n"
-              if !bare
-                indent -= 4
-                @stream.write " " * indent
-                @stream.write "}\n"
-              end
+            end
               return Packcr::CODE_REACH__BOTH
             end
           else
@@ -165,11 +157,7 @@ class Packcr
       if charclass.nil? || n > 0
         a = charclass && charclass[0] == '^'
         i = a ? 1 : 0
-        if !bare
-          @stream.write " " * indent
-          @stream.write "{\n"
-          indent += 4
-        end
+      generate_block(indent, bare) do |indent|
         @stream.write " " * indent
         @stream.write "int u;\n"
         @stream.write " " * indent
@@ -214,11 +202,7 @@ class Packcr
         end
         @stream.write " " * indent
         @stream.write "ctx->cur += n;\n"
-        if !bare
-          indent -= 4
-          @stream.write " " * indent
-          @stream.write "}\n"
-        end
+      end
         return Packcr::CODE_REACH__BOTH
       else
         @stream.write " " * indent
@@ -229,12 +213,7 @@ class Packcr
 
     def generate_quantifying_code(expr, min, max, onfail, indent, bare)
       if max > 1 || max < 0
-        if !bare
-          @stream.write " " * indent
-          @stream.write "{\n"
-          indent += 4
-        end
-
+      generate_block(indent, bare) do |indent|
         if min > 0
           @stream.write " " * indent
           @stream.write "const size_t p0 = ctx->cur;\n"
@@ -287,25 +266,17 @@ class Packcr
           @stream.write " " * indent
           @stream.write "}\n"
         end
-        if !bare
-          indent -= 4
-          @stream.write " " * indent
-          @stream.write "}\n"
-        end
         if min > 0
           return r ==Packcr::CODE_REACH__ALWAYS_FAIL ? Packcr::CODE_REACH__ALWAYS_FAIL : Packcr::CODE_REACH__BOTH
         else
           return Packcr::CODE_REACH__ALWAYS_SUCCEED
         end
+      end
       elsif max == 1
         if min > 0
           return generate_code(expr, onfail, indent, bare)
         else
-          if !bare
-            @stream.write " " * indent
-            @stream.write "{\n"
-            indent += 4
-          end
+        generate_block(indent, bare) do |indent|
           @stream.write " " * indent
           @stream.write "const size_t p = ctx->cur;\n"
           @stream.write " " * indent
@@ -328,12 +299,7 @@ class Packcr
             end
             @stream.write "L#{"%04d" % m}:;\n"
           end
-
-          if !bare
-              indent -= 4
-              @stream.write " " * indent
-              @stream.write "}\n"
-          end
+        end
           return Packcr::CODE_REACH__ALWAYS_SUCCEED
         end
       else
@@ -343,11 +309,7 @@ class Packcr
     end
 
     def generate_predicating_code(expr, neg, onfail, indent, bare)
-      if !bare
-        @stream.write " " * indent
-        @stream.write "{\n"
-        indent += 4
-      end
+    generate_block(indent, bare) do |indent|
       @stream.write " " * indent
       @stream.write "const size_t p = ctx->cur;\n"
 
@@ -405,13 +367,8 @@ class Packcr
           @stream.write "L#{"%04d" % m}:;\n"
         end
       end
-
-      if !bare
-        indent -= 4
-        @stream.write " " * indent
-        @stream.write "}\n"
-      end
       return r
+    end
     end
 
     def generate_sequential_code(nodes, onfail, indent, bare)
@@ -435,12 +392,8 @@ class Packcr
     def generate_alternative_code(nodes, onfail, indent, bare)
       b = false
       m = next_label
-      if !bare
-        @stream.write " " * indent
-        @stream.write "{\n"
-        indent += 4
-      end
 
+    generate_block(indent, bare) do |indent|
       @stream.write " " * indent
       @stream.write "const size_t p = ctx->cur;\n"
       @stream.write " " * indent
@@ -460,11 +413,6 @@ class Packcr
               @stream.write " " * (indent - 4)
             end
             @stream.write "L#{"%04d" % m}:;\n"
-          end
-          if !bare
-            indent -= 4
-            @stream.write " " * indent
-            @stream.write "}\n"
           end
           return Packcr::CODE_REACH__ALWAYS_SUCCEED
         when Packcr::CODE_REACH__ALWAYS_FAIL
@@ -494,21 +442,12 @@ class Packcr
         @stream.write "L#{"%04d" % m}:;\n"
       end
 
-      if !bare
-        indent -= 4
-        @stream.write " " * indent
-        @stream.write "}\n"
-      end
       b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_FAIL
+    end
     end
 
     def generate_capturing_code(expr, index, onfail, indent, bare)
-      if !bare
-        @stream.write " " * indent
-        @stream.write "{\n"
-        indent += 4
-      end
-
+    generate_block(indent, bare) do |indent|
       @stream.write " " * indent
       @stream.write "const size_t p = ctx->cur;\n"
       @stream.write " " * indent
@@ -520,21 +459,12 @@ class Packcr
       @stream.write "chunk->capts.buf[#{index}].range.start = p;\n"
       @stream.write " " * indent
       @stream.write "chunk->capts.buf[#{index}].range.end = q;\n"
-
-      if !bare
-        indent -= 4
-        @stream.write " " * indent
-        @stream.write "}\n"
-      end
       return r
+    end
     end
 
     def generate_expanding_code(index, onfail, indent, bare)
-      if !bare
-        @stream.write " " * indent
-        @stream.write "{\n"
-        indent += 4
-      end
+    generate_block(indent, bare) do |indent|
       @stream.write " " * indent
       @stream.write "const size_t n = chunk->capts.buf[#{index}].range.end - chunk->capts.buf[#{index}].range.start;\n"
       @stream.write " " * indent
@@ -557,20 +487,12 @@ class Packcr
       @stream.write "ctx->cur += n;\n"
       @stream.write " " * indent
       @stream.write "}\n"
-      if !bare
-          indent -= 4;
-          @stream.write " " * indent
-          @stream.write "}\n"
-      end
+    end
       return Packcr::CODE_REACH__BOTH
     end
 
     def generate_thunking_action_code(index, vars, capts, error, onfail, indent, bare)
-      if !bare
-        @stream.write " " * indent
-        @stream.write "{\n"
-        indent += 4
-      end
+    generate_block(indent, bare) do |indent|
       if error
         @stream.write " " * indent
         @stream.write "pcc_value_t null;\n"
@@ -602,22 +524,14 @@ class Packcr
         @stream.write " " * indent
         @stream.write "pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n"
       end
-      if !bare
-        indent -= 4;
-        @stream.write " " * indent
-        @stream.write "}\n"
-      end
+    end
       return Packcr::CODE_REACH__ALWAYS_SUCCEED
     end
 
     def generate_thunking_error_code(expr, index, vars, capts, onfail, indent, bare)
       l = next_label
       m = next_label
-      if !bare
-        @stream.write " " * indent
-        @stream.write "{\n"
-        indent += 4
-      end
+    generate_block(indent, bare) do |indent|
       r = generate_code(expr, l, indent, true)
       @stream.write " " * indent
       @stream.write "goto L#{"%04d" % m};\n"
@@ -632,11 +546,7 @@ class Packcr
         @stream.write " " * (indent - 4)
       end
       @stream.write "L%#{"04d" % m}:;\n"
-      if !bare
-        indent -= 4
-        @stream.write " " * indent
-        @stream.write "}\n"
-      end
+    end
       return r
     end
 
@@ -682,6 +592,20 @@ class Packcr
         return generate_thunking_error_code(node.expr, node.index, node.vars, node.capts, onfail, indent, bare)
       else
         raise "Internal error"
+      end
+    end
+
+    def generate_block(indent, bare)
+      if !bare
+        @stream.write " " * indent
+        @stream.write "{\n"
+      end
+
+      yield indent + 4
+    ensure
+      if !bare
+        @stream.write " " * indent
+        @stream.write "}\n"
       end
     end
   end
