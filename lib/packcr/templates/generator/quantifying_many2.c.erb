@@ -1,0 +1,16 @@
+    if (ctx->cur == p) break;
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+    continue;
+L<%= "%04d" % l %>:;
+    ctx->cur = p;
+    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+    break;
+<%- end -%>
+}
+<%- if min > 0 -%>
+if (i < <%= min %>) {
+    ctx->cur = p0;
+    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);
+    goto L<%= "%04d" % onfail %>;
+}
+<%- end -%>

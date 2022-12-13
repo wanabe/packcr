@@ -94,60 +94,17 @@ class Packcr
     def generate_quantifying_code(expr, min, max, onfail, indent, bare)
       if max > 1 || max < 0
         generate_block(indent, bare) do |indent|
-          if min > 0
-            @stream.write " " * indent
-            @stream.write "const size_t p0 = ctx->cur;\n"
-            @stream.write " " * indent
-            @stream.write "const size_t n0 = chunk->thunks.len;\n"
-          end
-          @stream.write " " * indent
-          @stream.write "int i;\n"
-          @stream.write " " * indent
-
-          if max < 0
-            @stream.write "for (i = 0;; i++) {\n"
-          else
-            @stream.write "for (i = 0; i < #{max}; i++) {\n"
-          end
-          @stream.write " " * (indent + 4)
-          @stream.write "const size_t p = ctx->cur;\n"
-          @stream.write " " * (indent + 4)
-          @stream.write "const size_t n = chunk->thunks.len;\n"
-
+          @stream.write Packcr.template("generator/quantifying_many1.c.erb", binding, indent: indent)
           l = next_label
           r = generate_code(expr, l, indent + 4, false)
-          @stream.write " " * (indent + 4)
-          @stream.write "if (ctx->cur == p) break;\n"
-          if r !=Packcr::CODE_REACH__ALWAYS_SUCCEED
-            @stream.write " " * (indent + 4)
-            @stream.write "continue;\n"
-            @stream.write " " * indent
-            @stream.write "L#{"%04d" % l}:;\n"
-            @stream.write " " * (indent + 4)
-            @stream.write "ctx->cur = p;\n"
-            @stream.write " " * (indent + 4)
-            @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
-            @stream.write " " * (indent + 4)
-            @stream.write "break;\n"
-          end
-
-          @stream.write " " * indent
-          @stream.write "}\n"
+          @stream.write Packcr.template("generator/quantifying_many2.c.erb", binding, indent: indent)
 
           if min > 0
-            @stream.write " " * indent
-            @stream.write "if (i < #{min}) {\n"
-            @stream.write " " * (indent + 4)
-            @stream.write "ctx->cur = p0;\n"
-            @stream.write " " * (indent + 4)
-            @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);\n"
-            @stream.write " " * (indent + 4)
-            @stream.write "goto L#{"%04d" % onfail};\n"
-            @stream.write " " * indent
-            @stream.write "}\n"
-          end
-          if min > 0
-            return r ==Packcr::CODE_REACH__ALWAYS_FAIL ? Packcr::CODE_REACH__ALWAYS_FAIL : Packcr::CODE_REACH__BOTH
+            if r == Packcr::CODE_REACH__ALWAYS_FAIL
+              return Packcr::CODE_REACH__ALWAYS_FAIL
+            else
+              return Packcr::CODE_REACH__BOTH
+            end
           else
             return Packcr::CODE_REACH__ALWAYS_SUCCEED
           end
@@ -157,27 +114,14 @@ class Packcr
           return generate_code(expr, onfail, indent, bare)
         else
           generate_block(indent, bare) do |indent|
-            @stream.write " " * indent
-            @stream.write "const size_t p = ctx->cur;\n"
-            @stream.write " " * indent
-            @stream.write "const size_t n = chunk->thunks.len;\n"
+            @stream.write(<<~EOS.gsub(/^/, " " * indent))
+              const size_t p = ctx->cur;
+              const size_t n = chunk->thunks.len;
+            EOS
             l = next_label
             if generate_code(expr, l, indent, false) != Packcr::CODE_REACH__ALWAYS_SUCCEED
               m = next_label
-              @stream.write " " * indent
-              @stream.write "goto L#{"%04d" % m};\n"
-              if indent > 4
-                @stream.write " " * (indent - 4)
-              end
-              @stream.write "L#{"%04d" % l}:;\n"
-              @stream.write " " * indent
-              @stream.write "ctx->cur = p;\n"
-              @stream.write " " * indent
-              @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
-              if indent > 4
-                @stream.write " " * (indent - 4)
-              end
-              @stream.write "L#{"%04d" % m}:;\n"
+              @stream.write Packcr.template("generator/quantifying_one.c.erb", binding, indent: indent)
             end
           end
           return Packcr::CODE_REACH__ALWAYS_SUCCEED
