@@ -127,7 +127,7 @@ class Packcr
       result = ERB.new(File.read(template_path), trim_mode: "%-").result(b)
       if indent
         result.gsub!(/^(?!$)/, " " * indent)
-        result.gsub!(/{0, 4}<<<</, "")
+        result.gsub!(/^( *?) {0,4}<<<</) { $1 }
       end
       result
     end
