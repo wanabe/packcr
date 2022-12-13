@@ -1,0 +1,6 @@
+if (
+    pcc_refill_buffer(ctx, 1) < 1 ||
+    ctx->buffer.buf[ctx->cur] != '<%= Packcr.escape_character(charclass[0]) %>'
+) goto L<%= "%04d" % onfail %>;
+ctx->cur++;
+

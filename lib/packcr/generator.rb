@@ -41,73 +41,20 @@ class Packcr
             a = charclass[0] == "^"
             i = a ? 1 : 0
             if i + 1 == n # fulfilled only if a == true
-              @stream.write " " * indent
-              @stream.write "if (\n"
-              @stream.write " " * (indent + 4)
-              @stream.write "pcc_refill_buffer(ctx, 1) < 1 ||\n"
-              @stream.write " " * (indent + 4)
-              @stream.write "ctx->buffer.buf[ctx->cur] == '#{Packcr.escape_character(charclass[i])}'\n"
-              @stream.write " " * indent
-              @stream.write ") goto L#{"%04d" % onfail};\n"
-              @stream.write " " * indent
-              @stream.write "ctx->cur++;\n"
+              @stream.write Packcr.template("generator/matching_charclass_neg_one.c.erb", binding, indent: indent)
               return Packcr::CODE_REACH__BOTH
             else
               generate_block(indent, bare) do |indent|
-                @stream.write " " * indent
-                @stream.write "char c;\n"
-                @stream.write " " * indent
-                @stream.write "if (pcc_refill_buffer(ctx, 1) < 1) goto L#{"%04d" % onfail};\n"
-                @stream.write " " * indent
-                @stream.write "c = ctx->buffer.buf[ctx->cur];\n"
                 if i + 3 == n && charclass[i] != "\\" && charclass[i + 1] == "-"
-                  @stream.write " " * indent
-                  s = Packcr.escape_character(charclass[i])
-                  t = Packcr.escape_character(charclass[i + 2])
-                  if a
-                    @stream.write "if (c >= '#{s}' && c <= '#{t}') goto L#{"%04d" % onfail};\n"
-                  else
-                    @stream.write "if (!(c >= '#{s}' && c <= '#{t}')) goto L#{"%04d" % onfail};\n"
-                  end
+                  @stream.write Packcr.template("generator/matching_charclass_range_one.c.erb", binding, indent: indent)
                 else
-                  @stream.write " " * indent
-                  @stream.write a ? "if (\n" : "if (!(\n"
-                  while i < n
-                    @stream.write " " * (indent + 4)
-                    if charclass[i] == "\\" && i + 1 < n
-                      i += 1
-                    end
-                    if i + 2 < n && charclass[i + 1] == '-'
-                      s = Packcr.escape_character(charclass[i])
-                      t = Packcr.escape_character(charclass[i + 2])
-                      @stream.write "(c >= '#{s}' && c <= '#{t}')#{(i + 3 == n) ? "" : " ||"}\n"
-                      i += 2
-                    else
-                      s = Packcr.escape_character(charclass[i])
-                      @stream.write "c == '#{s}'#{(i + 1 == n) ? "" : " ||"}\n"
-                    end
-                    i += 1
-                  end
-                  @stream.write " " * indent
-                  @stream.write a ? ") goto L#{"%04d" % onfail};\n" : ")) goto L#{"%04d" % onfail};\n"
+                  @stream.write Packcr.template("generator/matching_charclass.c.erb", binding, indent: indent)
                 end
-                @stream.write " " * indent
-                @stream.write "ctx->cur++;\n"
               end
               return Packcr::CODE_REACH__BOTH
             end
           else
-            s = Packcr.escape_character(charclass[0])
-            @stream.write " " * indent
-            @stream.write "if (\n"
-            @stream.write " " * (indent + 4)
-            @stream.write "pcc_refill_buffer(ctx, 1) < 1 ||\n"
-            @stream.write " " * (indent + 4)
-            @stream.write "ctx->buffer.buf[ctx->cur] != '#{s}'\n"
-            @stream.write " " * indent
-            @stream.write ") goto L#{"%04d" % onfail};\n"
-            @stream.write " " * indent
-            @stream.write "ctx->cur++;\n"
+            @stream.write Packcr.template("generator/matching_charclass_one.c.erb", binding, indent: indent)
             return Packcr::CODE_REACH__BOTH
           end
         else
