@@ -2,8 +2,8 @@ char c;
 if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= "%04d" % onfail %>;
 c = ctx->buffer.buf[ctx->cur];
 <%- if a -%>
-if (c >= '<%= Packcr.escape_character(charclass[i]) %>' && c <= '<%= Packcr.escape_character(charclass[i + 2]) %>') goto L<%= "%04d" % onfail %>;
+if (c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>') goto L<%= "%04d" % onfail %>;
 <%- else -%>
-if (!(c >= '<%= Packcr.escape_character(charclass[i]) %>' && c <= '<%= Packcr.escape_character(charclass[i + 2]) %>')) goto L<%= "%04d" % onfail %>;
+if (!(c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>')) goto L<%= "%04d" % onfail %>;
 <%- end -%>
 ctx->cur++;

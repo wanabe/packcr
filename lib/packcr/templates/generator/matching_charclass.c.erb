@@ -6,6 +6,7 @@ if (
 <%- else -%>
 if (!(
 <%- end -%>
+<%- i = 0 -%>
 <%- while i < n -%>
 <%-   if charclass[i] == "\\" && i + 1 < n -%>
 <%-     i += 1 -%>

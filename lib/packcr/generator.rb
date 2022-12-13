@@ -36,23 +36,24 @@ class Packcr
 
       if charclass
         n = charclass.length
+        a = charclass[0] == "^"
+        if a
+          n -= 1
+          charclass = charclass[1..-1]
+        end
         if n > 0
           if n > 1
-            a = charclass[0] == "^"
-            i = a ? 1 : 0
-            if i + 1 == n # fulfilled only if a == true
-              @stream.write Packcr.template("generator/matching_charclass_neg_one.c.erb", binding, indent: indent)
-              return Packcr::CODE_REACH__BOTH
-            else
-              generate_block(indent, bare) do |indent|
-                if i + 3 == n && charclass[i] != "\\" && charclass[i + 1] == "-"
-                  @stream.write Packcr.template("generator/matching_charclass_range_one.c.erb", binding, indent: indent)
-                else
-                  @stream.write Packcr.template("generator/matching_charclass.c.erb", binding, indent: indent)
-                end
+            generate_block(indent, bare) do |indent|
+              if !a && charclass =~ /\A[^\\]-.\z/
+                @stream.write Packcr.template("generator/matching_charclass_range_one.c.erb", binding, indent: indent)
+              else
+                @stream.write Packcr.template("generator/matching_charclass.c.erb", binding, indent: indent)
               end
-              return Packcr::CODE_REACH__BOTH
             end
+            return Packcr::CODE_REACH__BOTH
+          elsif a
+            @stream.write Packcr.template("generator/matching_charclass_neg_one.c.erb", binding, indent: indent)
+            return Packcr::CODE_REACH__BOTH
           else
             @stream.write Packcr.template("generator/matching_charclass_one.c.erb", binding, indent: indent)
             return Packcr::CODE_REACH__BOTH
@@ -63,10 +64,10 @@ class Packcr
           return Packcr::CODE_REACH__ALWAYS_FAIL
         end
       else
-        @stream.write " " * indent
-        @stream.write "if (pcc_refill_buffer(ctx, 1) < 1) goto L#{"%04d" % onfail};\n"
-        @stream.write " " * indent
-        @stream.write "ctx->cur++;\n"
+        @stream.write(<<~EOS.gsub(/^/, " " * indent))
+          if (pcc_refill_buffer(ctx, 1) < 1) goto L#{"%04d" % onfail};
+          ctx->cur++;
+        EOS
         return Packcr::CODE_REACH__BOTH
       end
     end
