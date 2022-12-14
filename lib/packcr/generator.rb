@@ -14,47 +14,6 @@ class Packcr
       @label += 1
     end
 
-    def generate_quantifying_code(expr, min, max, onfail, indent, bare)
-      if max > 1 || max < 0
-        generate_block(indent, bare) do |indent|
-          @stream.write Packcr.template("generator/quantifying_many1.c.erb", binding, indent: indent)
-          l = next_label
-          r = generate_code(expr, l, indent + 4, false)
-          @stream.write Packcr.template("generator/quantifying_many2.c.erb", binding, indent: indent)
-
-          if min > 0
-            if r == Packcr::CODE_REACH__ALWAYS_FAIL
-              return Packcr::CODE_REACH__ALWAYS_FAIL
-            else
-              return Packcr::CODE_REACH__BOTH
-            end
-          else
-            return Packcr::CODE_REACH__ALWAYS_SUCCEED
-          end
-        end
-      elsif max == 1
-        if min > 0
-          return generate_code(expr, onfail, indent, bare)
-        else
-          generate_block(indent, bare) do |indent|
-            @stream.write(<<~EOS.gsub(/^/, " " * indent))
-              const size_t p = ctx->cur;
-              const size_t n = chunk->thunks.len;
-            EOS
-            l = next_label
-            if generate_code(expr, l, indent, false) != Packcr::CODE_REACH__ALWAYS_SUCCEED
-              m = next_label
-              @stream.write Packcr.template("generator/quantifying_one.c.erb", binding, indent: indent)
-            end
-          end
-          return Packcr::CODE_REACH__ALWAYS_SUCCEED
-        end
-      else
-        # no code to generate
-        return Packcr::CODE_REACH__ALWAYS_SUCCEED
-      end
-    end
-
     def generate_predicating_code(expr, neg, onfail, indent, bare)
       generate_block(indent, bare) do |indent|
         @stream.write(<<~EOS.gsub(/^/, " " * indent))
@@ -204,12 +163,12 @@ class Packcr
         raise "Internal error"
       end
       case node
-      when ::Packcr::Node::RuleNode
-        raise "Internal error"
-      when ::Packcr::Node::ReferenceNode, ::Packcr::Node::StringNode, ::Packcr::Node::CharclassNode
+      when ::Packcr::Node::ReferenceNode,
+           ::Packcr::Node::StringNode,
+           ::Packcr::Node::CharclassNode,
+           ::Packcr::Node::QuantityNode,
+           ::Packcr::Node::RuleNode
         return node.generate_code(self, onfail, indent, bare)
-      when ::Packcr::Node::QuantityNode
-        return generate_quantifying_code(node.expr, node.min, node.max, onfail, indent, bare)
       when ::Packcr::Node::PredicateNode
         return generate_predicating_code(node.expr, node.neg, onfail, indent, bare)
       when ::Packcr::Node::SequenceNode
