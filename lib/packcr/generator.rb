@@ -402,7 +402,7 @@ class Packcr
           if indent > 4
             @stream.write " " * (indent - 4)
           end
-          @stream.write "L#{"%04d" % m}:;\n", m
+          @stream.write "L#{"%04d" % m}:;\n"
         end
       end
 
