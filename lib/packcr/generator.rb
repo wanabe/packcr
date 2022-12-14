@@ -18,6 +18,15 @@ class Packcr
       node.generate_code(self, onfail, indent, bare)
     end
 
+    def generate_code_str(node, onfail, indent, bare)
+      @stream, stream = StringIO.new, @stream
+      begin
+        return generate_code(node, onfail, indent, bare), @stream.string
+      ensure
+        @stream = stream
+      end
+    end
+
     def write(str)
       @stream.write(str)
     end

@@ -16,35 +16,23 @@ class Packcr
       def generate_code(gen, onfail, indent, bare)
         if max > 1 || max < 0
           gen.generate_block(indent, bare) do |indent|
-            gen.write Packcr.template("node/quantify_many1.c.erb", binding, indent: indent)
-            l = gen.next_label
-            r = gen.generate_code(expr, l, indent + 4, false)
-            gen.write Packcr.template("node/quantify_many2.c.erb", binding, indent: indent)
+            r = nil
+            gen.write Packcr.template("node/quantify_many.c.erb", binding, indent: indent)
 
-            if min > 0
-              if r == Packcr::CODE_REACH__ALWAYS_FAIL
-                return Packcr::CODE_REACH__ALWAYS_FAIL
-              else
-                return Packcr::CODE_REACH__BOTH
-              end
-            else
+            if min <= 0
               return Packcr::CODE_REACH__ALWAYS_SUCCEED
             end
+            if r == Packcr::CODE_REACH__ALWAYS_FAIL
+              return Packcr::CODE_REACH__ALWAYS_FAIL
+            end
+            return Packcr::CODE_REACH__BOTH
           end
         elsif max == 1
           if min > 0
             return gen.generate_code(expr, onfail, indent, bare)
           else
             gen.generate_block(indent, bare) do |indent|
-              gen.write(<<~EOS.gsub(/^/, " " * indent))
-                const size_t p = ctx->cur;
-                const size_t n = chunk->thunks.len;
-              EOS
-              l = gen.next_label
-              if gen.generate_code(expr, l, indent, false) != Packcr::CODE_REACH__ALWAYS_SUCCEED
-                m = gen.next_label
-                gen.write Packcr.template("node/quantify_one.c.erb", binding, indent: indent)
-              end
+              gen.write Packcr.template("node/quantify_one.c.erb", binding, indent: indent - 4)
             end
             return Packcr::CODE_REACH__ALWAYS_SUCCEED
           end

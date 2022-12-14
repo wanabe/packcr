@@ -1,5 +1,13 @@
-goto L<%= "%04d" % m %>;
-<<<<L<%= "%04d" % l %>:;
-ctx->cur = p;
-pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
-<<<<L<%= "%04d" % m %>:;
+<%- l = gen.next_label -%>
+    const size_t p = ctx->cur;
+    const size_t n = chunk->thunks.len;
+<%- r, code = gen.generate_code_str(expr, l, 4, false) -%>
+<%= code -%>
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+<%-   m = gen.next_label -%>
+    goto L<%= "%04d" % m %>;
+L<%= "%04d" % l %>:;
+    ctx->cur = p;
+    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+L<%= "%04d" % m %>:;
+<%- end -%>
