@@ -14,81 +14,6 @@ class Packcr
       @label += 1
     end
 
-    def generate_sequential_code(nodes, onfail, indent, bare)
-      b = false
-      nodes.each_with_index do |expr, i|
-        case generate_code(expr, onfail, indent, false)
-        when Packcr::CODE_REACH__ALWAYS_FAIL
-          if i + 1 < rnodes.length
-            @stream.write " " * indent
-            @stream.write "/* unreachable codes omitted */\n"
-          end
-          return Packcr::CODE_REACH__ALWAYS_FAIL
-        when Packcr::CODE_REACH__ALWAYS_SUCCEED
-        else
-          b = true
-        end
-      end
-      return b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_SUCCEED
-    end
-
-    def generate_alternative_code(nodes, onfail, indent, bare)
-      b = false
-      m = next_label
-
-      generate_block(indent, bare) do |indent|
-        @stream.write " " * indent
-        @stream.write "const size_t p = ctx->cur;\n"
-        @stream.write " " * indent
-        @stream.write "const size_t n = chunk->thunks.len;\n"
-
-        nodes.each_with_index do |expr, i|
-          c = i + 1 < nodes.length
-          l = next_label
-          case generate_code(expr, l, indent, false)
-          when Packcr::CODE_REACH__ALWAYS_SUCCEED
-            if c
-              @stream.write " " * indent
-              @stream.write "/* unreachable codes omitted */\n"
-            end
-            if b
-              if indent > 4
-                @stream.write " " * (indent - 4)
-              end
-              @stream.write "L#{"%04d" % m}:;\n"
-            end
-            return Packcr::CODE_REACH__ALWAYS_SUCCEED
-          when Packcr::CODE_REACH__ALWAYS_FAIL
-          else
-            b = true
-            @stream.write " " * indent
-            @stream.write "goto L#{"%04d" % m};\n"
-          end
-
-          if indent > 4
-            @stream.write " " * (indent - 4)
-          end
-          @stream.write "L#{"%04d" % l}:;\n"
-          @stream.write " " * indent
-          @stream.write "ctx->cur = p;\n"
-          @stream.write " " * indent
-          @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
-          if !c
-            @stream.write " " * indent
-            @stream.write "goto L#{"%04d" % onfail};\n"
-          end
-        end
-        if b
-          if indent > 4
-            @stream.write " " * (indent - 4)
-          end
-          @stream.write "L#{"%04d" % m}:;\n"
-        end
-
-        b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_FAIL
-      end
-    end
-
     def generate_capturing_code(expr, index, onfail, indent, bare)
       generate_block(indent, bare) do |indent|
         @stream.write " " * indent
@@ -140,12 +65,10 @@ class Packcr
            ::Packcr::Node::CharclassNode,
            ::Packcr::Node::QuantityNode,
            ::Packcr::Node::PredicateNode,
+           ::Packcr::Node::SequenceNode,
+           ::Packcr::Node::AlternateNode,
            ::Packcr::Node::RuleNode
         return node.generate_code(self, onfail, indent, bare)
-      when ::Packcr::Node::SequenceNode
-        return generate_sequential_code(node.nodes, onfail, indent, bare)
-      when ::Packcr::Node::AlternateNode
-        return generate_alternative_code(node.nodes, onfail, indent, bare)
       when ::Packcr::Node::CaptureNode
         return generate_capturing_code(node.expr, node.index, onfail, indent, bare)
       when ::Packcr::Node::ExpandNode

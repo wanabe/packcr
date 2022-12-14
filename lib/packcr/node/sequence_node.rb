@@ -19,6 +19,24 @@ class Packcr
         m <<= 1 while m < @nodes.length
         m
       end
+
+      def generate_code(gen, onfail, indent, bare)
+        b = false
+        nodes.each_with_index do |expr, i|
+          case gen.generate_code(expr, onfail, indent, false)
+          when Packcr::CODE_REACH__ALWAYS_FAIL
+            if i + 1 < rnodes.length
+              gen.write " " * indent
+              gen.write "/* unreachable codes omitted */\n"
+            end
+            return Packcr::CODE_REACH__ALWAYS_FAIL
+          when Packcr::CODE_REACH__ALWAYS_SUCCEED
+          else
+            b = true
+          end
+        end
+        return b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_SUCCEED
+      end
     end
   end
 end
