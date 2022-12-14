@@ -11,6 +11,23 @@ class Packcr
         Packcr.dump_escaped_string(value)
         $stdout.print "')\n"
       end
+
+      def generate_code(gen, onfail, indent, bare)
+        n = value&.length || 0
+        if n > 0
+          if n > 1
+            gen.write Packcr.template("node/string_many.c.erb", binding, indent: indent)
+            return Packcr::CODE_REACH__BOTH
+          else
+            gen.write Packcr.template("node/string_one.c.erb", binding, indent: indent)
+            return Packcr::CODE_REACH__BOTH
+          end
+        else
+          # no code to generate
+          return Packcr::CODE_REACH__ALWAYS_SUCCEED
+        end
+        Packcr::CODE_REACH__BOTH
+      end
     end
   end
 end

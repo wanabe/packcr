@@ -12,23 +12,6 @@ class Packcr
       @label += 1
     end
 
-    def generate_matching_string_code(value, onfail, indent, bare)
-      n = value&.length || 0
-
-      if n > 0
-        if n > 1
-          @stream.write Packcr.template("generator/matching_string_many.c.erb", binding, indent: indent)
-          return Packcr::CODE_REACH__BOTH
-        else
-          @stream.write Packcr.template("generator/matching_string_one.c.erb", binding, indent: indent)
-          return Packcr::CODE_REACH__BOTH
-        end
-      else
-        # no code to generate
-        return Packcr::CODE_REACH__ALWAYS_SUCCEED
-      end
-    end
-
     def generate_matching_charclass_code(charclass, onfail, indent, bare)
       if !@ascii
         raise "unexpected calling #generate_matching_charclass_code on no-ascii mode"
@@ -283,10 +266,8 @@ class Packcr
       case node
       when ::Packcr::Node::RuleNode
         raise "Internal error"
-      when ::Packcr::Node::ReferenceNode
+      when ::Packcr::Node::ReferenceNode, ::Packcr::Node::StringNode
         return node.generate_code(self, onfail, indent, bare)
-      when ::Packcr::Node::StringNode
-        return generate_matching_string_code(node.value, onfail, indent, bare)
       when ::Packcr::Node::CharclassNode
         if @ascii
           return generate_matching_charclass_code(node.value, onfail, indent, bare)
