@@ -14,34 +14,6 @@ class Packcr
       @label += 1
     end
 
-    def generate_predicating_code(expr, neg, onfail, indent, bare)
-      generate_block(indent, bare) do |indent|
-        @stream.write(<<~EOS.gsub(/^/, " " * indent))
-          const size_t p = ctx->cur;
-        EOS
-
-        if neg
-          l = next_label
-          r = generate_code(expr, l, indent, false)
-
-          @stream.write Packcr.template("generator/predicating_neg.c.erb", binding, indent: indent)
-
-          case r
-          when Packcr::CODE_REACH__ALWAYS_SUCCEED
-            r = Packcr::CODE_REACH__ALWAYS_FAIL
-          when Packcr::CODE_REACH__ALWAYS_FAIL
-            r = Packcr::CODE_REACH__ALWAYS_SUCCEED
-          end
-        else
-          l = next_label
-          m = next_label
-          r = generate_code(expr, l, indent, false)
-          @stream.write Packcr.template("generator/predicating.c.erb", binding, indent: indent)
-        end
-        return r
-      end
-    end
-
     def generate_sequential_code(nodes, onfail, indent, bare)
       b = false
       nodes.each_with_index do |expr, i|
@@ -167,10 +139,9 @@ class Packcr
            ::Packcr::Node::StringNode,
            ::Packcr::Node::CharclassNode,
            ::Packcr::Node::QuantityNode,
+           ::Packcr::Node::PredicateNode,
            ::Packcr::Node::RuleNode
         return node.generate_code(self, onfail, indent, bare)
-      when ::Packcr::Node::PredicateNode
-        return generate_predicating_code(node.expr, node.neg, onfail, indent, bare)
       when ::Packcr::Node::SequenceNode
         return generate_sequential_code(node.nodes, onfail, indent, bare)
       when ::Packcr::Node::AlternateNode
