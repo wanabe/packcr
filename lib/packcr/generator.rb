@@ -335,8 +335,8 @@ class Packcr
           @stream.write " " * (indent - 4)
         end
         @stream.write "L%#{"04d" % m}:;\n"
+        return r
       end
-      return r
     end
 
     def generate_code(node, onfail, indent, bare)
