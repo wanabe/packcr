@@ -282,10 +282,6 @@ class Packcr
 
     def generate_thunking_action_code(index, vars, capts, error, onfail, indent, bare)
       generate_block(indent, bare) do |indent|
-        if error
-          @stream.write " " * indent
-          @stream.write "pcc_value_t null;\n"
-        end
         @stream.write " " * indent
         @stream.write "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{@rule.name}_#{index}, #{@rule.vars.length}, #{@rule.capts.length});\n"
 
@@ -302,17 +298,8 @@ class Packcr
         @stream.write " " * indent
         @stream.write "thunk->data.leaf.capt0.range.end = ctx->cur;\n"
 
-        if error
-          @stream.write " " * indent
-          @stream.write "memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n"
-          @stream.write " " * indent
-          @stream.write "thunk->data.leaf.action(ctx, thunk, &null);\n"
-          @stream.write " " * indent
-          @stream.write "pcc_thunk__destroy(ctx->auxil, thunk);\n"
-        else
-          @stream.write " " * indent
-          @stream.write "pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n"
-        end
+        @stream.write " " * indent
+        @stream.write "pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n"
       end
       return Packcr::CODE_REACH__ALWAYS_SUCCEED
     end
@@ -328,7 +315,34 @@ class Packcr
           @stream.write " " * (indent - 4)
         end
         @stream.write "L#{"%04d" % l}:;\n"
-        generate_thunking_action_code(index, vars, capts, true, l, indent, false)
+
+        generate_block(indent, false) do |indent|
+          @stream.write " " * indent
+          @stream.write "pcc_value_t null;\n"
+          @stream.write " " * indent
+          @stream.write "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{@rule.name}_#{index}, #{@rule.vars.length}, #{@rule.capts.length});\n"
+
+          vars.each do |var|
+            @stream.write " " * indent
+            @stream.write "thunk->data.leaf.values.buf[#{var.index}] = &(chunk->values.buf[#{var.index}]);\n"
+          end
+          capts.each do |capt|
+            @stream.write " " * indent
+            @stream.write "thunk->data.leaf.capts.buf[#{capt.index}] = &(chunk->capts.buf[#{capt.index}]);\n"
+          end
+          @stream.write " " * indent
+          @stream.write "thunk->data.leaf.capt0.range.start = chunk->pos;\n"
+          @stream.write " " * indent
+          @stream.write "thunk->data.leaf.capt0.range.end = ctx->cur;\n"
+
+          @stream.write " " * indent
+          @stream.write "memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n"
+          @stream.write " " * indent
+          @stream.write "thunk->data.leaf.action(ctx, thunk, &null);\n"
+          @stream.write " " * indent
+          @stream.write "pcc_thunk__destroy(ctx->auxil, thunk);\n"
+        end
+
         @stream.write " " * indent
         @stream.write "goto L#{"%04d" % onfail};\n"
         if indent > 4
