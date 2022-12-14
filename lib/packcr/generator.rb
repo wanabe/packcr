@@ -14,23 +14,6 @@ class Packcr
       @label += 1
     end
 
-    def generate_capturing_code(expr, index, onfail, indent, bare)
-      generate_block(indent, bare) do |indent|
-        @stream.write " " * indent
-        @stream.write "const size_t p = ctx->cur;\n"
-        @stream.write " " * indent
-        @stream.write "size_t q;\n"
-        r = generate_code(expr, onfail, indent, false)
-        @stream.write " " * indent
-        @stream.write "q = ctx->cur;\n"
-        @stream.write " " * indent
-        @stream.write "chunk->capts.buf[#{index}].range.start = p;\n"
-        @stream.write " " * indent
-        @stream.write "chunk->capts.buf[#{index}].range.end = q;\n"
-        return r
-      end
-    end
-
     def generate_expanding_code(index, onfail, indent, bare)
       generate_block(indent, bare) do |indent|
         @stream.write Packcr.template("generator/expanding.c.erb", binding, indent: indent)
@@ -67,10 +50,9 @@ class Packcr
            ::Packcr::Node::PredicateNode,
            ::Packcr::Node::SequenceNode,
            ::Packcr::Node::AlternateNode,
+           ::Packcr::Node::CaptureNode,
            ::Packcr::Node::RuleNode
         return node.generate_code(self, onfail, indent, bare)
-      when ::Packcr::Node::CaptureNode
-        return generate_capturing_code(node.expr, node.index, onfail, indent, bare)
       when ::Packcr::Node::ExpandNode
         return generate_expanding_code(node.index, onfail, indent, bare)
       when ::Packcr::Node::ActionNode
