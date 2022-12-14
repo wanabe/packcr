@@ -261,24 +261,7 @@ class Packcr
 
     def generate_thunking_action_code(index, vars, capts, error, onfail, indent, bare)
       generate_block(indent, bare) do |indent|
-        @stream.write " " * indent
-        @stream.write "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{@rule.name}_#{index}, #{@rule.vars.length}, #{@rule.capts.length});\n"
-
-        vars.each do |var|
-          @stream.write " " * indent
-          @stream.write "thunk->data.leaf.values.buf[#{var.index}] = &(chunk->values.buf[#{var.index}]);\n"
-        end
-        capts.each do |capt|
-          @stream.write " " * indent
-          @stream.write "thunk->data.leaf.capts.buf[#{capt.index}] = &(chunk->capts.buf[#{capt.index}]);\n"
-        end
-        @stream.write " " * indent
-        @stream.write "thunk->data.leaf.capt0.range.start = chunk->pos;\n"
-        @stream.write " " * indent
-        @stream.write "thunk->data.leaf.capt0.range.end = ctx->cur;\n"
-
-        @stream.write " " * indent
-        @stream.write "pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n"
+        @stream.write Packcr.template("generator/thunking_action.c.erb", binding, indent: indent)
       end
       return Packcr::CODE_REACH__ALWAYS_SUCCEED
     end
