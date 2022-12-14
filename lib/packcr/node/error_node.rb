@@ -32,7 +32,7 @@ class Packcr
         m = gen.next_label
         gen.generate_block(indent, bare) do |indent|
           r = gen.generate_code(expr, l, indent, true)
-          gen.write Packcr.template("node/error.c.erb", binding, indent: indent)
+          gen.write Packcr.template("node/error.c.erb", binding, indent: indent - 4)
           return r
         end
       end

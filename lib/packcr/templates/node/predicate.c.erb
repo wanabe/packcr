@@ -1,14 +1,14 @@
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
-ctx->cur = p;
+    ctx->cur = p;
 <%- end -%>
 <%- if r == Packcr::CODE_REACH__BOTH -%>
-goto L<%= "%04d" % m %>;
+    goto L<%= "%04d" % m %>;
 <%- end -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-<<<<L<%= "%04d" % l %>:;
-ctx->cur = p;
-goto L<%= "%04d" % onfail %>;
+L<%= "%04d" % l %>:;
+    ctx->cur = p;
+    goto L<%= "%04d" % onfail %>;
 <%- end -%>
 <%- if r == Packcr::CODE_REACH__BOTH -%>
-<<<<L<%= "%04d" % m %>:;
+L<%= "%04d" % m %>:;
 <%- end -%>
