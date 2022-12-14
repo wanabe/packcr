@@ -315,9 +315,8 @@ class Packcr
 
     def match_number
       if match_character_range("0".ord, "9".ord)
-        while match_character_range("0".ord, "9".ord)
-          return true
-        end
+        nil while match_character_range("0".ord, "9".ord)
+        return true
       end
       return false
     end
