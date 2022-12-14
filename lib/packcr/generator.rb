@@ -304,7 +304,7 @@ class Packcr
 
         if error
           @stream.write " " * indent
-          @stream.write "memset(&null, 0, sizeof(pcc_value_t /* in case */\n"
+          @stream.write "memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n"
           @stream.write " " * indent
           @stream.write "thunk->data.leaf.action(ctx, thunk, &null);\n"
           @stream.write " " * indent
