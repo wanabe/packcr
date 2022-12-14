@@ -328,13 +328,13 @@ class Packcr
           @stream.write " " * (indent - 4)
         end
         @stream.write "L#{"%04d" % l}:;\n"
-        generate_thunking_action_code(index, vars, capts, true, l, indent, true)
+        generate_thunking_action_code(index, vars, capts, true, l, indent, false)
         @stream.write " " * indent
         @stream.write "goto L#{"%04d" % onfail};\n"
         if indent > 4
           @stream.write " " * (indent - 4)
         end
-        @stream.write "L%#{"04d" % m}:;\n"
+        @stream.write "L#{"%04d" % m}:;\n"
         return r
       end
     end
