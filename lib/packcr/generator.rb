@@ -78,47 +78,47 @@ class Packcr
               @stream.write "ctx->cur++;\n"
               return Packcr::CODE_REACH__BOTH
             else
-            generate_block(indent, bare) do |indent|
-              @stream.write " " * indent
-              @stream.write "char c;\n"
-              @stream.write " " * indent
-              @stream.write "if (pcc_refill_buffer(ctx, 1) < 1) goto L#{"%04d" % onfail};\n"
-              @stream.write " " * indent
-              @stream.write "c = ctx->buffer.buf[ctx->cur];\n"
-              if i + 3 == n && charclass[i] != "\\" && charclass[i + 1] == "-"
+              generate_block(indent, bare) do |indent|
                 @stream.write " " * indent
-                s = Packcr.escape_character(charclass[i])
-                t = Packcr.escape_character(charclass[i + 2])
-                if a
-                  @stream.write "if (c >= '#{s}' && c <= '#{t}') goto L#{"%04d" % onfail};\n"
+                @stream.write "char c;\n"
+                @stream.write " " * indent
+                @stream.write "if (pcc_refill_buffer(ctx, 1) < 1) goto L#{"%04d" % onfail};\n"
+                @stream.write " " * indent
+                @stream.write "c = ctx->buffer.buf[ctx->cur];\n"
+                if i + 3 == n && charclass[i] != "\\" && charclass[i + 1] == "-"
+                  @stream.write " " * indent
+                  s = Packcr.escape_character(charclass[i])
+                  t = Packcr.escape_character(charclass[i + 2])
+                  if a
+                    @stream.write "if (c >= '#{s}' && c <= '#{t}') goto L#{"%04d" % onfail};\n"
+                  else
+                    @stream.write "if (!(c >= '#{s}' && c <= '#{t}')) goto L#{"%04d" % onfail};\n"
+                  end
                 else
-                  @stream.write "if (!(c >= '#{s}' && c <= '#{t}')) goto L#{"%04d" % onfail};\n"
-                end
-              else
-                @stream.write " " * indent
-                @stream.write a ? "if (\n" : "if (!(\n"
-                while i < n
-                  @stream.write " " * (indent + 4)
-                  if charclass[i] == "\\" && i + 1 < n
+                  @stream.write " " * indent
+                  @stream.write a ? "if (\n" : "if (!(\n"
+                  while i < n
+                    @stream.write " " * (indent + 4)
+                    if charclass[i] == "\\" && i + 1 < n
+                      i += 1
+                    end
+                    if i + 2 < n && charclass[i + 1] == '-'
+                      s = Packcr.escape_character(charclass[i])
+                      t = Packcr.escape_character(charclass[i + 2])
+                      @stream.write "(c >= '#{s}' && c <= '#{t}')#{(i + 3 == n) ? "" : " ||"}\n"
+                      i += 2
+                    else
+                      s = Packcr.escape_character(charclass[i])
+                      @stream.write "c == '#{s}'#{(i + 1 == n) ? "" : " ||"}\n"
+                    end
                     i += 1
                   end
-                  if i + 2 < n && charclass[i + 1] == '-'
-                    s = Packcr.escape_character(charclass[i])
-                    t = Packcr.escape_character(charclass[i + 2])
-                    @stream.write "(c >= '#{s}' && c <= '#{t}')#{(i + 3 == n) ? "" : " ||"}\n"
-                    i += 2
-                  else
-                    s = Packcr.escape_character(charclass[i])
-                    @stream.write "c == '#{s}'#{(i + 1 == n) ? "" : " ||"}\n"
-                  end
-                  i += 1
+                  @stream.write " " * indent
+                  @stream.write a ? ") goto L#{"%04d" % onfail};\n" : ")) goto L#{"%04d" % onfail};\n"
                 end
                 @stream.write " " * indent
-                @stream.write a ? ") goto L#{"%04d" % onfail};\n" : ")) goto L#{"%04d" % onfail};\n"
+                @stream.write "ctx->cur++;\n"
               end
-              @stream.write " " * indent
-              @stream.write "ctx->cur++;\n"
-            end
               return Packcr::CODE_REACH__BOTH
             end
           else
@@ -157,52 +157,52 @@ class Packcr
       if charclass.nil? || n > 0
         a = charclass && charclass[0] == '^'
         i = a ? 1 : 0
-      generate_block(indent, bare) do |indent|
-        @stream.write " " * indent
-        @stream.write "int u;\n"
-        @stream.write " " * indent
-        @stream.write "const size_t n = pcc_get_char_as_utf32(ctx, &u);\n"
-        @stream.write " " * indent
-        @stream.write "if (n == 0) goto L#{"%04d" % onfail};\n"
-        if charclass && !(a && n == 1) # not '.' or '[^]'
-          u0 = 0
-          r = false
+        generate_block(indent, bare) do |indent|
           @stream.write " " * indent
-          @stream.write a ? "if (\n" : "if (!(\n"
-          while i < n
-            u = 0
-            if charclass[i] == '\\' && i + 1 < n
-              i += 1
-            end
-            u = charclass[i].ord
-            i += 1
-            if r
-              # character range
-              @stream.write " " * (indent + 4)
-              @stream.write "(u >= 0x#{"%06x" % u0 } && u <= 0x#{"%06x" % u})#{(i < n) ? " ||" : ""}\n"
-              u0 = 0
-              r = false
-            elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position
-              # single character
-              @stream.write " " * (indent + 4)
-              @stream.write "u == 0x#{"%06x" % u}#{(i < n) ? " ||" : ""}\n"
-              u0 = 0
-              r = false
-            else
-              unless charclass[i] == "-"
-                raise "unexpected charclass #{charclass[i]}"
+          @stream.write "int u;\n"
+          @stream.write " " * indent
+          @stream.write "const size_t n = pcc_get_char_as_utf32(ctx, &u);\n"
+          @stream.write " " * indent
+          @stream.write "if (n == 0) goto L#{"%04d" % onfail};\n"
+          if charclass && !(a && n == 1) # not '.' or '[^]'
+            u0 = 0
+            r = false
+            @stream.write " " * indent
+            @stream.write a ? "if (\n" : "if (!(\n"
+            while i < n
+              u = 0
+              if charclass[i] == '\\' && i + 1 < n
+                i += 1
               end
+              u = charclass[i].ord
               i += 1
-              u0 = u
-              r = true
+              if r
+                # character range
+                @stream.write " " * (indent + 4)
+                @stream.write "(u >= 0x#{"%06x" % u0 } && u <= 0x#{"%06x" % u})#{(i < n) ? " ||" : ""}\n"
+                u0 = 0
+                r = false
+              elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position
+                # single character
+                @stream.write " " * (indent + 4)
+                @stream.write "u == 0x#{"%06x" % u}#{(i < n) ? " ||" : ""}\n"
+                u0 = 0
+                r = false
+              else
+                unless charclass[i] == "-"
+                  raise "unexpected charclass #{charclass[i]}"
+                end
+                i += 1
+                u0 = u
+                r = true
+              end
             end
+            @stream.write " " * indent
+            @stream.write a ? ") goto L#{"%04d" % onfail};\n" : ")) goto L#{"%04d" % onfail};\n"
           end
           @stream.write " " * indent
-          @stream.write a ? ") goto L#{"%04d" % onfail};\n" : ")) goto L#{"%04d" % onfail};\n"
+          @stream.write "ctx->cur += n;\n"
         end
-        @stream.write " " * indent
-        @stream.write "ctx->cur += n;\n"
-      end
         return Packcr::CODE_REACH__BOTH
       else
         @stream.write " " * indent
@@ -213,93 +213,93 @@ class Packcr
 
     def generate_quantifying_code(expr, min, max, onfail, indent, bare)
       if max > 1 || max < 0
-      generate_block(indent, bare) do |indent|
-        if min > 0
+        generate_block(indent, bare) do |indent|
+          if min > 0
+            @stream.write " " * indent
+            @stream.write "const size_t p0 = ctx->cur;\n"
+            @stream.write " " * indent
+            @stream.write "const size_t n0 = chunk->thunks.len;\n"
+          end
           @stream.write " " * indent
-          @stream.write "const size_t p0 = ctx->cur;\n"
+          @stream.write "int i;\n"
           @stream.write " " * indent
-          @stream.write "const size_t n0 = chunk->thunks.len;\n"
-        end
-        @stream.write " " * indent
-        @stream.write "int i;\n"
-        @stream.write " " * indent
 
-        if max < 0
-          @stream.write "for (i = 0;; i++) {\n"
-        else
-          @stream.write "for (i = 0; i < #{max}; i++) {\n"
-        end
-        @stream.write " " * (indent + 4)
-        @stream.write "const size_t p = ctx->cur;\n"
-        @stream.write " " * (indent + 4)
-        @stream.write "const size_t n = chunk->thunks.len;\n"
+          if max < 0
+            @stream.write "for (i = 0;; i++) {\n"
+          else
+            @stream.write "for (i = 0; i < #{max}; i++) {\n"
+          end
+          @stream.write " " * (indent + 4)
+          @stream.write "const size_t p = ctx->cur;\n"
+          @stream.write " " * (indent + 4)
+          @stream.write "const size_t n = chunk->thunks.len;\n"
 
-        l = next_label
-        r = generate_code(expr, l, indent + 4, false)
-        @stream.write " " * (indent + 4)
-        @stream.write "if (ctx->cur == p) break;\n"
-        if r !=Packcr::CODE_REACH__ALWAYS_SUCCEED
+          l = next_label
+          r = generate_code(expr, l, indent + 4, false)
           @stream.write " " * (indent + 4)
-          @stream.write "continue;\n"
-          @stream.write " " * indent
-          @stream.write "L#{"%04d" % l}:;\n"
-          @stream.write " " * (indent + 4)
-          @stream.write "ctx->cur = p;\n"
-          @stream.write " " * (indent + 4)
-          @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
-          @stream.write " " * (indent + 4)
-          @stream.write "break;\n"
-        end
+          @stream.write "if (ctx->cur == p) break;\n"
+          if r !=Packcr::CODE_REACH__ALWAYS_SUCCEED
+            @stream.write " " * (indent + 4)
+            @stream.write "continue;\n"
+            @stream.write " " * indent
+            @stream.write "L#{"%04d" % l}:;\n"
+            @stream.write " " * (indent + 4)
+            @stream.write "ctx->cur = p;\n"
+            @stream.write " " * (indent + 4)
+            @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
+            @stream.write " " * (indent + 4)
+            @stream.write "break;\n"
+          end
 
-        @stream.write " " * indent
-        @stream.write "}\n"
-
-        if min > 0
-          @stream.write " " * indent
-          @stream.write "if (i < #{min}) {\n"
-          @stream.write " " * (indent + 4)
-          @stream.write "ctx->cur = p0;\n"
-          @stream.write " " * (indent + 4)
-          @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);\n"
-          @stream.write " " * (indent + 4)
-          @stream.write "goto L#{"%04d" % onfail};\n"
           @stream.write " " * indent
           @stream.write "}\n"
+
+          if min > 0
+            @stream.write " " * indent
+            @stream.write "if (i < #{min}) {\n"
+            @stream.write " " * (indent + 4)
+            @stream.write "ctx->cur = p0;\n"
+            @stream.write " " * (indent + 4)
+            @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);\n"
+            @stream.write " " * (indent + 4)
+            @stream.write "goto L#{"%04d" % onfail};\n"
+            @stream.write " " * indent
+            @stream.write "}\n"
+          end
+          if min > 0
+            return r ==Packcr::CODE_REACH__ALWAYS_FAIL ? Packcr::CODE_REACH__ALWAYS_FAIL : Packcr::CODE_REACH__BOTH
+          else
+            return Packcr::CODE_REACH__ALWAYS_SUCCEED
+          end
         end
-        if min > 0
-          return r ==Packcr::CODE_REACH__ALWAYS_FAIL ? Packcr::CODE_REACH__ALWAYS_FAIL : Packcr::CODE_REACH__BOTH
-        else
-          return Packcr::CODE_REACH__ALWAYS_SUCCEED
-        end
-      end
       elsif max == 1
         if min > 0
           return generate_code(expr, onfail, indent, bare)
         else
-        generate_block(indent, bare) do |indent|
-          @stream.write " " * indent
-          @stream.write "const size_t p = ctx->cur;\n"
-          @stream.write " " * indent
-          @stream.write "const size_t n = chunk->thunks.len;\n"
-          l = next_label
-          if generate_code(expr, l, indent, false) != Packcr::CODE_REACH__ALWAYS_SUCCEED
-            m = next_label
+          generate_block(indent, bare) do |indent|
             @stream.write " " * indent
-            @stream.write "goto L#{"%04d" % m};\n"
-            if indent > 4
-              @stream.write " " * (indent - 4)
+            @stream.write "const size_t p = ctx->cur;\n"
+            @stream.write " " * indent
+            @stream.write "const size_t n = chunk->thunks.len;\n"
+            l = next_label
+            if generate_code(expr, l, indent, false) != Packcr::CODE_REACH__ALWAYS_SUCCEED
+              m = next_label
+              @stream.write " " * indent
+              @stream.write "goto L#{"%04d" % m};\n"
+              if indent > 4
+                @stream.write " " * (indent - 4)
+              end
+              @stream.write "L#{"%04d" % l}:;\n"
+              @stream.write " " * indent
+              @stream.write "ctx->cur = p;\n"
+              @stream.write " " * indent
+              @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
+              if indent > 4
+                @stream.write " " * (indent - 4)
+              end
+              @stream.write "L#{"%04d" % m}:;\n"
             end
-            @stream.write "L#{"%04d" % l}:;\n"
-            @stream.write " " * indent
-            @stream.write "ctx->cur = p;\n"
-            @stream.write " " * indent
-            @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
-            if indent > 4
-              @stream.write " " * (indent - 4)
-            end
-            @stream.write "L#{"%04d" % m}:;\n"
           end
-        end
           return Packcr::CODE_REACH__ALWAYS_SUCCEED
         end
       else
@@ -309,66 +309,66 @@ class Packcr
     end
 
     def generate_predicating_code(expr, neg, onfail, indent, bare)
-    generate_block(indent, bare) do |indent|
-      @stream.write " " * indent
-      @stream.write "const size_t p = ctx->cur;\n"
+      generate_block(indent, bare) do |indent|
+        @stream.write " " * indent
+        @stream.write "const size_t p = ctx->cur;\n"
 
-      if neg
-        l = next_label
-        r = generate_code(expr, l, indent, false)
+        if neg
+          l = next_label
+          r = generate_code(expr, l, indent, false)
 
-        if r != Packcr::CODE_REACH__ALWAYS_FAIL
-          @stream.write " " * indent
-          @stream.write "ctx->cur = p;\n"
-          @stream.write " " * indent
-          @stream.write "goto L#{"%04d" % onfail};\n"
-        end
-        if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
-          if indent > 4
-            @stream.write " " * (indent - 4)
+          if r != Packcr::CODE_REACH__ALWAYS_FAIL
+            @stream.write " " * indent
+            @stream.write "ctx->cur = p;\n"
+            @stream.write " " * indent
+            @stream.write "goto L#{"%04d" % onfail};\n"
           end
-          @stream.write "L#{"%04d" % l}:;\n"
-          @stream.write " " * indent
-          @stream.write "ctx->cur = p;\n"
-        end
+          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+            if indent > 4
+              @stream.write " " * (indent - 4)
+            end
+            @stream.write "L#{"%04d" % l}:;\n"
+            @stream.write " " * indent
+            @stream.write "ctx->cur = p;\n"
+          end
 
-        case r
-        when Packcr::CODE_REACH__ALWAYS_SUCCEED
-          r = Packcr::CODE_REACH__ALWAYS_FAIL
-        when Packcr::CODE_REACH__ALWAYS_FAIL
-          r = Packcr::CODE_REACH__ALWAYS_SUCCEED
-        end
-      else
-        l = next_label
-        m = next_label
-        r = generate_code(expr, l, indent, false)
-        if r != Packcr::CODE_REACH__ALWAYS_FAIL
-          @stream.write " " * indent
-          @stream.write "ctx->cur = p;\n"
-        end
-        if r == Packcr::CODE_REACH__BOTH
-          @stream.write " " * indent
-          @stream.write "goto L#{"%04d" % m};\n"
-        end
-        if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
-          if indent > 4
-            @stream.write " " * (indent - 4)
+          case r
+          when Packcr::CODE_REACH__ALWAYS_SUCCEED
+            r = Packcr::CODE_REACH__ALWAYS_FAIL
+          when Packcr::CODE_REACH__ALWAYS_FAIL
+            r = Packcr::CODE_REACH__ALWAYS_SUCCEED
           end
-          @stream.write "L#{"%04d" % l}:;\n"
-          @stream.write " " * indent
-          @stream.write "ctx->cur = p;\n"
-          @stream.write " " * indent
-          @stream.write "goto L#{"%04d" % onfail};\n"
-        end
-        if r == Packcr::CODE_REACH__BOTH
-          if indent > 4
-            @stream.write " " * (indent - 4)
+        else
+          l = next_label
+          m = next_label
+          r = generate_code(expr, l, indent, false)
+          if r != Packcr::CODE_REACH__ALWAYS_FAIL
+            @stream.write " " * indent
+            @stream.write "ctx->cur = p;\n"
           end
-          @stream.write "L#{"%04d" % m}:;\n"
+          if r == Packcr::CODE_REACH__BOTH
+            @stream.write " " * indent
+            @stream.write "goto L#{"%04d" % m};\n"
+          end
+          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+            if indent > 4
+              @stream.write " " * (indent - 4)
+            end
+            @stream.write "L#{"%04d" % l}:;\n"
+            @stream.write " " * indent
+            @stream.write "ctx->cur = p;\n"
+            @stream.write " " * indent
+            @stream.write "goto L#{"%04d" % onfail};\n"
+          end
+          if r == Packcr::CODE_REACH__BOTH
+            if indent > 4
+              @stream.write " " * (indent - 4)
+            end
+            @stream.write "L#{"%04d" % m}:;\n"
+          end
         end
+        return r
       end
-      return r
-    end
     end
 
     def generate_sequential_code(nodes, onfail, indent, bare)
@@ -393,160 +393,160 @@ class Packcr
       b = false
       m = next_label
 
-    generate_block(indent, bare) do |indent|
-      @stream.write " " * indent
-      @stream.write "const size_t p = ctx->cur;\n"
-      @stream.write " " * indent
-      @stream.write "const size_t n = chunk->thunks.len;\n"
+      generate_block(indent, bare) do |indent|
+        @stream.write " " * indent
+        @stream.write "const size_t p = ctx->cur;\n"
+        @stream.write " " * indent
+        @stream.write "const size_t n = chunk->thunks.len;\n"
 
-      nodes.each_with_index do |expr, i|
-        c = i + 1 < nodes.length
-        l = next_label
-        case generate_code(expr, l, indent, false)
-        when Packcr::CODE_REACH__ALWAYS_SUCCEED
-          if c
-            @stream.write " " * indent
-            @stream.write "/* unreachable codes omitted */\n"
-          end
-          if b
-            if indent > 4
-              @stream.write " " * (indent - 4)
+        nodes.each_with_index do |expr, i|
+          c = i + 1 < nodes.length
+          l = next_label
+          case generate_code(expr, l, indent, false)
+          when Packcr::CODE_REACH__ALWAYS_SUCCEED
+            if c
+              @stream.write " " * indent
+              @stream.write "/* unreachable codes omitted */\n"
             end
-            @stream.write "L#{"%04d" % m}:;\n"
+            if b
+              if indent > 4
+                @stream.write " " * (indent - 4)
+              end
+              @stream.write "L#{"%04d" % m}:;\n"
+            end
+            return Packcr::CODE_REACH__ALWAYS_SUCCEED
+          when Packcr::CODE_REACH__ALWAYS_FAIL
+          else
+            b = true
+            @stream.write " " * indent
+            @stream.write "goto L#{"%04d" % m};\n"
           end
-          return Packcr::CODE_REACH__ALWAYS_SUCCEED
-        when Packcr::CODE_REACH__ALWAYS_FAIL
-        else
-          b = true
+
+          if indent > 4
+            @stream.write " " * (indent - 4)
+          end
+          @stream.write "L#{"%04d" % l}:;\n"
           @stream.write " " * indent
-          @stream.write "goto L#{"%04d" % m};\n"
+          @stream.write "ctx->cur = p;\n"
+          @stream.write " " * indent
+          @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
+          if !c
+            @stream.write " " * indent
+            @stream.write "goto L#{"%04d" % onfail};\n"
+          end
+        end
+        if b
+          if indent > 4
+            @stream.write " " * (indent - 4)
+          end
+          @stream.write "L#{"%04d" % m}:;\n"
         end
 
-        if indent > 4
-          @stream.write " " * (indent - 4)
-        end
-        @stream.write "L#{"%04d" % l}:;\n"
-        @stream.write " " * indent
-        @stream.write "ctx->cur = p;\n"
-        @stream.write " " * indent
-        @stream.write "pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n"
-        if !c
-          @stream.write " " * indent
-          @stream.write "goto L#{"%04d" % onfail};\n"
-        end
+        b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_FAIL
       end
-      if b
-        if indent > 4
-          @stream.write " " * (indent - 4)
-        end
-        @stream.write "L#{"%04d" % m}:;\n"
-      end
-
-      b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_FAIL
-    end
     end
 
     def generate_capturing_code(expr, index, onfail, indent, bare)
-    generate_block(indent, bare) do |indent|
-      @stream.write " " * indent
-      @stream.write "const size_t p = ctx->cur;\n"
-      @stream.write " " * indent
-      @stream.write "size_t q;\n"
-      r = generate_code(expr, onfail, indent, false)
-      @stream.write " " * indent
-      @stream.write "q = ctx->cur;\n"
-      @stream.write " " * indent
-      @stream.write "chunk->capts.buf[#{index}].range.start = p;\n"
-      @stream.write " " * indent
-      @stream.write "chunk->capts.buf[#{index}].range.end = q;\n"
-      return r
-    end
+      generate_block(indent, bare) do |indent|
+        @stream.write " " * indent
+        @stream.write "const size_t p = ctx->cur;\n"
+        @stream.write " " * indent
+        @stream.write "size_t q;\n"
+        r = generate_code(expr, onfail, indent, false)
+        @stream.write " " * indent
+        @stream.write "q = ctx->cur;\n"
+        @stream.write " " * indent
+        @stream.write "chunk->capts.buf[#{index}].range.start = p;\n"
+        @stream.write " " * indent
+        @stream.write "chunk->capts.buf[#{index}].range.end = q;\n"
+        return r
+      end
     end
 
     def generate_expanding_code(index, onfail, indent, bare)
-    generate_block(indent, bare) do |indent|
-      @stream.write " " * indent
-      @stream.write "const size_t n = chunk->capts.buf[#{index}].range.end - chunk->capts.buf[#{index}].range.start;\n"
-      @stream.write " " * indent
-      @stream.write "if (pcc_refill_buffer(ctx, n) < n) goto L#{"%04d" % onfail};\n"
-      @stream.write " " * indent
-      @stream.write "if (n > 0) {\n"
-      @stream.write " " * (indent + 4)
-      @stream.write "const char *const p = ctx->buffer.buf + ctx->cur;\n"
-      @stream.write " " * (indent + 4)
-      @stream.write "const char *const q = ctx->buffer.buf + chunk->capts.buf[#{index}].range.start;\n"
-      @stream.write " " * (indent + 4)
-      @stream.write "size_t i;\n"
-      @stream.write " " * (indent + 4)
-      @stream.write "for (i = 0; i < n; i++) {\n"
-      @stream.write " " * (indent + 8)
-      @stream.write "if (p[i] != q[i]) goto L#{"%04d" % onfail};\n"
-      @stream.write " " * (indent + 4)
-      @stream.write "}\n"
-      @stream.write " " * (indent + 4)
-      @stream.write "ctx->cur += n;\n"
-      @stream.write " " * indent
-      @stream.write "}\n"
-    end
+      generate_block(indent, bare) do |indent|
+        @stream.write " " * indent
+        @stream.write "const size_t n = chunk->capts.buf[#{index}].range.end - chunk->capts.buf[#{index}].range.start;\n"
+        @stream.write " " * indent
+        @stream.write "if (pcc_refill_buffer(ctx, n) < n) goto L#{"%04d" % onfail};\n"
+        @stream.write " " * indent
+        @stream.write "if (n > 0) {\n"
+        @stream.write " " * (indent + 4)
+        @stream.write "const char *const p = ctx->buffer.buf + ctx->cur;\n"
+        @stream.write " " * (indent + 4)
+        @stream.write "const char *const q = ctx->buffer.buf + chunk->capts.buf[#{index}].range.start;\n"
+        @stream.write " " * (indent + 4)
+        @stream.write "size_t i;\n"
+        @stream.write " " * (indent + 4)
+        @stream.write "for (i = 0; i < n; i++) {\n"
+        @stream.write " " * (indent + 8)
+        @stream.write "if (p[i] != q[i]) goto L#{"%04d" % onfail};\n"
+        @stream.write " " * (indent + 4)
+        @stream.write "}\n"
+        @stream.write " " * (indent + 4)
+        @stream.write "ctx->cur += n;\n"
+        @stream.write " " * indent
+        @stream.write "}\n"
+      end
       return Packcr::CODE_REACH__BOTH
     end
 
     def generate_thunking_action_code(index, vars, capts, error, onfail, indent, bare)
-    generate_block(indent, bare) do |indent|
-      if error
+      generate_block(indent, bare) do |indent|
+        if error
+          @stream.write " " * indent
+          @stream.write "pcc_value_t null;\n"
+        end
         @stream.write " " * indent
-        @stream.write "pcc_value_t null;\n"
-      end
-      @stream.write " " * indent
-      @stream.write "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{@rule.name}_#{index}, #{@rule.vars.length}, #{@rule.capts.length});\n"
+        @stream.write "pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{@rule.name}_#{index}, #{@rule.vars.length}, #{@rule.capts.length});\n"
 
-      vars.each do |var|
+        vars.each do |var|
+          @stream.write " " * indent
+          @stream.write "thunk->data.leaf.values.buf[#{var.index}] = &(chunk->values.buf[#{var.index}]);\n"
+        end
+        capts.each do |capt|
+          @stream.write " " * indent
+          @stream.write "thunk->data.leaf.capts.buf[#{capt.index}] = &(chunk->capts.buf[#{capt.index}]);\n"
+        end
         @stream.write " " * indent
-        @stream.write "thunk->data.leaf.values.buf[#{var.index}] = &(chunk->values.buf[#{var.index}]);\n"
-      end
-      capts.each do |capt|
+        @stream.write "thunk->data.leaf.capt0.range.start = chunk->pos;\n"
         @stream.write " " * indent
-        @stream.write "thunk->data.leaf.capts.buf[#{capt.index}] = &(chunk->capts.buf[#{capt.index}]);\n"
-      end
-      @stream.write " " * indent
-      @stream.write "thunk->data.leaf.capt0.range.start = chunk->pos;\n"
-      @stream.write " " * indent
-      @stream.write "thunk->data.leaf.capt0.range.end = ctx->cur;\n"
+        @stream.write "thunk->data.leaf.capt0.range.end = ctx->cur;\n"
 
-      if error
-        @stream.write " " * indent
-        @stream.write "memset(&null, 0, sizeof(pcc_value_t /* in case */\n"
-        @stream.write " " * indent
-        @stream.write "thunk->data.leaf.action(ctx, thunk, &null);\n"
-        @stream.write " " * indent
-        @stream.write "pcc_thunk__destroy(ctx->auxil, thunk);\n"
-      else
-        @stream.write " " * indent
-        @stream.write "pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n"
+        if error
+          @stream.write " " * indent
+          @stream.write "memset(&null, 0, sizeof(pcc_value_t /* in case */\n"
+          @stream.write " " * indent
+          @stream.write "thunk->data.leaf.action(ctx, thunk, &null);\n"
+          @stream.write " " * indent
+          @stream.write "pcc_thunk__destroy(ctx->auxil, thunk);\n"
+        else
+          @stream.write " " * indent
+          @stream.write "pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n"
+        end
       end
-    end
       return Packcr::CODE_REACH__ALWAYS_SUCCEED
     end
 
     def generate_thunking_error_code(expr, index, vars, capts, onfail, indent, bare)
       l = next_label
       m = next_label
-    generate_block(indent, bare) do |indent|
-      r = generate_code(expr, l, indent, true)
-      @stream.write " " * indent
-      @stream.write "goto L#{"%04d" % m};\n"
-      if indent > 4
-        @stream.write " " * (indent - 4)
+      generate_block(indent, bare) do |indent|
+        r = generate_code(expr, l, indent, true)
+        @stream.write " " * indent
+        @stream.write "goto L#{"%04d" % m};\n"
+        if indent > 4
+          @stream.write " " * (indent - 4)
+        end
+        @stream.write "L#{"%04d" % l}:;\n"
+        generate_thunking_action_code(index, vars, capts, true, l, indent, true)
+        @stream.write " " * indent
+        @stream.write "goto L#{"%04d" % onfail};\n"
+        if indent > 4
+          @stream.write " " * (indent - 4)
+        end
+        @stream.write "L%#{"04d" % m}:;\n"
       end
-      @stream.write "L#{"%04d" % l}:;\n"
-      generate_thunking_action_code(index, vars, capts, true, l, indent, true)
-      @stream.write " " * indent
-      @stream.write "goto L#{"%04d" % onfail};\n"
-      if indent > 4
-        @stream.write " " * (indent - 4)
-      end
-      @stream.write "L%#{"04d" % m}:;\n"
-    end
       return r
     end
 
