@@ -866,13 +866,13 @@ class Packcr
         if match_code_block
           q = @bufcur
           text = @buffer.to_s
-          text = text, [pos2 + 1, q - pos2 - 2]
+          text = text[pos2 + 1, q - pos2 - 2]
           match_spaces
           n_t = Packcr::Node::ErrorNode.new
           n_t.expr = n_r
           n_t.code = Packcr::CodeBlock.new(text, Packcr.find_trailing_blanks(text), l2, m);
-          n_t.index = rcodes.length
-          @codes.push(n_t)
+          n_t.index = rule.codes.length
+          rule.codes.push(n_t)
         else
           raise StopParsing
         end
