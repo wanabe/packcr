@@ -1,7 +1,7 @@
 
 class Packcr
   class Generator
-    attr_reader :ascii
+    attr_reader :ascii, :rule
 
     def initialize(stream, rule, ascii)
       @stream = stream
@@ -12,13 +12,6 @@ class Packcr
 
     def next_label
       @label += 1
-    end
-
-    def generate_thunking_action_code(index, vars, capts, error, onfail, indent, bare)
-      generate_block(indent, bare) do |indent|
-        @stream.write Packcr.template("generator/thunking_action.c.erb", binding, indent: indent)
-      end
-      return Packcr::CODE_REACH__ALWAYS_SUCCEED
     end
 
     def generate_thunking_error_code(expr, index, vars, capts, onfail, indent, bare)
@@ -45,10 +38,9 @@ class Packcr
            ::Packcr::Node::AlternateNode,
            ::Packcr::Node::CaptureNode,
            ::Packcr::Node::ExpandNode,
+           ::Packcr::Node::ActionNode,
            ::Packcr::Node::RuleNode
         return node.generate_code(self, onfail, indent, bare)
-      when ::Packcr::Node::ActionNode
-        return generate_thunking_action_code(node.index, node.vars, node.capts, false, onfail, indent, bare)
       when ::Packcr::Node::ErrorNode
         return generate_thunking_error_code(node.expr, node.index, node.vars, node.capts, onfail, indent, bare)
       else

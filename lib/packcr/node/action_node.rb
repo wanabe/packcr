@@ -31,6 +31,13 @@ class Packcr
           $stdout.print "none)\n"
         end
       end
+
+      def generate_code(gen, onfail, indent, bare)
+        gen.generate_block(indent, bare) do |indent|
+          gen.write Packcr.template("node/action.c.erb", binding, indent: indent)
+        end
+        return Packcr::CODE_REACH__ALWAYS_SUCCEED
+      end
     end
   end
 end
