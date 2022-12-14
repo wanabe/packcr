@@ -254,28 +254,7 @@ class Packcr
 
     def generate_expanding_code(index, onfail, indent, bare)
       generate_block(indent, bare) do |indent|
-        @stream.write " " * indent
-        @stream.write "const size_t n = chunk->capts.buf[#{index}].range.end - chunk->capts.buf[#{index}].range.start;\n"
-        @stream.write " " * indent
-        @stream.write "if (pcc_refill_buffer(ctx, n) < n) goto L#{"%04d" % onfail};\n"
-        @stream.write " " * indent
-        @stream.write "if (n > 0) {\n"
-        @stream.write " " * (indent + 4)
-        @stream.write "const char *const p = ctx->buffer.buf + ctx->cur;\n"
-        @stream.write " " * (indent + 4)
-        @stream.write "const char *const q = ctx->buffer.buf + chunk->capts.buf[#{index}].range.start;\n"
-        @stream.write " " * (indent + 4)
-        @stream.write "size_t i;\n"
-        @stream.write " " * (indent + 4)
-        @stream.write "for (i = 0; i < n; i++) {\n"
-        @stream.write " " * (indent + 8)
-        @stream.write "if (p[i] != q[i]) goto L#{"%04d" % onfail};\n"
-        @stream.write " " * (indent + 4)
-        @stream.write "}\n"
-        @stream.write " " * (indent + 4)
-        @stream.write "ctx->cur += n;\n"
-        @stream.write " " * indent
-        @stream.write "}\n"
+        @stream.write Packcr.template("generator/expanding.c.erb", binding, indent: indent)
       end
       return Packcr::CODE_REACH__BOTH
     end
