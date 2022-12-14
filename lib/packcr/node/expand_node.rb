@@ -13,6 +13,13 @@ class Packcr
         Packcr.dump_integer_value(index)
         $stdout.print ")\n"
       end
+
+      def generate_code(gen, onfail, indent, bare)
+        gen.generate_block(indent, bare) do |indent|
+          gen.write Packcr.template("node/expand.c.erb", binding, indent: indent)
+        end
+        return Packcr::CODE_REACH__BOTH
+      end
     end
   end
 end

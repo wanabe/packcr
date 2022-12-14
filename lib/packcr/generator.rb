@@ -14,13 +14,6 @@ class Packcr
       @label += 1
     end
 
-    def generate_expanding_code(index, onfail, indent, bare)
-      generate_block(indent, bare) do |indent|
-        @stream.write Packcr.template("generator/expanding.c.erb", binding, indent: indent)
-      end
-      return Packcr::CODE_REACH__BOTH
-    end
-
     def generate_thunking_action_code(index, vars, capts, error, onfail, indent, bare)
       generate_block(indent, bare) do |indent|
         @stream.write Packcr.template("generator/thunking_action.c.erb", binding, indent: indent)
@@ -51,10 +44,9 @@ class Packcr
            ::Packcr::Node::SequenceNode,
            ::Packcr::Node::AlternateNode,
            ::Packcr::Node::CaptureNode,
+           ::Packcr::Node::ExpandNode,
            ::Packcr::Node::RuleNode
         return node.generate_code(self, onfail, indent, bare)
-      when ::Packcr::Node::ExpandNode
-        return generate_expanding_code(node.index, onfail, indent, bare)
       when ::Packcr::Node::ActionNode
         return generate_thunking_action_code(node.index, node.vars, node.capts, false, onfail, indent, bare)
       when ::Packcr::Node::ErrorNode
