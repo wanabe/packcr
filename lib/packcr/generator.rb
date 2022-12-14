@@ -284,14 +284,7 @@ class Packcr
       when ::Packcr::Node::RuleNode
         raise "Internal error"
       when ::Packcr::Node::ReferenceNode
-        if node.index != nil
-          @stream.write " " * indent
-          @stream.write "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{node.name}, &chunk->thunks, &(chunk->values.buf[#{node.index}]))) goto L#{"%04d" % onfail};\n"
-        else
-          @stream.write " " * indent
-          @stream.write "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{node.name}, &chunk->thunks, NULL)) goto L#{"%04d" % onfail};\n"
-        end
-        return Packcr::CODE_REACH__BOTH
+        return node.generate_code(self, onfail, indent, bare)
       when ::Packcr::Node::StringNode
         return generate_matching_string_code(node.value, onfail, indent, bare)
       when ::Packcr::Node::CharclassNode
@@ -319,6 +312,10 @@ class Packcr
       else
         raise "Internal error"
       end
+    end
+
+    def write(str)
+      @stream.write(str)
     end
 
     def generate_block(indent, bare)

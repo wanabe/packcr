@@ -16,6 +16,11 @@ class Packcr
         Packcr.dump_integer_value(index)
         $stdout.print ", name:'#{name}', rule:'#{rule&.name || "(null)"}')\n"
       end
+
+      def generate_code(gen, onfail, indent, bare)
+        gen.write Packcr.template("node/reference.c.erb", binding, indent: indent)
+        Packcr::CODE_REACH__BOTH
+      end
     end
   end
 end
