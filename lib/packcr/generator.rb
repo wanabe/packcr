@@ -1,6 +1,8 @@
 
 class Packcr
   class Generator
+    attr_reader :ascii
+
     def initialize(stream, rule, ascii)
       @stream = stream
       @rule = rule
@@ -10,68 +12,6 @@ class Packcr
 
     def next_label
       @label += 1
-    end
-
-    def generate_matching_charclass_code(charclass, onfail, indent, bare)
-      if !@ascii
-        raise "unexpected calling #generate_matching_charclass_code on no-ascii mode"
-      end
-
-      if charclass
-        n = charclass.length
-        a = charclass[0] == "^"
-        if a
-          n -= 1
-          charclass = charclass[1..-1]
-        end
-        if n > 0
-          if n > 1
-            generate_block(indent, bare) do |indent|
-              if !a && charclass =~ /\A[^\\]-.\z/
-                @stream.write Packcr.template("generator/matching_charclass_range_one.c.erb", binding, indent: indent)
-              else
-                @stream.write Packcr.template("generator/matching_charclass.c.erb", binding, indent: indent)
-              end
-            end
-            return Packcr::CODE_REACH__BOTH
-          elsif a
-            @stream.write Packcr.template("generator/matching_charclass_neg_one.c.erb", binding, indent: indent)
-            return Packcr::CODE_REACH__BOTH
-          else
-            @stream.write Packcr.template("generator/matching_charclass_one.c.erb", binding, indent: indent)
-            return Packcr::CODE_REACH__BOTH
-          end
-        else
-          @stream.write " " * indent
-          @stream.write "goto L#{"%04d" % onfail};\n"
-          return Packcr::CODE_REACH__ALWAYS_FAIL
-        end
-      else
-        @stream.write(<<~EOS.gsub(/^/, " " * indent))
-          if (pcc_refill_buffer(ctx, 1) < 1) goto L#{"%04d" % onfail};
-          ctx->cur++;
-        EOS
-        return Packcr::CODE_REACH__BOTH
-      end
-    end
-
-    def generate_matching_utf8_charclass_code(charclass, onfail, indent, bare)
-      if charclass && charclass.encoding != Encoding::UTF_8
-        charclass = charclass.dup.force_encoding(Encoding::UTF_8)
-      end
-      n = charclass&.length || 0
-      if charclass.nil? || n > 0
-        a = charclass && charclass[0] == '^'
-        i = a ? 1 : 0
-        generate_block(indent, bare) do |indent|
-          @stream.write Packcr.template("generator/matching_charclass_utf8.c.erb", binding, indent: indent)
-        end
-        return Packcr::CODE_REACH__BOTH
-      else
-        @stream.write " " * indent
-        @stream.write "goto L#{"%04d" % onfail};\n"
-        return Packcr::CODE_REACH__ALWAYS_FAIL
-      end
     end
 
     def generate_quantifying_code(expr, min, max, onfail, indent, bare)
@@ -266,14 +206,8 @@ class Packcr
       case node
       when ::Packcr::Node::RuleNode
         raise "Internal error"
-      when ::Packcr::Node::ReferenceNode, ::Packcr::Node::StringNode
+      when ::Packcr::Node::ReferenceNode, ::Packcr::Node::StringNode, ::Packcr::Node::CharclassNode
         return node.generate_code(self, onfail, indent, bare)
-      when ::Packcr::Node::CharclassNode
-        if @ascii
-          return generate_matching_charclass_code(node.value, onfail, indent, bare)
-        else
-          return generate_matching_utf8_charclass_code(node.value, onfail, indent, bare)
-        end
       when ::Packcr::Node::QuantityNode
         return generate_quantifying_code(node.expr, node.min, node.max, onfail, indent, bare)
       when ::Packcr::Node::PredicateNode
