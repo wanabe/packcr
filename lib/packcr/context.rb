@@ -473,7 +473,7 @@ class Packcr
           end
           node.index == capt.index
         end
-        if !found && node.index != Packcr::nil
+        if !found && node.index != nil
           warn "#{@iname}:#{node.line + 1}:#{node.col + 1}: Capture #{node.index + 1} not available at this position\n"
           @errnum += 1
         end
