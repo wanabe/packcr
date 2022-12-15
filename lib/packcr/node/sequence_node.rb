@@ -43,6 +43,12 @@ class Packcr
           node.verify_variables(vars)
         end
       end
+
+      def verify_captures(ctx, capts)
+        nodes.each do |node|
+          node.verify_captures(ctx, capts)
+        end
+      end
     end
   end
 end

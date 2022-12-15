@@ -23,6 +23,9 @@ class Packcr
       def verify_variables(vars)
       end
 
+      def verify_captures(ctx, capts)
+      end
+
       private
 
       def generate_utf8_charclass_code(gen, onfail, indent, bare)

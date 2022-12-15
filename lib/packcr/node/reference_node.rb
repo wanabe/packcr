@@ -33,6 +33,9 @@ class Packcr
         end
         vars.push(self) if !found
       end
+
+      def verify_captures(ctx, capts)
+      end
     end
   end
 end

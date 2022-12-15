@@ -45,6 +45,11 @@ class Packcr
       end
     end
 
+    def error(line, col, message)
+      warn "#{@iname}:#{line}:#{col}: #{message}"
+      @errnum += 1
+    end
+
     def value_type
       @value_type || "int"
     end
@@ -390,51 +395,7 @@ class Packcr
         return
       end
 
-      case node
-      when Packcr::Node::RuleNode
-        raise "Internal error"
-      when Packcr::Node::ReferenceNode, Packcr::Node::StringNode, Packcr::Node::CharclassNode
-      when Packcr::Node::QuantityNode
-        verify_captures(node.expr, capts)
-      when Packcr::Node::PredicateNode
-        verify_captures(node.expr, capts)
-      when Packcr::Node::SequenceNode
-        node.nodes.each do |child_node|
-          verify_captures(child_node, capts)
-        end
-      when Packcr::Node::AlternateNode
-        m = capts.length
-        nodes = node.nodes
-        v = capts.dup
-        node.nodes.each do |child_node|
-          v = v[0, m]
-          verify_captures(child_node, v)
-          v[m...-1].each do |added_node|
-            capts.push(added_node)
-          end
-        end
-      when Packcr::Node::CaptureNode
-        verify_captures(node.expr, capts)
-        capts.push(node)
-      when Packcr::Node::ExpandNode
-        found = capts.any? do |capt|
-          unless capt.is_a?(Packcr::Node::CaptureNode)
-            raise "unexpected capture: #{capt.class}"
-          end
-          node.index == capt.index
-        end
-        if !found && node.index != nil
-          warn "#{@iname}:#{node.line + 1}:#{node.col + 1}: Capture #{node.index + 1} not available at this position\n"
-          @errnum += 1
-        end
-      when Packcr::Node::ActionNode
-        node.capts = capts
-      when Packcr::Node::ErrorNode
-        node.capts = capts
-        verify_captures(node.expr, capts)
-      else
-        raise "Internal error"
-      end
+      node.verify_captures(self, capts)
     end
 
     def link_references(node)

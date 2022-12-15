@@ -39,6 +39,11 @@ class Packcr
         @vars = vars
         expr.verify_variables(vars)
       end
+
+      def verify_captures(ctx, capts)
+        @capts = capts
+        expr.verify_captures(ctx, capts)
+      end
     end
   end
 end

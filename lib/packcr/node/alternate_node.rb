@@ -46,6 +46,18 @@ class Packcr
           end
         end
       end
+
+      def verify_captures(ctx, capts)
+        m = capts.length
+        v = capts.dup
+        nodes.each do |node|
+          v = v[0, m]
+          node.verify_captures(ctx, v)
+          v[m...-1].each do |added_node|
+            capts.push(added_node)
+          end
+        end
+      end
     end
   end
 end
