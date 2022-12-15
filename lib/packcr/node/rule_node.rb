@@ -17,6 +17,10 @@ class Packcr
         expr.debug_dump(indent + 2)
         $stdout.print "#{" " * indent}}\n"
       end
+
+      def verify_variables(vars)
+        raise "Internal error"
+      end
     end
   end
 end

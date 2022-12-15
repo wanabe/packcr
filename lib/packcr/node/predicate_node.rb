@@ -33,6 +33,10 @@ class Packcr
         end
         return r
       end
+
+      def verify_variables(vars)
+        expr.verify_variables(vars)
+      end
     end
   end
 end

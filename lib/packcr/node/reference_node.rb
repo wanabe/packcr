@@ -21,6 +21,18 @@ class Packcr
         gen.write Packcr.template("node/reference.c.erb", binding, indent: indent)
         Packcr::CODE_REACH__BOTH
       end
+
+      def verify_variables(vars)
+        return if index.nil?
+
+        found = vars.any? do |var|
+          unless var.is_a?(Packcr::Node::ReferenceNode)
+            raise "unexpected var: #{var.class}"
+          end
+          index == var.index
+        end
+        vars.push(self) if !found
+      end
     end
   end
 end

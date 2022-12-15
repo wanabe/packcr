@@ -382,57 +382,7 @@ class Packcr
         return
       end
 
-      case node
-      when Packcr::Node::RuleNode
-        raise "Internal error"
-      when Packcr::Node::ReferenceNode
-        if node.index != nil
-          found = vars.any? do |var|
-            unless var.is_a?(Packcr::Node::ReferenceNode)
-              raise "unexpected var: #{var.class}"
-            end
-            node.index == var.index
-          end
-          if !found
-            vars.push(node)
-          end
-        end
-      when Packcr::Node::StringNode, Packcr::Node::CharclassNode
-      when Packcr::Node::QuantityNode
-        verify_variables(node.expr, vars)
-      when Packcr::Node::PredicateNode
-        verify_variables(node.expr, vars)
-      when Packcr::Node::SequenceNode
-        node.nodes.each do |child_node|
-          verify_variables(child_node, vars)
-        end
-      when Packcr::Node::AlternateNode
-        m = vars.length
-        nodes = node.nodes
-        v = vars.dup
-        node.nodes.each do |child_node|
-          v = v[0, m]
-          verify_variables(child_node, v)
-          v[m...-1].each do |added_node|
-            found = vars[m...-1].any? do |added_var|
-              added_node.index == added_var.index
-            end
-            if !found
-              vars.push(added_node)
-            end
-          end
-        end
-      when Packcr::Node::CaptureNode
-        verify_variables(node.expr, vars)
-      when Packcr::Node::ExpandNode
-      when Packcr::Node::ActionNode
-        node.vars = vars
-      when Packcr::Node::ErrorNode
-        node.vars = vars
-        verify_variables(node.expr, vars)
-      else
-        raise "Internal error"
-      end
+      node.verify_variables(vars)
     end
 
     def verify_captures(node, capts = [])

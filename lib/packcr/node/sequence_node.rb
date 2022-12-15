@@ -37,6 +37,12 @@ class Packcr
         end
         return b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_SUCCEED
       end
+
+      def verify_variables(vars)
+        nodes.each do |node|
+          node.verify_variables(vars)
+        end
+      end
     end
   end
 end

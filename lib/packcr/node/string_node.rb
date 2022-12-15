@@ -28,6 +28,9 @@ class Packcr
         end
         Packcr::CODE_REACH__BOTH
       end
+
+      def verify_variables(vars)
+      end
     end
   end
 end

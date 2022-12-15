@@ -20,6 +20,11 @@ class Packcr
         end
       end
 
+      def verify_variables(vars)
+      end
+
+      private
+
       def generate_utf8_charclass_code(gen, onfail, indent, bare)
         charclass = self.value
         if charclass && charclass.encoding != Encoding::UTF_8

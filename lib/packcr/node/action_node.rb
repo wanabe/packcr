@@ -36,6 +36,10 @@ class Packcr
         gen.write Packcr.template("node/action.c.erb", binding, indent: indent, unwrap: bare)
         return Packcr::CODE_REACH__ALWAYS_SUCCEED
       end
+
+      def verify_variables(vars)
+        @vars = vars
+      end
     end
   end
 end

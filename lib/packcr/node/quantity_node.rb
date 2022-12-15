@@ -36,6 +36,10 @@ class Packcr
           return Packcr::CODE_REACH__ALWAYS_SUCCEED
         end
       end
+
+      def verify_variables(vars)
+        expr.verify_variables(vars)
+      end
     end
   end
 end

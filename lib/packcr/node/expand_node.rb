@@ -18,6 +18,9 @@ class Packcr
         gen.write Packcr.template("node/expand.c.erb", binding, indent: indent, unwrap: bare)
         return Packcr::CODE_REACH__BOTH
       end
+
+      def verify_variables(vars)
+      end
     end
   end
 end

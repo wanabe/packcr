@@ -34,6 +34,11 @@ class Packcr
         gen.write Packcr.template("node/error.c.erb", binding, indent: indent, unwrap: bare)
         return r
       end
+
+      def verify_variables(vars)
+        @vars = vars
+        expr.verify_variables(vars)
+      end
     end
   end
 end
