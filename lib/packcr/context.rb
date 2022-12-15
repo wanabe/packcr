@@ -241,8 +241,7 @@ class Packcr
       if match_string(left)
         while !match_string(right)
           if eof?
-            warn "#{@iname}:#{l + 1}:#{m + 1}: Premature EOF in #{name}\n"
-            @errnum += 1
+            error l + 1, m + 1, "Premature EOF in #{name}"
             break
           end
           if !eol?
@@ -260,8 +259,7 @@ class Packcr
       if match_string(left)
         while !match_string(right)
           if eof?
-            warn "#{@iname}:#{l + 1}:#{m + 1}: Premature EOF in #{name}\n"
-            @errnum += 1
+            error l + 1, m + 1, "Premature EOF in #{name}"
             break
           end
           if match_character("\\".ord)
@@ -270,8 +268,7 @@ class Packcr
             end
           else
             if eol?
-              warn "#{@iname}:#{l + 1}:#{m + 1}: Premature EOF in #{name}\n"
-              @errnum += 1
+              error l + 1, m + 1, "Premature EOF in #{name}"
               break
             end
             match_character_any
@@ -341,8 +338,7 @@ class Packcr
         d = 1
         while true
           if eof?
-            warn "#{@iname}:#{l + 1}:#{m + 1}: Premature EOF in code block\n"
-            @errnum += 1
+            error l + 1, m + 1, "Premature EOF in code block"
             break
           end
           if match_directive_c || match_comment_c || match_comment_cxx || match_quotation_single || match_quotation_double
@@ -394,8 +390,7 @@ class Packcr
         name = node.name
         rule = @rulehash[name]
         if !rule
-          warn "#{@iname}:#{node.line + 1}:#{node.col + 1}: No definition of rule '#{node.name}'\n"
-          @errnum += 1
+          error node.line + 1, node.col + 1, "No definition of rule '#{node.name}'"
         else
           unless rule.is_a?(Packcr::Node::RuleNode)
             raise "unexpected node type #{rule.class}"
@@ -444,8 +439,7 @@ class Packcr
           output.push(code)
         end
       else
-        warn "#{@iname}:#{l + 1}:#{m + 1}: Illegal #{name} syntax\n"
-        @errnum += 1
+        error l + 1, m + 1, "Illegal #{name} syntax"
       end
       true
     end
@@ -467,12 +461,10 @@ class Packcr
         match_spaces
         s = @buffer.to_s[pos + 1, q - pos - 2]
         if !Packcr.unescape_string(s, false)
-          warn "#{@iname}:#{lv + 1}:#{mv + 1}: Illegal escape sequence"
-          @errnum += 1
+          error lv + 1, mv + 1, "Illegal escape sequence"
         end
       else
-        warn "#{@iname}:#{l + 1}:#{m + 1}: Illegal #{name} syntax"
-        @errnum += 1
+        error l + 1, m + 1, "Illegal #{name} syntax"
       end
 
       if s
@@ -481,23 +473,19 @@ class Packcr
         s.sub!(/\s+\z/, "")
         is_empty = must_not_be_empty && s !~ /[^\s]/
         if is_empty
-          warn "#{@iname}:#{lv + 1}:#{mv + 1}: Empty string"
-          @errnum += 1
+          error lv + 1, mv + 1, "Empty string"
           vaild = false
         end
         if must_not_be_void && s == "void"
-          warn "#{@iname}:#{lv + 1}:#{mv + 1}: 'void' not allowed"
-          @errnum += 1
+          error lv + 1, mv + 1, "'void' not allowed"
           vaild = false
         end
         if !is_empty && must_be_identifier && !Packcr.is_identifier_string(s)
-          warn "#{@iname}:#{lv + 1}:#{mv + 1}: Invalid identifier"
-          @errnum += 1
+          error lv + 1, mv + 1, "Invalid identifier"
           valid = false
         end
         if instance_variable_get(varname) != nil
-          warn "#{@iname}:#{l + 1}:#{m + 1}: Multiple #{name} definition"
-          @errnum += 1
+          error l + 1, m + 1, "Multiple #{name} definition"
           valid
         end
         if valid
@@ -555,8 +543,7 @@ class Packcr
 
           n_p.var = var
           if var.ord == "_".ord
-            warn "#{@iname}:#{l + 1}:#{m + 1}: Leading underscore in variable name '#{var}'"
-            @errnum += 1
+            error l + 1, m + 1, "Leading underscore in variable name '#{var}'"
           end
 
           i = rule.vars.index do |ref|
@@ -618,14 +605,11 @@ class Packcr
           index = s.to_i
           n_p.index = index
           if index == nil
-            warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid unsigned number '#{s}'"
-            @errnum += 1
+            error l + 1, m + 1, "Invalid unsigned number '#{s}'"
           elsif index == 0
-            warn "#{@iname}:#{l + 1}:#{m + 1}: 0 not allowed"
-            @errnum += 1
+            error l + 1, m + 1, "0 not allowed"
           elsif s.ord == "0".ord
-            warn "#{@iname}:#{l + 1}:#{m + 1}: 0-prefixed number not allowed"
-            @errnum += 1
+            error l + 1, m + 1, "0-prefixed number not allowed"
             n_p.index = 0
           end
           if index > 0 && index != nil
@@ -654,8 +638,7 @@ class Packcr
           charclass.force_encoding(Encoding::UTF_8)
         end
         if !@ascii && !charclass.valid_encoding?
-          warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid UTF-8 string"
-          @errnum += 1
+          error l + 1, m + 1, "Invalid UTF-8 string"
         end
         if !@ascii && !charclass.empty?
           @utf8 = true
@@ -672,8 +655,7 @@ class Packcr
           string.force_encoding(Encoding::UTF_8)
         end
         if !@ascii && !string.valid_encoding?
-          warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid UTF-8 string"
-          @errnum += 1
+          error l + 1, m + 1, "Invalid UTF-8 string"
         end
         n_p.value = string
       elsif match_code_block
@@ -908,8 +890,7 @@ class Packcr
         elsif match_character("%")
           l = @linenum
           m = column_number
-          warn "#{@iname}:#{l + 1}:#{m + 1}: Invalid directive"
-          @errnum += 1
+          error l + 1, m + 1, "Invalid directive"
           match_identifier
           match_spaces
           b = true
@@ -921,8 +902,7 @@ class Packcr
           node = parse_rule
           if node == nil
             if b
-              warn "#{@iname}:#{l + 1}:#{m + 1}: Illegal rule syntax"
-              @errnum += 1
+              error l + 1, m + 1, "Illegal rule syntax"
               b = false
             end
             @linenum = l
@@ -947,11 +927,9 @@ class Packcr
       end
       @rules[1..-1]&.each do |rule|
         if rule.ref == 0
-          warn "#{@iname}:#{rule.line + 1}:#{rule.col + 1}: Never used rule '#{rule.name}'\n"
-          @errnum += 1
+          error rule.line + 1, rule.col + 1, "Never used rule '#{rule.name}'"
         elsif rule.ref < 0 # impossible?
-          warn "#{@iname}:#{rule.line + 1}:#{rule.col + 1}: Multiple definition of rule '#{rule.name}'\n"
-          @errnum += 1
+          error rule.line + 1, rule.col + 1, "Multiple definition of rule '#{rule.name}'"
         end
       end
 
