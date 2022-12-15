@@ -33,6 +33,9 @@ class Packcr
           ctx.error line + 1, col + 1, "Capture #{index + 1} not available at this position"
         end
       end
+
+      def link_references(ctx)
+      end
     end
   end
 end

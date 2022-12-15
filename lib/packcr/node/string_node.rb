@@ -34,6 +34,9 @@ class Packcr
 
       def verify_captures(ctx, capts)
       end
+
+      def link_references(ctx)
+      end
     end
   end
 end

@@ -58,6 +58,12 @@ class Packcr
           end
         end
       end
+
+      def link_references(ctx)
+        nodes.each do |node|
+          node.link_references(ctx)
+        end
+      end
     end
   end
 end

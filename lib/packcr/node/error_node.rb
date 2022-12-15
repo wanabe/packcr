@@ -44,6 +44,10 @@ class Packcr
         @capts = capts
         expr.verify_captures(ctx, capts)
       end
+
+      def link_references(ctx)
+        expr.link_references(ctx)
+      end
     end
   end
 end

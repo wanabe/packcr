@@ -29,6 +29,10 @@ class Packcr
         expr.verify_captures(ctx, capts)
         capts.push(self)
       end
+
+      def link_references(ctx)
+        expr.link_references(ctx)
+      end
     end
   end
 end

@@ -378,47 +378,8 @@ class Packcr
       EOS
     end
 
-    def link_references(node)
-      if !node
-        return
-      end
-
-      case node
-      when Packcr::Node::RuleNode
-        raise "Internal error"
-      when Packcr::Node::ReferenceNode
-        name = node.name
-        rule = @rulehash[name]
-        if !rule
-          error node.line + 1, node.col + 1, "No definition of rule '#{node.name}'"
-        else
-          unless rule.is_a?(Packcr::Node::RuleNode)
-            raise "unexpected node type #{rule.class}"
-          end
-          rule.add_ref
-          node.rule = rule
-        end
-      when Packcr::Node::StringNode, Packcr::Node::CharclassNode
-      when Packcr::Node::QuantityNode
-        link_references(node.expr)
-      when Packcr::Node::PredicateNode
-        link_references(node.expr)
-      when Packcr::Node::SequenceNode
-        node.nodes.each do |child_node|
-          link_references(child_node)
-        end
-      when Packcr::Node::AlternateNode
-        node.nodes.each do |child_node|
-          link_references(child_node)
-        end
-      when Packcr::Node::CaptureNode
-        link_references(node.expr)
-      when Packcr::Node::ExpandNode, Packcr::Node::ActionNode
-      when Packcr::Node::ErrorNode
-        link_references(node.expr)
-      else
-        raise "Internal error"
-      end
+    def rule(name)
+      @rulehash[name]
     end
 
     def parse_directive_include(name, *outputs)
@@ -923,7 +884,7 @@ class Packcr
 
       make_rulehash
       @rules.each do |rule|
-        link_references(rule.expr)
+        rule.expr.link_references(self)
       end
       @rules[1..-1]&.each do |rule|
         if rule.ref == 0

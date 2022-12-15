@@ -36,6 +36,19 @@ class Packcr
 
       def verify_captures(ctx, capts)
       end
+
+      def link_references(ctx)
+        rule = ctx.rule(name)
+        if !rule
+          ctx.error line + 1, col + 1, "No definition of rule '#{name}'"
+        else
+          unless rule.is_a?(Packcr::Node::RuleNode)
+            raise "unexpected node type #{rule.class}"
+          end
+          rule.add_ref
+          self.rule = rule
+        end
+      end
     end
   end
 end
