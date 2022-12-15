@@ -1,3 +1,6 @@
+{
+    const size_t p = ctx->cur;
+<%= code -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     ctx->cur = p;
     goto L<%= "%04d" % onfail %>;
@@ -6,3 +9,4 @@
 L<%= "%04d" % l %>:;
     ctx->cur = p;
 <%- end -%>
+}

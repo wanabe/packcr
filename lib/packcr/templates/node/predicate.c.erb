@@ -1,3 +1,6 @@
+{
+    const size_t p = ctx->cur;
+<%= code -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     ctx->cur = p;
 <%- end -%>
@@ -12,3 +15,4 @@ L<%= "%04d" % l %>:;
 <%- if r == Packcr::CODE_REACH__BOTH -%>
 L<%= "%04d" % m %>:;
 <%- end -%>
+}

@@ -122,13 +122,15 @@ class Packcr
       return n, e
     end
 
-    def template(path, b, indent: nil)
+    def template(path, b, indent: 0, unwrap: false)
       template_path = File.join(File.dirname(__FILE__), "templates", path)
       result = ERB.new(File.read(template_path), trim_mode: "%-").result(b)
-      if indent
-        result.gsub!(/^(?!$)/, " " * indent)
-        result.gsub!(/^( *?) {0,4}<<<</) { $1 }
+      if unwrap
+        result.gsub!(/\A\{|\}\z/, "")
+        indent -= 4
       end
+      result.gsub!(/^(?!$)/, " " * indent)
+      result.gsub!(/^( *?) {0,4}<<<</) { $1 }
       result
     end
   end

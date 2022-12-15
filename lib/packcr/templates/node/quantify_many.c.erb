@@ -1,31 +1,33 @@
+{
 <%- if min > 0 -%>
-const size_t p0 = ctx->cur;
-const size_t n0 = chunk->thunks.len;
+    const size_t p0 = ctx->cur;
+    const size_t n0 = chunk->thunks.len;
 <%- end -%>
-int i;
+    int i;
 <%- if max < 0 -%>
-for (i = 0;; i++) {
+    for (i = 0;; i++) {
 <%- else -%>
-for (i = 0; i < <%= max %>; i++) {
+    for (i = 0; i < <%= max %>; i++) {
 <%- end -%>
-    const size_t p = ctx->cur;
-    const size_t n = chunk->thunks.len;
+        const size_t p = ctx->cur;
+        const size_t n = chunk->thunks.len;
 <%- l = gen.next_label -%>
-<%- r, code = gen.generate_code_str(expr, l, 4, false) -%>
+<%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
 <%= code -%>
-    if (ctx->cur == p) break;
+        if (ctx->cur == p) break;
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-    continue;
-L<%= "%04d" % l %>:;
-    ctx->cur = p;
-    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
-    break;
+        continue;
+    L<%= "%04d" % l %>:;
+        ctx->cur = p;
+        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+        break;
 <%- end -%>
-}
+    }
 <%- if min > 0 -%>
-if (i < <%= min %>) {
-    ctx->cur = p0;
-    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);
-    goto L<%= "%04d" % onfail %>;
-}
+    if (i < <%= min %>) {
+        ctx->cur = p0;
+        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);
+        goto L<%= "%04d" % onfail %>;
+    }
 <%- end -%>
+}

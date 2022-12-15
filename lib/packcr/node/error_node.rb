@@ -30,11 +30,9 @@ class Packcr
       def generate_code(gen, onfail, indent, bare)
         l = gen.next_label
         m = gen.next_label
-        gen.generate_block(indent, bare) do |indent|
-          r = gen.generate_code(expr, l, indent, true)
-          gen.write Packcr.template("node/error.c.erb", binding, indent: indent - 4)
-          return r
-        end
+        r, code = gen.generate_code_str(expr, l, 4, true)
+        gen.write Packcr.template("node/error.c.erb", binding, indent: indent, unwrap: bare)
+        return r
       end
     end
   end

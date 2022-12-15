@@ -29,9 +29,7 @@ class Packcr
         if charclass.nil? || n > 0
           a = charclass && charclass[0] == '^'
           i = a ? 1 : 0
-          gen.generate_block(indent, bare) do |indent|
-            gen.write Packcr.template("node/charclass_utf8.c.erb", binding, indent: indent)
-          end
+          gen.write Packcr.template("node/charclass_utf8.c.erb", binding, indent: indent, unwrap: bare)
           return Packcr::CODE_REACH__BOTH
         else
           gen.write " " * indent
@@ -51,9 +49,7 @@ class Packcr
           end
           if n > 0
             if n > 1
-              gen.generate_block(indent, bare) do |indent|
-                gen.write Packcr.template("node/charclass.c.erb", binding, indent: indent)
-              end
+              gen.write Packcr.template("node/charclass.c.erb", binding, indent: indent, unwrap: bare)
             else
               gen.write Packcr.template("node/charclass_one.c.erb", binding, indent: indent)
             end

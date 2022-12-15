@@ -1,13 +1,14 @@
-int u;
-const size_t n = pcc_get_char_as_utf32(ctx, &u);
-if (n == 0) goto L<%= "%04d" % onfail %>;
+{
+    int u;
+    const size_t n = pcc_get_char_as_utf32(ctx, &u);
+    if (n == 0) goto L<%= "%04d" % onfail %>;
 <%- if charclass && !(a && n == 1) # not '.' or '[^]' -%>
 <%-   u0 = 0 -%>
 <%-   r = false -%>
 <%-   if a -%>
-if (
+    if (
 <%-   else -%>
-if (!(
+    if (!(
 <%-   end -%>
 <%-   while i < n -%>
 <%-     if charclass[i] == '\\' && i + 1 < n -%>
@@ -17,12 +18,12 @@ if (!(
 <%-     i += 1 -%>
 <%-     if r -%>
 <%-       # character range -%>
-    (u >= 0x<%= "%06x" % u0  %> && u <= 0x<%= "%06x" % u %>)<% if i < n %> ||<% end %>
+        (u >= 0x<%= "%06x" % u0  %> && u <= 0x<%= "%06x" % u %>)<% if i < n %> ||<% end %>
 <%-       u0 = 0 -%>
 <%-       r = false -%>
 <%-     elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position -%>
 <%-       # single character -%>
-    u == 0x<%= "%06x" % u %><% if i < n %> ||<% end %>
+        u == 0x<%= "%06x" % u %><% if i < n %> ||<% end %>
 <%-       u0 = 0 -%>
 <%-       r = false -%>
 <%-     elsif charclass[i] == "-" -%>
@@ -34,9 +35,10 @@ if (!(
 <%-     end -%>
 <%-   end -%>
 <%-   if a -%>
-) goto L<%= "%04d" % onfail %>;
+    ) goto L<%= "%04d" % onfail %>;
 <%-   else -%>
-)) goto L<%= "%04d" % onfail %>;
+    )) goto L<%= "%04d" % onfail %>;
 <%-   end -%>
 <%- end -%>
-ctx->cur += n;
+    ctx->cur += n;
+}

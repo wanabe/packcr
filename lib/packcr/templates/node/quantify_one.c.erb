@@ -1,3 +1,4 @@
+{
 <%- l = gen.next_label -%>
     const size_t p = ctx->cur;
     const size_t n = chunk->thunks.len;
@@ -11,3 +12,4 @@ L<%= "%04d" % l %>:;
     pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
 L<%= "%04d" % m %>:;
 <%- end -%>
+}

@@ -1,21 +1,22 @@
+{
 <%- if !a && charclass =~ /\A[^\\]-.\z/ -%>
-char c;
-if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= "%04d" % onfail %>;
-c = ctx->buffer.buf[ctx->cur];
+    char c;
+    if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= "%04d" % onfail %>;
+    c = ctx->buffer.buf[ctx->cur];
 <%- if a -%>
-if (c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>') goto L<%= "%04d" % onfail %>;
+    if (c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>') goto L<%= "%04d" % onfail %>;
 <%- else -%>
-if (!(c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>')) goto L<%= "%04d" % onfail %>;
+    if (!(c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>')) goto L<%= "%04d" % onfail %>;
 <%- end -%>
-ctx->cur++;
+    ctx->cur++;
 <%- else -%>
-char c;
-if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= "%04d" % onfail %>;
-c = ctx->buffer.buf[ctx->cur];
+    char c;
+    if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= "%04d" % onfail %>;
+    c = ctx->buffer.buf[ctx->cur];
 <%- if a -%>
-if (
+    if (
 <%- else -%>
-if (!(
+    if (!(
 <%- end -%>
 <%- i = 0 -%>
 <%- while i < n -%>
@@ -23,17 +24,18 @@ if (!(
 <%-     i += 1 -%>
 <%-   end -%>
 <%-   if i + 2 < n && charclass[i + 1] == '-' -%>
-    (c >= '<%= Packcr.escape_character(charclass[i]) %>' && c <= '<%= Packcr.escape_character(charclass[i + 2]) %>')<%= (i + 3 == n) ? "" : " ||" %>
+        (c >= '<%= Packcr.escape_character(charclass[i]) %>' && c <= '<%= Packcr.escape_character(charclass[i + 2]) %>')<%= (i + 3 == n) ? "" : " ||" %>
 <%-     i += 2 -%>
 <%-   else -%>
-    c == '<%= Packcr.escape_character(charclass[i]) %>'<%= (i + 1 == n) ? "" : " ||" %>
+        c == '<%= Packcr.escape_character(charclass[i]) %>'<%= (i + 1 == n) ? "" : " ||" %>
 <%-   end -%>
 <%-   i += 1 -%>
 <%- end -%>
 <%- if a -%>
-) goto L<%= "%04d" % onfail %>;
+    ) goto L<%= "%04d" % onfail %>;
 <%- else -%>
-)) goto L<%= "%04d" % onfail %>;
+    )) goto L<%= "%04d" % onfail %>;
 <%- end -%>
-ctx->cur++;
+    ctx->cur++;
 <%- end -%>
+}

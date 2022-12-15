@@ -1,11 +1,13 @@
-const size_t n = chunk->capts.buf[<%= index %>].range.end - chunk->capts.buf[<%= index %>].range.start;
-if (pcc_refill_buffer(ctx, n) < n) goto L<%= "%04d" % onfail %>;
-if (n > 0) {
-    const char *const p = ctx->buffer.buf + ctx->cur;
-    const char *const q = ctx->buffer.buf + chunk->capts.buf[<%= index %>].range.start;
-    size_t i;
-    for (i = 0; i < n; i++) {
-        if (p[i] != q[i]) goto L<%= "%04d" % onfail %>;
+{
+    const size_t n = chunk->capts.buf[<%= index %>].range.end - chunk->capts.buf[<%= index %>].range.start;
+    if (pcc_refill_buffer(ctx, n) < n) goto L<%= "%04d" % onfail %>;
+    if (n > 0) {
+        const char *const p = ctx->buffer.buf + ctx->cur;
+        const char *const q = ctx->buffer.buf + chunk->capts.buf[<%= index %>].range.start;
+        size_t i;
+        for (i = 0; i < n; i++) {
+            if (p[i] != q[i]) goto L<%= "%04d" % onfail %>;
+        }
+        ctx->cur += n;
     }
-    ctx->cur += n;
 }

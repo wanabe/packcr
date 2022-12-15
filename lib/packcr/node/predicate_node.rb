@@ -14,31 +14,24 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare)
-        gen.generate_block(indent, bare) do |indent|
-          gen.write(<<~EOS.gsub(/^/, " " * indent))
-            const size_t p = ctx->cur;
-          EOS
-
-          if neg
-            l = gen.next_label
-            r = gen.generate_code(expr, l, indent, false)
-
-            gen.write Packcr.template("node/predicate_neg.c.erb", binding, indent: indent - 4)
-
-            case r
-            when Packcr::CODE_REACH__ALWAYS_SUCCEED
-              r = Packcr::CODE_REACH__ALWAYS_FAIL
-            when Packcr::CODE_REACH__ALWAYS_FAIL
-              r = Packcr::CODE_REACH__ALWAYS_SUCCEED
-            end
-          else
-            l = gen.next_label
-            m = gen.next_label
-            r = gen.generate_code(expr, l, indent, false)
-            gen.write Packcr.template("node/predicate.c.erb", binding, indent: indent - 4)
+        r = nil
+        if neg
+          l = gen.next_label
+          r, code = gen.generate_code_str(expr, l, 4, false)
+          gen.write Packcr.template("node/predicate_neg.c.erb", binding, indent: indent, unwrap: bare)
+          case r
+          when Packcr::CODE_REACH__ALWAYS_SUCCEED
+            r = Packcr::CODE_REACH__ALWAYS_FAIL
+          when Packcr::CODE_REACH__ALWAYS_FAIL
+            r = Packcr::CODE_REACH__ALWAYS_SUCCEED
           end
-          return r
+        else
+          l = gen.next_label
+          m = gen.next_label
+          r, code = gen.generate_code_str(expr, l, 4, false)
+          gen.write Packcr.template("node/predicate.c.erb", binding, indent: indent, unwrap: bare)
         end
+        return r
       end
     end
   end

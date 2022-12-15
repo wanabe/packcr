@@ -1,28 +1,30 @@
-    const size_t p = ctx->cur;
-    const size_t n = chunk->thunks.len;
+    {
+        const size_t p = ctx->cur;
+        const size_t n = chunk->thunks.len;
 <%- nodes.each_with_index do |expr, i| -%>
 <%-   c = i + 1 < nodes.length -%>
 <%-   l = gen.next_label -%>
-<%-   r, code = gen.generate_code_str(expr, l, 4, false) -%>
+<%-   r, code = gen.generate_code_str(expr, l, 8, false) -%>
 <%= code -%>
 <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-     reach = Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-     if c -%>
-    /* unreachable codes omitted */
+        /* unreachable codes omitted */
 <%-     end -%>
 <%-     break -%>
 <%-   else -%>
 <%-     if r == Packcr::CODE_REACH__BOTH -%>
 <%-       reach = Packcr::CODE_REACH__BOTH -%>
 <%-       b = true -%>
-    goto L<%= "%04d" % m %>;
+        goto L<%= "%04d" % m %>;
 <%-     end -%>
 <%-   end -%>
-L<%= "%04d" % l %>:;
-    ctx->cur = p;
-    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+    L<%= "%04d" % l %>:;
+        ctx->cur = p;
+        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
 <%-   if !c -%>
-    goto L<%= "%04d" % onfail %>;
+        goto L<%= "%04d" % onfail %>;
 <%-   end -%>
 <%- end -%>
-L<%= "%04d" % m %>:;
+    L<%= "%04d" % m %>:;
+    }
