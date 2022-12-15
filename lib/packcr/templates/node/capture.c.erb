@@ -1,0 +1,7 @@
+const size_t p = ctx->cur;
+size_t q;
+<%- r, code = gen.generate_code_str(expr, onfail, 0, false) -%>
+<%= code -%>
+q = ctx->cur;
+chunk->capts.buf[<%= index %>].range.start = p;
+chunk->capts.buf[<%= index %>].range.end = q;

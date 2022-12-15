@@ -16,19 +16,11 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare)
+        r = nil
         gen.generate_block(indent, bare) do |indent|
-          gen.write(<<~EOS.gsub(/^/, " " * indent))
-            const size_t p = ctx->cur;
-            size_t q;
-          EOS
-          r = gen.generate_code(expr, onfail, indent, false)
-          gen.write(<<~EOS.gsub(/^/, " " * indent))
-            q = ctx->cur;
-            chunk->capts.buf[#{index}].range.start = p;
-            chunk->capts.buf[#{index}].range.end = q;
-          EOS
-          return r
+          gen.write Packcr.template("node/capture.c.erb", binding, indent: indent)
         end
+        return r
       end
     end
   end
