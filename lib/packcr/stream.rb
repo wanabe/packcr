@@ -21,7 +21,7 @@ class Packcr
       return unless @line
       write("#line #{lineno + 1} \"")
       fname.each_byte do |b|
-        write(Packcr.escape_character(b))
+        write(Packcr.escape_character(b.chr))
       end
       write("\"\n")
     end

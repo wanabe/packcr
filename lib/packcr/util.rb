@@ -13,6 +13,7 @@ class Packcr
     end
 
     def escape_character(c)
+      raise "invalid character: #{c.inspect}" unless c.is_a?(String)
       ch = c.ord
       case ch
       when 0x00
@@ -60,7 +61,7 @@ class Packcr
         return
       end
       str.each_byte do |c|
-        $stdout.print escape_character(c)
+        $stdout.print escape_character(c.chr)
       end
     end
 
