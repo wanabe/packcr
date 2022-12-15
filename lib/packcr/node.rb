@@ -17,10 +17,6 @@ class Packcr
       @nodes << node
     end
 
-    def add_ref
-      @ref += 1
-    end
-
     def initialize
       super
       @codes = []

@@ -22,6 +22,10 @@ class Packcr
         expr.verify_variables([])
         expr.verify_captures(ctx, [])
       end
+
+      def add_ref
+        @ref += 1
+      end
     end
   end
 end
