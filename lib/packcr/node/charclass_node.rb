@@ -52,20 +52,12 @@ class Packcr
           if n > 0
             if n > 1
               gen.generate_block(indent, bare) do |indent|
-                if !a && charclass =~ /\A[^\\]-.\z/
-                  gen.write Packcr.template("node/charclass_range_one.c.erb", binding, indent: indent)
-                else
-                  gen.write Packcr.template("node/charclass.c.erb", binding, indent: indent)
-                end
+                gen.write Packcr.template("node/charclass.c.erb", binding, indent: indent)
               end
-              return Packcr::CODE_REACH__BOTH
-            elsif a
-              gen.write Packcr.template("node/charclass_neg_one.c.erb", binding, indent: indent)
-              return Packcr::CODE_REACH__BOTH
             else
               gen.write Packcr.template("node/charclass_one.c.erb", binding, indent: indent)
-              return Packcr::CODE_REACH__BOTH
             end
+            return Packcr::CODE_REACH__BOTH
           else
             gen.write " " * indent
             gen.write "goto L#{"%04d" % onfail};\n"
