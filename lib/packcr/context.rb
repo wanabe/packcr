@@ -382,22 +382,6 @@ class Packcr
       EOS
     end
 
-    def verify_variables(node, vars = [])
-      if !node
-        return
-      end
-
-      node.verify_variables(vars)
-    end
-
-    def verify_captures(node, capts = [])
-      if !node
-        return
-      end
-
-      node.verify_captures(self, capts)
-    end
-
     def link_references(node)
       if !node
         return
@@ -972,8 +956,7 @@ class Packcr
       end
 
       @rules.each do |rule|
-        verify_variables(rule.expr)
-        verify_captures(rule.expr)
+        rule.verify(self)
       end
 
       if @debug

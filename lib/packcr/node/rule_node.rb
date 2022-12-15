@@ -18,8 +18,9 @@ class Packcr
         $stdout.print "#{" " * indent}}\n"
       end
 
-      def verify_variables(vars)
-        raise "Internal error"
+      def verify(ctx)
+        expr.verify_variables([])
+        expr.verify_captures(ctx, [])
       end
     end
   end
