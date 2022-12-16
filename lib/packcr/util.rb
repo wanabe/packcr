@@ -24,37 +24,20 @@ class Packcr
     end
 
     def escape_character(c)
-      raise "invalid character: #{c.inspect}" unless c.is_a?(String)
-      ch = c.ord
-      case ch
-      when 0x00
-        "\\0"
-      when 0x07
-        "\\a"
-      when 0x08
-        "\\b"
-      when 0x0c
-        "\\f"
-      when 0x0a
-        "\\n"
-      when 0x0d
-        "\\r"
-      when 0x09
-        "\\t"
-      when 0x0b
-        "\\v"
-      when "\\".ord
-        "\\\\"
-      when "\'".ord
-        "\\\'"
-      when "\"".ord
-        "\\\""
-      else
-        if ch >= 0x20 && ch < 0x7f
-          ch.chr
-        else
-          "\\x%02x" % ch
-        end
+      escape_string(c.chr)
+    end
+
+    def escape_string(str)
+      str = str.b
+      str.gsub(/(\0+)|(\e+)|("+)|('+)|(\\+)|((?:(?![\0\e"'\\])[ -~])+)|([\x01-\x1a\x1c-\x1f\x7f-\xff]+)/n) do
+        n = $&.size
+        next "\\0"   * n if $1
+        next "\\x1b" * n if $2
+        next "\\\""  * n if $3
+        next "\\\'"  * n if $4
+        next "\\\\"  * n if $5
+        next $6 if $6
+        $7.dump[1..-2].downcase
       end
     end
 
@@ -71,9 +54,7 @@ class Packcr
         $stdout.print "null"
         return
       end
-      str.each_byte do |c|
-        $stdout.print escape_character(c.chr)
-      end
+      $stdout.print escape_string(str)
     end
 
     def find_first_trailing_space(str, s, e)

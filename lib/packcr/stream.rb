@@ -20,9 +20,7 @@ class Packcr
     def write_line_directive(fname, lineno)
       return unless @line
       write("#line #{lineno + 1} \"")
-      fname.each_byte do |b|
-        write(Packcr.escape_character(b.chr))
-      end
+      write(Packcr.escape_string(fname))
       write("\"\n")
     end
 
