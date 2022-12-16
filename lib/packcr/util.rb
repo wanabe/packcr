@@ -58,25 +58,17 @@ class Packcr
     end
 
     def find_first_trailing_space(str, s, e)
-      i = j = s
-      while i < e
-        case str[i]
-        when " ", "\v", "\f", "\t"
-          i += 1
-          next
-        when "\n"
-          return j, i + 1
-        when "\r"
-          if (i + 1 < e && str[i + 1] == "\n")
-            i += 1
-          end
-          return j, i + 1
-        else
-          j = i + 1
-          i += 1
-        end
+      part = str[s...e][/\A.*\r?\n?/]
+      if part
+        pos = part =~ /[ \v\f\t]+\r?\n?$|\r?\n|\r/
       end
-      return j, e
+      if pos
+        i = s + pos
+        j = i + $&&.size
+      else
+        i = j = e
+      end
+      [i, j]
     end
 
     def find_trailing_blanks(str)
