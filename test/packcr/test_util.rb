@@ -39,4 +39,28 @@ class Packcr::TestUtil < Test::Unit::TestCase
       assert_equal(false, Packcr.is_identifier_string(str))
     end
   end
+
+  sub_test_case "#unescape_string" do
+    data(
+      "ascii"   => ["abcd", "abcd"],
+      "\\xnn"   => ["\\xe3\\x81\\x82", "あ"],
+      "\\unnnn" => ["\\u3044", "い"],
+      "'"       => ["\\'", "'"],
+      "\\0"     => ["\\0", "\0"],
+      "\\"      => ["\\\\", "\\"],
+    )
+    test "charclass is false" do |(str, expected)|
+      assert_equal(expected, Packcr.unescape_string(str, false))
+    end
+
+    data(
+      "ascii"   => ["abcd", "abcd"],
+      "\\xnn"   => ["\\xe3\\x81\\x82", "あ"],
+      "\\unnnn" => ["\\u3044", "い"],
+      "\\"      => ["\\\\", "\\\\"],
+    )
+    test "charclass is true" do |(str, expected)|
+      assert_equal(expected, Packcr.unescape_string(str, true))
+    end
+  end
 end

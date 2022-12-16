@@ -9,6 +9,17 @@ class Packcr
       if is_charclass
         str.gsub!("\\" * 2) { "\\" * 4 }
       end
+      str.gsub!(/\\(.)/) do
+        c = $1
+        case c
+        when "0"
+          "\\x00"
+        when "'"
+          c
+        else
+          "\\#{c}"
+        end
+      end
       str.replace "\"#{str}\"".undump
     end
 
