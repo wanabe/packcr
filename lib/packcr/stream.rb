@@ -1,14 +1,21 @@
+require "securerandom"
+
 class Packcr
   class Stream
     def initialize(io, name, line)
       @io = io
       @name = name
       @line = line
+      @line_directive_tag = nil
     end
 
-    def write(s)
+    def write(s, rewrite_line_directive: false)
+      if rewrite_line_directive && @line_directive_tag && @line.respond_to?(:+)
+        s.gsub!(@line_directive_tag) { (@line + $`.count("\n") + 1).to_s }
+        @line_directive_tag = nil
+      end
       @io.write(s)
-      if @line
+      if @line.respond_to?(:+)
         @line += s.count("\n")
       end
     end
@@ -19,7 +26,13 @@ class Packcr
 
     def write_line_directive(fname, lineno)
       return unless @line
-      write("#line #{lineno + 1} \"")
+      if lineno.respond_to?(:+)
+        write("#line #{lineno + 1} \"")
+      else
+        @line_directive_tag ||= "<#{SecureRandom.uuid}>"
+        write("#line #{@line_directive_tag} \"")
+      end
+
       write(Packcr.escape_string(fname))
       write("\"\n")
     end
@@ -107,6 +120,15 @@ class Packcr
       if b
         write_output_line_directive
       end
+    end
+
+    def get_code_block(code, indent, fname)
+      buf = StringIO.new
+      line, io, @io, @line = @line, @io, buf, @line && :uuid
+      write_code_block(code, indent, fname)
+      return buf.string
+    ensure
+      @line, @io = line, io
     end
   end
 end
