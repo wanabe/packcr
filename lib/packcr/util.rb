@@ -2,7 +2,7 @@
 class Packcr
   module Util
     def is_identifier_string(str)
-      str =~ /\A(?!\d)\w+\z/
+      str.match?(/\A(?!\d)\w+\z/)
     end
 
     def unescape_string(str, is_charclass)
