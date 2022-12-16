@@ -13,4 +13,5 @@ Gem::Specification.new do |s|
   s.files      = Dir.glob("lib/**/*.rb")
 
   s.add_development_dependency "rake-compiler"
+  s.add_development_dependency "test-unit"
 end
