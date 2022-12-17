@@ -72,22 +72,7 @@ class Packcr
     end
 
     def find_trailing_blanks(str)
-      j = 0
-      i = 0
-      while str[i]
-        if (
-              str[i] != " "  &&
-              str[i] != "\v" &&
-              str[i] != "\f" &&
-              str[i] != "\t" &&
-              str[i] != "\n" &&
-              str[i] != "\r"
-            )
-          j = i + 1
-        end
-        i += 1
-      end
-      return j
+      str =~ /[ \v\f\t\n\r]*\z/
     end
 
     def count_indent_spaces(str, s, e)

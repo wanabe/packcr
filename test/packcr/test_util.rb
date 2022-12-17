@@ -152,4 +152,24 @@ class Packcr::TestUtil < Test::Unit::TestCase
       assert_equal(expected, Packcr.find_first_trailing_space(str, s, e))
     end
   end
+
+  sub_test_case "#find_trailing_blanks" do
+    data(
+      "no space"     => ["abcde", 5],
+      "first space"  => ["  cde", 5],
+      "middle space" => ["a\n\nde", 5],
+    )
+    test "not found" do |(str, expected)|
+      assert_equal(expected, Packcr.find_trailing_blanks(str))
+    end
+
+    data(
+      "trailing LF" => ["abc\n\n", 3],
+      "some space"  => ["a c  ", 3],
+      "only space"  => ["   ", 0]
+    )
+    test "found" do |(str, expected)|
+      assert_equal(expected, Packcr.find_trailing_blanks(str))
+    end
+  end
 end
