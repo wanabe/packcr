@@ -172,4 +172,16 @@ class Packcr::TestUtil < Test::Unit::TestCase
       assert_equal(expected, Packcr.find_trailing_blanks(str))
     end
   end
+
+  sub_test_case "#count_indent_spaces" do
+    data(
+      "first tab"     => ["\tabc",       0, 4, [ 8, 1]],
+      "space and tab" => ["  \t  \tabc", 0, 9, [16, 6]],
+      "no space"      => ["abcd",        0, 4, [ 0, 0]],
+      "offset"        => ["abcd",        2, 4, [ 0, 2]],
+    )
+    test "found" do |(str, s, e, expected)|
+      assert_equal(expected, Packcr.count_indent_spaces(str, s, e))
+    end
+  end
 end

@@ -76,20 +76,17 @@ class Packcr
     end
 
     def count_indent_spaces(str, s, e)
-      n = 0
-      i = s
-      while i < e
-        case str[i]
-        when " ", "\v", "\f"
-          n += 1
-        when "\t"
-          n = (n + 8) & ~7
-        else
-          return n, i
-        end
-        i += 1
+      part = str[s...e]
+      space = part[/\A[ \v\f\t]*/]
+      n = space.size
+      space = $&
+      c = 0
+      space.gsub!(/\t/) do
+        o = (8 - (c + $`.size) % 8)
+        c = (c + o - 1) % 8
+        " " * o
       end
-      return n, e
+      [space.size, s + n]
     end
 
     def template(path, b, indent: 0, unwrap: false)
