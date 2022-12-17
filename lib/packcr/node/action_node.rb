@@ -1,6 +1,8 @@
 class Packcr
   class Node
     class ActionNode < Packcr::Node
+      attr_accessor :code, :index, :vars, :capts
+
       def initialize
         super
         self.code = Packcr::CodeBlock.new

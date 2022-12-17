@@ -1,6 +1,8 @@
 class Packcr
   class Node
     class AlternateNode < Packcr::Node
+      attr_accessor :nodes
+
       def initialize
         super
         self.nodes = []

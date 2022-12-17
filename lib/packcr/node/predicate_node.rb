@@ -1,6 +1,8 @@
 class Packcr
   class Node
     class PredicateNode < Packcr::Node
+      attr_accessor :neg, :expr
+
       def initialize
         super
         self.neg = false

@@ -1,6 +1,8 @@
 class Packcr
   class Node
     class ErrorNode < Packcr::Node
+      attr_accessor :expr, :code, :index, :vars, :capts
+
       def initialize
         super
         self.expr = nil

@@ -1,6 +1,8 @@
 class Packcr
   class Node
     class ExpandNode < Packcr::Node
+      attr_accessor :index, :line, :col
+
       def initialize
         super
         self.index = nil

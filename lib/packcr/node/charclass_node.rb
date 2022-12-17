@@ -1,6 +1,8 @@
 class Packcr
   class Node
     class CharclassNode < Packcr::Node
+      attr_accessor :value
+
       def initialize
         super
         self.value = nil

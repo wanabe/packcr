@@ -1,18 +1,5 @@
 class Packcr
   class Node
-    attr_reader :codes
-
-    attr_accessor :name, :expr, :index, :index, :vars, :capts, :nodes, :code, :neg, :ref, :var, :rule
-    attr_accessor :value, :min, :max, :line, :col
-
-    def initialize
-      super
-      @codes = []
-    end
-
-    def debug_dump(indent = 0)
-      # raise "Internal error"
-    end
   end
 end
 

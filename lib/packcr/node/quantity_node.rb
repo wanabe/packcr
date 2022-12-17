@@ -1,9 +1,12 @@
 class Packcr
   class Node
     class QuantityNode < Packcr::Node
+      attr_accessor :min, :max, :expr
+
       def initialize
         super
-        self.min = self.max = 0
+        self.min = 0
+        self.max = 0
         self.expr = nil
       end
 

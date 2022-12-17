@@ -1,6 +1,8 @@
 class Packcr
   class Node
     class CaptureNode < Packcr::Node
+      attr_accessor :expr, :index
+
       def initialize
         super
         self.expr = nil

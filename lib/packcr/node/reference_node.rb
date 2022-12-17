@@ -1,6 +1,8 @@
 class Packcr
   class Node
     class ReferenceNode < Packcr::Node
+      attr_accessor :var, :index, :name, :rule, :line, :col
+
       def initialize
         super
         self.var = nil
