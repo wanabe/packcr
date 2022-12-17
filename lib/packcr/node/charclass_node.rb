@@ -3,11 +3,6 @@ class Packcr
     class CharclassNode < Packcr::Node
       attr_accessor :value
 
-      def initialize
-        super
-        self.value = nil
-      end
-
       def debug_dump(indent = 0)
         $stdout.print "#{" " * indent}Charclass(value:'"
         Packcr.dump_escaped_string(value)

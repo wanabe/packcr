@@ -5,8 +5,6 @@ class Packcr
 
       def initialize
         super
-        self.code = Packcr::CodeBlock.new
-        self.index = nil
         self.vars = []
         self.capts = []
       end

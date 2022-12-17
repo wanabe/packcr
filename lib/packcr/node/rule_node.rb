@@ -5,13 +5,9 @@ class Packcr
 
       def initialize
         super
-        self.name = nil
-        self.expr = nil
         self.ref = 0
         self.vars = []
         self.capts = []
-        self.line = nil
-        self.col = nil
         self.codes = []
       end
 

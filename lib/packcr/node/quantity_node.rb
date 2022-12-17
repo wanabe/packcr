@@ -7,7 +7,6 @@ class Packcr
         super
         self.min = 0
         self.max = 0
-        self.expr = nil
       end
 
       def debug_dump(indent = 0)

@@ -6,7 +6,6 @@ class Packcr
       def initialize
         super
         self.neg = false
-        self.expr = nil
       end
 
       def debug_dump(indent = 0)
