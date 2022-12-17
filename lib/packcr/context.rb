@@ -515,7 +515,7 @@ class Packcr
           end
           if !i
             i = rule.vars.length
-            rule.add_var(n_p)
+            rule.vars << n_p
           end
           n_p.index = i
           unless s >= r
@@ -543,7 +543,7 @@ class Packcr
         match_spaces
         n_p = Packcr::Node::CaptureNode.new
         n_p.index = capts.length
-        rule.add_capt(n_p)
+        rule.capts << n_p
         expr = parse_expression(rule)
         n_p.expr = expr
         if !expr || !match_character(">")
@@ -738,10 +738,10 @@ class Packcr
       n_u = parse_term(rule);
       if n_u
         n_s = Packcr::Node::SequenceNode.new
-        n_s.add_node(n_t)
-        n_s.add_node(n_u)
+        n_s.nodes << n_t
+        n_s.nodes << n_u
         while (n_t = parse_term(rule))
-          n_s.add_node(n_t)
+          n_s.nodes << n_t
         end
       else
         n_s = n_t
@@ -768,14 +768,14 @@ class Packcr
       if (match_character("/".ord))
         @bufcur = q
         n_e = Packcr::Node::AlternateNode.new
-        n_e.add_node(n_s)
+        n_e.nodes << n_s
         while match_character("/".ord)
           match_spaces
           n_s = parse_sequence(rule)
           if !n_s
             raise StopParsing
           end
-          n_e.add_node(n_s)
+          n_e.nodes << n_s
         end
       else
         n_e = n_s

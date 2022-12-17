@@ -5,18 +5,6 @@ class Packcr
     attr_accessor :name, :expr, :index, :index, :vars, :capts, :nodes, :code, :neg, :ref, :var, :rule
     attr_accessor :value, :min, :max, :line, :col
 
-    def add_var(var)
-      @vars << var
-    end
-
-    def add_capt(capt)
-      @capts << capt
-    end
-
-    def add_node(node)
-      @nodes << node
-    end
-
     def initialize
       super
       @codes = []
