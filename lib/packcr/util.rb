@@ -57,36 +57,8 @@ class Packcr
       $stdout.print escape_string(str)
     end
 
-    def find_first_trailing_space(str, s, e)
-      part = str[s...e][/\A.*\r?\n?/]
-      if part
-        pos = part =~ /[ \v\f\t]+\r?\n?$|\r?\n|\r/
-      end
-      if pos
-        i = s + pos
-        j = i + $&&.size
-      else
-        i = j = e
-      end
-      [i, j]
-    end
-
     def find_trailing_blanks(str)
       str =~ /[ \v\f\t\n\r]*\z/
-    end
-
-    def count_indent_spaces(str, s, e)
-      part = str[s...e]
-      space = part[/\A[ \v\f\t]*/]
-      n = space.size
-      space = $&
-      c = 0
-      space.gsub!(/\t/) do
-        o = (8 - (c + $`.size) % 8)
-        c = (c + o - 1) % 8
-        " " * o
-      end
-      [space.size, s + n]
     end
 
     def unify_indent_spaces(spaces)

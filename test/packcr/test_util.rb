@@ -115,44 +115,6 @@ class Packcr::TestUtil < Test::Unit::TestCase
     end
   end
 
-  sub_test_case "#find_first_trailing_space" do
-    data(
-      "no space"    => ["abcde", 0, 5, [5, 5]],
-      "first space" => [" bcde", 0, 4, [4, 4]],
-      "mid space"   => ["ab de", 0, 5, [5, 5]],
-    )
-    test "no trailing space" do |(str, s, e, expected)|
-      assert_equal(expected, Packcr.find_first_trailing_space(str, s, e))
-    end
-
-    data(
-      "no space with LF"         => ["abcd\n",  0, 5, [4, 5]],
-      "no space with CR"         => ["abcd\r",  0, 5, [4, 5]],
-      "no space with CRLF"       => ["abc\r\n", 0, 5, [3, 5]],
-      "trailing space with LF"   => ["abc \n",  0, 5, [3, 5]],
-      "trailing space with CR"   => ["abc \r",  0, 5, [3, 5]],
-      "trailing space with CRLF" => ["ab \r\n", 0, 5, [2, 5]],
-      "mid space with LF"        => ["a cd\n",  0, 5, [4, 5]],
-      "mid space with CR"        => ["a cd\r",  0, 5, [4, 5]],
-      "mid space with CRLF"      => ["a c\r\n", 0, 5, [3, 5]],
-    )
-    test "line break" do |(str, s, e, expected)|
-      assert_equal(expected, Packcr.find_first_trailing_space(str, s, e))
-    end
-
-    data(
-      "start with space"    => [" a b c  \n def  ", 0, 15, [ 6,  9]],
-      "start with no-space" => [" a b c  \n def  ", 1, 15, [ 6,  9]],
-      "trailing space"      => [" a b c  \n def  ", 7, 15, [ 7,  9]],
-      "start with eol"      => [" a b c  \n def  ", 8, 15, [ 8,  9]],
-      "no lf"               => [" a b c  \n def  ", 9, 15, [13, 15]],
-      "short end pos"       => [" a b c  \n def  ", 9, 14, [13, 14]],
-    )
-    test "complex pattern" do |(str, s, e, expected)|
-      assert_equal(expected, Packcr.find_first_trailing_space(str, s, e))
-    end
-  end
-
   sub_test_case "#find_trailing_blanks" do
     data(
       "no space"     => ["abcde", 5],
@@ -170,18 +132,6 @@ class Packcr::TestUtil < Test::Unit::TestCase
     )
     test "found" do |(str, expected)|
       assert_equal(expected, Packcr.find_trailing_blanks(str))
-    end
-  end
-
-  sub_test_case "#count_indent_spaces" do
-    data(
-      "first tab"     => ["\tabc",       0, 4, [ 8, 1]],
-      "space and tab" => ["  \t  \tabc", 0, 9, [16, 6]],
-      "no space"      => ["abcd",        0, 4, [ 0, 0]],
-      "offset"        => ["abcd",        2, 4, [ 0, 2]],
-    )
-    test "found" do |(str, s, e, expected)|
-      assert_equal(expected, Packcr.count_indent_spaces(str, s, e))
     end
   end
 
