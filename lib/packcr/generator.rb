@@ -30,19 +30,5 @@ class Packcr
     def write(str)
       @stream.write(str)
     end
-
-    def generate_block(indent, bare)
-      if !bare
-        @stream.write " " * indent
-        @stream.write "{\n"
-      end
-
-      yield indent + 4
-    ensure
-      if !bare
-        @stream.write " " * indent
-        @stream.write "}\n"
-      end
-    end
   end
 end
