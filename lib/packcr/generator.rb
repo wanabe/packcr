@@ -3,8 +3,7 @@ class Packcr
   class Generator
     attr_reader :ascii, :rule
 
-    def initialize(stream, rule, ascii)
-      @stream = stream
+    def initialize(rule, ascii)
       @rule = rule
       @label = 0
       @ascii = !!ascii

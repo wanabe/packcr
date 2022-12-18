@@ -1180,10 +1180,9 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
 <%-   if node.vars.length > 0 -%>
     pcc_value_table__clear(ctx->auxil, &chunk->values);
 <%-   end -%>
-<%-   str_io = StringIO.new -%>
-<%-   g = ::Packcr::Generator.new(str_io, node, @ascii) -%>
-<%-   r = g.generate_code(node.expr, 0, 4, false) -%>
-<%= str_io.string -%>
+<%-   g = ::Packcr::Generator.new(node, @ascii) -%>
+<%-   r, str = g.generate_code_str(node.expr, 0, 4, false) -%>
+<%=   str -%>
     ctx->level--;
     PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
     return chunk;
