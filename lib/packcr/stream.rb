@@ -42,8 +42,6 @@ class Packcr
     end
 
     def write_code_block(code, indent, fname)
-      b = false
-      i = j = k = nil
       text = code.text
       ptr = text.b
       len = code.len
@@ -52,74 +50,43 @@ class Packcr
         return # for safety
       end
 
-      j, k = Packcr.find_first_trailing_space(ptr, 0, len)
-      i = 0
-      while i < j
-        if ptr[i] != " " && ptr[i] != "\v" && ptr[i] != "\f" && ptr[i] != "\t"
-          break
-        end
-        i += 1
+      ptr.sub!(/\A\n+/) do
+        lineno += $&.length
+        ""
       end
-      if i < j
-        write_line_directive(fname, lineno)
-        if ptr[i] != "#"
-          write " " * indent
-        end
-        write_text(ptr[i, j - i])
-        write "\n"
-        b = true
-      else
-        lineno += 1
-      end
-      if k < len
-        m = nil
-        i = k
-        while i < len
-          j, h = Packcr.find_first_trailing_space(ptr, i, len)
-          if i < j
-            if !b
-              write_line_directive(fname, lineno)
-            end
-            if ptr[i] != "#"
-              l, = Packcr.count_indent_spaces(ptr, i, j)
-              if m == nil || m > l
-                m = l
-              end
-            end
-            b = true
-          elsif !b
-            k = h
-            lineno += 1
-          end
-          i = h
+      ptr.sub!(/[ \v\f\t\r\n]*\z/, "")
+
+      min_indent_spaces = nil
+      ptr.gsub!(/^([ \v\f\t]+)([^ \v\f\t\r\n])/) do
+        spaces = $1
+        char = $2
+
+        next char if char == "#"
+
+        Packcr.unify_indent_spaces(spaces)
+
+        if !min_indent_spaces || min_indent_spaces.length > spaces.length
+          min_indent_spaces = spaces
         end
 
-        i = k
-        while i < len
-          j, h = Packcr.find_first_trailing_space(ptr, i, len)
-          if i < j
-            l, i = Packcr.count_indent_spaces(ptr, i, j)
-            if ptr[i] != "#"
-              if m == nil
-                raise "m must have a valid value"
-              end
-              unless l >= m
-                raise "invalid l:#{l}, m:#{m}"
-              end
-              write " " * (l - m + indent)
-            end
-            write_text(ptr[i, j - i])
-            write "\n"
-            b = true
-          elsif h < len
-            write "\n"
-          end
-          i = h
+        spaces + char
+      end
+
+      if min_indent_spaces
+        indent_spaces = " " * indent
+        ptr.gsub!(/^#{min_indent_spaces}( *[^\n#])/) do
+          "#{indent_spaces}#{$1}"
         end
       end
-      if b
-        write_output_line_directive
+
+      return if ptr.empty?
+
+      write_line_directive(fname, lineno)
+      ptr.scan(/^(.+?)[ \v\f\t\r]*$|^\r?\n/) do
+        write $1 if $1
+        write "\n"
       end
+      write_output_line_directive
     end
 
     def get_code_block(code, indent, fname)

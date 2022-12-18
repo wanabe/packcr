@@ -184,4 +184,16 @@ class Packcr::TestUtil < Test::Unit::TestCase
       assert_equal(expected, Packcr.count_indent_spaces(str, s, e))
     end
   end
+
+  sub_test_case "#unify_indent_spaces" do
+    data(
+      "first tab"     => ["\t \v\f",      " " * 11],
+      "tabs"          => ["\t\t\t",       " " * 24],
+      "space and tab" => [" \t  \t   \t", " " * 24],
+      "no space"      => ["",             ""],
+    )
+    test "found" do |(str, expected)|
+      assert_equal(expected, Packcr.unify_indent_spaces(str))
+    end
+  end
 end

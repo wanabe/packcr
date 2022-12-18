@@ -89,6 +89,18 @@ class Packcr
       [space.size, s + n]
     end
 
+    def unify_indent_spaces(spaces)
+      offset = 0
+      spaces.tr!("\v\f", " ")
+      spaces.gsub!(/\t+/) do
+        chars = $`.length
+        o = 8 * $&.length - (offset + chars) % 8
+        offset = (7 - chars) % 8
+        " " * o
+      end
+      spaces
+    end
+
     def template(path, b, indent: 0, unwrap: false)
       template_path = File.join(File.dirname(__FILE__), "templates", path)
       result = ERB.new(File.read(template_path), trim_mode: "%-").result(b)
