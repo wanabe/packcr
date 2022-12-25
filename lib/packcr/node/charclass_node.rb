@@ -40,8 +40,7 @@ class Packcr
           gen.write Packcr.template("node/charclass_utf8.c.erb", binding, indent: indent, unwrap: bare)
           return Packcr::CODE_REACH__BOTH
         else
-          gen.write " " * indent
-          gen.write "goto L#{"%04d" % onfail};\n"
+          gen.write Packcr.template("node/charclass_fail.c.erb", binding, indent: indent)
           return Packcr::CODE_REACH__ALWAYS_FAIL
         end
       end
@@ -63,22 +62,11 @@ class Packcr
             end
             return Packcr::CODE_REACH__BOTH
           else
-            gen.write " " * indent
-            gen.write "goto L#{"%04d" % onfail};\n"
+            gen.write Packcr.template("node/charclass_fail.c.erb", binding, indent: indent)
             return Packcr::CODE_REACH__ALWAYS_FAIL
           end
         else
-          gen.write(<<~EOS.gsub(/^/, " " * indent))
-            if (pcc_refill_buffer(ctx, 1) < 1) goto L#{"%04d" % onfail};
-          EOS
-          if gen.location
-            gen.write(<<~EOS.gsub(/^/, " " * indent))
-              pcc_location_forward(&ctx->cur, ctx->buffer.buf + ctx->cur, 1);
-            EOS
-          end
-          gen.write(<<~EOS.gsub(/^/, " " * indent))
-            ctx->cur++;
-          EOS
+          gen.write Packcr.template("node/charclass_any.c.erb", binding, indent: indent)
           return Packcr::CODE_REACH__BOTH
         end
       end

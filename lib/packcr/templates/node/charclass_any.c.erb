@@ -1,0 +1,5 @@
+if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= "%04d" % onfail %>;
+<%- if gen.location -%>
+pcc_location_forward(&ctx->cur, ctx->buffer.buf + ctx->cur, 1);
+<%- end -%>
+ctx->cur++;

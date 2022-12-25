@@ -28,8 +28,7 @@ class Packcr
           case gen.generate_code(expr, onfail, indent, false)
           when Packcr::CODE_REACH__ALWAYS_FAIL
             if i + 1 < rnodes.length
-              gen.write " " * indent
-              gen.write "/* unreachable codes omitted */\n"
+              gen.write Packcr.template("node/sequence_unreachable.c.erb", binding, indent: indent)
             end
             return Packcr::CODE_REACH__ALWAYS_FAIL
           when Packcr::CODE_REACH__ALWAYS_SUCCEED
