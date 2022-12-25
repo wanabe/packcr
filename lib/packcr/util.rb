@@ -20,6 +20,9 @@ class Packcr
           "\\#{c}"
         end
       end
+      str.gsub!(/[^\x00-\x7f]/) do
+        "\\x%02x" % $&.ord
+      end
       str.replace "\"#{str}\"".undump
     end
 

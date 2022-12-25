@@ -3,6 +3,10 @@ class Packcr
     class StringNode < Packcr::Node
       attr_accessor :value
 
+      def value=(value)
+        @value = value&.b
+      end
+
       def debug_dump(indent = 0)
         $stdout.print "#{" " * indent}String(value:'"
         Packcr.dump_escaped_string(value)
