@@ -40,5 +40,8 @@
     )) goto L<%= "%04d" % onfail %>;
 <%-   end -%>
 <%- end -%>
+<%- if gen.location -%>
+    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, n);
+<%- end -%>
     ctx->cur += n;
 }

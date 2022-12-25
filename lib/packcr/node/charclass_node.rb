@@ -70,6 +70,13 @@ class Packcr
         else
           gen.write(<<~EOS.gsub(/^/, " " * indent))
             if (pcc_refill_buffer(ctx, 1) < 1) goto L#{"%04d" % onfail};
+          EOS
+          if gen.location
+            gen.write(<<~EOS.gsub(/^/, " " * indent))
+              pcc_location_forward(&ctx->cur, ctx->buffer.buf + ctx->cur, 1);
+            EOS
+          end
+          gen.write(<<~EOS.gsub(/^/, " " * indent))
             ctx->cur++;
           EOS
           return Packcr::CODE_REACH__BOTH

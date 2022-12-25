@@ -8,6 +8,9 @@
         for (i = 0; i < n; i++) {
             if (p[i] != q[i]) goto L<%= "%04d" % onfail %>;
         }
+<%- if gen.location -%>
+        pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, n);
+<%- end -%>
         ctx->cur += n;
     }
 }

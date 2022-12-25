@@ -1,9 +1,18 @@
 {
     const size_t p = ctx->cur;
     size_t q;
+<%- if gen.location -%>
+    const pcc_location_t p_loc = ctx->cur_loc;
+    pcc_location_t q_loc;
+<%- end -%>
 <%- r, code = gen.generate_code_str(expr, onfail, 4, false) -%>
 <%= code -%>
     q = ctx->cur;
     chunk->capts.buf[<%= index %>].range.start = p;
     chunk->capts.buf[<%= index %>].range.end = q;
+<%- if gen.location -%>
+    q_loc = ctx->cur_loc;
+    chunk->capts.buf[<%= index %>].range.start_loc = p_loc;
+    chunk->capts.buf[<%= index %>].range.end_loc = q_loc;
+<%- end -%>
 }

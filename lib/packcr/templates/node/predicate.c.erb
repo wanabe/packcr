@@ -1,8 +1,14 @@
 {
     const size_t p = ctx->cur;
+<%- if gen.location -%>
+    const pcc_location_t p_loc = ctx->cur_loc;
+<%- end -%>
 <%= code -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     ctx->cur = p;
+<%- if gen.location -%>
+    ctx->cur_loc = p_loc;
+<%- end -%>
 <%- end -%>
 <%- if r == Packcr::CODE_REACH__BOTH -%>
     goto L<%= "%04d" % m %>;
@@ -10,6 +16,9 @@
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 L<%= "%04d" % l %>:;
     ctx->cur = p;
+<%- if gen.location -%>
+    ctx->cur_loc = p_loc;
+<%- end -%>
     goto L<%= "%04d" % onfail %>;
 <%- end -%>
 <%- if r == Packcr::CODE_REACH__BOTH -%>

@@ -36,6 +36,7 @@ class Packcr
       @eheader = []
       @source = []
       @header = []
+      @location = []
       @rules = []
       @rulehash = {}
       @buffer = Packcr::Buffer.new
@@ -843,6 +844,7 @@ class Packcr
             parse_directive_include("%source", @source) ||
             parse_directive_include("%header", @header) ||
             parse_directive_include("%common", @source, @header) ||
+            parse_directive_include("%location", @location) ||
             parse_directive_string("%value", "@value_type", must_not_be_empty: true, must_not_be_void: true) ||
             parse_directive_string("%auxil", "@auxil_type", must_not_be_empty: true, must_not_be_void: true) ||
             parse_directive_string("%prefix", "@prefix", must_not_be_empty: true, must_be_identifier: true)
@@ -880,6 +882,9 @@ class Packcr
         commit_buffer
       end
 
+      if @location.empty?
+        @location = nil
+      end
       commit_buffer
 
       make_rulehash

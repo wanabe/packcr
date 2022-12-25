@@ -8,5 +8,9 @@
 <%- end -%>
     thunk->data.leaf.capt0.range.start = chunk->pos;
     thunk->data.leaf.capt0.range.end = ctx->cur;
+<%- if gen.location -%>
+    thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
+    thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;
+<%- end -%>
     pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);
 }

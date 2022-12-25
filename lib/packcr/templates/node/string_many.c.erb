@@ -5,4 +5,7 @@ if (
 <%- end -%>
     (ctx->buffer.buf + ctx->cur)[<%= n - 1 %>] != '<%= s = Packcr.escape_character(value[n - 1]) %>'
 ) goto L<%= "%04d" % onfail %>;
+<%- if gen.location -%>
+pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, n);
+<%- end -%>
 ctx->cur += <%= n %>;

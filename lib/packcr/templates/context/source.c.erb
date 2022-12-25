@@ -28,6 +28,14 @@ static size_t pcc_strnlen(const char *str, size_t maxlen) {
 #endif /* !_MSC_VER */
 
 #include "<%= @hname %>"
+<%- if @location -%>
+
+typedef struct pcc_location_tag {
+<%-   @location.each do |code| -%>
+<%=     sstream.get_code_block(code, 4, @iname) -%>
+<%-   end -%>
+} pcc_location_t;
+<%- end -%>
 
 <%- @source.each do |code| -%>
 <%=   sstream.get_code_block(code, 0, @iname) -%>
@@ -74,6 +82,10 @@ typedef struct pcc_char_array_tag {
 typedef struct pcc_range_tag {
     size_t start;
     size_t end;
+<%- if @location -%>
+    pcc_location_t start_loc;
+    pcc_location_t end_loc;
+<%- end -%>
 } pcc_range_t;
 
 typedef <%= value_def %>pcc_value_t;
@@ -156,6 +168,9 @@ typedef struct pcc_thunk_chunk_tag {
     pcc_capture_table_t capts;
     pcc_thunk_array_t thunks;
     size_t pos; /* the starting position in the character buffer */
+<%- if @location -%>
+    pcc_location_t pos_loc;
+<%- end -%>
 } pcc_thunk_chunk_t;
 
 typedef struct pcc_lr_entry_tag pcc_lr_entry_t;
@@ -176,6 +191,9 @@ struct pcc_lr_answer_tag {
     pcc_lr_answer_type_t type;
     pcc_lr_answer_data_t data;
     size_t pos; /* the absolute position in the input */
+<%- if @location -%>
+    pcc_location_t pos_loc;
+<%- end -%>
     pcc_lr_answer_t *hold;
 };
 
@@ -255,6 +273,10 @@ typedef struct pcc_memory_recycler_tag {
 struct <%= prefix %>_context_tag {
     size_t pos; /* the position in the input of the first character currently buffered */
     size_t cur; /* the current parsing position in the character buffer */
+    <%- if @location -%>
+    pcc_location_t pos_loc;
+    pcc_location_t cur_loc;
+    <%- end -%>
     size_t level;
     pcc_char_array_t buffer;
     pcc_lr_table_t lrtable;
@@ -415,6 +437,10 @@ static void pcc_capture_table__resize(pcc_auxil_t auxil, pcc_capture_table_t *ta
     for (i = table->len; i < len; i++) {
         table->buf[i].range.start = 0;
         table->buf[i].range.end = 0;
+<%- if @location -%>
+        pcc_location_init(&table->buf[i].range.start_loc);
+        pcc_location_init(&table->buf[i].range.end_loc);
+<%- end -%>
         table->buf[i].string = NULL;
     }
     table->len = len;
@@ -462,6 +488,10 @@ static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t actio
     pcc_capture_const_table__resize(auxil, &thunk->data.leaf.capts, captc);
     thunk->data.leaf.capt0.range.start = 0;
     thunk->data.leaf.capt0.range.end = 0;
+<%- if @location -%>
+    pcc_location_init(&thunk->data.leaf.capt0.range.start_loc);
+    pcc_location_init(&thunk->data.leaf.capt0.range.end_loc);
+<%- end -%>
     thunk->data.leaf.capt0.string = NULL;
     thunk->data.leaf.action = action;
     return thunk;
@@ -661,10 +691,13 @@ static void pcc_lr_head__destroy(pcc_context_t *ctx, pcc_lr_head_t *head) {
 
 static void pcc_lr_entry__destroy(pcc_auxil_t auxil, pcc_lr_entry_t *lr);
 
-static pcc_lr_answer_t *pcc_lr_answer__create(pcc_context_t *ctx, pcc_lr_answer_type_t type, size_t pos) {
+static pcc_lr_answer_t *pcc_lr_answer__create(pcc_context_t *ctx, pcc_lr_answer_type_t type, size_t pos<% if @location %>, pcc_location_t pos_loc<% end %>) {
     pcc_lr_answer_t *answer = (pcc_lr_answer_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->lr_answer_recycler);
     answer->type = type;
     answer->pos = pos;
+<%- if @location -%>
+    answer->pos_loc = pos_loc;
+<%- end -%>
     answer->hold = NULL;
     switch (answer->type) {
     case PCC_LR_ANSWER_LR:
@@ -681,7 +714,7 @@ static pcc_lr_answer_t *pcc_lr_answer__create(pcc_context_t *ctx, pcc_lr_answer_
 }
 
 static void pcc_lr_answer__set_chunk(pcc_context_t *ctx, pcc_lr_answer_t *answer, pcc_thunk_chunk_t *chunk) {
-    pcc_lr_answer_t *const a = pcc_lr_answer__create(ctx, answer->type, answer->pos);
+    pcc_lr_answer_t *const a = pcc_lr_answer__create(ctx, answer->type, answer->pos<% if @location %>, answer->pos_loc<% end %>);
     switch (answer->type) {
     case PCC_LR_ANSWER_LR:
         a->data.lr = answer->data.lr;
@@ -908,6 +941,10 @@ static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
     pcc_context_t *const ctx = (pcc_context_t *)PCC_MALLOC(auxil, sizeof(pcc_context_t));
     ctx->pos = 0;
     ctx->cur = 0;
+<%- if @location -%>
+    pcc_location_init(&ctx->pos_loc);
+    pcc_location_init(&ctx->cur_loc);
+<%- end -%>
     ctx->level = 0;
     pcc_char_array__init(auxil, &ctx->buffer);
     pcc_lr_table__init(auxil, &ctx->lrtable);
@@ -949,6 +986,10 @@ static void pcc_commit_buffer(pcc_context_t *ctx) {
     ctx->pos += ctx->cur;
     pcc_lr_table__shift(ctx, &ctx->lrtable, ctx->cur);
     ctx->cur = 0;
+<%- if @location -%>
+    ctx->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+    pcc_location_init(&ctx->cur_loc);
+<%- end -%>
 }
 
 MARK_FUNC_AS_USED
@@ -1018,6 +1059,9 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
     static pcc_value_t null;
     pcc_thunk_chunk_t *c = NULL;
     const size_t p = ctx->pos + ctx->cur;
+<%- if @location -%>
+    const pcc_location_t p_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+<%- end -%>
     pcc_bool_t b = PCC_TRUE;
     pcc_lr_answer_t *a = pcc_lr_table__get_answer(ctx, &ctx->lrtable, p, rule);
     pcc_lr_head_t *h = pcc_lr_table__get_head(ctx, &ctx->lrtable, p);
@@ -1029,7 +1073,7 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
         else if (pcc_rule_set__remove(ctx->auxil, &h->eval, rule)) {
             b = PCC_FALSE;
             c = rule(ctx);
-            a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, ctx->pos + ctx->cur);
+            a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, ctx->pos + ctx->cur<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
             a->data.chunk = c;
             pcc_lr_table__hold_answer(ctx, &ctx->lrtable, p, a);
         }
@@ -1037,6 +1081,9 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
     if (b) {
         if (a != NULL) {
             ctx->cur = a->pos - ctx->pos;
+<%- if @location -%>
+            ctx->cur_loc = pcc_location_sub(a->pos_loc, ctx->pos_loc);
+<%- end -%>
             switch (a->type) {
             case PCC_LR_ANSWER_LR:
                 if (a->data.lr->head == NULL) {
@@ -1064,12 +1111,15 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
         else {
             pcc_lr_entry_t *const e = pcc_lr_entry__create(ctx->auxil, rule);
             pcc_lr_stack__push(ctx->auxil, &ctx->lrstack, e);
-            a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_LR, p);
+            a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_LR, p<% if @location %>, p_loc<% end %>);
             a->data.lr = e;
             pcc_lr_table__set_answer(ctx, &ctx->lrtable, p, rule, a);
             c = rule(ctx);
             pcc_lr_stack__pop(ctx->auxil, &ctx->lrstack);
             a->pos = ctx->pos + ctx->cur;
+<%- if @location -%>
+            a->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+<%- end -%>
             if (e->head == NULL) {
                 pcc_lr_answer__set_chunk(ctx, a, c);
             }
@@ -1078,7 +1128,7 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
                 h = a->data.lr->head;
                 if (h->rule != rule) {
                     c = a->data.lr->seed;
-                    a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, ctx->pos + ctx->cur);
+                    a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, ctx->pos + ctx->cur<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
                     a->data.chunk = c;
                     pcc_lr_table__hold_answer(ctx, &ctx->lrtable, p, a);
                 }
@@ -1091,15 +1141,24 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
                         pcc_lr_table__set_head(ctx, &ctx->lrtable, p, h);
                         for (;;) {
                             ctx->cur = p - ctx->pos;
+<%- if @location -%>
+                            ctx->cur_loc = pcc_location_sub(p_loc, ctx->pos_loc);
+<%- end -%>
                             pcc_rule_set__copy(ctx->auxil, &h->eval, &h->invol);
                             c = rule(ctx);
                             if (c == NULL || ctx->pos + ctx->cur <= a->pos) break;
                             pcc_lr_answer__set_chunk(ctx, a, c);
                             a->pos = ctx->pos + ctx->cur;
+<%- if @location -%>
+                            a->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+<%- end -%>
                         }
                         pcc_thunk_chunk__destroy(ctx, c);
                         pcc_lr_table__set_head(ctx, &ctx->lrtable, p, NULL);
                         ctx->cur = a->pos - ctx->pos;
+<%- if @location -%>
+                        ctx->cur_loc = pcc_location_sub(a->pos_loc, ctx->pos_loc);
+<%- end -%>
                         c = a->data.chunk;
                     }
                 }
@@ -1146,9 +1205,17 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_
 #define _<%= capture.index + 1 %> pcc_get_capture_string(__pcc_ctx, __pcc_in->data.leaf.capts.buf[<%= capture.index %>])
 #define _<%= capture.index + 1 %>s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
 #define _<%= capture.index + 1 %>e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
+<%-       if @location -%>
+#define _<%= capture.index + 1 %>sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start_loc)))
+#define _<%= capture.index + 1 %>el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end_loc)))
+<%-       end -%>
 <%-     end -%>
 <%=     sstream.get_code_block(code.code, 4, @iname) -%>
 <%-     code.capts.reverse_each do |capture| -%>
+<%-       if @location -%>
+#undef _<%= capture.index + 1 %>el
+#undef _<%= capture.index + 1 %>sl
+<%-       end -%>
 #undef _<%= capture.index + 1 %>e
 #undef _<%= capture.index + 1 %>s
 #undef _<%= capture.index + 1 %>
@@ -1173,6 +1240,9 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
 static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx) {
     pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
     chunk->pos = ctx->cur;
+<%- if @location -%>
+    chunk->pos_loc = ctx->cur_loc;
+<%- end -%>
     PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
     ctx->level++;
     pcc_value_table__resize(ctx->auxil, &chunk->values, <%= node.vars.length %>);
@@ -1180,7 +1250,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
 <%-   if node.vars.length > 0 -%>
     pcc_value_table__clear(ctx->auxil, &chunk->values);
 <%-   end -%>
-<%-   g = ::Packcr::Generator.new(node, @ascii) -%>
+<%-   g = ::Packcr::Generator.new(node, @ascii, @location) -%>
 <%-   r, str = g.generate_code_str(node.expr, 0, 4, false) -%>
 <%=   str -%>
     ctx->level--;

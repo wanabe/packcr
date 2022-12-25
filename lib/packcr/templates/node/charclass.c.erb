@@ -8,6 +8,9 @@
 <%- else -%>
     if (!(c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>')) goto L<%= "%04d" % onfail %>;
 <%- end -%>
+<%- if gen.location -%>
+    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, 1);
+<%- end -%>
     ctx->cur++;
 <%- else -%>
     char c;
@@ -35,6 +38,9 @@
     ) goto L<%= "%04d" % onfail %>;
 <%- else -%>
     )) goto L<%= "%04d" % onfail %>;
+<%- end -%>
+<%- if gen.location -%>
+    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, 1);
 <%- end -%>
     ctx->cur++;
 <%- end -%>
