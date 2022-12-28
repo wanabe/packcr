@@ -1,0 +1,7 @@
+module Kernel
+  def getb
+    $stdin.readbyte
+  rescue EOFError
+    -1
+  end
+end

@@ -320,7 +320,7 @@ static void pcc_error(void) {
 #endif /* !PCC_ERROR */
 
 #ifndef PCC_GETCHAR
-#define PCC_GETCHAR(auxil) getchar()
+#define PCC_GETCHAR(auxil) NUM2INT(rb_funcall(rb_mKernel, rb_intern("getb"), 0))
 #endif /* !PCC_GETCHAR */
 
 #ifndef PCC_MALLOC
