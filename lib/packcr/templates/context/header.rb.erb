@@ -41,6 +41,10 @@ static size_t pcc_strnlen(const char *str, size_t maxlen) {
 extern "C" {
 #endif
 
+#ifdef __
+#undef __
+#endif
+
 typedef struct <%= prefix %>_context_tag <%= prefix %>_context_t;
 
 <%= prefix %>_context_t *<%= prefix %>_create(<%= auxil_def %>auxil);
@@ -555,12 +559,6 @@ static void *pcc_memory_recycler__supply(pcc_auxil_t auxil, pcc_memory_recycler_
     return (char *)recycler->pool_list + sizeof(pcc_memory_pool_t) + recycler->element_size * recycler->pool_list->unused;
 }
 
-static void pcc_memory_recycler__recycle(pcc_auxil_t auxil, pcc_memory_recycler_t *recycler, void *ptr) {
-    pcc_memory_entry_t *const tmp = (pcc_memory_entry_t *)ptr;
-    tmp->next = recycler->entry_list;
-    recycler->entry_list = tmp;
-}
-
 MARK_FUNC_AS_USED
 static pcc_thunk_chunk_t *pcc_thunk_chunk__create(pcc_context_t *ctx) {
     pcc_thunk_chunk_t *const chunk = (pcc_thunk_chunk_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->thunk_chunk_recycler);
@@ -781,7 +779,6 @@ static pcc_lr_answer_t *pcc_lr_table__get_answer(pcc_context_t *ctx, pcc_lr_tabl
 }
 
 static void pcc_lr_table__shift(pcc_context_t *ctx, pcc_lr_table_t *table, size_t count) {
-    size_t i;
     if (count > table->len - table->ofs) count = table->len - table->ofs;
     if (table->ofs > (table->max >> 1)) {
         memmove(table->buf, table->buf + table->ofs, sizeof(pcc_lr_table_entry_t *) * (table->len - table->ofs));
