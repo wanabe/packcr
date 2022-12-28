@@ -1,0 +1,21 @@
+{
+<%- l = gen.next_label -%>
+    const size_t p = ctx->cur;
+<%- if gen.location -%>
+    const pcc_location_t p_loc = ctx->cur_loc;
+<%- end -%>
+    const size_t n = chunk->thunks.len;
+<%- r, code = gen.generate_code_str(expr, l, 4, false) -%>
+<%= code -%>
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+<%-   m = gen.next_label -%>
+    goto L<%= "%04d" % m %>;
+L<%= "%04d" % l %>:;
+<%- if gen.location -%>
+    ctx->cur_loc = p_loc;
+<%- end -%>
+    ctx->cur = p;
+    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+L<%= "%04d" % m %>:;
+<%- end -%>
+}

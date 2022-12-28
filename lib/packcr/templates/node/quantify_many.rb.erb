@@ -1,0 +1,45 @@
+{
+<%- if min > 0 -%>
+    const size_t p0 = ctx->cur;
+<%- if gen.location -%>
+    const pcc_location_t p0_loc = ctx->cur_loc;
+<%- end -%>
+    const size_t n0 = chunk->thunks.len;
+<%- end -%>
+    int i;
+<%- if max < 0 -%>
+    for (i = 0;; i++) {
+<%- else -%>
+    for (i = 0; i < <%= max %>; i++) {
+<%- end -%>
+        const size_t p = ctx->cur;
+<%- if gen.location -%>
+        const pcc_location_t p_loc = ctx->cur_loc;
+<%- end -%>
+        const size_t n = chunk->thunks.len;
+<%- l = gen.next_label -%>
+<%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
+<%= code -%>
+        if (ctx->cur == p) break;
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+        continue;
+    L<%= "%04d" % l %>:;
+        ctx->cur = p;
+<%- if gen.location -%>
+        ctx->cur_loc = p_loc;
+<%- end -%>
+        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+        break;
+<%- end -%>
+    }
+<%- if min > 0 -%>
+    if (i < <%= min %>) {
+        ctx->cur = p0;
+<%- if gen.location -%>
+        ctx->cur_loc = p0_loc;
+<%- end -%>
+        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);
+        goto L<%= "%04d" % onfail %>;
+    }
+<%- end -%>
+}

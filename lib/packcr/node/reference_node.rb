@@ -10,7 +10,7 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare)
-        gen.write Packcr.template("node/reference.c.erb", binding, indent: indent)
+        gen.write Packcr.template("node/reference.#{gen.lang}.erb", binding, indent: indent)
         Packcr::CODE_REACH__BOTH
       end
 

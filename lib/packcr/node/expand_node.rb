@@ -10,7 +10,7 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare)
-        gen.write Packcr.template("node/expand.c.erb", binding, indent: indent, unwrap: bare)
+        gen.write Packcr.template("node/expand.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         return Packcr::CODE_REACH__BOTH
       end
 

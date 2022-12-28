@@ -37,10 +37,10 @@ class Packcr
         if charclass.nil? || n > 0
           a = charclass && charclass[0] == '^'
           i = a ? 1 : 0
-          gen.write Packcr.template("node/charclass_utf8.c.erb", binding, indent: indent, unwrap: bare)
+          gen.write Packcr.template("node/charclass_utf8.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
           return Packcr::CODE_REACH__BOTH
         else
-          gen.write Packcr.template("node/charclass_fail.c.erb", binding, indent: indent)
+          gen.write Packcr.template("node/charclass_fail.#{gen.lang}.erb", binding, indent: indent)
           return Packcr::CODE_REACH__ALWAYS_FAIL
         end
       end
@@ -56,17 +56,17 @@ class Packcr
           end
           if n > 0
             if n > 1
-              gen.write Packcr.template("node/charclass.c.erb", binding, indent: indent, unwrap: bare)
+              gen.write Packcr.template("node/charclass.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
             else
-              gen.write Packcr.template("node/charclass_one.c.erb", binding, indent: indent)
+              gen.write Packcr.template("node/charclass_one.#{gen.lang}.erb", binding, indent: indent)
             end
             return Packcr::CODE_REACH__BOTH
           else
-            gen.write Packcr.template("node/charclass_fail.c.erb", binding, indent: indent)
+            gen.write Packcr.template("node/charclass_fail.#{gen.lang}.erb", binding, indent: indent)
             return Packcr::CODE_REACH__ALWAYS_FAIL
           end
         else
-          gen.write Packcr.template("node/charclass_any.c.erb", binding, indent: indent)
+          gen.write Packcr.template("node/charclass_any.#{gen.lang}.erb", binding, indent: indent)
           return Packcr::CODE_REACH__BOTH
         end
       end

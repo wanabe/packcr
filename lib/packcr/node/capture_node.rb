@@ -13,7 +13,7 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare)
         r = nil
-        gen.write Packcr.template("node/capture.c.erb", binding, indent: indent)
+        gen.write Packcr.template("node/capture.#{gen.lang}.erb", binding, indent: indent)
         return r
       end
 

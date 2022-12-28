@@ -17,10 +17,10 @@ class Packcr
         n = value&.length || 0
         if n > 0
           if n > 1
-            gen.write Packcr.template("node/string_many.c.erb", binding, indent: indent)
+            gen.write Packcr.template("node/string_many.#{gen.lang}.erb", binding, indent: indent)
             return Packcr::CODE_REACH__BOTH
           else
-            gen.write Packcr.template("node/string_one.c.erb", binding, indent: indent)
+            gen.write Packcr.template("node/string_one.#{gen.lang}.erb", binding, indent: indent)
             return Packcr::CODE_REACH__BOTH
           end
         else

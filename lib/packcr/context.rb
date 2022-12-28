@@ -3,13 +3,14 @@ require "stringio"
 
 class Packcr
   class Context
-    def initialize(path, lines: false, debug: false, ascii: false)
+    def initialize(path, lines: false, debug: false, ascii: false, lang: :c)
       if !path
         raise ArgumentError, "bad path: #{path}";
       end
 
       @iname = path
       @ifile = File.open(path, "rb")
+      @lang = lang.to_sym
       dirname = File.dirname(path)
       basename = File.basename(path, ".*")
       if dirname == "."
@@ -17,8 +18,16 @@ class Packcr
       else
         path = File.join(dirname, basename)
       end
-      @sname = path + ".c"
-      @hname = path + ".h"
+      case @lang
+      when :c
+        @sname = path + ".c"
+        @hname = path + ".h"
+      when :rb
+        @sname = path + ".rb"
+        @hname = path + ".c"
+      else
+        raise "unexpected lang: #{@lang}"
+      end
       @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
 
       @lines = !!lines
@@ -36,6 +45,7 @@ class Packcr
       @eheader = []
       @source = []
       @header = []
+      @lheader = []
       @location = []
       @rules = []
       @rulehash = {}
@@ -44,6 +54,10 @@ class Packcr
       if block_given?
         yield(self)
       end
+    end
+
+    def inspect
+      "#<#{self.class}:0x%016x>" % object_id
     end
 
     def error(line, col, message)
@@ -842,6 +856,7 @@ class Packcr
             parse_directive_include("%earlysource", @esource) ||
             parse_directive_include("%earlycommon", @esource, @eheader) ||
             parse_directive_include("%source", @source) ||
+            parse_directive_include("%lateheader", @lheader) ||
             parse_directive_include("%header", @header) ||
             parse_directive_include("%common", @source, @header) ||
             parse_directive_include("%location", @location) ||
@@ -915,13 +930,13 @@ class Packcr
       File.open(@hname, "wt") do |hio|
         hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
 
-        hstream.write Packcr.template("context/header.c.erb", binding), rewrite_line_directive: true
+        hstream.write Packcr.template("context/header.#{@lang}.erb", binding), rewrite_line_directive: true
       end
 
       File.open(@sname, "wt") do |sio|
         sstream = ::Packcr::Stream.new(sio, @sname, @lines ? 0 : nil)
 
-        sstream.write Packcr.template("context/source.c.erb", binding), rewrite_line_directive: true
+        sstream.write Packcr.template("context/source.#{@lang}.erb", binding), rewrite_line_directive: true
 
         eol?
         if !eof?

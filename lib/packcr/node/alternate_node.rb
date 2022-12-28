@@ -27,7 +27,7 @@ class Packcr
         m = gen.next_label
 
         reach = nil
-        gen.write Packcr.template("node/alternate.c.erb", binding, indent: indent - 4, unwrap: bare)
+        gen.write Packcr.template("node/alternate.#{gen.lang}.erb", binding, indent: indent - 4, unwrap: bare)
 
         reach || Packcr::CODE_REACH__ALWAYS_FAIL
       end

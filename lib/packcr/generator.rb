@@ -1,13 +1,14 @@
 
 class Packcr
   class Generator
-    attr_reader :ascii, :rule, :location
+    attr_reader :ascii, :rule, :location, :lang
 
-    def initialize(rule, ascii, location)
+    def initialize(rule, ascii, location, lang = :c)
       @rule = rule
       @label = 0
       @ascii = !!ascii
       @location = !!location
+      @lang = lang
     end
 
     def next_label

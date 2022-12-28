@@ -19,7 +19,7 @@ class Packcr
         if neg
           l = gen.next_label
           r, code = gen.generate_code_str(expr, l, 4, false)
-          gen.write Packcr.template("node/predicate_neg.c.erb", binding, indent: indent, unwrap: bare)
+          gen.write Packcr.template("node/predicate_neg.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
           case r
           when Packcr::CODE_REACH__ALWAYS_SUCCEED
             r = Packcr::CODE_REACH__ALWAYS_FAIL
@@ -30,7 +30,7 @@ class Packcr
           l = gen.next_label
           m = gen.next_label
           r, code = gen.generate_code_str(expr, l, 4, false)
-          gen.write Packcr.template("node/predicate.c.erb", binding, indent: indent, unwrap: bare)
+          gen.write Packcr.template("node/predicate.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         end
         return r
       end
