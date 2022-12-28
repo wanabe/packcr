@@ -19,7 +19,6 @@ L<%= "%04d" % l %>:;
 <%- end -%>
         memset(&null, 0, sizeof(pcc_value_t)); /* in case */
         thunk->data.leaf.action(ctx, thunk, &null);
-        pcc_thunk__destroy(ctx->auxil, thunk);
     }
     goto L<%= "%04d" % onfail %>;
 L<%= "%04d" % m %>:;
