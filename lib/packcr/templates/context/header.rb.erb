@@ -94,11 +94,6 @@ typedef struct pcc_location_tag {
 
 #define PCC_VOID_VALUE (~(size_t)0)
 
-typedef enum pcc_bool_tag {
-    PCC_FALSE = 0,
-    PCC_TRUE
-} pcc_bool_t;
-
 typedef struct pcc_char_array_tag {
     char *buf;
     size_t max;
@@ -521,9 +516,9 @@ static size_t pcc_rule_set__index(pcc_auxil_t auxil, const pcc_rule_set_t *set, 
     return PCC_VOID_VALUE;
 }
 
-static pcc_bool_t pcc_rule_set__add(pcc_auxil_t auxil, pcc_rule_set_t *set, pcc_rule_t rule) {
+static VALUE pcc_rule_set__add(pcc_auxil_t auxil, pcc_rule_set_t *set, pcc_rule_t rule) {
     const size_t i = pcc_rule_set__index(auxil, set, rule);
-    if (i != PCC_VOID_VALUE) return PCC_FALSE;
+    if (i != PCC_VOID_VALUE) return Qfalse;
     if (set->max <= set->len) {
         const size_t n = set->len + 1;
         size_t m = set->max;
@@ -534,14 +529,14 @@ static pcc_bool_t pcc_rule_set__add(pcc_auxil_t auxil, pcc_rule_set_t *set, pcc_
         set->max = m;
     }
     set->buf[set->len++] = rule;
-    return PCC_TRUE;
+    return Qtrue;
 }
 
-static pcc_bool_t pcc_rule_set__remove(pcc_auxil_t auxil, pcc_rule_set_t *set, pcc_rule_t rule) {
+static VALUE pcc_rule_set__remove(pcc_auxil_t auxil, pcc_rule_set_t *set, pcc_rule_t rule) {
     const size_t i = pcc_rule_set__index(auxil, set, rule);
-    if (i == PCC_VOID_VALUE) return PCC_FALSE;
+    if (i == PCC_VOID_VALUE) return Qfalse;
     memmove(set->buf + i, set->buf + (i + 1), sizeof(pcc_rule_t) * (set->len - (i + 1)));
-    return PCC_TRUE;
+    return Qtrue;
 }
 
 static void pcc_rule_set__clear(pcc_auxil_t auxil, pcc_rule_set_t *set) {
@@ -864,30 +859,30 @@ static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with chec
 
 <% end -%>
 MARK_FUNC_AS_USED
-static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_array_t *thunks, pcc_value_t *value) {
+static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_array_t *thunks, pcc_value_t *value) {
     static pcc_value_t null;
     pcc_thunk_chunk_t *c = NULL;
     const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if @location -%>
     const pcc_location_t p_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
 <%- end -%>
-    pcc_bool_t b = PCC_TRUE;
+    VALUE b = Qtrue;
     pcc_lr_answer_t *a = pcc_lr_table__get_answer(ctx, &ctx->lrtable, p, rule);
     pcc_lr_head_t *h = pcc_lr_table__get_head(ctx, &ctx->lrtable, p);
     if (h != NULL) {
         if (a == NULL && rule != h->rule && pcc_rule_set__index(ctx->auxil, &h->invol, rule) == PCC_VOID_VALUE) {
-            b = PCC_FALSE;
+            b = Qfalse;
             c = NULL;
         }
-        else if (pcc_rule_set__remove(ctx->auxil, &h->eval, rule)) {
-            b = PCC_FALSE;
+        else if (RTEST(pcc_rule_set__remove(ctx->auxil, &h->eval, rule))) {
+            b = Qfalse;
             c = rule(ctx);
             a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
             a->data.chunk = c;
             pcc_lr_table__hold_answer(ctx, &ctx->lrtable, p, a);
         }
     }
-    if (b) {
+    if (RTEST(b)) {
         if (a != NULL) {
             rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(a->pos - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos")))));
 <%- if @location -%>
@@ -977,11 +972,11 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
             }
         }
     }
-    if (c == NULL) return PCC_FALSE;
+    if (c == NULL) return Qfalse;
     if (value == NULL) value = &null;
     memset(value, 0, sizeof(pcc_value_t)); /* in case */
     pcc_thunk_array__add(ctx->auxil, thunks, pcc_thunk__create_node(ctx->auxil, &c->thunks, value));
-    return PCC_TRUE;
+    return Qtrue;
 }
 
 MARK_FUNC_AS_USED
