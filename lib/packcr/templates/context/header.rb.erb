@@ -94,12 +94,6 @@ typedef struct pcc_location_tag {
 
 #define PCC_VOID_VALUE (~(size_t)0)
 
-typedef struct pcc_char_array_tag {
-    char *buf;
-    size_t max;
-    size_t len;
-} pcc_char_array_t;
-
 typedef struct pcc_range_tag {
     size_t start;
     size_t end;
