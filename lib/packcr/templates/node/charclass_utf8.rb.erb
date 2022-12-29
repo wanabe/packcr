@@ -41,7 +41,7 @@
 <%-   end -%>
 <%- end -%>
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->cur_loc, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur, n);
+    pcc_location_forward(&ctx->cur_loc, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))), n);
 <%- end -%>
-    ctx->cur += n;
+    rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) + n));
 }

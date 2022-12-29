@@ -1,5 +1,5 @@
     {
-        const size_t p = ctx->cur;
+        const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if gen.location -%>
         const pcc_location_t p_loc = ctx->cur_loc;
 <%- end -%>
@@ -23,7 +23,7 @@
 <%-     end -%>
 <%-   end -%>
     L<%= "%04d" % l %>:;
-        ctx->cur = p;
+        rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p));
 <%- if gen.location -%>
         ctx->cur_loc = p_loc;
 <%- end -%>

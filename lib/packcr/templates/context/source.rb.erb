@@ -10,5 +10,8 @@ class <%= class_name %>
   def initialize
     _initialize
     @buffer = +"".b
+    @pos = 0
+    @cur = 0
+    @level = 0
   end
 end

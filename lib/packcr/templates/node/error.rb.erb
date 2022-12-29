@@ -12,7 +12,7 @@ L<%= "%04d" % l %>:;
         thunk->data.leaf.capts.buf[<%= capt.index %>] = &(chunk->capts.buf[<%= capt.index %>]);
 <%- end -%>
         thunk->data.leaf.capt0.range.start = chunk->pos;
-        thunk->data.leaf.capt0.range.end = ctx->cur;
+        thunk->data.leaf.capt0.range.end = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if gen.location -%>
         thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
         thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;

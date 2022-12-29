@@ -1,6 +1,6 @@
 {
 <%- if min > 0 -%>
-    const size_t p0 = ctx->cur;
+    const size_t p0 = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if gen.location -%>
     const pcc_location_t p0_loc = ctx->cur_loc;
 <%- end -%>
@@ -12,7 +12,7 @@
 <%- else -%>
     for (i = 0; i < <%= max %>; i++) {
 <%- end -%>
-        const size_t p = ctx->cur;
+        const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if gen.location -%>
         const pcc_location_t p_loc = ctx->cur_loc;
 <%- end -%>
@@ -20,11 +20,11 @@
 <%- l = gen.next_label -%>
 <%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
 <%= code -%>
-        if (ctx->cur == p) break;
+        if (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) == p) break;
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
         continue;
     L<%= "%04d" % l %>:;
-        ctx->cur = p;
+        rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p));
 <%- if gen.location -%>
         ctx->cur_loc = p_loc;
 <%- end -%>
@@ -34,7 +34,7 @@
     }
 <%- if min > 0 -%>
     if (i < <%= min %>) {
-        ctx->cur = p0;
+        rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p0));
 <%- if gen.location -%>
         ctx->cur_loc = p0_loc;
 <%- end -%>

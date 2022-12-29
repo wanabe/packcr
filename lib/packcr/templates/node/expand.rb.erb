@@ -2,15 +2,15 @@
     const size_t n = chunk->capts.buf[<%= index %>].range.end - chunk->capts.buf[<%= index %>].range.start;
     if (pcc_refill_buffer(ctx, n) < n) goto L<%= "%04d" % onfail %>;
     if (n > 0) {
-        const char *const p = RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur;
+        const char *const p = RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
         const char *const q = RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + chunk->capts.buf[<%= index %>].range.start;
         size_t i;
         for (i = 0; i < n; i++) {
             if (p[i] != q[i]) goto L<%= "%04d" % onfail %>;
         }
 <%- if gen.location -%>
-        pcc_location_forward(&ctx->cur_loc, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur, n);
+        pcc_location_forward(&ctx->cur_loc, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))), n);
 <%- end -%>
-        ctx->cur += n;
+        rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) + n));
     }
 }

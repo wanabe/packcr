@@ -1,5 +1,5 @@
 {
-    const size_t p = ctx->cur;
+    const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
     size_t q;
 <%- if gen.location -%>
     const pcc_location_t p_loc = ctx->cur_loc;
@@ -7,7 +7,7 @@
 <%- end -%>
 <%- r, code = gen.generate_code_str(expr, onfail, 4, false) -%>
 <%= code -%>
-    q = ctx->cur;
+    q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
     chunk->capts.buf[<%= index %>].range.start = p;
     chunk->capts.buf[<%= index %>].range.end = q;
 <%- if gen.location -%>
