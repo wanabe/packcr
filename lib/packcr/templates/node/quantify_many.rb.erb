@@ -4,7 +4,7 @@
 <%- if gen.location -%>
     const pcc_location_t p0_loc = ctx->cur_loc;
 <%- end -%>
-    const size_t n0 = chunk->thunks.len;
+    const size_t n0 = RARRAY_LEN(rb_ivar_get(chunk->robj, rb_intern("@thunks")));
 <%- end -%>
     int i;
 <%- if max < 0 -%>
@@ -16,7 +16,7 @@
 <%- if gen.location -%>
         const pcc_location_t p_loc = ctx->cur_loc;
 <%- end -%>
-        const size_t n = chunk->thunks.len;
+        const size_t n = RARRAY_LEN(rb_ivar_get(chunk->robj, rb_intern("@thunks")));
 <%- l = gen.next_label -%>
 <%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
 <%= code -%>
@@ -28,7 +28,7 @@
 <%- if gen.location -%>
         ctx->cur_loc = p_loc;
 <%- end -%>
-        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+        rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_intern("[]="), 3, SIZET2NUM(n), SIZET2NUM(65535), rb_ary_new());
         break;
 <%- end -%>
     }
@@ -38,7 +38,7 @@
 <%- if gen.location -%>
         ctx->cur_loc = p0_loc;
 <%- end -%>
-        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);
+        rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_intern("[]="), 3, SIZET2NUM(n0), SIZET2NUM(65535), rb_ary_new());
         goto L<%= "%04d" % onfail %>;
     }
 <%- end -%>

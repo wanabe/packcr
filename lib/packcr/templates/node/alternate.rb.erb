@@ -3,7 +3,7 @@
 <%- if gen.location -%>
         const pcc_location_t p_loc = ctx->cur_loc;
 <%- end -%>
-        const size_t n = chunk->thunks.len;
+        const size_t n = RARRAY_LEN(rb_ivar_get(chunk->robj, rb_intern("@thunks")));
 <%- nodes.each_with_index do |expr, i| -%>
 <%-   c = i + 1 < nodes.length -%>
 <%-   l = gen.next_label -%>
@@ -27,7 +27,7 @@
 <%- if gen.location -%>
         ctx->cur_loc = p_loc;
 <%- end -%>
-        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+        rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_intern("[]="), 3, SIZET2NUM(n), SIZET2NUM(65535), rb_ary_new());
 <%-   if !c -%>
         goto L<%= "%04d" % onfail %>;
 <%-   end -%>

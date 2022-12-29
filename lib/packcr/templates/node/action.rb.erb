@@ -12,5 +12,5 @@
     thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
     thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;
 <%- end -%>
-    pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);
+    rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_intern("push"), 1, thunk->robj);
 }
