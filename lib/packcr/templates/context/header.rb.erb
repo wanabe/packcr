@@ -305,7 +305,6 @@ struct <%= prefix %>_context_tag {
     pcc_location_t cur_loc;
     <%- end -%>
     size_t level;
-    pcc_char_array_t buffer;
     pcc_lr_table_t lrtable;
     pcc_lr_stack_t lrstack;
     pcc_thunk_array_t thunks;
@@ -362,25 +361,6 @@ static char *pcc_strndup_e(pcc_auxil_t auxil, const char *str, size_t len) {
     memcpy(s, str, m);
     s[m] = '\0';
     return s;
-}
-
-static void pcc_char_array__init(pcc_auxil_t auxil, pcc_char_array_t *array) {
-    array->len = 0;
-    array->max = 0;
-    array->buf = NULL;
-}
-
-static void pcc_char_array__add(pcc_auxil_t auxil, pcc_char_array_t *array, char ch) {
-    if (array->max <= array->len) {
-        const size_t n = array->len + 1;
-        size_t m = array->max;
-        if (m == 0) m = PCC_BUFFER_MIN_SIZE;
-        while (m < n && m != 0) m <<= 1;
-        if (m == 0) m = n;
-        array->buf = (char *)PCC_REALLOC(auxil, array->buf, m);
-        array->max = m;
-    }
-    array->buf[array->len++] = ch;
 }
 
 static void pcc_value_table__init(pcc_auxil_t auxil, pcc_value_table_t *table) {
@@ -827,7 +807,6 @@ static pcc_context_t *pcc_context__init(pcc_auxil_t auxil, pcc_context_t *const 
     pcc_location_init(&ctx->cur_loc);
 <%- end -%>
     ctx->level = 0;
-    pcc_char_array__init(auxil, &ctx->buffer);
     pcc_lr_table__init(auxil, &ctx->lrtable);
     pcc_lr_stack__init(auxil, &ctx->lrstack);
     pcc_thunk_array__init(auxil, &ctx->thunks);
@@ -844,19 +823,23 @@ static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
 }
 
 static size_t pcc_refill_buffer(pcc_context_t *ctx, size_t num) {
-    if (ctx->buffer.len >= ctx->cur + num) return ctx->buffer.len - ctx->cur;
-    while (ctx->buffer.len < ctx->cur + num) {
+    size_t len = (size_t) (RSTRING_LEN(rb_ivar_get(ctx->robj, rb_intern("@buffer"))));
+    if (len >= ctx->cur + num) return len - ctx->cur;
+    while (len < ctx->cur + num) {
         const int c = PCC_GETCHAR(ctx->auxil);
         if (c < 0) break;
-        pcc_char_array__add(ctx->auxil, &ctx->buffer, (char)c);
+        rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@buffer")), rb_intern("<<"), 1, INT2NUM(c));
+        len = (size_t) (RSTRING_LEN(rb_ivar_get(ctx->robj, rb_intern("@buffer"))));
     }
-    return ctx->buffer.len - ctx->cur;
+    return len - ctx->cur;
 }
 
 MARK_FUNC_AS_USED
 static void pcc_commit_buffer(pcc_context_t *ctx) {
-    memmove(ctx->buffer.buf, ctx->buffer.buf + ctx->cur, ctx->buffer.len - ctx->cur);
-    ctx->buffer.len -= ctx->cur;
+    VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
+    rb_ivar_set(ctx->robj, rb_intern("@buffer"),
+      rb_funcall(rbuffer, rb_intern("[]"), 2, INT2NUM(ctx->cur), INT2NUM(RSTRING_LEN(rbuffer) - ctx->cur))
+    );
     ctx->pos += ctx->cur;
     pcc_lr_table__shift(ctx, &ctx->lrtable, ctx->cur);
     ctx->cur = 0;
@@ -870,7 +853,7 @@ MARK_FUNC_AS_USED
 static const char *pcc_get_capture_string(pcc_context_t *ctx, const pcc_capture_t *capt) {
     if (capt->string == NULL)
         ((pcc_capture_t *)capt)->string =
-            pcc_strndup_e(ctx->auxil, ctx->buffer.buf + capt->range.start, capt->range.end - capt->range.start);
+            pcc_strndup_e(ctx->auxil, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + capt->range.start, capt->range.end - capt->range.start);
     return capt->string;
 }
 
@@ -879,7 +862,7 @@ static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with chec
     int c, u;
     size_t n;
     if (pcc_refill_buffer(ctx, 1) < 1) return 0;
-    c = (int)(unsigned char)ctx->buffer.buf[ctx->cur];
+    c = (int)(unsigned char)RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur];
     n = (c < 0x80) ? 1 :
         ((c & 0xe0) == 0xc0) ? 2 :
         ((c & 0xf0) == 0xe0) ? 3 :
@@ -892,30 +875,30 @@ static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with chec
         break;
     case 2:
         u = c & 0x1f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 1];
+        c = (int)(unsigned char)RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur + 1];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
         if (u < 0x80) return 0;
         break;
     case 3:
         u = c & 0x0f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 1];
+        c = (int)(unsigned char)RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur + 1];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 2];
+        c = (int)(unsigned char)RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur + 2];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
         if (u < 0x800) return 0;
         break;
     case 4:
         u = c & 0x07;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 1];
+        c = (int)(unsigned char)RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur + 1];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 2];
+        c = (int)(unsigned char)RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur + 2];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 3];
+        c = (int)(unsigned char)RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur + 3];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
         if (u < 0x10000 || u > 0x10ffff) return 0;
@@ -1116,7 +1099,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
 <%- if @location -%>
     chunk->pos_loc = ctx->cur_loc;
 <%- end -%>
-    PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
+    PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= node.name %>", ctx->level, chunk->pos, (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + chunk->pos), (RSTRING_LEN(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) - chunk->pos));
     ctx->level++;
     pcc_value_table__resize(ctx->auxil, &chunk->values, <%= node.vars.length %>);
     pcc_capture_table__resize(ctx->auxil, &chunk->capts, <%= node.capts.length %>);
@@ -1127,12 +1110,12 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
 <%-   r, str = g.generate_code_str(node.expr, 0, 4, false) -%>
 <%=   str -%>
     ctx->level--;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= node.name %>", ctx->level, chunk->pos, (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + chunk->pos), (ctx->cur - chunk->pos));
     return chunk;
 <%-   if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 L0000:;
     ctx->level--;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "<%= node.name %>", ctx->level, chunk->pos, (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + chunk->pos), (ctx->cur - chunk->pos));
     return NULL;
 <%-   end -%>
 }
@@ -1180,8 +1163,8 @@ static const rb_data_type_t <%= prefix %>_data_type = {
 static VALUE <%= prefix %>_s_alloc(VALUE klass) {
     <%= prefix %>_context_t *ctx;
     VALUE obj = TypedData_Make_Struct(klass, <%= prefix %>_context_t, &<%= prefix %>_data_type, ctx);
-    pcc_context__init(NULL, ctx);
     ctx->robj = obj;
+    pcc_context__init(NULL, ctx);
 
     return obj;
 }
@@ -1201,6 +1184,6 @@ void Init_<%= prefix %>(void) {
     VALUE c<%= class_name %> = rb_define_class("<%= class_name %>", rb_cObject);
 
     rb_define_alloc_func(c<%= class_name %>, <%= prefix %>_s_alloc);
-    rb_define_method(c<%= class_name %>, "initialize", <%= prefix %>_initialize, 0);
+    rb_define_method(c<%= class_name %>, "_initialize", <%= prefix %>_initialize, 0);
     rb_define_method(c<%= class_name %>, "run", <%= prefix %>_run, 0);
 }

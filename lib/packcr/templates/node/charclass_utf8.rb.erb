@@ -41,7 +41,7 @@
 <%-   end -%>
 <%- end -%>
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, n);
+    pcc_location_forward(&ctx->cur_loc, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur, n);
 <%- end -%>
     ctx->cur += n;
 }

@@ -1,11 +1,11 @@
 if (
     pcc_refill_buffer(ctx, <%= n %>) < <%= n %> ||
 <%- (n - 1).times do |i| -%>
-    (ctx->buffer.buf + ctx->cur)[<%= i %>] != '<%= Packcr.escape_character(value[i]) %>' ||
+    (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur)[<%= i %>] != '<%= Packcr.escape_character(value[i]) %>' ||
 <%- end -%>
-    (ctx->buffer.buf + ctx->cur)[<%= n - 1 %>] != '<%= s = Packcr.escape_character(value[n - 1]) %>'
+    (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur)[<%= n - 1 %>] != '<%= s = Packcr.escape_character(value[n - 1]) %>'
 ) goto L<%= "%04d" % onfail %>;
 <%- if gen.location -%>
-pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, n);
+pcc_location_forward(&ctx->cur_loc, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur, n);
 <%- end -%>
 ctx->cur += <%= n %>;

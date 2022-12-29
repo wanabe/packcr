@@ -1,19 +1,19 @@
 <%- if a -%>
 if (
     pcc_refill_buffer(ctx, 1) < 1 ||
-    ctx->buffer.buf[ctx->cur] == '<%= Packcr.escape_character(charclass[i]) %>'
+    RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur] == '<%= Packcr.escape_character(charclass[i]) %>'
 ) goto L<%= "%04d" % onfail %>;
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, 1);
+    pcc_location_forward(&ctx->cur_loc, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur, 1);
 <%- end -%>
 ctx->cur++;
 <%- else -%>
 if (
     pcc_refill_buffer(ctx, 1) < 1 ||
-    ctx->buffer.buf[ctx->cur] != '<%= Packcr.escape_character(charclass[0]) %>'
+    RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[ctx->cur] != '<%= Packcr.escape_character(charclass[0]) %>'
 ) goto L<%= "%04d" % onfail %>;
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, 1);
+    pcc_location_forward(&ctx->cur_loc, RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + ctx->cur, 1);
 <%- end -%>
 ctx->cur++;
 <%- end -%>

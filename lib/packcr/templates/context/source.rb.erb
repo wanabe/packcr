@@ -5,3 +5,10 @@ module Kernel
     -1
   end
 end
+
+class <%= class_name %>
+  def initialize
+    _initialize
+    @buffer = +"".b
+  end
+end
