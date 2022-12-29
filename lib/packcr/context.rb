@@ -77,6 +77,10 @@ class Packcr
       @prefix || "pcc"
     end
 
+    def class_name
+      prefix.gsub(/(?:_|^)([a-z])/) { $1.upcase }
+    end
+
     def auxil_def
       type = auxil_type
       "#{type}#{type =~ /\*$/ ? "" : " "}"

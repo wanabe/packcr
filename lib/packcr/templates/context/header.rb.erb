@@ -297,6 +297,7 @@ typedef struct pcc_memory_recycler_tag {
 } pcc_memory_recycler_t;
 
 struct <%= prefix %>_context_tag {
+    VALUE robj;
     size_t pos; /* the position in the input of the first character currently buffered */
     size_t cur; /* the current parsing position in the character buffer */
     <%- if @location -%>
@@ -818,8 +819,7 @@ static pcc_lr_entry_t *pcc_lr_stack__pop(pcc_auxil_t auxil, pcc_lr_stack_t *stac
     return stack->buf[--stack->len];
 }
 
-static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
-    pcc_context_t *const ctx = (pcc_context_t *)PCC_MALLOC(auxil, sizeof(pcc_context_t));
+static pcc_context_t *pcc_context__init(pcc_auxil_t auxil, pcc_context_t *const ctx) {
     ctx->pos = 0;
     ctx->cur = 0;
 <%- if @location -%>
@@ -836,6 +836,11 @@ static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
     pcc_memory_recycler__init(auxil, &ctx->lr_answer_recycler, sizeof(pcc_lr_answer_t));
     ctx->auxil = auxil;
     return ctx;
+}
+
+static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
+    pcc_context_t *const ctx = (pcc_context_t *)PCC_MALLOC(auxil, sizeof(pcc_context_t));
+    return pcc_context__init(auxil, ctx);
 }
 
 static size_t pcc_refill_buffer(pcc_context_t *ctx, size_t num) {
@@ -1152,3 +1157,50 @@ int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
 <%- @lheader.each do |code| -%>
 <%=   hstream.get_code_block(code, 0, @iname) -%>
 <%- end -%>
+
+static void <%= prefix %>_mark(void *ptr) {
+}
+
+static void <%= prefix %>_free(void *ptr) {
+    <%= prefix %>_context_t *ctx = ptr;
+
+    xfree(ctx);
+}
+
+static size_t <%= prefix %>_memsize(const void *ptr) {
+    return sizeof(<%= prefix %>_context_t);
+}
+
+static const rb_data_type_t <%= prefix %>_data_type = {
+    "<%= prefix %>",
+    {<%= prefix %>_mark, <%= prefix %>_free, <%= prefix %>_memsize,},
+    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
+};
+
+static VALUE <%= prefix %>_s_alloc(VALUE klass) {
+    <%= prefix %>_context_t *ctx;
+    VALUE obj = TypedData_Make_Struct(klass, <%= prefix %>_context_t, &<%= prefix %>_data_type, ctx);
+    pcc_context__init(NULL, ctx);
+    ctx->robj = obj;
+
+    return obj;
+}
+
+static VALUE <%= prefix %>_initialize(VALUE self) {
+    return self;
+}
+
+static VALUE <%= prefix %>_run(VALUE self) {
+    <%= prefix %>_context_t *ctx;
+    TypedData_Get_Struct(self, <%= prefix %>_context_t, &<%= prefix %>_data_type, ctx);
+    while (<%= prefix %>_parse(ctx, NULL));
+    return Qfalse;
+}
+
+void Init_<%= prefix %>(void) {
+    VALUE c<%= class_name %> = rb_define_class("<%= class_name %>", rb_cObject);
+
+    rb_define_alloc_func(c<%= class_name %>, <%= prefix %>_s_alloc);
+    rb_define_method(c<%= class_name %>, "initialize", <%= prefix %>_initialize, 0);
+    rb_define_method(c<%= class_name %>, "run", <%= prefix %>_run, 0);
+}
