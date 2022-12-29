@@ -290,12 +290,6 @@ struct pcc_memory_pool_tag {
     size_t unused;
 };
 
-typedef struct pcc_memory_recycler_tag {
-    pcc_memory_pool_t *pool_list;
-    pcc_memory_entry_t *entry_list;
-    size_t element_size;
-} pcc_memory_recycler_t;
-
 struct <%= prefix %>_context_tag {
     VALUE robj;
     <%- if @location -%>
@@ -305,9 +299,6 @@ struct <%= prefix %>_context_tag {
     pcc_lr_table_t lrtable;
     pcc_thunk_array_t thunks;
     pcc_auxil_t auxil;
-    pcc_memory_recycler_t thunk_chunk_recycler;
-    pcc_memory_recycler_t lr_head_recycler;
-    pcc_memory_recycler_t lr_answer_recycler;
 };
 
 #ifndef PCC_ERROR
@@ -506,41 +497,9 @@ static void pcc_thunk_array__revert(pcc_auxil_t auxil, pcc_thunk_array_t *array,
     }
 }
 
-static void pcc_memory_recycler__init(pcc_auxil_t auxil, pcc_memory_recycler_t *recycler, size_t element_size) {
-    recycler->pool_list = NULL;
-    recycler->entry_list = NULL;
-    recycler->element_size = element_size;
-}
-
-static void *pcc_memory_recycler__supply(pcc_auxil_t auxil, pcc_memory_recycler_t *recycler) {
-    if (recycler->entry_list) {
-        pcc_memory_entry_t *const tmp = recycler->entry_list;
-        recycler->entry_list = tmp->next;
-        return tmp;
-    }
-    if (!recycler->pool_list || recycler->pool_list->unused == 0) {
-        size_t size = PCC_POOL_MIN_SIZE;
-        if (recycler->pool_list) {
-            size = recycler->pool_list->allocated << 1;
-            if (size == 0) size = recycler->pool_list->allocated;
-        }
-        {
-            pcc_memory_pool_t *const pool = (pcc_memory_pool_t *)PCC_MALLOC(
-                auxil, sizeof(pcc_memory_pool_t) + recycler->element_size * size
-            );
-            pool->allocated = size;
-            pool->unused = size;
-            pool->next = recycler->pool_list;
-            recycler->pool_list = pool;
-        }
-    }
-    recycler->pool_list->unused--;
-    return (char *)recycler->pool_list + sizeof(pcc_memory_pool_t) + recycler->element_size * recycler->pool_list->unused;
-}
-
 MARK_FUNC_AS_USED
 static pcc_thunk_chunk_t *pcc_thunk_chunk__create(pcc_context_t *ctx) {
-    pcc_thunk_chunk_t *const chunk = (pcc_thunk_chunk_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->thunk_chunk_recycler);
+    pcc_thunk_chunk_t *const chunk = (pcc_thunk_chunk_t *)xmalloc(sizeof(pcc_thunk_chunk_t));
     pcc_value_table__init(ctx->auxil, &chunk->values);
     pcc_capture_table__init(ctx->auxil, &chunk->capts);
     pcc_thunk_array__init(ctx->auxil, &chunk->thunks);
@@ -598,7 +557,7 @@ static void pcc_rule_set__copy(pcc_auxil_t auxil, pcc_rule_set_t *set, const pcc
 }
 
 static pcc_lr_head_t *pcc_lr_head__create(pcc_context_t *ctx, pcc_rule_t rule) {
-    pcc_lr_head_t *const head = (pcc_lr_head_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->lr_head_recycler);
+    pcc_lr_head_t *const head = (pcc_lr_head_t *)xmalloc(sizeof(pcc_lr_head_t));
     head->rule = rule;
     pcc_rule_set__init(ctx->auxil, &head->invol);
     pcc_rule_set__init(ctx->auxil, &head->eval);
@@ -607,7 +566,7 @@ static pcc_lr_head_t *pcc_lr_head__create(pcc_context_t *ctx, pcc_rule_t rule) {
 }
 
 static pcc_lr_answer_t *pcc_lr_answer__create(pcc_context_t *ctx, pcc_lr_answer_type_t type, size_t pos<% if @location %>, pcc_location_t pos_loc<% end %>) {
-    pcc_lr_answer_t *answer = (pcc_lr_answer_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->lr_answer_recycler);
+    pcc_lr_answer_t *answer = (pcc_lr_answer_t *)xmalloc(sizeof(pcc_lr_answer_t));
     answer->type = type;
     answer->pos = pos;
 <%- if @location -%>
@@ -781,9 +740,6 @@ static pcc_context_t *pcc_context__init(pcc_auxil_t auxil, pcc_context_t *const 
 <%- end -%>
     pcc_lr_table__init(auxil, &ctx->lrtable);
     pcc_thunk_array__init(auxil, &ctx->thunks);
-    pcc_memory_recycler__init(auxil, &ctx->thunk_chunk_recycler, sizeof(pcc_thunk_chunk_t));
-    pcc_memory_recycler__init(auxil, &ctx->lr_head_recycler, sizeof(pcc_lr_head_t));
-    pcc_memory_recycler__init(auxil, &ctx->lr_answer_recycler, sizeof(pcc_lr_answer_t));
     ctx->auxil = auxil;
     return ctx;
 }
