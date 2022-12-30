@@ -734,6 +734,7 @@ static pcc_lr_answer_t *pcc_lr_table__get_answer(pcc_context_t *ctx, pcc_lr_tabl
 
 static void pcc_lr_table__shift(pcc_context_t *ctx, pcc_lr_table_t *table, size_t count) {
     if (count > table->len - table->ofs) count = table->len - table->ofs;
+    table->ofs += count;
     if (table->ofs > (table->max >> 1)) {
         memmove(table->buf, table->buf + table->ofs, sizeof(pcc_lr_table_entry_t *) * (table->len - table->ofs));
         table->len -= table->ofs;
