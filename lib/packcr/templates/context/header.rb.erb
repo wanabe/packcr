@@ -103,7 +103,9 @@ typedef struct pcc_range_tag {
 <%- end -%>
 } pcc_range_t;
 
-typedef <%= value_def %>pcc_value_t;
+typedef struct pcc_value_tag {
+    <%= value_def %>value;
+} pcc_value_t;
 
 typedef <%= auxil_def %>pcc_auxil_t;
 
@@ -998,9 +1000,9 @@ static void pcc_do_action(pcc_context_t *ctx, VALUE rthunks, pcc_value_t *values
 <%-   rule.codes.each do |code| -%>
 static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_vars, size_t __pcc_index) {
 #define auxil (__pcc_ctx->auxil)
-#define __ __pcc_vars[__pcc_index]
+#define __ __pcc_vars[__pcc_index].value
 <%-     code.vars.each do |ref| -%>
-#define <%= ref.var %> (*__pcc_in->data.leaf.values.buf[<%= ref.index %>])
+#define <%= ref.var %> (__pcc_in->data.leaf.values.buf[<%= ref.index %>]->value)
 <%      end -%>
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
 #define _0s ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + __pcc_in->data.leaf.capt0.range.start))
