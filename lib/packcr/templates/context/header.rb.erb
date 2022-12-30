@@ -1070,7 +1070,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
 <%- if @location -%>
     chunk->pos_loc = ctx->cur_loc;
 <%- end -%>
-    PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= node.name %>", NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))), chunk->pos, (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + chunk->pos), (RSTRING_LEN(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) - chunk->pos));
+    //PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= node.name %>", NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))), NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos"))), (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))), (RSTRING_LEN(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) - NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))));
     rb_ivar_set(ctx->robj, rb_intern("@level"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))) + 1));
     pcc_value_table__resize(ctx->auxil, &chunk->values, <%= node.vars.length %>);
     pcc_capture_table__resize(ctx->auxil, &chunk->capts, <%= node.capts.length %>);
@@ -1081,12 +1081,12 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
 <%-   r, str = g.generate_code_str(node.expr, 0, 4, false) -%>
 <%=   str -%>
     rb_ivar_set(ctx->robj, rb_intern("@level"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))) - 1));
-    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= node.name %>", NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))), chunk->pos, (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + chunk->pos), (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) - chunk->pos));
+    //PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= node.name %>", NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))), NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))$1 (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))$1, (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) - NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))$1);
     return chunk;
 <%-   if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 L0000:;
     rb_ivar_set(ctx->robj, rb_intern("@level"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))) - 1));
-    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "<%= node.name %>", NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))), chunk->pos, (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + chunk->pos), (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) - chunk->pos));
+    //PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "<%= node.name %>", NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))), NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))$1 (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))$1, (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) - NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))$1);
     return NULL;
 <%-   end -%>
 }
