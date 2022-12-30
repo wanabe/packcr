@@ -254,25 +254,6 @@ struct pcc_lr_entry_tag {
     pcc_lr_head_t *head; /* just a reference */
 };
 
-typedef struct pcc_lr_stack_tag {
-    pcc_lr_entry_t **buf;
-    size_t max;
-    size_t len;
-} pcc_lr_stack_t;
-
-typedef struct pcc_memory_entry_tag pcc_memory_entry_t;
-typedef struct pcc_memory_pool_tag pcc_memory_pool_t;
-
-struct pcc_memory_entry_tag {
-    pcc_memory_entry_t *next;
-};
-
-struct pcc_memory_pool_tag {
-    pcc_memory_pool_t *next;
-    size_t allocated;
-    size_t unused;
-};
-
 struct <%= prefix %>_context_tag {
     VALUE robj;
     <%- if @location -%>
