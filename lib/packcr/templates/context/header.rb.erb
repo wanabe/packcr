@@ -326,8 +326,10 @@ static const rb_data_type_t pcc_lr_entry_data_type = {
 };
 
 static VALUE pcc_lr_entry_s_alloc(VALUE klass) {
-    pcc_lr_entry_t *e;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_entry_t, &pcc_lr_entry_data_type, e);
+    pcc_lr_entry_t *lr;
+    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_entry_t, &pcc_lr_entry_data_type, lr);
+    lr->seed = NULL;
+    lr->head = NULL;
 
     return obj;
 }
@@ -742,14 +744,6 @@ static void pcc_lr_table__shift(pcc_context_t *ctx, pcc_lr_table_t *table, size_
     }
 }
 
-static pcc_lr_entry_t *pcc_lr_entry__create(pcc_auxil_t auxil, pcc_rule_t rule) {
-    pcc_lr_entry_t *const lr = (pcc_lr_entry_t *)PCC_MALLOC(auxil, sizeof(pcc_lr_entry_t));
-    lr->rule = rule;
-    lr->seed = NULL;
-    lr->head = NULL;
-    return lr;
-}
-
 static pcc_context_t *pcc_context__init(pcc_auxil_t auxil, pcc_context_t *const ctx) {
 <%- if @location -%>
     pcc_location_init(&ctx->pos_loc);
@@ -911,8 +905,10 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
             }
         }
         else {
-            pcc_lr_entry_t *const e = pcc_lr_entry__create(ctx->auxil, rule);
-            VALUE rentry = TypedData_Wrap_Struct(cLrEntry, &pcc_lr_entry_data_type, e);
+            VALUE rentry = rb_funcall(cLrEntry, rb_intern("new"), 0);
+            pcc_lr_entry_t *e;
+            TypedData_Get_Struct(rentry, pcc_lr_entry_t, &pcc_lr_entry_data_type, e);
+            e->rule = rule;
             rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@lrstack")), rb_intern("push"), 1, rentry);
             a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_LR, p<% if @location %>, p_loc<% end %>);
             a->data.lr = e;
