@@ -177,7 +177,6 @@ typedef struct pcc_thunk_chunk_tag {
     VALUE robj;
     pcc_value_table_t values;
     pcc_capture_table_t capts;
-    size_t pos; /* the starting position in the character buffer */
 <%- if @location -%>
     pcc_location_t pos_loc;
 <%- end -%>
@@ -539,7 +538,7 @@ static pcc_thunk_chunk_t *pcc_thunk_chunk__create(pcc_context_t *ctx) {
     pcc_value_table__init(ctx->auxil, &chunk->values);
     pcc_capture_table__init(ctx->auxil, &chunk->capts);
     rb_ivar_set(obj, rb_intern("@thunks"), rb_ary_new());
-    chunk->pos = 0;
+    rb_ivar_set(chunk->robj, rb_intern("@pos"), INT2NUM(0));
     return chunk;
 }
 
@@ -1066,7 +1065,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
 <%- @rules.each do |node| -%>
 static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx) {
     pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
-    chunk->pos = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
+    rb_ivar_set(chunk->robj, rb_intern("@pos"), rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if @location -%>
     chunk->pos_loc = ctx->cur_loc;
 <%- end -%>

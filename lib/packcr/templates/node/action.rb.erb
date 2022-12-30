@@ -6,7 +6,7 @@
 <%- capts.each do |capt| -%>
     thunk->data.leaf.capts.buf[<%= capt.index %>] = &(chunk->capts.buf[<%= capt.index %>]);
 <%- end -%>
-    thunk->data.leaf.capt0.range.start = chunk->pos;
+    thunk->data.leaf.capt0.range.start = NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")));
     thunk->data.leaf.capt0.range.end = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if gen.location -%>
     thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
