@@ -142,7 +142,7 @@ typedef struct pcc_capture_const_table_tag {
 
 typedef struct pcc_thunk_tag pcc_thunk_t;
 
-typedef void (*pcc_action_t)(pcc_context_t *, pcc_thunk_t *, pcc_value_t *);
+typedef void (*pcc_action_t)(pcc_context_t *, pcc_thunk_t *, pcc_value_t *, size_t);
 
 typedef enum pcc_thunk_type_tag {
     PCC_THUNK_LEAF,
@@ -158,7 +158,8 @@ typedef struct pcc_thunk_leaf_tag {
 
 typedef struct pcc_thunk_node_tag {
     VALUE robj;
-    pcc_value_t *value; /* just a reference */
+    pcc_value_t *values; /* just a reference */
+    size_t index;
 } pcc_thunk_node_t;
 
 typedef union pcc_thunk_data_tag {
@@ -519,13 +520,14 @@ static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t actio
     return thunk;
 }
 
-static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, pcc_value_t *value) {
+static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, pcc_value_t *values, size_t index) {
     pcc_thunk_t *thunk;
     VALUE obj = TypedData_Make_Struct(cThunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
     thunk->robj = obj;
     thunk->type = PCC_THUNK_NODE;
     rb_ivar_set(obj, rb_intern("@thunks"), rthunks);
-    thunk->data.node.value = value;
+    thunk->data.node.values = values;
+    thunk->data.node.index = index;
     return thunk;
 }
 
@@ -872,8 +874,7 @@ static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with chec
 
 <% end -%>
 MARK_FUNC_AS_USED
-static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, pcc_value_t *value) {
-    static pcc_value_t null;
+static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, pcc_value_t *values, size_t index) {
     pcc_thunk_chunk_t *c = NULL;
     const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if @location -%>
@@ -986,28 +987,29 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
         }
     }
     if (c == NULL) return Qfalse;
-    if (value == NULL) value = &null;
-    memset(value, 0, sizeof(pcc_value_t)); /* in case */
+    if (values != NULL) {
+        memset(values + index, 0, sizeof(pcc_value_t)); /* in case */
+    }
     {
-        pcc_thunk_t *t = pcc_thunk__create_node(ctx->auxil, rb_ivar_get(c->robj, rb_intern("@thunks")), value);
+        pcc_thunk_t *t = pcc_thunk__create_node(ctx->auxil, rb_ivar_get(c->robj, rb_intern("@thunks")), values, index);
         rb_funcall(rthunks, rb_intern("push"), 1, t->robj);
     }
     return Qtrue;
 }
 
 MARK_FUNC_AS_USED
-static void pcc_do_action(pcc_context_t *ctx, VALUE rthunks, pcc_value_t *value) {
+static void pcc_do_action(pcc_context_t *ctx, VALUE rthunks, pcc_value_t *values, size_t index) {
     size_t i;
-    for (i = 0; i < RARRAY_LEN(rthunks); i++) {
+    for (i = 0; i < (size_t)RARRAY_LEN(rthunks); i++) {
         pcc_thunk_t *thunk;
         VALUE rthunk = rb_funcall(rthunks, rb_intern("[]"), 1, SIZET2NUM(i));
         TypedData_Get_Struct(rthunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
         switch (thunk->type) {
         case PCC_THUNK_LEAF:
-            thunk->data.leaf.action(ctx, thunk, value);
+            thunk->data.leaf.action(ctx, thunk, values, index);
             break;
         case PCC_THUNK_NODE:
-            pcc_do_action(ctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), thunk->data.node.value);
+            pcc_do_action(ctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), thunk->data.node.values, thunk->data.node.index);
             break;
         default: /* unknown */
             break;
@@ -1017,9 +1019,9 @@ static void pcc_do_action(pcc_context_t *ctx, VALUE rthunks, pcc_value_t *value)
 
 <%- @rules.each do |rule| -%>
 <%-   rule.codes.each do |code| -%>
-static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
+static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_vars, size_t __pcc_index) {
 #define auxil (__pcc_ctx->auxil)
-#define __ (*__pcc_out)
+#define __ __pcc_vars[__pcc_index]
 <%-     code.vars.each do |ref| -%>
 #define <%= ref.var %> (*__pcc_in->data.leaf.values.buf[<%= ref.index %>])
 <%      end -%>
@@ -1097,8 +1099,8 @@ L0000:;
 int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
 <%- if !@rules.empty? -%>
     VALUE rthunks = rb_ivar_get(ctx->robj, rb_intern("@thunks"));
-    if (pcc_apply_rule(ctx, pcc_evaluate_rule_<%= @rules[0].name %>, rthunks, ret))
-        pcc_do_action(ctx, rthunks, ret);
+    if (pcc_apply_rule(ctx, pcc_evaluate_rule_<%= @rules[0].name %>, rthunks, NULL, 0))
+        pcc_do_action(ctx, rthunks, NULL, 0);
     else
         PCC_ERROR(ctx->auxil);
     pcc_commit_buffer(ctx);

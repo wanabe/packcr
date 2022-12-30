@@ -3,7 +3,6 @@
     goto L<%= "%04d" % m %>;
 L<%= "%04d" % l %>:;
     {
-        pcc_value_t null;
         pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_<%= gen.rule.name %>_<%= index %>, <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
 <%- vars.each do |var| -%>
         thunk->data.leaf.values.buf[<%= var.index %>] = &(chunk->values.buf[<%= var.index %>]);
@@ -17,8 +16,7 @@ L<%= "%04d" % l %>:;
         thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
         thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;
 <%- end -%>
-        memset(&null, 0, sizeof(pcc_value_t)); /* in case */
-        thunk->data.leaf.action(ctx, thunk, &null);
+        thunk->data.leaf.action(ctx, thunk, NULL, 0);
     }
     goto L<%= "%04d" % onfail %>;
 L<%= "%04d" % m %>:;
