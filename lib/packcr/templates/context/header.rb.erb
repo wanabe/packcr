@@ -757,7 +757,8 @@ static pcc_lr_answer_t *pcc_lr_table__get_answer(pcc_context_t *ctx, pcc_lr_tabl
     return pcc_lr_memo_map__get(ctx, &table->buf[index]->memos, rule);
 }
 
-static void pcc_lr_table__shift(pcc_context_t *ctx, VALUE rtable, size_t count) {
+static VALUE pcc_lr_table__shift(VALUE rtable, VALUE rcount) {
+    size_t count = NUM2SIZET(rcount);
     pcc_lr_table_t *table;
     TypedData_Get_Struct(rtable, pcc_lr_table_t, &pcc_lr_table_data_type, table);
     if (count > table->len - table->ofs) count = table->len - table->ofs;
@@ -767,10 +768,10 @@ static void pcc_lr_table__shift(pcc_context_t *ctx, VALUE rtable, size_t count) 
         table->len -= table->ofs;
         table->ofs = 0;
     }
+    return rtable;
 }
 
 static pcc_context_t *pcc_context__init(pcc_auxil_t auxil, pcc_context_t *const ctx) {
-    VALUE rlrtable;
 <%- if @location -%>
     pcc_location_init(&ctx->pos_loc);
     pcc_location_init(&ctx->cur_loc);
@@ -799,7 +800,7 @@ static void pcc_commit_buffer(pcc_context_t *ctx) {
       rb_funcall(rbuffer, rb_intern("[]"), 2, INT2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))), INT2NUM(RSTRING_LEN(rbuffer) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))))
     );
     rb_ivar_set(ctx->robj, rb_intern("@pos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))));
-    pcc_lr_table__shift(ctx, rlrtable, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))));
+    rb_funcall(rlrtable, rb_intern("shift"), 1, rb_ivar_get(ctx->robj, rb_intern("@cur")));
     rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(0));
 <%- if @location -%>
     ctx->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
@@ -1159,6 +1160,7 @@ void Init_<%= prefix %>(void) {
 
     cLrTable = rb_define_class_under(c<%= class_name %>, "LrTable", rb_cObject);
     rb_define_alloc_func(cLrTable, pcc_lr_table_s_alloc);
+    rb_define_method(cLrTable, "shift", pcc_lr_table__shift, 1);
 
     cThunk = rb_define_class_under(c<%= class_name %>, "Thunk", rb_cObject);
     rb_define_alloc_func(cThunk, pcc_thunk_s_alloc);
