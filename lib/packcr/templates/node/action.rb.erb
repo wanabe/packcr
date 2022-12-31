@@ -9,8 +9,8 @@
     thunk->data.leaf.capt0.range.start = NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")));
     thunk->data.leaf.capt0.range.end = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if gen.location -%>
-    thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
-    thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;
+    thunk->data.leaf.capt0.range.start_loc = rb_ivar_get(chunk->robj, rb_intern("@pos_loc"));
+    thunk->data.leaf.capt0.range.end_loc = rb_ivar_get(ctx->robj, rb_intern("@cur_loc"));
 <%- end -%>
     rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_intern("push"), 1, thunk->robj);
 }

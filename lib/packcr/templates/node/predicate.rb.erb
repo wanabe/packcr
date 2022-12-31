@@ -1,13 +1,13 @@
 {
     const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if gen.location -%>
-    const pcc_location_t p_loc = ctx->cur_loc;
+    const VALUE p_loc = rb_ivar_get(ctx->robj, rb_intern("@cur_pos"));
 <%- end -%>
 <%= code -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p));
 <%- if gen.location -%>
-    ctx->cur_loc = p_loc;
+    rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), p_loc);
 <%- end -%>
 <%- end -%>
 <%- if r == Packcr::CODE_REACH__BOTH -%>
@@ -17,7 +17,7 @@
 L<%= "%04d" % l %>:;
     rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p));
 <%- if gen.location -%>
-    ctx->cur_loc = p_loc;
+    rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), p_loc);
 <%- end -%>
     goto L<%= "%04d" % onfail %>;
 <%- end -%>

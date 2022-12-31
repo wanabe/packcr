@@ -54,15 +54,6 @@ int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret);
 }
 #endif
 
-<%- if @location -%>
-
-typedef struct pcc_location_tag {
-<%-   @location.each do |code| -%>
-<%=     hstream.get_code_block(code, 4, @iname) -%>
-<%-   end -%>
-} pcc_location_t;
-<%- end -%>
-
 <%- @source.each do |code| -%>
 <%=   hstream.get_code_block(code, 0, @iname) -%>
 <%- end -%>
@@ -97,10 +88,6 @@ typedef struct pcc_location_tag {
 typedef struct pcc_range_tag {
     size_t start;
     size_t end;
-<%- if @location -%>
-    pcc_location_t start_loc;
-    pcc_location_t end_loc;
-<%- end -%>
 } pcc_range_t;
 
 typedef struct pcc_value_tag {
@@ -126,6 +113,7 @@ typedef struct pcc_value_refer_table_tag {
 } pcc_value_refer_table_t;
 
 typedef struct pcc_capture_tag {
+    VALUE robj;
     pcc_range_t range;
     char *string; /* mutable */
 } pcc_capture_t;
@@ -179,9 +167,6 @@ typedef struct pcc_thunk_chunk_tag {
     VALUE robj;
     pcc_value_table_t values;
     pcc_capture_table_t capts;
-<%- if @location -%>
-    pcc_location_t pos_loc;
-<%- end -%>
 } pcc_thunk_chunk_t;
 
 typedef struct pcc_lr_entry_tag pcc_lr_entry_t;
@@ -199,12 +184,10 @@ typedef union pcc_lr_answer_data_tag {
 typedef struct pcc_lr_answer_tag pcc_lr_answer_t;
 
 struct pcc_lr_answer_tag {
+    VALUE robj;
     pcc_lr_answer_type_t type;
     pcc_lr_answer_data_t data;
     size_t pos; /* the absolute position in the input */
-<%- if @location -%>
-    pcc_location_t pos_loc;
-<%- end -%>
     pcc_lr_answer_t *hold;
 };
 
@@ -259,10 +242,6 @@ struct pcc_lr_entry_tag {
 
 struct <%= prefix %>_context_tag {
     VALUE robj;
-    <%- if @location -%>
-    pcc_location_t pos_loc;
-    pcc_location_t cur_loc;
-    <%- end -%>
     pcc_auxil_t auxil;
 };
 
@@ -471,8 +450,9 @@ static void pcc_capture_table__resize(pcc_auxil_t auxil, pcc_capture_table_t *ta
         table->buf[i].range.start = 0;
         table->buf[i].range.end = 0;
 <%- if @location -%>
-        pcc_location_init(&table->buf[i].range.start_loc);
-        pcc_location_init(&table->buf[i].range.end_loc);
+        table->buf[i].robj = rb_funcall(cCapture, rb_intern("new"), 0);
+        rb_ivar_set(table->buf[i].robj, rb_intern("@start_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
+        rb_ivar_set(table->buf[i].robj, rb_intern("@end_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
 <%- end -%>
         table->buf[i].string = NULL;
     }
@@ -512,8 +492,9 @@ static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t actio
     thunk->data.leaf.capt0.range.start = 0;
     thunk->data.leaf.capt0.range.end = 0;
 <%- if @location -%>
-    pcc_location_init(&thunk->data.leaf.capt0.range.start_loc);
-    pcc_location_init(&thunk->data.leaf.capt0.range.end_loc);
+    thunk->data.leaf.capt0.robj = rb_funcall(cCapture, rb_intern("new"), 0);
+    rb_ivar_set(thunk->data.leaf.capt0.robj, rb_intern("@start_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
+    rb_ivar_set(thunk->data.leaf.capt0.robj, rb_intern("@end_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
 <%- end -%>
     thunk->data.leaf.capt0.string = NULL;
     thunk->data.leaf.action = action;
@@ -601,12 +582,12 @@ static pcc_lr_head_t *pcc_lr_head__create(pcc_context_t *ctx, pcc_rule_t rule) {
     return head;
 }
 
-static pcc_lr_answer_t *pcc_lr_answer__create(pcc_context_t *ctx, pcc_lr_answer_type_t type, size_t pos<% if @location %>, pcc_location_t pos_loc<% end %>) {
+static pcc_lr_answer_t *pcc_lr_answer__create(pcc_context_t *ctx, pcc_lr_answer_type_t type, size_t pos<% if @location %>, VALUE pos_loc<% end %>) {
     pcc_lr_answer_t *answer = (pcc_lr_answer_t *)xmalloc(sizeof(pcc_lr_answer_t));
     answer->type = type;
     answer->pos = pos;
 <%- if @location -%>
-    answer->pos_loc = pos_loc;
+    rb_ivar_set(answer->robj, rb_intern("@pos_loc"), pos_loc);
 <%- end -%>
     answer->hold = NULL;
     switch (answer->type) {
@@ -623,7 +604,7 @@ static pcc_lr_answer_t *pcc_lr_answer__create(pcc_context_t *ctx, pcc_lr_answer_
 }
 
 static void pcc_lr_answer__set_chunk(pcc_context_t *ctx, pcc_lr_answer_t *answer, pcc_thunk_chunk_t *chunk) {
-    pcc_lr_answer_t *const a = pcc_lr_answer__create(ctx, answer->type, answer->pos<% if @location %>, answer->pos_loc<% end %>);
+    pcc_lr_answer_t *const a = pcc_lr_answer__create(ctx, answer->type, answer->pos<% if @location %>, rb_ivar_get(answer->robj, rb_intern("@pos_loc"))<% end %>);
     switch (answer->type) {
     case PCC_LR_ANSWER_LR:
         a->data.lr = answer->data.lr;
@@ -772,10 +753,6 @@ static VALUE pcc_lr_table__shift(VALUE rtable, VALUE rcount) {
 }
 
 static pcc_context_t *pcc_context__init(pcc_auxil_t auxil, pcc_context_t *const ctx) {
-<%- if @location -%>
-    pcc_location_init(&ctx->pos_loc);
-    pcc_location_init(&ctx->cur_loc);
-<%- end -%>
     ctx->auxil = auxil;
     return ctx;
 }
@@ -803,8 +780,8 @@ static void pcc_commit_buffer(pcc_context_t *ctx) {
     rb_funcall(rlrtable, rb_intern("shift"), 1, rb_ivar_get(ctx->robj, rb_intern("@cur")));
     rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(0));
 <%- if @location -%>
-    ctx->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
-    pcc_location_init(&ctx->cur_loc);
+    rb_ivar_set(ctx->robj, rb_intern("@pos_loc"), rb_funcall(rb_ivar_set(ctx->robj, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_set(ctx->robj, rb_intern("@cur_loc"))));
+    rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
 <%- end -%>
 }
 
@@ -875,7 +852,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
     pcc_thunk_chunk_t *c = NULL;
     const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if @location -%>
-    const pcc_location_t p_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+    const VALUE p_loc = rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(ctx->robj, rb_intern("@cur_loc")));
 <%- end -%>
     VALUE b = Qtrue;
     VALUE rlrtable = rb_ivar_get(ctx->robj, rb_intern("@lrtable"));
@@ -893,7 +870,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
         else if (RTEST(pcc_rule_set__remove(ctx->auxil, &h->eval, rule))) {
             b = Qfalse;
             c = rule(ctx);
-            a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
+            a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))<% if @location %>, rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(ctx->robj, rb_intern("@cur_loc")))<% end %>);
             a->data.chunk = c;
             pcc_lr_table__hold_answer(ctx, lrtable, p, a);
         }
@@ -902,7 +879,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
         if (a != NULL) {
             rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(a->pos - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos")))));
 <%- if @location -%>
-            ctx->cur_loc = pcc_location_sub(a->pos_loc, ctx->pos_loc);
+            rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), rb_funcall(rb_ivar_get(a->robj, rb_intern("@pos_loc")), rb_intern("-"), 1, rb_ivar_get(ctx->->robj, rb_intern("@pos_loc"))));
 <%- end -%>
             switch (a->type) {
             case PCC_LR_ANSWER_LR:
@@ -944,7 +921,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
             rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@lrstack")), rb_intern("pop"), 0);
             a->pos = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if @location -%>
-            a->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+            rb_ivar_set(a->robj, rb_intern("@pos_loc"), rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(ctx->robj, rb_intern("@cur_loc"))));
 <%- end -%>
             if (e->head == NULL) {
                 pcc_lr_answer__set_chunk(ctx, a, c);
@@ -954,7 +931,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
                 h = a->data.lr->head;
                 if (h->rule != rule) {
                     c = a->data.lr->seed;
-                    a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
+                    a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))<% if @location %>, rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(ctx->robj, rb_intern("@cur_loc")))<% end %>);
                     a->data.chunk = c;
                     pcc_lr_table__hold_answer(ctx, lrtable, p, a);
                 }
@@ -968,7 +945,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
                         for (;;) {
                             rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos")))));
 <%- if @location -%>
-                            ctx->cur_loc = pcc_location_sub(p_loc, ctx->pos_loc);
+                            rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), rb_funcall(p_loc, rb_intern("-"), 1, rb_ivar_get(ctx->robj, rb_intern("@pos_loc"))));
 <%- end -%>
                             pcc_rule_set__copy(ctx->auxil, &h->eval, &h->invol);
                             c = rule(ctx);
@@ -982,7 +959,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
                         pcc_lr_table__set_head(ctx, lrtable, p, NULL);
                         rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(a->pos - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos")))));
 <%- if @location -%>
-                        ctx->cur_loc = pcc_location_sub(a->pos_loc, ctx->pos_loc);
+                        rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), rb_funcall(rb_ivar_get(a->robj, rb_intern("@pos_loc")), rb_intern("-"), 1, rb_ivar_get(ctx->robj, rb_intern("@pos_loc"))));
 <%- end -%>
                         c = a->data.chunk;
                     }
@@ -1037,8 +1014,8 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_
 #define _<%= capture.index + 1 %>s ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
 #define _<%= capture.index + 1 %>e ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
 <%-       if @location -%>
-#define _<%= capture.index + 1 %>sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start_loc)))
-#define _<%= capture.index + 1 %>el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end_loc)))
+#define _<%= capture.index + 1 %>sl ((const VALUE)(rb_funcall(__pcc_ctx->pos_loc, rb_intern("+"), 1, rb_ivar_get(__pcc_in->data.leaf.capts.buf[<%= capture.index %>]->robj, rb_intern("@start_loc")))))
+#define _<%= capture.index + 1 %>el ((const VALUE)(rb_funcall(__pcc_ctx->pos_loc, rb_intern("+"), 1, rb_ivar_get(__pcc_in->data.leaf.capts.buf[<%= capture.index %>]->robj, rb_intern("@end_loc")))))
 <%-       end -%>
 <%-     end -%>
 <%=     hstream.get_code_block(code.code, 4, @iname) -%>
@@ -1072,7 +1049,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
     pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
     rb_ivar_set(chunk->robj, rb_intern("@pos"), rb_ivar_get(ctx->robj, rb_intern("@cur")));
 <%- if @location -%>
-    chunk->pos_loc = ctx->cur_loc;
+    rb_ivar_set(chunk->robj, rb_intern("@pos_loc"), rb_ivar_get(ctx->robj, rb_intern("@cur_loc")));
 <%- end -%>
     //PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= node.name %>", NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))), NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos"))), (RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))), (RSTRING_LEN(rb_ivar_get(ctx->robj, rb_intern("@buffer"))) - NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))));
     rb_ivar_set(ctx->robj, rb_intern("@level"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@level"))) + 1));

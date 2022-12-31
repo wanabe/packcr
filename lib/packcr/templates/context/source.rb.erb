@@ -15,6 +15,10 @@ class <%= class_name %>
     @lrstack = []
     @thunks = []
     @lrtable = LrTable.new
+<%- if @location -%>
+    @pos_loc = Location.new
+    @cur_loc = Location.new
+<%- end -%>
   end
 end
 
