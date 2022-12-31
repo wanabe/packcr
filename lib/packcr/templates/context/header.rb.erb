@@ -138,7 +138,6 @@ typedef struct pcc_thunk_leaf_tag {
 
 typedef struct pcc_thunk_node_tag {
     VALUE robj;
-    pcc_value_t *values; /* just a reference */
     size_t index;
 } pcc_thunk_node_t;
 
@@ -271,7 +270,7 @@ static void *pcc_realloc_e(void *ptr, size_t size) {
 #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
 #endif /* !PCC_DEBUG */
 
-static VALUE cLrEntry, cLrTable, cThunk, cThunkChunk, cCapture;
+static VALUE cLrEntry, cLrTable, cThunk, cThunkChunk, cCapture, cValue;
 
 static void pcc_lr_entry_mark(void *ptr) {
 }
@@ -381,6 +380,29 @@ static VALUE pcc_capture_s_alloc(VALUE klass) {
     rb_ivar_set(obj, rb_intern("@end_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
 <%- end -%>
     capt->string = NULL;
+
+    return obj;
+}
+
+static void pcc_value_mark(void *ptr) {
+}
+
+static void pcc_value_free(void *ptr) {
+}
+
+static size_t pcc_value_memsize(const void *ptr) {
+    return sizeof(pcc_value_t);
+}
+
+static const rb_data_type_t pcc_value_data_type = {
+    "pcc_value",
+    {pcc_value_mark, pcc_value_free, pcc_value_memsize,},
+    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
+};
+
+static VALUE pcc_value_s_alloc(VALUE klass) {
+    pcc_value_t *value;
+    VALUE obj = TypedData_Make_Struct(klass, pcc_value_t, &pcc_value_data_type, value);
 
     return obj;
 }
@@ -505,10 +527,16 @@ static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t actio
 static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, pcc_value_t *values, size_t index) {
     pcc_thunk_t *thunk;
     VALUE obj = TypedData_Make_Struct(cThunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
+    VALUE rvalues;
     thunk->robj = obj;
     thunk->type = PCC_THUNK_NODE;
     rb_ivar_set(obj, rb_intern("@thunks"), rthunks);
-    thunk->data.node.values = values;
+    if (values == NULL) {
+        rvalues = Qnil;
+    } else {
+        rvalues = TypedData_Wrap_Struct(cValue, &pcc_value_data_type, values);
+    }
+    rb_ivar_set(obj, rb_intern("@values"), rvalues);
     thunk->data.node.index = index;
     return thunk;
 }
@@ -965,7 +993,16 @@ static void pcc_do_action(VALUE rctx, VALUE rthunks, pcc_value_t *values, size_t
             thunk->data.leaf.action(rctx, thunk, values, index);
             break;
         case PCC_THUNK_NODE:
-            pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), thunk->data.node.values, thunk->data.node.index);
+            {
+                VALUE rnode_values = rb_ivar_get(thunk->robj, rb_intern("@values"));
+                pcc_value_t *node_values;
+                if (NIL_P(rnode_values)) {
+                    node_values = NULL;
+                } else {
+                    TypedData_Get_Struct(rnode_values, pcc_value_t, &pcc_value_data_type, node_values);
+                }
+                pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), node_values, thunk->data.node.index);
+            }
             break;
         default: /* unknown */
             break;
@@ -1099,4 +1136,7 @@ void Init_<%= prefix %>(void) {
 
     cCapture = rb_define_class_under(c<%= class_name %>, "Capture", rb_cObject);
     rb_define_alloc_func(cCapture, pcc_capture_s_alloc);
+
+    cValue = rb_define_class_under(c<%= class_name %>, "Value", rb_cObject);
+    rb_define_alloc_func(cValue, pcc_value_s_alloc);
 }
