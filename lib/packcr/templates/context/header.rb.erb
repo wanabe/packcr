@@ -756,11 +756,6 @@ static pcc_context_t *pcc_context__init(pcc_auxil_t auxil, pcc_context_t *const 
     return ctx;
 }
 
-static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
-    pcc_context_t *const ctx = (pcc_context_t *)PCC_MALLOC(auxil, sizeof(pcc_context_t));
-    return pcc_context__init(auxil, ctx);
-}
-
 static size_t pcc_refill_buffer(pcc_context_t *ctx, size_t num) {
     size_t len = (size_t) (RSTRING_LEN(rb_ivar_get(ctx->robj, rb_intern("@buffer"))));
     if (len >= NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) + num) return len - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
@@ -1071,9 +1066,6 @@ L0000:;
 }
 
 <%- end -%>
-<%= prefix %>_context_t *<%= prefix %>_create(<%= auxil_def %>auxil) {
-    return pcc_context__create(auxil);
-}
 
 int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
 <%- if !@rules.empty? -%>
