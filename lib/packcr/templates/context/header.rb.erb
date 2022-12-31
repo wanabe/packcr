@@ -1130,12 +1130,12 @@ void Init_<%= prefix %>(void) {
     rb_define_method(c<%= class_name %>, "_initialize", <%= prefix %>_initialize, 0);
     rb_define_method(c<%= class_name %>, "run", <%= prefix %>_run, 0);
 
-    cLrEntry = rb_define_class_under(rb_cObject, "LrEntry", c<%= class_name %>);
+    cLrEntry = rb_define_class_under(c<%= class_name %>, "LrEntry", rb_cObject);
     rb_define_alloc_func(cLrEntry, pcc_lr_entry_s_alloc);
 
-    cThunk = rb_define_class_under(rb_cObject, "Thunk", c<%= class_name %>);
+    cThunk = rb_define_class_under(c<%= class_name %>, "Thunk", rb_cObject);
     rb_define_alloc_func(cThunk, pcc_thunk_s_alloc);
 
-    cThunkChunk = rb_define_class_under(rb_cObject, "ThunkChunk", c<%= class_name %>);
+    cThunkChunk = rb_define_class_under(c<%= class_name %>, "ThunkChunk", rb_cObject);
     rb_define_alloc_func(cThunkChunk, pcc_thunk_chunk_s_alloc);
 }
