@@ -45,6 +45,13 @@ class <%= class_name %>
     @cur_loc = Location.new
     <%- end -%>
   end
+
+  class LrTable
+    def initialize
+      super
+      @buf = []
+    end
+  end
 end
 
 require_relative "<%= prefix%>.so"
