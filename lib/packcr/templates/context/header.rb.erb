@@ -244,6 +244,7 @@ typedef struct pcc_lr_table_entry_tag {
 } pcc_lr_table_entry_t;
 
 typedef struct pcc_lr_table_tag {
+    VALUE robj;
     pcc_lr_table_entry_t **buf;
     size_t max;
     size_t len;
@@ -262,7 +263,6 @@ struct <%= prefix %>_context_tag {
     pcc_location_t pos_loc;
     pcc_location_t cur_loc;
     <%- end -%>
-    pcc_lr_table_t lrtable;
     pcc_auxil_t auxil;
 };
 
@@ -307,7 +307,7 @@ static void *pcc_realloc_e(void *ptr, size_t size) {
 #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
 #endif /* !PCC_DEBUG */
 
-static VALUE cLrEntry, cThunk, cThunkChunk;
+static VALUE cLrEntry, cLrTable, cThunk, cThunkChunk;
 
 static void pcc_lr_entry_mark(void *ptr) {
 }
@@ -335,6 +335,22 @@ static VALUE pcc_lr_entry_s_alloc(VALUE klass) {
 
     return obj;
 }
+
+static void pcc_lr_table_mark(void *ptr) {
+}
+
+static void pcc_lr_table_free(void *ptr) {
+}
+
+static size_t pcc_lr_table_memsize(const void *ptr) {
+    return sizeof(pcc_lr_table_t);
+}
+
+static const rb_data_type_t pcc_lr_table_data_type = {
+    "pcc_lr_table",
+    {pcc_lr_table_mark, pcc_lr_table_free, pcc_lr_table_memsize,},
+    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
+};
 
 static void pcc_thunk_mark(void *ptr) {
 }
@@ -673,11 +689,16 @@ static pcc_lr_table_entry_t *pcc_lr_table_entry__create(pcc_context_t *ctx) {
     return entry;
 }
 
-static void pcc_lr_table__init(pcc_auxil_t auxil, pcc_lr_table_t *table) {
+static VALUE pcc_lr_table_s_alloc(VALUE klass) {
+    pcc_lr_table_t *table;
+    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_table_t, &pcc_lr_table_data_type, table);
+    table->robj = obj;
     table->ofs = 0;
     table->len = 0;
     table->max = 0;
     table->buf = NULL;
+
+    return obj;
 }
 
 static void pcc_lr_table__resize(pcc_context_t *ctx, pcc_lr_table_t *table, size_t len) {
@@ -736,7 +757,9 @@ static pcc_lr_answer_t *pcc_lr_table__get_answer(pcc_context_t *ctx, pcc_lr_tabl
     return pcc_lr_memo_map__get(ctx, &table->buf[index]->memos, rule);
 }
 
-static void pcc_lr_table__shift(pcc_context_t *ctx, pcc_lr_table_t *table, size_t count) {
+static void pcc_lr_table__shift(pcc_context_t *ctx, VALUE rtable, size_t count) {
+    pcc_lr_table_t *table;
+    TypedData_Get_Struct(rtable, pcc_lr_table_t, &pcc_lr_table_data_type, table);
     if (count > table->len - table->ofs) count = table->len - table->ofs;
     table->ofs += count;
     if (table->ofs > (table->max >> 1)) {
@@ -747,11 +770,11 @@ static void pcc_lr_table__shift(pcc_context_t *ctx, pcc_lr_table_t *table, size_
 }
 
 static pcc_context_t *pcc_context__init(pcc_auxil_t auxil, pcc_context_t *const ctx) {
+    VALUE rlrtable;
 <%- if @location -%>
     pcc_location_init(&ctx->pos_loc);
     pcc_location_init(&ctx->cur_loc);
 <%- end -%>
-    pcc_lr_table__init(auxil, &ctx->lrtable);
     ctx->auxil = auxil;
     return ctx;
 }
@@ -771,11 +794,12 @@ static size_t pcc_refill_buffer(pcc_context_t *ctx, size_t num) {
 MARK_FUNC_AS_USED
 static void pcc_commit_buffer(pcc_context_t *ctx) {
     VALUE rbuffer = rb_ivar_get(ctx->robj, rb_intern("@buffer"));
+    VALUE rlrtable = rb_ivar_get(ctx->robj, rb_intern("@lrtable"));
     rb_ivar_set(ctx->robj, rb_intern("@buffer"),
       rb_funcall(rbuffer, rb_intern("[]"), 2, INT2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))), INT2NUM(RSTRING_LEN(rbuffer) - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))))
     );
     rb_ivar_set(ctx->robj, rb_intern("@pos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))));
-    pcc_lr_table__shift(ctx, &ctx->lrtable, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))));
+    pcc_lr_table__shift(ctx, rlrtable, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))));
     rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(0));
 <%- if @location -%>
     ctx->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
@@ -853,8 +877,13 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
     const pcc_location_t p_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
 <%- end -%>
     VALUE b = Qtrue;
-    pcc_lr_answer_t *a = pcc_lr_table__get_answer(ctx, &ctx->lrtable, p, rule);
-    pcc_lr_head_t *h = pcc_lr_table__get_head(ctx, &ctx->lrtable, p);
+    VALUE rlrtable = rb_ivar_get(ctx->robj, rb_intern("@lrtable"));
+    pcc_lr_table_t *lrtable;
+    pcc_lr_answer_t *a;
+    pcc_lr_head_t *h;
+    TypedData_Get_Struct(rlrtable, pcc_lr_table_t, &pcc_lr_table_data_type, lrtable);
+    a = pcc_lr_table__get_answer(ctx, lrtable, p, rule);
+    h = pcc_lr_table__get_head(ctx, lrtable, p);
     if (h != NULL) {
         if (a == NULL && rule != h->rule && pcc_rule_set__index(ctx->auxil, &h->invol, rule) == PCC_VOID_VALUE) {
             b = Qfalse;
@@ -865,7 +894,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
             c = rule(ctx);
             a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
             a->data.chunk = c;
-            pcc_lr_table__hold_answer(ctx, &ctx->lrtable, p, a);
+            pcc_lr_table__hold_answer(ctx, lrtable, p, a);
         }
     }
     if (RTEST(b)) {
@@ -878,7 +907,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
             case PCC_LR_ANSWER_LR:
                 if (a->data.lr->head == NULL) {
                     a->data.lr->head = pcc_lr_head__create(ctx, rule);
-                    pcc_lr_table__hold_head(ctx, &ctx->lrtable, p, a->data.lr->head);
+                    pcc_lr_table__hold_head(ctx, lrtable, p, a->data.lr->head);
                 }
                 {
                     size_t i = RARRAY_LEN(rb_ivar_get(ctx->robj, rb_intern("@lrstack")));
@@ -909,7 +938,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
             rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@lrstack")), rb_intern("push"), 1, rentry);
             a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_LR, p<% if @location %>, p_loc<% end %>);
             a->data.lr = e;
-            pcc_lr_table__set_answer(ctx, &ctx->lrtable, p, rule, a);
+            pcc_lr_table__set_answer(ctx, lrtable, p, rule, a);
             c = rule(ctx);
             rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@lrstack")), rb_intern("pop"), 0);
             a->pos = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
@@ -926,7 +955,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
                     c = a->data.lr->seed;
                     a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
                     a->data.chunk = c;
-                    pcc_lr_table__hold_answer(ctx, &ctx->lrtable, p, a);
+                    pcc_lr_table__hold_answer(ctx, lrtable, p, a);
                 }
                 else {
                     pcc_lr_answer__set_chunk(ctx, a, a->data.lr->seed);
@@ -934,7 +963,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
                         c = NULL;
                     }
                     else {
-                        pcc_lr_table__set_head(ctx, &ctx->lrtable, p, h);
+                        pcc_lr_table__set_head(ctx, lrtable, p, h);
                         for (;;) {
                             rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos")))));
 <%- if @location -%>
@@ -949,7 +978,7 @@ static VALUE pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, VALUE rthunks, 
                             a->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
 <%- end -%>
                         }
-                        pcc_lr_table__set_head(ctx, &ctx->lrtable, p, NULL);
+                        pcc_lr_table__set_head(ctx, lrtable, p, NULL);
                         rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(a->pos - NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@pos")))));
 <%- if @location -%>
                         ctx->cur_loc = pcc_location_sub(a->pos_loc, ctx->pos_loc);
@@ -1127,6 +1156,9 @@ void Init_<%= prefix %>(void) {
 
     cLrEntry = rb_define_class_under(c<%= class_name %>, "LrEntry", rb_cObject);
     rb_define_alloc_func(cLrEntry, pcc_lr_entry_s_alloc);
+
+    cLrTable = rb_define_class_under(c<%= class_name %>, "LrTable", rb_cObject);
+    rb_define_alloc_func(cLrTable, pcc_lr_table_s_alloc);
 
     cThunk = rb_define_class_under(c<%= class_name %>, "Thunk", rb_cObject);
     rb_define_alloc_func(cThunk, pcc_thunk_s_alloc);
