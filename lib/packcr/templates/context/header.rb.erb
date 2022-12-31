@@ -209,6 +209,7 @@ typedef struct pcc_lr_memo_map_tag {
 } pcc_lr_memo_map_t;
 
 typedef struct pcc_lr_table_entry_tag {
+    VALUE robj;
     pcc_lr_head_t *head; /* just a reference */
     pcc_lr_memo_map_t memos;
     pcc_lr_answer_t *hold_a;
@@ -270,7 +271,7 @@ static void *pcc_realloc_e(void *ptr, size_t size) {
 #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
 #endif /* !PCC_DEBUG */
 
-static VALUE cLrEntry, cLrTable, cThunk, cThunkChunk, cCapture, cValue;
+static VALUE cLrEntry, cLrTable, cLrTableEntry, cThunk, cThunkChunk, cCapture, cValue;
 
 static void pcc_lr_entry_mark(void *ptr) {
 }
@@ -312,6 +313,22 @@ static size_t pcc_lr_table_memsize(const void *ptr) {
 static const rb_data_type_t pcc_lr_table_data_type = {
     "pcc_lr_table",
     {pcc_lr_table_mark, pcc_lr_table_free, pcc_lr_table_memsize,},
+    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
+};
+
+static void pcc_lr_table_entry_mark(void *ptr) {
+}
+
+static void pcc_lr_table_entry_free(void *ptr) {
+}
+
+static size_t pcc_lr_table_entry_memsize(const void *ptr) {
+    return sizeof(pcc_lr_table_entry_t);
+}
+
+static const rb_data_type_t pcc_lr_table_entry_data_type = {
+    "pcc_lr_table_entry",
+    {pcc_lr_table_entry_mark, pcc_lr_table_entry_free, pcc_lr_table_entry_memsize,},
     0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
 };
 
@@ -688,13 +705,16 @@ static pcc_lr_answer_t *pcc_lr_memo_map__get(VALUE rctx, pcc_lr_memo_map_t *map,
     return (i != PCC_VOID_VALUE) ? map->buf[i].answer : NULL;
 }
 
-static pcc_lr_table_entry_t *pcc_lr_table_entry__create(VALUE rctx) {
-    pcc_lr_table_entry_t *const entry = (pcc_lr_table_entry_t *)PCC_MALLOC(NULL, sizeof(pcc_lr_table_entry_t));
+static VALUE pcc_lr_table_entry_s_alloc(VALUE klass) {
+    pcc_lr_table_entry_t *entry;
+    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, entry);
+    entry->robj = obj;
     entry->head = NULL;
     pcc_lr_memo_map__init(NULL, &entry->memos);
     entry->hold_a = NULL;
     entry->hold_h = NULL;
-    return entry;
+
+    return obj;
 }
 
 static VALUE pcc_lr_table_s_alloc(VALUE klass) {
@@ -726,14 +746,20 @@ static void pcc_lr_table__resize(VALUE rctx, pcc_lr_table_t *table, size_t len) 
 static void pcc_lr_table__set_head(VALUE rctx, pcc_lr_table_t *table, size_t index, pcc_lr_head_t *head) {
     index += table->ofs;
     if (index >= table->len) pcc_lr_table__resize(rctx, table, index + 1);
-    if (table->buf[index] == NULL) table->buf[index] = pcc_lr_table_entry__create(rctx);
+    if (table->buf[index] == NULL) {
+        VALUE rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
+        TypedData_Get_Struct(rentry, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, table->buf[index]);
+    }
     table->buf[index]->head = head;
 }
 
 static void pcc_lr_table__hold_head(VALUE rctx, pcc_lr_table_t *table, size_t index, pcc_lr_head_t *head) {
     index += table->ofs;
     if (index >= table->len) pcc_lr_table__resize(rctx, table, index + 1);
-    if (table->buf[index] == NULL) table->buf[index] = pcc_lr_table_entry__create(rctx);
+    if (table->buf[index] == NULL) {
+        VALUE rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
+        TypedData_Get_Struct(rentry, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, table->buf[index]);
+    }
     head->hold = table->buf[index]->hold_h;
     table->buf[index]->hold_h = head;
 }
@@ -741,14 +767,20 @@ static void pcc_lr_table__hold_head(VALUE rctx, pcc_lr_table_t *table, size_t in
 static void pcc_lr_table__set_answer(VALUE rctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule, pcc_lr_answer_t *answer) {
     index += table->ofs;
     if (index >= table->len) pcc_lr_table__resize(rctx, table, index + 1);
-    if (table->buf[index] == NULL) table->buf[index] = pcc_lr_table_entry__create(rctx);
+    if (table->buf[index] == NULL) {
+        VALUE rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
+        TypedData_Get_Struct(rentry, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, table->buf[index]);
+    }
     pcc_lr_memo_map__put(rctx, &table->buf[index]->memos, rule, answer);
 }
 
 static void pcc_lr_table__hold_answer(VALUE rctx, pcc_lr_table_t *table, size_t index, pcc_lr_answer_t *answer) {
     index += table->ofs;
     if (index >= table->len) pcc_lr_table__resize(rctx, table, index + 1);
-    if (table->buf[index] == NULL) table->buf[index] = pcc_lr_table_entry__create(rctx);
+    if (table->buf[index] == NULL) {
+        VALUE rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
+        TypedData_Get_Struct(rentry, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, table->buf[index]);
+    }
     answer->hold = table->buf[index]->hold_a;
     table->buf[index]->hold_a = answer;
 }
@@ -1127,6 +1159,9 @@ void Init_<%= prefix %>(void) {
     cLrTable = rb_define_class_under(c<%= class_name %>, "LrTable", rb_cObject);
     rb_define_alloc_func(cLrTable, pcc_lr_table_s_alloc);
     rb_define_method(cLrTable, "shift", pcc_lr_table__shift, 1);
+
+    cLrTableEntry = rb_define_class_under(c<%= class_name %>, "LrTableEntry", rb_cObject);
+    rb_define_alloc_func(cLrTableEntry, pcc_lr_table_entry_s_alloc);
 
     cThunk = rb_define_class_under(c<%= class_name %>, "Thunk", rb_cObject);
     rb_define_alloc_func(cThunk, pcc_thunk_s_alloc);
