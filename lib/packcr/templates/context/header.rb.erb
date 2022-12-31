@@ -739,31 +739,12 @@ static VALUE pcc_lr_table__shift(VALUE rtable, VALUE rcount) {
 }
 
 static size_t pcc_refill_buffer(VALUE rctx, size_t num) {
-    size_t len = (size_t) (RSTRING_LEN(rb_ivar_get(rctx, rb_intern("@buffer"))));
-    if (len >= NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + num) return len - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
-    while (len < NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + num) {
-        const int c = PCC_GETCHAR(NULL);
-        if (c < 0) break;
-        rb_funcall(rb_ivar_get(rctx, rb_intern("@buffer")), rb_intern("<<"), 1, INT2NUM(c));
-        len = (size_t) (RSTRING_LEN(rb_ivar_get(rctx, rb_intern("@buffer"))));
-    }
-    return len - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
+    return NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(num)));
 }
 
 MARK_FUNC_AS_USED
 static void pcc_commit_buffer(VALUE rctx) {
-    VALUE rbuffer = rb_ivar_get(rctx, rb_intern("@buffer"));
-    VALUE rlrtable = rb_ivar_get(rctx, rb_intern("@lrtable"));
-    rb_ivar_set(rctx, rb_intern("@buffer"),
-      rb_funcall(rbuffer, rb_intern("[]"), 2, INT2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))), INT2NUM(RSTRING_LEN(rbuffer) - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))))
-    );
-    rb_ivar_set(rctx, rb_intern("@pos"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))));
-    rb_funcall(rlrtable, rb_intern("shift"), 1, rb_ivar_get(rctx, rb_intern("@cur")));
-    rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(0));
-<%- if @location -%>
-    rb_ivar_set(rctx, rb_intern("@pos_loc"), rb_funcall(rb_ivar_set(rctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_set(rctx, rb_intern("@cur_loc"))));
-    rb_ivar_set(rctx, rb_intern("@cur_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
-<%- end -%>
+    rb_funcall(rctx, rb_intern("commit_buffer"), 0);
 }
 
 MARK_FUNC_AS_USED

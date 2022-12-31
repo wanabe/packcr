@@ -20,6 +20,31 @@ class <%= class_name %>
     @cur_loc = Location.new
 <%- end -%>
   end
+
+  def refill_buffer(num)
+    len = @buffer.length
+    if len >= @cur + num
+      return len - @cur
+    end
+    while len < @cur + num
+        c = getb
+        break if c < 0
+        @buffer << c
+        len = @buffer.length
+    end
+    return len - @cur
+  end
+
+  def commit_buffer
+    @buffer = @buffer[@cur, @buffer.length - @cur]
+    @pos += @cur;
+    @lrtable.shift(@cur)
+    @cur = 0
+    <%- if @location -%>
+    @pos_loc = @pos_loc + @cur_loc
+    @cur_loc = Location.new
+    <%- end -%>
+  end
 end
 
 require_relative "<%= prefix%>.so"
