@@ -210,7 +210,6 @@ typedef struct pcc_lr_memo_map_tag {
 
 typedef struct pcc_lr_table_entry_tag {
     VALUE robj;
-    pcc_lr_head_t *head; /* just a reference */
     pcc_lr_memo_map_t memos;
     pcc_lr_answer_t *hold_a;
     pcc_lr_head_t *hold_h;
@@ -263,7 +262,7 @@ static void *pcc_realloc_e(void *ptr, size_t size) {
 #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
 #endif /* !PCC_DEBUG */
 
-static VALUE cLrEntry, cLrTableEntry, cThunk, cThunkChunk, cCapture, cValue;
+static VALUE cLrEntry, cLrTableEntry, cLrHead, cThunk, cThunkChunk, cCapture, cValue;
 
 static void pcc_lr_entry_mark(void *ptr) {
 }
@@ -307,6 +306,30 @@ static const rb_data_type_t pcc_lr_table_entry_data_type = {
     {pcc_lr_table_entry_mark, pcc_lr_table_entry_free, pcc_lr_table_entry_memsize,},
     0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
 };
+
+
+static void pcc_lr_head_mark(void *ptr) {
+}
+
+static void pcc_lr_head_free(void *ptr) {
+}
+
+static size_t pcc_lr_head_memsize(const void *ptr) {
+    return sizeof(pcc_lr_head_t);
+}
+
+static const rb_data_type_t pcc_lr_head_data_type = {
+    "pcc_lr_head",
+    {pcc_lr_head_mark, pcc_lr_head_free, pcc_lr_head_memsize,},
+    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
+};
+
+static VALUE pcc_lr_head_s_alloc(VALUE klass) {
+    pcc_lr_head_t *head;
+    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_head_t, &pcc_lr_head_data_type, head);
+
+    return obj;
+}
 
 static void pcc_thunk_mark(void *ptr) {
 }
@@ -685,7 +708,6 @@ static VALUE pcc_lr_table_entry_s_alloc(VALUE klass) {
     pcc_lr_table_entry_t *entry;
     VALUE obj = TypedData_Make_Struct(klass, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, entry);
     entry->robj = obj;
-    entry->head = NULL;
     pcc_lr_memo_map__init(NULL, &entry->memos);
     entry->hold_a = NULL;
     entry->hold_h = NULL;
@@ -701,16 +723,15 @@ static void pcc_lr_table__resize(VALUE rctx, VALUE rtable, size_t len) {
 
 static void pcc_lr_table__set_head(VALUE rctx, VALUE rtable, size_t index, pcc_lr_head_t *head) {
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
-    VALUE rentry;
-    pcc_lr_table_entry_t *entry;
+    VALUE rentry, rhead;
     if (index >= (size_t) RARRAY_LEN(rbuf)) pcc_lr_table__resize(rctx, rtable, index + 1);
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) {
         rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
         rb_funcall(rbuf, rb_intern("[]="), 2, SIZET2NUM(index), rentry);
     }
-    TypedData_Get_Struct(rentry, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, entry);
-    entry->head = head;
+    rhead = TypedData_Wrap_Struct(cLrHead, &pcc_lr_head_data_type, head);
+    rb_ivar_set(rentry, rb_intern("@head"), rhead);
 }
 
 static void pcc_lr_table__hold_head(VALUE rctx, VALUE rtable, size_t index, pcc_lr_head_t *head) {
@@ -759,13 +780,15 @@ static void pcc_lr_table__hold_answer(VALUE rctx, VALUE rtable, size_t index, pc
 
 static pcc_lr_head_t *pcc_lr_table__get_head(VALUE rctx, VALUE rtable, size_t index) {
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
-    VALUE rentry;
-    pcc_lr_table_entry_t *entry;
+    VALUE rentry, rhead;
+    pcc_lr_head_t *head;
     if (index >= (size_t) RARRAY_LEN(rbuf)) return NULL;
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) return NULL;
-    TypedData_Get_Struct(rentry, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, entry);
-    return entry->head;
+    rhead = rb_ivar_get(rentry, rb_intern("@head"));
+    if (NIL_P(rhead)) return NULL;
+    TypedData_Get_Struct(rhead, pcc_lr_head_t, &pcc_lr_head_data_type, head);
+    return head;
 }
 
 static pcc_lr_answer_t *pcc_lr_table__get_answer(VALUE rctx, VALUE rtable, size_t index, pcc_rule_t rule) {
@@ -1124,6 +1147,9 @@ void Init_<%= prefix %>(void) {
 
     cLrTableEntry = rb_define_class_under(c<%= class_name %>, "LrTableEntry", rb_cObject);
     rb_define_alloc_func(cLrTableEntry, pcc_lr_table_entry_s_alloc);
+
+    cLrHead = rb_define_class_under(c<%= class_name %>, "Lrhead", rb_cObject);
+    rb_define_alloc_func(cLrHead, pcc_lr_head_s_alloc);
 
     cThunk = rb_define_class_under(c<%= class_name %>, "Thunk", rb_cObject);
     rb_define_alloc_func(cThunk, pcc_thunk_s_alloc);
