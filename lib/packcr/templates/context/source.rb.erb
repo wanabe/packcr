@@ -48,3 +48,13 @@ class <%= class_name %>
 end
 
 require_relative "<%= prefix%>.so"
+
+class <%= class_name %>
+  class ThunkChunk
+    def initialize
+      super
+      @thunks = []
+      @pos = 0
+    end
+  end
+end

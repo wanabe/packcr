@@ -355,13 +355,6 @@ static const rb_data_type_t pcc_thunk_chunk_data_type = {
     0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
 };
 
-static VALUE pcc_thunk_chunk_s_alloc(VALUE klass) {
-    pcc_thunk_chunk_t *chunk;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, chunk);
-
-    return obj;
-}
-
 static void pcc_capture_mark(void *ptr) {
 }
 
@@ -520,16 +513,14 @@ static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, pcc
     return thunk;
 }
 
-MARK_FUNC_AS_USED
-static pcc_thunk_chunk_t *pcc_thunk_chunk__create(VALUE rctx) {
+static VALUE pcc_thunk_chunk_s_alloc(VALUE klass) {
     pcc_thunk_chunk_t *chunk;
-    VALUE obj = TypedData_Make_Struct(cThunkChunk, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, chunk);
+    VALUE obj = TypedData_Make_Struct(klass, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, chunk);
     chunk->robj = obj;
     pcc_value_table__init(NULL, &chunk->values);
     pcc_capture_table__init(NULL, &chunk->capts);
-    rb_ivar_set(obj, rb_intern("@thunks"), rb_ary_new());
-    rb_ivar_set(chunk->robj, rb_intern("@pos"), INT2NUM(0));
-    return chunk;
+
+    return obj;
 }
 
 static void pcc_rule_set__init(pcc_auxil_t auxil, pcc_rule_set_t *set) {
@@ -1036,7 +1027,9 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(VALUE rctx);
 
 <%- @rules.each do |node| -%>
 static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(VALUE rctx) {
-    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(rctx);
+    VALUE rchunk = rb_funcall(cThunkChunk, rb_intern("new"), 0);
+    pcc_thunk_chunk_t *chunk;
+    TypedData_Get_Struct(rchunk, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, chunk);
     rb_ivar_set(chunk->robj, rb_intern("@pos"), rb_ivar_get(rctx, rb_intern("@cur")));
 <%- if @location -%>
     rb_ivar_set(chunk->robj, rb_intern("@pos_loc"), rb_ivar_get(rctx, rb_intern("@cur_loc")));
