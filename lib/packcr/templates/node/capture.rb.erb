@@ -1,17 +1,17 @@
 {
-    const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
+    const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
     size_t q;
 <%- if gen.location -%>
-    const VALUE p_loc = rb_ivar_get(ctx->robj, rb_intern("@cur_loc"));
+    const VALUE p_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
     VALUE q_loc;
 <%- end -%>
 <%- r, code = gen.generate_code_str(expr, onfail, 4, false) -%>
 <%= code -%>
-    q = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
+    q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
     chunk->capts.buf[<%= index %>].range.start = p;
     chunk->capts.buf[<%= index %>].range.end = q;
 <%- if gen.location -%>
-    q_loc = rb_ivar_get(ctx->robj, rb_intern("@cur_loc"));
+    q_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
     chunk->capts.buf[<%= index %>].range.start_loc = p_loc;
     chunk->capts.buf[<%= index %>].range.end_loc = q_loc;
 <%- end -%>

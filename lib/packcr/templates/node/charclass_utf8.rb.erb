@@ -1,6 +1,6 @@
 {
     int u;
-    const size_t n = pcc_get_char_as_utf32(ctx, &u);
+    const size_t n = pcc_get_char_as_utf32(rctx, &u);
     if (n == 0) goto L<%= "%04d" % onfail %>;
 <%- if charclass && !(a && n == 1) # not '.' or '[^]' -%>
 <%-   u0 = 0 -%>
@@ -41,7 +41,7 @@
 <%-   end -%>
 <%- end -%>
 <%- if gen.location -%>
-    rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@cur_loc")), rb_ivar_get(ctx->robj, rb_intern("@buffer")), rb_ivar_get(ctx->robj, rb_intern("@cur")), SIZET2NUM(n));
+    rb_funcall(rb_ivar_get(rctx, rb_intern("@cur_loc")), rb_ivar_get(rctx, rb_intern("@buffer")), rb_ivar_get(rctx, rb_intern("@cur")), SIZET2NUM(n));
 <%- end -%>
-    rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) + n));
+    rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + n));
 }

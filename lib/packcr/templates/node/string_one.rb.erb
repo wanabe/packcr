@@ -1,8 +1,8 @@
 if (
-    pcc_refill_buffer(ctx, 1) < 1 ||
-    RSTRING_PTR(rb_ivar_get(ctx->robj, rb_intern("@buffer")))[NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")))] != '<%= Packcr.escape_character(value[0]) %>'
+    pcc_refill_buffer(rctx, 1) < 1 ||
+    RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer")))[NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))] != '<%= Packcr.escape_character(value[0]) %>'
 ) goto L<%= "%04d" % onfail %>;
 <%- if gen.location -%>
-rb_funcall(rb_ivar_get(ctx->robj, rb_intern("@cur_loc")), rb_ivar_get(ctx->robj, rb_intern("@buffer")), rb_ivar_get(ctx->robj, rb_intern("@cur")), SIZET2NUM(1));
+rb_funcall(rb_ivar_get(rctx, rb_intern("@cur_loc")), rb_ivar_get(rctx, rb_intern("@buffer")), rb_ivar_get(rctx, rb_intern("@cur")), SIZET2NUM(1));
 <%- end -%>
-rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) + 1));
+rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + 1));

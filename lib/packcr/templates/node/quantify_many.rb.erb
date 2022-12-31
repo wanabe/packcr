@@ -1,8 +1,8 @@
 {
 <%- if min > 0 -%>
-    const size_t p0 = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
+    const size_t p0 = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
 <%- if gen.location -%>
-    const VALUE p0_loc = rb_ivar_get(ctx->robj, rb_intern("@cur_loc"));
+    const VALUE p0_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
 <%- end -%>
     const size_t n0 = RARRAY_LEN(rb_ivar_get(chunk->robj, rb_intern("@thunks")));
 <%- end -%>
@@ -12,21 +12,21 @@
 <%- else -%>
     for (i = 0; i < <%= max %>; i++) {
 <%- end -%>
-        const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
+        const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
 <%- if gen.location -%>
-        const VALUE p_loc = rb_ivar_get(ctx->robj, rb_intern("@cur_loc"));
+        const VALUE p_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
 <%- end -%>
         const size_t n = RARRAY_LEN(rb_ivar_get(chunk->robj, rb_intern("@thunks")));
 <%- l = gen.next_label -%>
 <%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
 <%= code -%>
-        if (NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur"))) == p) break;
+        if (NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) == p) break;
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
         continue;
     L<%= "%04d" % l %>:;
-        rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p));
+        rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p));
 <%- if gen.location -%>
-        rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), p_loc);
+        rb_ivar_set(rctx, rb_intern("@cur_loc"), p_loc);
 <%- end -%>
         rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_intern("[]="), 3, SIZET2NUM(n), SIZET2NUM(65535), rb_ary_new());
         break;
@@ -34,9 +34,9 @@
     }
 <%- if min > 0 -%>
     if (i < <%= min %>) {
-        rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p0));
+        rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p0));
 <%- if gen.location -%>
-        rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), p0_loc);
+        rb_ivar_set(rctx, rb_intern("@cur_loc"), p0_loc);
 <%- end -%>
         rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_intern("[]="), 3, SIZET2NUM(n0), SIZET2NUM(65535), rb_ary_new());
         goto L<%= "%04d" % onfail %>;

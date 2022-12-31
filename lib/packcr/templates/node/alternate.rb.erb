@@ -1,7 +1,7 @@
     {
-        const size_t p = NUM2SIZET(rb_ivar_get(ctx->robj, rb_intern("@cur")));
+        const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
 <%- if gen.location -%>
-        const VALUE p_loc = rb_ivar_get(ctx->robj, rb_intern("@cur_loc"));
+        const VALUE p_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
 <%- end -%>
         const size_t n = RARRAY_LEN(rb_ivar_get(chunk->robj, rb_intern("@thunks")));
 <%- nodes.each_with_index do |expr, i| -%>
@@ -23,9 +23,9 @@
 <%-     end -%>
 <%-   end -%>
     L<%= "%04d" % l %>:;
-        rb_ivar_set(ctx->robj, rb_intern("@cur"), SIZET2NUM(p));
+        rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p));
 <%- if gen.location -%>
-        rb_ivar_set(ctx->robj, rb_intern("@cur_loc"), p_loc);
+        rb_ivar_set(rctx, rb_intern("@cur_loc"), p_loc);
 <%- end -%>
         rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_intern("[]="), 3, SIZET2NUM(n), SIZET2NUM(65535), rb_ary_new());
 <%-   if !c -%>
