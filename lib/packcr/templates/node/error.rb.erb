@@ -4,17 +4,20 @@
 L<%= "%04d" % l %>:;
     {
         pcc_thunk_t *const thunk = pcc_thunk__create_leaf(NULL, pcc_action_<%= gen.rule.name %>_<%= index %>, <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
+        VALUE rcapt0 = rb_ivar_get(thunk->robj, rb_intern("@capt0"));
+        pcc_capture_t *capt0;
+        TypedData_Get_Struct(rcapt0, pcc_capture_t, &pcc_capture_data_type, capt0);
 <%- vars.each do |var| -%>
         thunk->data.leaf.value_refs.buf[<%= var.index %>] = &(chunk->values.buf[<%= var.index %>]);
 <%- end -%>
 <%- capts.each do |capt| -%>
         thunk->data.leaf.capts.buf[<%= capt.index %>] = &(chunk->capts.buf[<%= capt.index %>]);
 <%- end -%>
-        thunk->data.leaf.capt0.range.start = NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")));
-        thunk->data.leaf.capt0.range.end = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
+        capt0->range.start = NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")));
+        capt0->range.end = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
 <%- if gen.location -%>
-        thunk->data.leaf.capt0.range.start_loc = rb_ivar_get(chunk->robj, rb_intern("@pos_loc"));
-        thunk->data.leaf.capt0.range.end_loc = rb_ivar_get(rctx, rb_intern("cur_loc"));
+        capt0->range.start_loc = rb_ivar_get(chunk->robj, rb_intern("@pos_loc"));
+        capt0->range.end_loc = rb_ivar_get(rctx, rb_intern("cur_loc"));
 <%- end -%>
         thunk->data.leaf.action(rctx, thunk, NULL, 0);
     }
