@@ -51,6 +51,10 @@ class <%= class_name %>
       super
       @buf = []
     end
+
+    def shift(count)
+      @buf[0, count] = []
+    end
   end
 end
 
