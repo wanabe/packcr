@@ -360,24 +360,6 @@ static VALUE pcc_rule_set_s_alloc(VALUE klass) {
     return obj;
 }
 
-MARK_FUNC_AS_USED
-static void pcc_value_table__resize(pcc_auxil_t auxil, pcc_value_table_t *table, size_t len) {
-    if (table->max < len) {
-        size_t m = table->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
-        while (m < len && m != 0) m <<= 1;
-        if (m == 0) m = len;
-        table->buf = (pcc_value_t *)PCC_REALLOC(auxil, table->buf, sizeof(pcc_value_t) * m);
-        table->max = m;
-    }
-    table->len = len;
-}
-
-MARK_FUNC_AS_USED
-static void pcc_value_table__clear(pcc_auxil_t auxil, pcc_value_table_t *table) {
-    memset(table->buf, 0, sizeof(pcc_value_t) * table->len);
-}
-
 static void pcc_value_refer_table__init(pcc_auxil_t auxil, pcc_value_refer_table_t *table) {
     table->len = 0;
     table->max = 0;
