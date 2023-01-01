@@ -190,16 +190,6 @@ struct pcc_lr_head_tag {
     VALUE robj;
 };
 
-typedef struct pcc_lr_memo_tag {
-    pcc_lr_answer_t *answer;
-} pcc_lr_memo_t;
-
-typedef struct pcc_lr_memo_map_tag {
-    pcc_lr_memo_t *buf;
-    size_t max;
-    size_t len;
-} pcc_lr_memo_map_t;
-
 struct pcc_lr_entry_tag {
     VALUE robj;
     pcc_rule_t rule;
