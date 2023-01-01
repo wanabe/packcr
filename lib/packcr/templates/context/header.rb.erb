@@ -215,6 +215,7 @@ typedef struct pcc_lr_table_entry_tag {
 } pcc_lr_table_entry_t;
 
 struct pcc_lr_entry_tag {
+    VALUE robj;
     pcc_rule_t rule;
     pcc_thunk_chunk_t *seed; /* just a reference */
     pcc_lr_head_t *head; /* just a reference */
@@ -284,6 +285,7 @@ static const rb_data_type_t pcc_lr_entry_data_type = {
 static VALUE pcc_lr_entry_s_alloc(VALUE klass) {
     pcc_lr_entry_t *lr;
     VALUE obj = TypedData_Make_Struct(klass, pcc_lr_entry_t, &pcc_lr_entry_data_type, lr);
+    lr->robj = obj;
     lr->seed = NULL;
     lr->head = NULL;
 
