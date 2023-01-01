@@ -213,7 +213,6 @@ typedef struct pcc_lr_memo_map_tag {
 
 typedef struct pcc_lr_table_entry_tag {
     VALUE robj;
-    pcc_lr_memo_map_t memos;
 } pcc_lr_table_entry_t;
 
 struct pcc_lr_entry_tag {
@@ -744,51 +743,11 @@ static void pcc_lr_answer__set_chunk(VALUE rctx, pcc_lr_answer_t *answer, pcc_th
     answer->data.chunk = chunk;
 }
 
-static void pcc_lr_memo_map__init(pcc_auxil_t auxil, pcc_lr_memo_map_t *map) {
-    map->len = 0;
-    map->max = 0;
-    map->buf = NULL;
-}
-
-static size_t pcc_lr_memo_map__index(VALUE rctx, pcc_lr_memo_map_t *map, pcc_rule_t rule) {
-    size_t i;
-    for (i = 0; i < map->len; i++) {
-        if (map->buf[i].rule.name == rule.name) return i;
-    }
-    return PCC_VOID_VALUE;
-}
-
-static void pcc_lr_memo_map__put(VALUE rctx, pcc_lr_memo_map_t *map, pcc_rule_t rule, pcc_lr_answer_t *answer) {
-    const size_t i = pcc_lr_memo_map__index(rctx, map, rule);
-    if (i != PCC_VOID_VALUE) {
-        map->buf[i].answer = answer;
-    }
-    else {
-        if (map->max <= map->len) {
-            const size_t n = map->len + 1;
-            size_t m = map->max;
-            if (m == 0) m = PCC_ARRAY_MIN_SIZE;
-            while (m < n && m != 0) m <<= 1;
-            if (m == 0) m = n;
-            map->buf = (pcc_lr_memo_t *)PCC_REALLOC(NULL, map->buf, sizeof(pcc_lr_memo_t) * m);
-            map->max = m;
-        }
-        map->buf[map->len].rule = rule;
-        map->buf[map->len].answer = answer;
-        map->len++;
-    }
-}
-
-static pcc_lr_answer_t *pcc_lr_memo_map__get(VALUE rctx, pcc_lr_memo_map_t *map, pcc_rule_t rule) {
-    const size_t i = pcc_lr_memo_map__index(rctx, map, rule);
-    return (i != PCC_VOID_VALUE) ? map->buf[i].answer : NULL;
-}
-
 static VALUE pcc_lr_table_entry_s_alloc(VALUE klass) {
     pcc_lr_table_entry_t *entry;
     VALUE obj = TypedData_Make_Struct(klass, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, entry);
     entry->robj = obj;
-    pcc_lr_memo_map__init(NULL, &entry->memos);
+    rb_ivar_set(obj, rb_intern("@memos"), rb_hash_new());
 
     return obj;
 }
@@ -809,16 +768,15 @@ static void pcc_lr_table__hold_head(VALUE rctx, VALUE rtable, size_t index, pcc_
 
 static void pcc_lr_table__set_answer(VALUE rctx, VALUE rtable, size_t index, pcc_rule_t rule, pcc_lr_answer_t *answer) {
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
-    VALUE rentry;
-    pcc_lr_table_entry_t *entry;
+    VALUE rentry, rmemos;
     if (index >= (size_t) RARRAY_LEN(rbuf)) rb_funcall(rtable, rb_intern("resize"), 1, SIZET2NUM(index + 1));
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) {
         rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
         rb_funcall(rbuf, rb_intern("[]="), 2, SIZET2NUM(index), rentry);
     }
-    TypedData_Get_Struct(rentry, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, entry);
-    pcc_lr_memo_map__put(rctx, &entry->memos, rule, answer);
+    rmemos = rb_ivar_get(rentry, rb_intern("@memos"));
+    rb_funcall(rmemos, rb_intern("[]="), 2, ID2SYM(rule.name), answer->robj);
 }
 
 static void pcc_lr_table__hold_answer(VALUE rctx, VALUE rtable, size_t index, pcc_lr_answer_t *answer) {
@@ -856,13 +814,18 @@ static pcc_lr_head_t *pcc_lr_table__get_head(VALUE rctx, VALUE rtable, size_t in
 
 static pcc_lr_answer_t *pcc_lr_table__get_answer(VALUE rctx, VALUE rtable, size_t index, pcc_rule_t rule) {
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
-    VALUE rentry;
-    pcc_lr_table_entry_t *entry;
+    VALUE rentry, rmemos, ranswer;
+    pcc_lr_answer_t *answer;
     if (index >= (size_t) RARRAY_LEN(rbuf)) return NULL;
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) return NULL;
-    TypedData_Get_Struct(rentry, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, entry);
-    return pcc_lr_memo_map__get(rctx, &entry->memos, rule);
+    rmemos = rb_ivar_get(rentry, rb_intern("@memos"));
+    ranswer = rb_funcall(rmemos, rb_intern("[]"), 1, ID2SYM(rule.name));
+    if (NIL_P(ranswer)) {
+        return NULL;
+    }
+    TypedData_Get_Struct(ranswer, pcc_lr_answer_t, &pcc_lr_answer_data_type, answer);
+    return answer;
 }
 
 static size_t pcc_refill_buffer(VALUE rctx, size_t num) {
