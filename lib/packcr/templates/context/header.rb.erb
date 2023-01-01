@@ -197,7 +197,6 @@ typedef struct pcc_lr_head_tag pcc_lr_head_t;
 struct pcc_lr_head_tag {
     VALUE robj;
     pcc_rule_t rule;
-    pcc_lr_head_t *hold;
 };
 
 typedef struct pcc_lr_memo_tag {
@@ -668,7 +667,6 @@ static VALUE pcc_lr_head_s_alloc(VALUE klass) {
     rb_ivar_set(obj, rb_intern("@invol"), rinvol);
     reval = rb_funcall(cRuleSet, rb_intern("new"), 0);
     rb_ivar_set(obj, rb_intern("@eval"), reval);
-    head->hold = NULL;
 
     return obj;
 }
@@ -797,7 +795,6 @@ static VALUE pcc_lr_table_entry_s_alloc(VALUE klass) {
 static void pcc_lr_table__hold_head(VALUE rctx, VALUE rtable, size_t index, pcc_lr_head_t *head) {
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
     VALUE rentry, rhold_h;
-    pcc_lr_head_t *hold_h;
     if (index >= (size_t) RARRAY_LEN(rbuf)) rb_funcall(rtable, rb_intern("resize"), 1, SIZET2NUM(index + 1));
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) {
@@ -805,12 +802,7 @@ static void pcc_lr_table__hold_head(VALUE rctx, VALUE rtable, size_t index, pcc_
         rb_funcall(rbuf, rb_intern("[]="), 2, SIZET2NUM(index), rentry);
     }
     rhold_h = rb_ivar_get(rentry, rb_intern("@hold_h"));
-    if (NIL_P(rhold_h)) {
-        hold_h = NULL;
-    } else {
-        TypedData_Get_Struct(rhold_h, pcc_lr_head_t, &pcc_lr_head_data_type, hold_h);
-    }
-    head->hold = hold_h;
+    rb_ivar_set(head->robj, rb_intern("@hold"), rhold_h);
     rb_ivar_set(rentry, rb_intern("@hold_h"), head->robj);
 }
 
