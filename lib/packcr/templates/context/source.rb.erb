@@ -118,6 +118,15 @@ class <%= class_name %>
       @memos = {}
     end
   end
+
+  class LrHead
+    attr_accessor :hold
+
+    def initialize
+      @invol = RuleSet.new
+      @eval = RuleSet.new
+    end
+  end
 end
 
 require_relative "<%= prefix%>.so"
@@ -130,10 +139,6 @@ class <%= class_name %>
       @capts = []
       @pos = 0
     end
-  end
-
-  class LrHead
-    attr_accessor :hold
   end
 
   class LrAnswer

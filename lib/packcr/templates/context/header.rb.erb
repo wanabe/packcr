@@ -184,12 +184,6 @@ typedef struct pcc_rule_set_tag {
     size_t len;
 } pcc_rule_set_t;
 
-typedef struct pcc_lr_head_tag pcc_lr_head_t;
-
-struct pcc_lr_head_tag {
-    VALUE robj;
-};
-
 struct pcc_lr_entry_tag {
     VALUE robj;
     pcc_rule_t rule;
@@ -265,22 +259,6 @@ static VALUE pcc_lr_entry_s_alloc(VALUE klass) {
 
     return obj;
 }
-
-static void pcc_lr_head_mark(void *ptr) {
-}
-
-static void pcc_lr_head_free(void *ptr) {
-}
-
-static size_t pcc_lr_head_memsize(const void *ptr) {
-    return sizeof(pcc_lr_head_t);
-}
-
-static const rb_data_type_t pcc_lr_head_data_type = {
-    "pcc_lr_head",
-    {pcc_lr_head_mark, pcc_lr_head_free, pcc_lr_head_memsize,},
-    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
-};
 
 static void pcc_thunk_mark(void *ptr) {
 }
@@ -569,19 +547,6 @@ static void pcc_rule_set__copy(pcc_auxil_t auxil, VALUE rset, VALUE rsrc) {
     for (i = 0; i < src->len; i++) {
         pcc_rule_set__add(auxil, rset, src->buf[i]);
     }
-}
-
-static VALUE pcc_lr_head_s_alloc(VALUE klass) {
-    pcc_lr_head_t *head;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_head_t, &pcc_lr_head_data_type, head);
-    VALUE rinvol, reval;
-    head->robj = obj;
-    rinvol = rb_funcall(cRuleSet, rb_intern("new"), 0);
-    rb_ivar_set(obj, rb_intern("@invol"), rinvol);
-    reval = rb_funcall(cRuleSet, rb_intern("new"), 0);
-    rb_ivar_set(obj, rb_intern("@eval"), reval);
-
-    return obj;
 }
 
 static VALUE pcc_lr_answer_s_alloc(VALUE klass) {
@@ -1035,8 +1000,7 @@ void Init_<%= prefix %>(void) {
 
     cLrTableEntry = rb_const_get(c<%= class_name %>, rb_intern("LrTableEntry"));
 
-    cLrHead = rb_define_class_under(c<%= class_name %>, "LrHead", rb_cObject);
-    rb_define_alloc_func(cLrHead, pcc_lr_head_s_alloc);
+    cLrHead = rb_const_get(c<%= class_name %>, rb_intern("LrHead"));
 
     cLrAnswer = rb_define_class_under(c<%= class_name %>, "LrAnswer", rb_cObject);
     rb_define_alloc_func(cLrAnswer, pcc_lr_answer_s_alloc);
