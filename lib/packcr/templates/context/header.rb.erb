@@ -176,7 +176,6 @@ struct pcc_lr_answer_tag {
     pcc_lr_answer_type_t type;
     pcc_lr_answer_data_t data;
     size_t pos; /* the absolute position in the input */
-    pcc_lr_answer_t *hold;
 };
 
 typedef pcc_thunk_chunk_t *(*pcc_rule_func_t)(VALUE);
@@ -674,7 +673,6 @@ static VALUE pcc_lr_answer_initialize(VALUE self, VALUE rtype, VALUE rpos<% if @
 <%- if @location -%>
     rb_ivar_set(answer->robj, rb_intern("@pos_loc"), pos_loc);
 <%- end -%>
-    answer->hold = NULL;
     switch (answer->type) {
     case PCC_LR_ANSWER_LR:
         answer->data.lr = NULL;
@@ -716,8 +714,8 @@ static void pcc_lr_answer__set_chunk(VALUE rctx, pcc_lr_answer_t *answer, pcc_th
     default: /* unknown */
         break;
     }
-    a->hold = answer->hold;
-    answer->hold = a;
+    rb_ivar_set(a->robj, rb_intern("@hold"), rb_ivar_get(answer->robj, rb_intern("@hold")));
+    rb_ivar_set(answer->robj, rb_intern("@hold"), a->robj);
     answer->type = PCC_LR_ANSWER_CHUNK;
     answer->data.chunk = chunk;
 }
@@ -752,7 +750,6 @@ static void pcc_lr_table__set_answer(VALUE rctx, VALUE rtable, size_t index, pcc
 static void pcc_lr_table__hold_answer(VALUE rctx, VALUE rtable, size_t index, pcc_lr_answer_t *answer) {
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
     VALUE rentry, rhold_a;
-    pcc_lr_answer_t *hold_a;
     if (index >= (size_t) RARRAY_LEN(rbuf)) rb_funcall(rtable, rb_intern("resize"), 1, SIZET2NUM(index + 1));
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) {
@@ -760,12 +757,7 @@ static void pcc_lr_table__hold_answer(VALUE rctx, VALUE rtable, size_t index, pc
         rb_funcall(rbuf, rb_intern("[]="), 2, SIZET2NUM(index), rentry);
     }
     rhold_a = rb_ivar_get(rentry, rb_intern("@hold_a"));
-    if (NIL_P(rhold_a)) {
-        hold_a = NULL;
-    } else {
-        TypedData_Get_Struct(rhold_a, pcc_lr_answer_t, &pcc_lr_answer_data_type, hold_a);
-    }
-    answer->hold = hold_a;
+    rb_ivar_set(answer->robj, rb_intern("@hold"), rhold_a);
     rb_ivar_set(rentry, rb_intern("@hold_a"), answer->robj);
 }
 
