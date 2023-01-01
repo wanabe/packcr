@@ -263,7 +263,7 @@ static void *pcc_realloc_e(void *ptr, size_t size) {
 #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
 #endif /* !PCC_DEBUG */
 
-static VALUE cLrEntry, cLrTableEntry, cLrHead, cThunk, cThunkChunk, cCapture, cValue;
+static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkChunk, cCapture, cValue;
 
 static void pcc_lr_entry_mark(void *ptr) {
 }
@@ -416,6 +416,22 @@ static VALUE pcc_value_s_alloc(VALUE klass) {
 
     return obj;
 }
+
+static void pcc_lr_answer_mark(void *ptr) {
+}
+
+static void pcc_lr_answer_free(void *ptr) {
+}
+
+static size_t pcc_lr_answer_memsize(const void *ptr) {
+    return sizeof(pcc_lr_answer_t);
+}
+
+static const rb_data_type_t pcc_lr_answer_data_type = {
+    "pcc_lr_answer",
+    {pcc_lr_answer_mark, pcc_lr_answer_free, pcc_lr_answer_memsize,},
+    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
+};
 
 static char *pcc_strndup_e(pcc_auxil_t auxil, const char *str, size_t len) {
     const size_t m = strnlen(str, len);
@@ -621,9 +637,26 @@ static VALUE pcc_lr_head_s_alloc(VALUE klass) {
     return obj;
 }
 
-static pcc_lr_answer_t *pcc_lr_answer__create(VALUE rctx, pcc_lr_answer_type_t type, size_t pos<% if @location %>, VALUE pos_loc<% end %>) {
-    pcc_lr_answer_t *answer = (pcc_lr_answer_t *)xmalloc(sizeof(pcc_lr_answer_t));
-    answer->type = type;
+static VALUE pcc_lr_answer_s_alloc(VALUE klass) {
+    pcc_lr_answer_t *answer;
+    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_answer_t, &pcc_lr_answer_data_type, answer);
+    answer->robj = obj;
+
+    return obj;
+}
+
+static VALUE pcc_lr_answer_initialize(VALUE self, VALUE rtype, VALUE rpos<% if @location %>, VALUE pos_loc<% end %>) {
+    size_t pos = NUM2SIZET(rpos);
+    pcc_lr_answer_t *answer;
+    ID itype = SYM2ID(rtype);
+    TypedData_Get_Struct(self, pcc_lr_answer_t, &pcc_lr_answer_data_type, answer);
+    if (itype == rb_intern("lr")) {
+        answer->type = PCC_LR_ANSWER_LR;
+    } else if (itype == rb_intern("chunk")) {
+        answer->type = PCC_LR_ANSWER_CHUNK;
+    } else {
+        rb_raise(rb_eRuntimeError, "invalid type for LrAnswer");
+    }
     answer->pos = pos;
 <%- if @location -%>
     rb_ivar_set(answer->robj, rb_intern("@pos_loc"), pos_loc);
@@ -639,11 +672,27 @@ static pcc_lr_answer_t *pcc_lr_answer__create(VALUE rctx, pcc_lr_answer_type_t t
     default: /* unknown */
         answer = NULL;
     }
-    return answer;
+    return answer->robj;
 }
 
 static void pcc_lr_answer__set_chunk(VALUE rctx, pcc_lr_answer_t *answer, pcc_thunk_chunk_t *chunk) {
-    pcc_lr_answer_t *const a = pcc_lr_answer__create(rctx, answer->type, answer->pos<% if @location %>, rb_ivar_get(answer->robj, rb_intern("@pos_loc"))<% end %>);
+    pcc_lr_answer_t *a;
+    VALUE rtype;
+    switch (answer->type) {
+    case PCC_LR_ANSWER_LR:
+        rtype = ID2SYM(rb_intern("lr"));
+        break;
+    case PCC_LR_ANSWER_CHUNK:
+        rtype = ID2SYM(rb_intern("chunk"));
+        break;
+    default:
+        rb_raise(rb_eRuntimeError, "invalid type for set_chunk");
+        rtype = Qnil;
+    }
+    {
+        VALUE ranswer = rb_funcall(cLrAnswer, rb_intern("new"), <% if @location %>3<% else %>2<% end %>, rtype, SIZET2NUM(answer->pos)<% if @location %>, rb_ivar_get(answer->robj, rb_intern("@pos_loc"))<% end %>);
+        TypedData_Get_Struct(ranswer, pcc_lr_answer_t, &pcc_lr_answer_data_type, a);
+    }
     switch (answer->type) {
     case PCC_LR_ANSWER_LR:
         a->data.lr = answer->data.lr;
@@ -890,7 +939,10 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
         else if (RTEST(pcc_rule_set__remove(NULL, &h->eval, rule))) {
             b = Qfalse;
             c = rule(rctx);
-            a = pcc_lr_answer__create(rctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))<% if @location %>, rb_funcall(rb_ivar_get(rctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rctx, rb_intern("@cur_loc")))<% end %>);
+            {
+                VALUE ranswer = rb_funcall(cLrAnswer, rb_intern("new"), <% if @location %>3<% else %>2<% end %>, ID2SYM(rb_intern("chunk")), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))))<% if @location %>, rb_funcall(rb_ivar_get(rctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rctx, rb_intern("@cur_loc")))<% end %>);
+                TypedData_Get_Struct(ranswer, pcc_lr_answer_t, &pcc_lr_answer_data_type, a);
+            }
             a->data.chunk = c;
             pcc_lr_table__hold_answer(rctx, rlrtable, p, a);
         }
@@ -936,7 +988,10 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
             TypedData_Get_Struct(rentry, pcc_lr_entry_t, &pcc_lr_entry_data_type, e);
             e->rule = rule;
             rb_funcall(rb_ivar_get(rctx, rb_intern("@lrstack")), rb_intern("push"), 1, rentry);
-            a = pcc_lr_answer__create(rctx, PCC_LR_ANSWER_LR, p<% if @location %>, p_loc<% end %>);
+            {
+                VALUE ranswer = rb_funcall(cLrAnswer, rb_intern("new"), <% if @location %>3<% else %>2<% end %>, ID2SYM(rb_intern("lr")), SIZET2NUM(p)<% if @location %>, p_loc<% end %>);
+                TypedData_Get_Struct(ranswer, pcc_lr_answer_t, &pcc_lr_answer_data_type, a);
+            }
             a->data.lr = e;
             pcc_lr_table__set_answer(rctx, rlrtable, p, rule, a);
             c = rule(rctx);
@@ -953,7 +1008,10 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
                 h = a->data.lr->head;
                 if (h->rule != rule) {
                     c = a->data.lr->seed;
-                    a = pcc_lr_answer__create(rctx, PCC_LR_ANSWER_CHUNK, NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))<% if @location %>, rb_funcall(rb_ivar_get(rctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rctx, rb_intern("@cur_loc")))<% end %>);
+                    {
+                        VALUE ranswer = rb_funcall(cLrAnswer, rb_intern("new"), <% if @location %>3<% else %>2<% end %>, ID2SYM(rb_intern("chunk")), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))))<% if @location %>, rb_funcall(rb_ivar_get(rctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rctx, rb_intern("@cur_loc")))<% end %>);
+                        TypedData_Get_Struct(ranswer, pcc_lr_answer_t, &pcc_lr_answer_data_type, a);
+                    }
                     a->data.chunk = c;
                     pcc_lr_table__hold_answer(rctx, rlrtable, p, a);
                 }
@@ -1148,6 +1206,10 @@ void Init_<%= prefix %>(void) {
 
     cLrHead = rb_define_class_under(c<%= class_name %>, "Lrhead", rb_cObject);
     rb_define_alloc_func(cLrHead, pcc_lr_head_s_alloc);
+
+    cLrAnswer = rb_define_class_under(c<%= class_name %>, "LrAnswer", rb_cObject);
+    rb_define_alloc_func(cLrAnswer, pcc_lr_answer_s_alloc);
+    rb_define_method(cLrAnswer, "initialize", pcc_lr_answer_initialize, <% if @location %>3<% else %>2<% end %>);
 
     cThunk = rb_define_class_under(c<%= class_name %>, "Thunk", rb_cObject);
     rb_define_alloc_func(cThunk, pcc_thunk_s_alloc);
