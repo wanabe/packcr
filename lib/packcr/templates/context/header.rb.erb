@@ -117,24 +117,12 @@ typedef enum pcc_thunk_type_tag {
     PCC_THUNK_NODE
 } pcc_thunk_type_t;
 
-typedef struct pcc_thunk_leaf_tag {
-    pcc_value_refer_table_t value_refs;
-    pcc_action_t action;
-} pcc_thunk_leaf_t;
-
-typedef struct pcc_thunk_node_tag {
-    size_t index;
-} pcc_thunk_node_t;
-
-typedef union pcc_thunk_data_tag {
-    pcc_thunk_leaf_t leaf;
-    pcc_thunk_node_t node;
-} pcc_thunk_data_t;
-
 struct pcc_thunk_tag {
     VALUE robj;
     pcc_thunk_type_t type;
-    pcc_thunk_data_t data;
+    size_t index;                       /* node */
+    pcc_value_refer_table_t value_refs; /* leaf */
+    pcc_action_t action;                /* leaf */
 };
 
 typedef struct pcc_thunk_chunk_tag {
@@ -434,11 +422,11 @@ static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t actio
     VALUE obj = TypedData_Make_Struct(cThunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
     thunk->robj = obj;
     thunk->type = PCC_THUNK_LEAF;
-    pcc_value_refer_table__init(auxil, &thunk->data.leaf.value_refs);
-    pcc_value_refer_table__resize(auxil, &thunk->data.leaf.value_refs, valuec);
+    pcc_value_refer_table__init(auxil, &thunk->value_refs);
+    pcc_value_refer_table__resize(auxil, &thunk->value_refs, valuec);
     rb_ivar_set(obj, rb_intern("@capts"), rb_ary_new());
     rb_ivar_set(obj, rb_intern("@capt0"), rb_funcall(cCapture, rb_intern("new"), 0));
-    thunk->data.leaf.action = action;
+    thunk->action = action;
     return thunk;
 }
 
@@ -455,7 +443,7 @@ static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, pcc
         rvalues = TypedData_Wrap_Struct(cValue, &pcc_value_data_type, values);
     }
     rb_ivar_set(obj, rb_intern("@values"), rvalues);
-    thunk->data.node.index = index;
+    thunk->index = index;
     return thunk;
 }
 
@@ -837,10 +825,10 @@ static void pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, size_t index
         TypedData_Get_Struct(rthunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
         switch (thunk->type) {
         case PCC_THUNK_LEAF:
-            thunk->data.leaf.action(rctx, thunk, rvalues, index);
+            thunk->action(rctx, thunk, rvalues, index);
             break;
         case PCC_THUNK_NODE:
-            pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), thunk->data.node.index);
+            pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), thunk->index);
             break;
         default: /* unknown */
             break;
@@ -869,7 +857,7 @@ static inline pcc_value_t *pcc_value__ptr(VALUE rvalue) {
 static void pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, pcc_thunk_t *__pcc_in, VALUE __pcc_rvars, size_t __pcc_index) {
 #define __ pcc_value__ptr(__pcc_rvars)[__pcc_index].value
 <%-     code.vars.each do |ref| -%>
-#define <%= ref.var %> (__pcc_in->data.leaf.value_refs.buf[<%= ref.index %>]->value)
+#define <%= ref.var %> (__pcc_in->value_refs.buf[<%= ref.index %>]->value)
 <%-     end -%>
 #define _0 pcc_get_capture_string(__pcc_ctx, rb_ivar_get(__pcc_in->robj, rb_intern("@capt0")))
 #define _0s ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + pcc_thunk_leaf__get_capt0(__pcc_in->robj)->range.start))

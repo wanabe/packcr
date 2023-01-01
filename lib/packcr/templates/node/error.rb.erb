@@ -12,7 +12,7 @@ L<%= "%04d" % l %>:;
 <%- end -%>
         TypedData_Get_Struct(rcapt0, pcc_capture_t, &pcc_capture_data_type, capt0);
 <%- vars.each do |var| -%>
-        thunk->data.leaf.value_refs.buf[<%= var.index %>] = &(chunk->values.buf[<%= var.index %>]);
+        thunk->value_refs.buf[<%= var.index %>] = &(chunk->values.buf[<%= var.index %>]);
 <%- end -%>
 <%- capts.each do |capt| -%>
         rcapt = rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capt.index %>));
@@ -24,7 +24,7 @@ L<%= "%04d" % l %>:;
         capt0->range.start_loc = rb_ivar_get(chunk->robj, rb_intern("@pos_loc"));
         capt0->range.end_loc = rb_ivar_get(rctx, rb_intern("cur_loc"));
 <%- end -%>
-        thunk->data.leaf.action(rctx, thunk, Qnil, 0);
+        thunk->action(rctx, thunk, Qnil, 0);
     }
     goto L<%= "%04d" % onfail %>;
 L<%= "%04d" % m %>:;
