@@ -136,16 +136,11 @@ typedef enum pcc_lr_answer_type_tag {
     PCC_LR_ANSWER_CHUNK
 } pcc_lr_answer_type_t;
 
-typedef union pcc_lr_answer_data_tag {
-    pcc_lr_entry_t *lr;
-} pcc_lr_answer_data_t;
-
 typedef struct pcc_lr_answer_tag pcc_lr_answer_t;
 
 struct pcc_lr_answer_tag {
     VALUE robj;
     pcc_lr_answer_type_t type;
-    pcc_lr_answer_data_t data;
     size_t pos; /* the absolute position in the input */
 };
 
@@ -499,15 +494,6 @@ static VALUE pcc_lr_answer_initialize(VALUE self, VALUE rtype, VALUE rpos<% if @
 <%- if @location -%>
     rb_ivar_set(answer->robj, rb_intern("@pos_loc"), pos_loc);
 <%- end -%>
-    switch (answer->type) {
-    case PCC_LR_ANSWER_LR:
-        answer->data.lr = NULL;
-        break;
-    case PCC_LR_ANSWER_CHUNK:
-        break;
-    default: /* unknown */
-        answer = NULL;
-    }
     return answer->robj;
 }
 
@@ -531,7 +517,7 @@ static void pcc_lr_answer__set_chunk(VALUE rctx, pcc_lr_answer_t *answer, pcc_th
     }
     switch (answer->type) {
     case PCC_LR_ANSWER_LR:
-        a->data.lr = answer->data.lr;
+        rb_ivar_set(a->robj, rb_intern("@lr"), rb_ivar_get(answer->robj, rb_intern("@lr")));
         break;
     case PCC_LR_ANSWER_CHUNK:
         rb_ivar_set(a->robj, rb_intern("@chunk"), rb_ivar_get(answer->robj, rb_intern("@chunk")));
@@ -666,10 +652,11 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
             switch (a->type) {
             case PCC_LR_ANSWER_LR:
                 {
-                    VALUE rhead = rb_ivar_get(a->data.lr->robj, rb_intern("@head"));
+                    VALUE rlr = rb_ivar_get(a->robj, rb_intern("@lr"));
+                    VALUE rhead = rb_ivar_get(rlr, rb_intern("@head"));
                     if (NIL_P(rhead)) {
                         rhead = rb_funcall(cLrHead, rb_intern("new"), 0);
-                        rb_ivar_set(a->data.lr->robj, rb_intern("@head"), rhead);
+                        rb_ivar_set(rlr, rb_intern("@head"), rhead);
                         rb_ivar_set(rhead, rb_intern("@rule_name"), ID2SYM(rule.name));
                         rb_funcall(rlrtable, rb_intern("hold_head"), 2, SIZET2NUM(p), rhead);
                     }
@@ -677,6 +664,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
                 {
                     size_t i = RARRAY_LEN(rb_ivar_get(rctx, rb_intern("@lrstack")));
                     VALUE rseed;
+                    VALUE rlr;
                     while (i > 0) {
                         VALUE rinvol;
                         i--;
@@ -684,14 +672,16 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
                         VALUE rentry_head, ranswer_head;
                         pcc_lr_entry_t *lrentry;
                         rentry_head = rb_ivar_get(rlrentry, rb_intern("@head"));
-                        ranswer_head = rb_ivar_get(a->data.lr->robj, rb_intern("@head"));
+                        rlr = rb_ivar_get(a->robj, rb_intern("@lr"));
+                        ranswer_head = rb_ivar_get(rlr, rb_intern("@head"));
                         TypedData_Get_Struct(rlrentry, pcc_lr_entry_t, &pcc_lr_entry_data_type, lrentry);
                         if (rentry_head == ranswer_head) break;
                         rb_ivar_set(rlrentry, rb_intern("@head"), ranswer_head);
                         rinvol = rb_ivar_get(ranswer_head, rb_intern("@invol"));
                         pcc_rule_set__add(NULL, rinvol, lrentry->rule);
                     }
-                    rseed = rb_ivar_get(a->data.lr->robj, rb_intern("@seed"));
+                    rlr = rb_ivar_get(a->robj, rb_intern("@lr"));
+                    rseed = rb_ivar_get(rlr, rb_intern("@seed"));
                     if (NIL_P(rseed)) {
                         c = NULL;
                     } else {
@@ -719,7 +709,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
                 VALUE ranswer = rb_funcall(cLrAnswer, rb_intern("new"), <% if @location %>3<% else %>2<% end %>, ID2SYM(rb_intern("lr")), SIZET2NUM(p)<% if @location %>, p_loc<% end %>);
                 TypedData_Get_Struct(ranswer, pcc_lr_answer_t, &pcc_lr_answer_data_type, a);
             }
-            a->data.lr = e;
+            rb_ivar_set(a->robj, rb_intern("@lr"), e->robj);
             rb_funcall(rlrtable, rb_intern("set_answer"), 3, SIZET2NUM(p), ID2SYM(rule.name), a->robj);
             c = rule.func(rctx);
             rb_funcall(rb_ivar_get(rctx, rb_intern("@lrstack")), rb_intern("pop"), 0);
@@ -732,11 +722,12 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
             }
             else {
                 ID rule_name;
+                VALUE rlr = rb_ivar_get(a->robj, rb_intern("@lr"));
                 rb_ivar_set(e->robj, rb_intern("@seed"), c->robj);
-                rh = rb_ivar_get(a->data.lr->robj, rb_intern("@head"));
+                rh = rb_ivar_get(rlr, rb_intern("@head"));
                 rule_name = SYM2ID(rb_ivar_get(rh, rb_intern("@rule_name")));
                 if (rule_name != rule.name) {
-                    VALUE rseed = rb_ivar_get(a->data.lr->robj, rb_intern("@seed"));
+                    VALUE rseed = rb_ivar_get(rlr, rb_intern("@seed"));
                     if (NIL_P(rseed)) {
                         c = NULL;
                     } else {
@@ -750,7 +741,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
                     rb_funcall(rlrtable, rb_intern("hold_answer"), 2, SIZET2NUM(p), a->robj);
                 }
                 else {
-                    VALUE rseed = rb_ivar_get(a->data.lr->robj, rb_intern("@seed"));
+                    VALUE rseed = rb_ivar_get(rlr, rb_intern("@seed"));
                     pcc_thunk_chunk_t *seed;
                     VALUE rchunk;
                     if (NIL_P(rseed)) {
