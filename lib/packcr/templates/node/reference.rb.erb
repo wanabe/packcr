@@ -1,5 +1,8 @@
+{
+    pcc_rule_t rule = {pcc_evaluate_rule_<%= name %>};
 <%- if index != nil -%>
-if (!RTEST(pcc_apply_rule(rctx, pcc_evaluate_rule_<%= name %>, rb_ivar_get(chunk->robj, rb_intern("@thunks")), chunk->values.buf, <%= index %>))) goto L<%= "%04d" % onfail %>;
+    if (!RTEST(pcc_apply_rule(rctx, rule, rb_ivar_get(chunk->robj, rb_intern("@thunks")), chunk->values.buf, <%= index %>))) goto L<%= "%04d" % onfail %>;
 <%- else -%>
-if (!RTEST(pcc_apply_rule(rctx, pcc_evaluate_rule_<%= name %>, rb_ivar_get(chunk->robj, rb_intern("@thunks")), NULL, 0))) goto L<%= "%04d" % onfail %>;
+    if (!RTEST(pcc_apply_rule(rctx, rule, rb_ivar_get(chunk->robj, rb_intern("@thunks")), NULL, 0))) goto L<%= "%04d" % onfail %>;
 <%- end -%>
+}
