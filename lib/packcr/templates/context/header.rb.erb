@@ -829,7 +829,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
 }
 
 MARK_FUNC_AS_USED
-static void pcc_do_action(VALUE rctx, VALUE rthunks, pcc_value_t *values, size_t index) {
+static void pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, size_t index) {
     size_t i;
     for (i = 0; i < (size_t)RARRAY_LEN(rthunks); i++) {
         pcc_thunk_t *thunk;
@@ -837,19 +837,18 @@ static void pcc_do_action(VALUE rctx, VALUE rthunks, pcc_value_t *values, size_t
         TypedData_Get_Struct(rthunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
         switch (thunk->type) {
         case PCC_THUNK_LEAF:
-            thunk->data.leaf.action(rctx, thunk, values, index);
+            {
+                pcc_value_t *values;
+                if (NIL_P(rvalues)) {
+                    values = NULL;
+                } else {
+                    TypedData_Get_Struct(rvalues, pcc_value_t, &pcc_value_data_type, values);
+                }
+                thunk->data.leaf.action(rctx, thunk, values, index);
+            }
             break;
         case PCC_THUNK_NODE:
-            {
-                VALUE rnode_values = rb_ivar_get(thunk->robj, rb_intern("@values"));
-                pcc_value_t *node_values;
-                if (NIL_P(rnode_values)) {
-                    node_values = NULL;
-                } else {
-                    TypedData_Get_Struct(rnode_values, pcc_value_t, &pcc_value_data_type, node_values);
-                }
-                pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), node_values, thunk->data.node.index);
-            }
+            pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), thunk->data.node.index);
             break;
         default: /* unknown */
             break;
@@ -946,7 +945,7 @@ int <%= prefix %>_parse(VALUE rctx, <%= value_def %>*ret) {
     VALUE rthunks = rb_ivar_get(rctx, rb_intern("@thunks"));
     pcc_rule_t rule = {pcc_evaluate_rule_<%= @rules[0].name %>, rb_intern("<%= @rules[0].name %>")};
     if (pcc_apply_rule(rctx, rule, rthunks, NULL, 0))
-        pcc_do_action(rctx, rthunks, NULL, 0);
+        pcc_do_action(rctx, rthunks, Qnil, 0);
     else
         PCC_ERROR(NULL);
     pcc_commit_buffer(rctx);
