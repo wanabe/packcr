@@ -1,6 +1,8 @@
 {
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
     size_t q;
+    pcc_capture_t *capt;
+    VALUE rcapt;
 <%- if gen.location -%>
     const VALUE p_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
     VALUE q_loc;
@@ -8,11 +10,13 @@
 <%- r, code = gen.generate_code_str(expr, onfail, 4, false) -%>
 <%= code -%>
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
-    chunk->capts.buf[<%= index %>].range.start = p;
-    chunk->capts.buf[<%= index %>].range.end = q;
+    rcapt = rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= index %>));
+    TypedData_Get_Struct(rcapt, pcc_capture_t, &pcc_capture_data_type, capt);
+    capt->range.start = p;
+    capt->range.end = q;
 <%- if gen.location -%>
     q_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
-    chunk->capts.buf[<%= index %>].range.start_loc = p_loc;
-    chunk->capts.buf[<%= index %>].range.end_loc = q_loc;
+    capt->range.start_loc = p_loc;
+    capt->range.end_loc = q_loc;
 <%- end -%>
 }

@@ -109,12 +109,6 @@ typedef struct pcc_capture_tag {
     char *string; /* mutable */
 } pcc_capture_t;
 
-typedef struct pcc_capture_table_tag {
-    pcc_capture_t *buf;
-    size_t max;
-    size_t len;
-} pcc_capture_table_t;
-
 typedef struct pcc_capture_const_table_tag {
     const pcc_capture_t **buf;
     size_t max;
@@ -154,7 +148,6 @@ struct pcc_thunk_tag {
 typedef struct pcc_thunk_chunk_tag {
     VALUE robj;
     pcc_value_table_t values;
-    pcc_capture_table_t capts;
 } pcc_thunk_chunk_t;
 
 typedef struct pcc_lr_entry_tag pcc_lr_entry_t;
@@ -491,34 +484,13 @@ static void pcc_value_refer_table__resize(pcc_auxil_t auxil, pcc_value_refer_tab
     table->len = len;
 }
 
-static void pcc_capture_table__init(pcc_auxil_t auxil, pcc_capture_table_t *table) {
-    table->len = 0;
-    table->max = 0;
-    table->buf = NULL;
-}
-
 MARK_FUNC_AS_USED
-static void pcc_capture_table__resize(pcc_auxil_t auxil, pcc_capture_table_t *table, size_t len) {
+static void pcc_capture_table__resize(pcc_auxil_t auxil, VALUE rtable, size_t len) {
     size_t i;
-    if (table->max < len) {
-        size_t m = table->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
-        while (m < len && m != 0) m <<= 1;
-        if (m == 0) m = len;
-        table->buf = (pcc_capture_t *)PCC_REALLOC(auxil, table->buf, sizeof(pcc_capture_t) * m);
-        table->max = m;
+    for (i = RARRAY_LEN(rtable); i < len; i++) {
+        VALUE rcapt = rb_funcall(cCapture, rb_intern("new"), 0);
+        rb_funcall(rtable, rb_intern("<<"), 1, rcapt);
     }
-    for (i = table->len; i < len; i++) {
-        table->buf[i].range.start = 0;
-        table->buf[i].range.end = 0;
-<%- if @location -%>
-        table->buf[i].robj = rb_funcall(cCapture, rb_intern("new"), 0);
-        rb_ivar_set(table->buf[i].robj, rb_intern("@start_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
-        rb_ivar_set(table->buf[i].robj, rb_intern("@end_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
-<%- end -%>
-        table->buf[i].string = NULL;
-    }
-    table->len = len;
 }
 
 static void pcc_capture_const_table__init(pcc_auxil_t auxil, pcc_capture_const_table_t *table) {
@@ -578,7 +550,6 @@ static VALUE pcc_thunk_chunk_s_alloc(VALUE klass) {
     VALUE obj = TypedData_Make_Struct(klass, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, chunk);
     chunk->robj = obj;
     pcc_value_table__init(NULL, &chunk->values);
-    pcc_capture_table__init(NULL, &chunk->capts);
 
     return obj;
 }
@@ -1042,7 +1013,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(VALUE rctx) {
     //PCC_DEBUG(NULL, PCC_DBG_EVALUATE, "<%= node.name %>", NUM2SIZET(rb_ivar_get(rctx, rb_intern("@level"))), NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos"))), (RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))), (RSTRING_LEN(rb_ivar_get(rctx, rb_intern("@buffer"))) - NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))));
     rb_ivar_set(rctx, rb_intern("@level"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@level"))) + 1));
     pcc_value_table__resize(NULL, &chunk->values, <%= node.vars.length %>);
-    pcc_capture_table__resize(NULL, &chunk->capts, <%= node.capts.length %>);
+    pcc_capture_table__resize(NULL, rb_ivar_get(chunk->robj, rb_intern("@capts")), <%= node.capts.length %>);
 <%-   if node.vars.length > 0 -%>
     pcc_value_table__clear(NULL, &chunk->values);
 <%-   end -%>

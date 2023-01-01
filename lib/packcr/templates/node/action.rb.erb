@@ -2,12 +2,18 @@
     pcc_thunk_t *const thunk = pcc_thunk__create_leaf(NULL, pcc_action_<%= gen.rule.name %>_<%= index %>, <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
     VALUE rcapt0 = rb_ivar_get(thunk->robj, rb_intern("@capt0"));
     pcc_capture_t *capt0;
+<%- if !capts.empty? -%>
+    VALUE rcapt;
+    pcc_capture_t *capt;
+<%- end -%>
     TypedData_Get_Struct(rcapt0, pcc_capture_t, &pcc_capture_data_type, capt0);
 <%- vars.each do |var| -%>
     thunk->data.leaf.value_refs.buf[<%= var.index %>] = &(chunk->values.buf[<%= var.index %>]);
 <%- end -%>
 <%- capts.each do |capt| -%>
-    thunk->data.leaf.capts.buf[<%= capt.index %>] = &(chunk->capts.buf[<%= capt.index %>]);
+    rcapt = rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capt.index %>));
+    TypedData_Get_Struct(rcapt, pcc_capture_t, &pcc_capture_data_type, capt);
+    thunk->data.leaf.capts.buf[<%= capt.index %>] = capt;
 <%- end -%>
     capt0->range.start = NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")));
     capt0->range.end = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
