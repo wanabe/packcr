@@ -110,7 +110,7 @@ typedef struct pcc_capture_tag {
 
 typedef struct pcc_thunk_tag pcc_thunk_t;
 
-typedef void (*pcc_action_t)(VALUE, pcc_thunk_t *, pcc_value_t *, size_t);
+typedef void (*pcc_action_t)(VALUE, pcc_thunk_t *, VALUE, size_t);
 
 typedef enum pcc_thunk_type_tag {
     PCC_THUNK_LEAF,
@@ -837,15 +837,7 @@ static void pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, size_t index
         TypedData_Get_Struct(rthunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
         switch (thunk->type) {
         case PCC_THUNK_LEAF:
-            {
-                pcc_value_t *values;
-                if (NIL_P(rvalues)) {
-                    values = NULL;
-                } else {
-                    TypedData_Get_Struct(rvalues, pcc_value_t, &pcc_value_data_type, values);
-                }
-                thunk->data.leaf.action(rctx, thunk, values, index);
-            }
+            thunk->data.leaf.action(rctx, thunk, rvalues, index);
             break;
         case PCC_THUNK_NODE:
             pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), thunk->data.node.index);
@@ -863,10 +855,19 @@ static inline pcc_capture_t *pcc_thunk_leaf__get_capt0(VALUE rthunk) {
     return capt0;
 }
 
+static inline pcc_value_t *pcc_value__ptr(VALUE rvalue) {
+    pcc_value_t *value;
+    if (NIL_P(rvalue)) {
+        return NULL;
+    }
+    TypedData_Get_Struct(rvalue, pcc_value_t, &pcc_value_data_type, value);
+    return value;
+}
+
 <%- @rules.each do |rule| -%>
 <%-   rule.codes.each do |code| -%>
-static void pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_vars, size_t __pcc_index) {
-#define __ __pcc_vars[__pcc_index].value
+static void pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, pcc_thunk_t *__pcc_in, VALUE __pcc_rvars, size_t __pcc_index) {
+#define __ pcc_value__ptr(__pcc_rvars)[__pcc_index].value
 <%-     code.vars.each do |ref| -%>
 #define <%= ref.var %> (__pcc_in->data.leaf.value_refs.buf[<%= ref.index %>]->value)
 <%-     end -%>

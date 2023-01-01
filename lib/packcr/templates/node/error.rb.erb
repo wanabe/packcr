@@ -24,7 +24,7 @@ L<%= "%04d" % l %>:;
         capt0->range.start_loc = rb_ivar_get(chunk->robj, rb_intern("@pos_loc"));
         capt0->range.end_loc = rb_ivar_get(rctx, rb_intern("cur_loc"));
 <%- end -%>
-        thunk->data.leaf.action(rctx, thunk, NULL, 0);
+        thunk->data.leaf.action(rctx, thunk, Qnil, 0);
     }
     goto L<%= "%04d" % onfail %>;
 L<%= "%04d" % m %>:;
