@@ -55,6 +55,20 @@ class <%= class_name %>
     def shift(count)
       @buf[0, count] = []
     end
+
+    def resize(len)
+      (@buf.length...len).each do |i|
+        @buf << nil
+      end
+    end
+
+    def set_head(index, head)
+      if index >= @buf.length
+        resize(index + 1)
+      end
+      entry = @buf[index] ||= LrTableEntry.new
+      entry.head = head
+    end
   end
 end
 
@@ -67,5 +81,9 @@ class <%= class_name %>
       @thunks = []
       @pos = 0
     end
+  end
+
+  class LrTableEntry
+    attr_accessor :head
   end
 end

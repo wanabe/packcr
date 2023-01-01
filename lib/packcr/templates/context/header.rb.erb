@@ -760,30 +760,11 @@ static VALUE pcc_lr_table_entry_s_alloc(VALUE klass) {
     return obj;
 }
 
-static void pcc_lr_table__resize(VALUE rctx, VALUE rtable, size_t len) {
-    size_t i;
-    VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
-    for (i = RARRAY_LEN(rbuf); i < len; i++) rb_funcall(rbuf, rb_intern("<<"), 1, Qnil);
-}
-
-static void pcc_lr_table__set_head(VALUE rctx, VALUE rtable, size_t index, pcc_lr_head_t *head) {
-    VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
-    VALUE rentry, rhead;
-    if (index >= (size_t) RARRAY_LEN(rbuf)) pcc_lr_table__resize(rctx, rtable, index + 1);
-    rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
-    if (NIL_P(rentry)) {
-        rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
-        rb_funcall(rbuf, rb_intern("[]="), 2, SIZET2NUM(index), rentry);
-    }
-    rhead = TypedData_Wrap_Struct(cLrHead, &pcc_lr_head_data_type, head);
-    rb_ivar_set(rentry, rb_intern("@head"), rhead);
-}
-
 static void pcc_lr_table__hold_head(VALUE rctx, VALUE rtable, size_t index, pcc_lr_head_t *head) {
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
     VALUE rentry;
     pcc_lr_table_entry_t *entry;
-    if (index >= (size_t) RARRAY_LEN(rbuf)) pcc_lr_table__resize(rctx, rtable, index + 1);
+    if (index >= (size_t) RARRAY_LEN(rbuf)) rb_funcall(rtable, rb_intern("resize"), 1, SIZET2NUM(index + 1));
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) {
         rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
@@ -798,7 +779,7 @@ static void pcc_lr_table__set_answer(VALUE rctx, VALUE rtable, size_t index, pcc
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
     VALUE rentry;
     pcc_lr_table_entry_t *entry;
-    if (index >= (size_t) RARRAY_LEN(rbuf)) pcc_lr_table__resize(rctx, rtable, index + 1);
+    if (index >= (size_t) RARRAY_LEN(rbuf)) rb_funcall(rtable, rb_intern("resize"), 1, SIZET2NUM(index + 1));
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) {
         rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
@@ -812,7 +793,7 @@ static void pcc_lr_table__hold_answer(VALUE rctx, VALUE rtable, size_t index, pc
     VALUE rbuf = rb_ivar_get(rtable, rb_intern("@buf"));
     VALUE rentry;
     pcc_lr_table_entry_t *entry;
-    if (index >= (size_t) RARRAY_LEN(rbuf)) pcc_lr_table__resize(rctx, rtable, index + 1);
+    if (index >= (size_t) RARRAY_LEN(rbuf)) rb_funcall(rtable, rb_intern("resize"), 1, SIZET2NUM(index + 1));
     rentry = rb_funcall(rbuf, rb_intern("[]"), 1, SIZET2NUM(index));
     if (NIL_P(rentry)) {
         rentry = rb_funcall(cLrTableEntry, rb_intern("new"), 0);
@@ -1021,7 +1002,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
                         c = NULL;
                     }
                     else {
-                        pcc_lr_table__set_head(rctx, rlrtable, p, h);
+                        rb_funcall(rlrtable, rb_intern("set_head"), 2, SIZET2NUM(p), h->robj);
                         for (;;) {
                             rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos")))));
 <%- if @location -%>
@@ -1036,7 +1017,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
                             a->pos_loc = pcc_location_add(rb_ivar_get(rctx, rb_intern("@pos_loc")), ctx->cur_loc);
 <%- end -%>
                         }
-                        pcc_lr_table__set_head(rctx, rlrtable, p, NULL);
+                        rb_funcall(rlrtable, rb_intern("set_head"), 2, SIZET2NUM(p), Qnil);
                         rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(a->pos - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos")))));
 <%- if @location -%>
                         rb_ivar_set(rctx, rb_intern("@cur_loc"), rb_funcall(rb_ivar_get(a->robj, rb_intern("@pos_loc")), rb_intern("-"), 1, rb_ivar_get(rctx, rb_intern("@pos_loc"))));
