@@ -69,9 +69,51 @@ class <%= class_name %>
       entry = @buf[index] ||= LrTableEntry.new
       entry.head = head
     end
+
+    def hold_head(index, head)
+      if index >= @buf.length
+        resize(index + 1)
+      end
+      entry = @buf[index] ||= LrTableEntry.new
+      head.hold, entry.hold_h = entry.hold_h, head
+    end
+
+    def set_answer(index, rule_name, answer)
+      if index >= @buf.length
+        resize(index + 1)
+      end
+      entry = @buf[index] ||= LrTableEntry.new
+      entry.memos[rule_name] = answer
+    end
+
+    def hold_answer(index, answer)
+      if index >= @buf.length
+        resize(index + 1)
+      end
+      entry = @buf[index] ||= LrTableEntry.new
+      answer.hold, entry.hold_a = entry.hold_a, answer
+    end
+
+    def get_head(index)
+      @buf[index]&.head
+    end
+
+    def get_answer(index, rule_name)
+      if index >= @buf.length
+        return nil
+      end
+      entry = @buf[index]
+      if !entry
+        return nil
+      end
+      memos = entry.memos
+      memos[rule_name]
+    end
   end
 
   class LrTableEntry
+    attr_accessor :head, :hold_a, :hold_h, :memos
+
     def initialize
       @memos = {}
     end
@@ -89,7 +131,11 @@ class <%= class_name %>
     end
   end
 
-  class LrTableEntry
-    attr_accessor :head
+  class LrHead
+    attr_accessor :hold
+  end
+
+  class LrAnswer
+    attr_accessor :hold
   end
 end
