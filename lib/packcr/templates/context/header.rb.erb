@@ -127,7 +127,6 @@ struct pcc_thunk_tag {
 
 typedef struct pcc_thunk_chunk_tag {
     VALUE robj;
-    pcc_value_table_t values;
 } pcc_thunk_chunk_t;
 
 typedef struct pcc_lr_entry_tag pcc_lr_entry_t;
@@ -363,12 +362,6 @@ static VALUE pcc_rule_set_s_alloc(VALUE klass) {
     return obj;
 }
 
-static void pcc_value_table__init(pcc_auxil_t auxil, pcc_value_table_t *table) {
-    table->len = 0;
-    table->max = 0;
-    table->buf = NULL;
-}
-
 MARK_FUNC_AS_USED
 static void pcc_value_table__resize(pcc_auxil_t auxil, pcc_value_table_t *table, size_t len) {
     if (table->max < len) {
@@ -430,18 +423,12 @@ static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t actio
     return thunk;
 }
 
-static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, pcc_value_t *values, size_t index) {
+static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, VALUE rvalues, size_t index) {
     pcc_thunk_t *thunk;
     VALUE obj = TypedData_Make_Struct(cThunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
-    VALUE rvalues;
     thunk->robj = obj;
     thunk->type = PCC_THUNK_NODE;
     rb_ivar_set(obj, rb_intern("@thunks"), rthunks);
-    if (values == NULL) {
-        rvalues = Qnil;
-    } else {
-        rvalues = TypedData_Wrap_Struct(cValue, &pcc_value_data_type, values);
-    }
     rb_ivar_set(obj, rb_intern("@values"), rvalues);
     thunk->index = index;
     return thunk;
@@ -451,7 +438,7 @@ static VALUE pcc_thunk_chunk_s_alloc(VALUE klass) {
     pcc_thunk_chunk_t *chunk;
     VALUE obj = TypedData_Make_Struct(klass, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, chunk);
     chunk->robj = obj;
-    pcc_value_table__init(NULL, &chunk->values);
+    rb_ivar_set(obj, rb_intern("@values"), rb_ary_new());
 
     return obj;
 }
@@ -656,7 +643,7 @@ static size_t pcc_get_char_as_utf32(VALUE rctx, int *out) { /* with checking UTF
 
 <% end -%>
 MARK_FUNC_AS_USED
-static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_value_t *values, size_t index) {
+static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rvalues, size_t index) {
     pcc_thunk_chunk_t *c = NULL;
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
 <%- if @location -%>
@@ -806,11 +793,11 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
         }
     }
     if (c == NULL) return Qfalse;
-    if (values != NULL) {
-        memset(values + index, 0, sizeof(pcc_value_t)); /* in case */
+    if (!NIL_P(rvalues)) {
+        rb_funcall(rvalues, rb_intern("[]="), 2, SIZET2NUM(index), rb_funcall(cValue, rb_intern("new"), 0)); /* in case */
     }
     {
-        pcc_thunk_t *t = pcc_thunk__create_node(NULL, rb_ivar_get(c->robj, rb_intern("@thunks")), values, index);
+        pcc_thunk_t *t = pcc_thunk__create_node(NULL, rb_ivar_get(c->robj, rb_intern("@thunks")), rvalues, index);
         rb_funcall(rthunks, rb_intern("push"), 1, t->robj);
     }
     return Qtrue;
@@ -843,10 +830,13 @@ static inline pcc_capture_t *pcc_thunk_leaf__get_capt0(VALUE rthunk) {
     return capt0;
 }
 
-static inline pcc_value_t *pcc_value__ptr(VALUE rvalue) {
+static inline pcc_value_t *pcc_value__ptr(VALUE rvalues, VALUE rindex) {
+    VALUE rvalue;
     pcc_value_t *value;
+    rvalue = rb_funcall(rvalues, rb_intern("[]"), 1, rindex);
     if (NIL_P(rvalue)) {
-        return NULL;
+        rvalue = rb_funcall(cValue, rb_intern("new"), 0);
+        rb_funcall(rvalues, rb_intern("[]="), 2, rindex, rvalue);
     }
     TypedData_Get_Struct(rvalue, pcc_value_t, &pcc_value_data_type, value);
     return value;
@@ -855,7 +845,7 @@ static inline pcc_value_t *pcc_value__ptr(VALUE rvalue) {
 <%- @rules.each do |rule| -%>
 <%-   rule.codes.each do |code| -%>
 static void pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, pcc_thunk_t *__pcc_in, VALUE __pcc_rvars, size_t __pcc_index) {
-#define __ pcc_value__ptr(__pcc_rvars)[__pcc_index].value
+#define __ pcc_value__ptr(__pcc_rvars, SIZET2NUM(__pcc_index))->value
 <%-     code.vars.each do |ref| -%>
 #define <%= ref.var %> (__pcc_in->value_refs.buf[<%= ref.index %>]->value)
 <%-     end -%>
@@ -908,10 +898,9 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(VALUE rctx) {
 <%- end -%>
     //PCC_DEBUG(NULL, PCC_DBG_EVALUATE, "<%= node.name %>", NUM2SIZET(rb_ivar_get(rctx, rb_intern("@level"))), NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos"))), (RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))), (RSTRING_LEN(rb_ivar_get(rctx, rb_intern("@buffer"))) - NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))));
     rb_ivar_set(rctx, rb_intern("@level"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@level"))) + 1));
-    pcc_value_table__resize(NULL, &chunk->values, <%= node.vars.length %>);
     pcc_capture_table__resize(NULL, rb_ivar_get(chunk->robj, rb_intern("@capts")), <%= node.capts.length %>);
 <%-   if node.vars.length > 0 -%>
-    pcc_value_table__clear(NULL, &chunk->values);
+    rb_ivar_set(chunk->robj, rb_intern("@values"), rb_ary_new());
 <%-   end -%>
 <%-   g = ::Packcr::Generator.new(node, @ascii, @location, :rb) -%>
 <%-   r, str = g.generate_code_str(node.expr, 0, 4, false) -%>
@@ -933,7 +922,7 @@ int <%= prefix %>_parse(VALUE rctx, <%= value_def %>*ret) {
 <%- if !@rules.empty? -%>
     VALUE rthunks = rb_ivar_get(rctx, rb_intern("@thunks"));
     pcc_rule_t rule = {pcc_evaluate_rule_<%= @rules[0].name %>, rb_intern("<%= @rules[0].name %>")};
-    if (pcc_apply_rule(rctx, rule, rthunks, NULL, 0))
+    if (pcc_apply_rule(rctx, rule, rthunks, Qnil, 0))
         pcc_do_action(rctx, rthunks, Qnil, 0);
     else
         PCC_ERROR(NULL);
