@@ -191,6 +191,7 @@ typedef struct pcc_rule_set_tag {
 typedef struct pcc_lr_head_tag pcc_lr_head_t;
 
 struct pcc_lr_head_tag {
+    VALUE robj;
     pcc_rule_t rule;
     pcc_rule_set_t invol;
     pcc_rule_set_t eval;
@@ -323,13 +324,6 @@ static const rb_data_type_t pcc_lr_head_data_type = {
     {pcc_lr_head_mark, pcc_lr_head_free, pcc_lr_head_memsize,},
     0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
 };
-
-static VALUE pcc_lr_head_s_alloc(VALUE klass) {
-    pcc_lr_head_t *head;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_head_t, &pcc_lr_head_data_type, head);
-
-    return obj;
-}
 
 static void pcc_thunk_mark(void *ptr) {
 }
@@ -616,13 +610,15 @@ static void pcc_rule_set__copy(pcc_auxil_t auxil, pcc_rule_set_t *set, const pcc
     }
 }
 
-static pcc_lr_head_t *pcc_lr_head__create(VALUE rctx, pcc_rule_t rule) {
-    pcc_lr_head_t *const head = (pcc_lr_head_t *)xmalloc(sizeof(pcc_lr_head_t));
-    head->rule = rule;
+static VALUE pcc_lr_head_s_alloc(VALUE klass) {
+    pcc_lr_head_t *head;
+    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_head_t, &pcc_lr_head_data_type, head);
+    head->robj = obj;
     pcc_rule_set__init(NULL, &head->invol);
     pcc_rule_set__init(NULL, &head->eval);
     head->hold = NULL;
-    return head;
+
+    return obj;
 }
 
 static pcc_lr_answer_t *pcc_lr_answer__create(VALUE rctx, pcc_lr_answer_type_t type, size_t pos<% if @location %>, VALUE pos_loc<% end %>) {
@@ -908,7 +904,9 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
             switch (a->type) {
             case PCC_LR_ANSWER_LR:
                 if (a->data.lr->head == NULL) {
-                    a->data.lr->head = pcc_lr_head__create(rctx, rule);
+                    VALUE rhead = rb_funcall(cLrHead, rb_intern("new"), 0);
+                    TypedData_Get_Struct(rhead, pcc_lr_head_t, &pcc_lr_head_data_type, a->data.lr->head);
+                    a->data.lr->head->rule = rule;
                     pcc_lr_table__hold_head(rctx, rlrtable, p, a->data.lr->head);
                 }
                 {
