@@ -188,7 +188,6 @@ typedef struct pcc_lr_head_tag pcc_lr_head_t;
 
 struct pcc_lr_head_tag {
     VALUE robj;
-    pcc_rule_t rule;
 };
 
 typedef struct pcc_lr_memo_tag {
@@ -767,7 +766,8 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
     }
     if (h != NULL) {
         VALUE rinvol = rb_ivar_get(h->robj, rb_intern("@invol"));
-        if (a == NULL && rule.name != h->rule.name && pcc_rule_set__index(NULL, rinvol, rule.name) == PCC_VOID_VALUE) {
+        ID rule_name = SYM2ID(rb_ivar_get(h->robj, rb_intern("@rule_name")));
+        if (a == NULL && rule.name != rule_name && pcc_rule_set__index(NULL, rinvol, rule.name) == PCC_VOID_VALUE) {
             b = Qfalse;
             c = NULL;
         } else {
@@ -795,7 +795,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
                 if (a->data.lr->head == NULL) {
                     VALUE rhead = rb_funcall(cLrHead, rb_intern("new"), 0);
                     TypedData_Get_Struct(rhead, pcc_lr_head_t, &pcc_lr_head_data_type, a->data.lr->head);
-                    a->data.lr->head->rule = rule;
+                    rb_ivar_set(a->data.lr->head->robj, rb_intern("@rule_name"), ID2SYM(rule.name));
                     rb_funcall(rlrtable, rb_intern("hold_head"), 2, SIZET2NUM(p), a->data.lr->head->robj);
                 }
                 {
@@ -843,9 +843,11 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
                 pcc_lr_answer__set_chunk(rctx, a, c);
             }
             else {
+                ID rule_name;
                 e->seed = c;
                 h = a->data.lr->head;
-                if (h->rule.name != rule.name) {
+                rule_name = SYM2ID(rb_ivar_get(h->robj, rb_intern("@rule_name")));
+                if (rule_name != rule.name) {
                     c = a->data.lr->seed;
                     {
                         VALUE ranswer = rb_funcall(cLrAnswer, rb_intern("new"), <% if @location %>3<% else %>2<% end %>, ID2SYM(rb_intern("chunk")), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))))<% if @location %>, rb_funcall(rb_ivar_get(rctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rctx, rb_intern("@cur_loc")))<% end %>);
