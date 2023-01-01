@@ -139,6 +139,12 @@ class <%= class_name %>
       @capts = []
       @pos = 0
     end
+
+    def resize_captures(len)
+      (@capts.length...len).each do |i|
+        @capts << Capture.new
+      end
+    end
   end
 
   class LrAnswer

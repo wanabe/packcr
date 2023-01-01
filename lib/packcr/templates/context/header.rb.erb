@@ -375,15 +375,6 @@ static void pcc_value_refer_table__resize(pcc_auxil_t auxil, pcc_value_refer_tab
 }
 
 MARK_FUNC_AS_USED
-static void pcc_capture_table__resize(pcc_auxil_t auxil, VALUE rtable, size_t len) {
-    size_t i;
-    for (i = RARRAY_LEN(rtable); i < len; i++) {
-        VALUE rcapt = rb_funcall(cCapture, rb_intern("new"), 0);
-        rb_funcall(rtable, rb_intern("<<"), 1, rcapt);
-    }
-}
-
-MARK_FUNC_AS_USED
 static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t action, size_t valuec, size_t captc) {
     pcc_thunk_t *thunk;
     VALUE obj = TypedData_Make_Struct(cThunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
@@ -891,7 +882,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(VALUE rctx) {
 <%- end -%>
     //PCC_DEBUG(NULL, PCC_DBG_EVALUATE, "<%= node.name %>", NUM2SIZET(rb_ivar_get(rctx, rb_intern("@level"))), NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos"))), (RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))), (RSTRING_LEN(rb_ivar_get(rctx, rb_intern("@buffer"))) - NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")))));
     rb_ivar_set(rctx, rb_intern("@level"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@level"))) + 1));
-    pcc_capture_table__resize(NULL, rb_ivar_get(chunk->robj, rb_intern("@capts")), <%= node.capts.length %>);
+    rb_funcall(chunk->robj, rb_intern("resize_captures"), 1, SIZET2NUM(<%= node.capts.length %>));
 <%-   if node.vars.length > 0 -%>
     rb_ivar_set(chunk->robj, rb_intern("@values"), rb_ary_new());
 <%-   end -%>
