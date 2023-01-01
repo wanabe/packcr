@@ -183,6 +183,7 @@ typedef pcc_thunk_chunk_t *(*pcc_rule_func_t)(VALUE);
 
 typedef struct pcc_rule_tag {
     pcc_rule_func_t func;
+    ID name;
 } pcc_rule_t;
 
 typedef struct pcc_rule_set_tag {
@@ -605,12 +606,12 @@ static VALUE pcc_thunk_chunk_s_alloc(VALUE klass) {
     return obj;
 }
 
-static size_t pcc_rule_set__index(pcc_auxil_t auxil, VALUE rset, pcc_rule_t rule) {
+static size_t pcc_rule_set__index(pcc_auxil_t auxil, VALUE rset, ID rule_name) {
     pcc_rule_set_t *set;
     TypedData_Get_Struct(rset, pcc_rule_set_t, &pcc_rule_set_data_type, set);
     size_t i;
     for (i = 0; i < set->len; i++) {
-        if (set->buf[i].func == rule.func) return i;
+        if (set->buf[i].name == rule_name) return i;
     }
     return PCC_VOID_VALUE;
 }
@@ -618,7 +619,7 @@ static size_t pcc_rule_set__index(pcc_auxil_t auxil, VALUE rset, pcc_rule_t rule
 static VALUE pcc_rule_set__add(pcc_auxil_t auxil, VALUE rset, pcc_rule_t rule) {
     pcc_rule_set_t *set;
     TypedData_Get_Struct(rset, pcc_rule_set_t, &pcc_rule_set_data_type, set);
-    const size_t i = pcc_rule_set__index(auxil, rset, rule);
+    const size_t i = pcc_rule_set__index(auxil, rset, rule.name);
     if (i != PCC_VOID_VALUE) return Qfalse;
     if (set->max <= set->len) {
         const size_t n = set->len + 1;
@@ -633,10 +634,10 @@ static VALUE pcc_rule_set__add(pcc_auxil_t auxil, VALUE rset, pcc_rule_t rule) {
     return Qtrue;
 }
 
-static VALUE pcc_rule_set__remove(pcc_auxil_t auxil, VALUE rset, pcc_rule_t rule) {
+static VALUE pcc_rule_set__remove(pcc_auxil_t auxil, VALUE rset, ID rule_name) {
     pcc_rule_set_t *set;
     TypedData_Get_Struct(rset, pcc_rule_set_t, &pcc_rule_set_data_type, set);
-    const size_t i = pcc_rule_set__index(auxil, rset, rule);
+    const size_t i = pcc_rule_set__index(auxil, rset, rule_name);
     if (i == PCC_VOID_VALUE) return Qfalse;
     memmove(set->buf + i, set->buf + (i + 1), sizeof(pcc_rule_t) * (set->len - (i + 1)));
     return Qtrue;
@@ -752,7 +753,7 @@ static void pcc_lr_memo_map__init(pcc_auxil_t auxil, pcc_lr_memo_map_t *map) {
 static size_t pcc_lr_memo_map__index(VALUE rctx, pcc_lr_memo_map_t *map, pcc_rule_t rule) {
     size_t i;
     for (i = 0; i < map->len; i++) {
-        if (map->buf[i].rule.func == rule.func) return i;
+        if (map->buf[i].rule.name == rule.name) return i;
     }
     return PCC_VOID_VALUE;
 }
@@ -950,12 +951,12 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
     h = pcc_lr_table__get_head(rctx, rlrtable, p);
     if (h != NULL) {
         VALUE rinvol = rb_ivar_get(h->robj, rb_intern("@invol"));
-        if (a == NULL && rule.func != h->rule.func && pcc_rule_set__index(NULL, rinvol, rule) == PCC_VOID_VALUE) {
+        if (a == NULL && rule.name != h->rule.name && pcc_rule_set__index(NULL, rinvol, rule.name) == PCC_VOID_VALUE) {
             b = Qfalse;
             c = NULL;
         } else {
             VALUE reval = rb_ivar_get(h->robj, rb_intern("@eval"));
-            if (RTEST(pcc_rule_set__remove(NULL, reval, rule))) {
+            if (RTEST(pcc_rule_set__remove(NULL, reval, rule.name))) {
                 b = Qfalse;
                 c = rule.func(rctx);
                 {
@@ -1028,7 +1029,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, pcc_valu
             else {
                 e->seed = c;
                 h = a->data.lr->head;
-                if (h->rule.func != rule.func) {
+                if (h->rule.name != rule.name) {
                     c = a->data.lr->seed;
                     {
                         VALUE ranswer = rb_funcall(cLrAnswer, rb_intern("new"), <% if @location %>3<% else %>2<% end %>, ID2SYM(rb_intern("chunk")), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))))<% if @location %>, rb_funcall(rb_ivar_get(rctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rctx, rb_intern("@cur_loc")))<% end %>);
@@ -1199,7 +1200,7 @@ L0000:;
 int <%= prefix %>_parse(VALUE rctx, <%= value_def %>*ret) {
 <%- if !@rules.empty? -%>
     VALUE rthunks = rb_ivar_get(rctx, rb_intern("@thunks"));
-    pcc_rule_t rule = {pcc_evaluate_rule_<%= @rules[0].name %>};
+    pcc_rule_t rule = {pcc_evaluate_rule_<%= @rules[0].name %>, rb_intern("<%= @rules[0].name %>")};
     if (pcc_apply_rule(rctx, rule, rthunks, NULL, 0))
         pcc_do_action(rctx, rthunks, NULL, 0);
     else
