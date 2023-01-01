@@ -108,12 +108,6 @@ typedef struct pcc_capture_tag {
     pcc_range_t range;
 } pcc_capture_t;
 
-typedef struct pcc_capture_const_table_tag {
-    const pcc_capture_t **buf;
-    size_t max;
-    size_t len;
-} pcc_capture_const_table_t;
-
 typedef struct pcc_thunk_tag pcc_thunk_t;
 
 typedef void (*pcc_action_t)(VALUE, pcc_thunk_t *, pcc_value_t *, size_t);
