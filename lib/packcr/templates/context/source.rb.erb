@@ -70,6 +70,12 @@ class <%= class_name %>
       entry.head = head
     end
   end
+
+  class LrTableEntry
+    def initialize
+      @memos = {}
+    end
+  end
 end
 
 require_relative "<%= prefix%>.so"

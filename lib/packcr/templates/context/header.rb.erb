@@ -211,10 +211,6 @@ typedef struct pcc_lr_memo_map_tag {
     size_t len;
 } pcc_lr_memo_map_t;
 
-typedef struct pcc_lr_table_entry_tag {
-    VALUE robj;
-} pcc_lr_table_entry_t;
-
 struct pcc_lr_entry_tag {
     VALUE robj;
     pcc_rule_t rule;
@@ -292,23 +288,6 @@ static VALUE pcc_lr_entry_s_alloc(VALUE klass) {
 
     return obj;
 }
-
-static void pcc_lr_table_entry_mark(void *ptr) {
-}
-
-static void pcc_lr_table_entry_free(void *ptr) {
-}
-
-static size_t pcc_lr_table_entry_memsize(const void *ptr) {
-    return sizeof(pcc_lr_table_entry_t);
-}
-
-static const rb_data_type_t pcc_lr_table_entry_data_type = {
-    "pcc_lr_table_entry",
-    {pcc_lr_table_entry_mark, pcc_lr_table_entry_free, pcc_lr_table_entry_memsize,},
-    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
-};
-
 
 static void pcc_lr_head_mark(void *ptr) {
 }
@@ -741,15 +720,6 @@ static void pcc_lr_answer__set_chunk(VALUE rctx, pcc_lr_answer_t *answer, pcc_th
     answer->hold = a;
     answer->type = PCC_LR_ANSWER_CHUNK;
     answer->data.chunk = chunk;
-}
-
-static VALUE pcc_lr_table_entry_s_alloc(VALUE klass) {
-    pcc_lr_table_entry_t *entry;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_table_entry_t, &pcc_lr_table_entry_data_type, entry);
-    entry->robj = obj;
-    rb_ivar_set(obj, rb_intern("@memos"), rb_hash_new());
-
-    return obj;
 }
 
 static void pcc_lr_table__hold_head(VALUE rctx, VALUE rtable, size_t index, pcc_lr_head_t *head) {
@@ -1191,8 +1161,7 @@ void Init_<%= prefix %>(void) {
     cLrEntry = rb_define_class_under(c<%= class_name %>, "LrEntry", rb_cObject);
     rb_define_alloc_func(cLrEntry, pcc_lr_entry_s_alloc);
 
-    cLrTableEntry = rb_define_class_under(c<%= class_name %>, "LrTableEntry", rb_cObject);
-    rb_define_alloc_func(cLrTableEntry, pcc_lr_table_entry_s_alloc);
+    cLrTableEntry = rb_const_get(c<%= class_name %>, rb_intern("LrTableEntry"));
 
     cLrHead = rb_define_class_under(c<%= class_name %>, "Lrhead", rb_cObject);
     rb_define_alloc_func(cLrHead, pcc_lr_head_s_alloc);
