@@ -106,7 +106,6 @@ typedef struct pcc_value_refer_table_tag {
 typedef struct pcc_capture_tag {
     VALUE robj;
     pcc_range_t range;
-    char *string; /* mutable */
 } pcc_capture_t;
 
 typedef struct pcc_capture_const_table_tag {
@@ -202,18 +201,6 @@ static void pcc_error(void) {
 #ifndef PCC_GETCHAR
 #define PCC_GETCHAR(auxil) NUM2INT(rb_funcall(rb_mKernel, rb_intern("getb"), 0))
 #endif /* !PCC_GETCHAR */
-
-#ifndef PCC_MALLOC
-#define PCC_MALLOC(auxil, size) pcc_malloc_e(size)
-static void *pcc_malloc_e(size_t size) {
-    void *const p = malloc(size);
-    if (p == NULL) {
-        fprintf(stderr, "Out of memory\n");
-        exit(1);
-    }
-    return p;
-}
-#endif /* !PCC_MALLOC */
 
 #ifndef PCC_REALLOC
 #define PCC_REALLOC(auxil, ptr, size) pcc_realloc_e(ptr, size)
@@ -324,7 +311,6 @@ static VALUE pcc_capture_s_alloc(VALUE klass) {
     rb_ivar_set(obj, rb_intern("@start_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
     rb_ivar_set(obj, rb_intern("@end_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
 <%- end -%>
-    capt->string = NULL;
 
     return obj;
 }
@@ -393,14 +379,6 @@ static VALUE pcc_rule_set_s_alloc(VALUE klass) {
     set->buf = NULL;
 
     return obj;
-}
-
-static char *pcc_strndup_e(pcc_auxil_t auxil, const char *str, size_t len) {
-    const size_t m = strnlen(str, len);
-    char *const s = (char *)PCC_MALLOC(auxil, m + 1);
-    memcpy(s, str, m);
-    s[m] = '\0';
-    return s;
 }
 
 static void pcc_value_table__init(pcc_auxil_t auxil, pcc_value_table_t *table) {
@@ -631,12 +609,14 @@ static void pcc_commit_buffer(VALUE rctx) {
 
 MARK_FUNC_AS_USED
 static const char *pcc_get_capture_string(VALUE rctx, VALUE rcapt) {
+    VALUE rstring = rb_ivar_get(rcapt, rb_intern("@string"));
     pcc_capture_t *capt;
     TypedData_Get_Struct(rcapt, pcc_capture_t, &pcc_capture_data_type, capt);
-    if (capt->string == NULL)
-        ((pcc_capture_t *)capt)->string =
-            pcc_strndup_e(NULL, RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + capt->range.start, capt->range.end - capt->range.start);
-    return capt->string;
+    if (NIL_P(rstring)) {
+        rstring = rb_funcall(rb_ivar_get(rctx, rb_intern("@buffer")), rb_intern("[]"), 2, SIZET2NUM(capt->range.start), SIZET2NUM(capt->range.end - capt->range.start));
+        rb_ivar_set(rcapt, rb_intern("@string"), rstring);
+    }
+    return StringValuePtr(rstring);
 }
 
 <% if @utf8 -%>
