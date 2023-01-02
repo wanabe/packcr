@@ -4,6 +4,7 @@
     pcc_capture_t *capt0;
 <%- if !vars.empty? -%>
     VALUE rvalue, rvalues = rb_ivar_get(rchunk, rb_intern("@values"));
+    VALUE rvalue_refs = rb_ivar_get(thunk->robj, rb_intern("@value_refs"));
 <%- end -%>
 <%- if !capts.empty? -%>
     VALUE rcapt;
@@ -11,7 +12,7 @@
     TypedData_Get_Struct(rcapt0, pcc_capture_t, &pcc_capture_data_type, capt0);
 <%- vars.each do |var| -%>
     rvalue = rb_funcall(rvalues, rb_intern("[]"), 1, SIZET2NUM(<%= var.index %>));
-    TypedData_Get_Struct(rvalue, pcc_value_t, &pcc_value_data_type, thunk->value_refs.buf[<%= var.index %>]);
+    rb_funcall(rvalue_refs, rb_intern("[]="), 2, SIZET2NUM(<%= var.index %>), rvalue);
 <%- end -%>
 <%- capts.each do |capt| -%>
     rcapt = rb_funcall(rb_ivar_get(rchunk, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capt.index %>));

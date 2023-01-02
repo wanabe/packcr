@@ -97,12 +97,6 @@ typedef struct pcc_value_table_tag {
     size_t len;
 } pcc_value_table_t;
 
-typedef struct pcc_value_refer_table_tag {
-    pcc_value_t **buf;
-    size_t max;
-    size_t len;
-} pcc_value_refer_table_t;
-
 typedef struct pcc_capture_tag {
     VALUE robj;
     pcc_range_t range;
@@ -112,7 +106,6 @@ typedef struct pcc_thunk_tag pcc_thunk_t;
 
 struct pcc_thunk_tag {
     VALUE robj;
-    pcc_value_refer_table_t value_refs; /* leaf */
 };
 
 typedef enum pcc_lr_answer_type_tag {
@@ -139,18 +132,6 @@ static void pcc_error(void) {
 #ifndef PCC_GETCHAR
 #define PCC_GETCHAR(auxil) NUM2INT(rb_funcall(rb_mKernel, rb_intern("getb"), 0))
 #endif /* !PCC_GETCHAR */
-
-#ifndef PCC_REALLOC
-#define PCC_REALLOC(auxil, ptr, size) pcc_realloc_e(ptr, size)
-static void *pcc_realloc_e(void *ptr, size_t size) {
-    void *const p = realloc(ptr, size);
-    if (p == NULL) {
-        fprintf(stderr, "Out of memory\n");
-        exit(1);
-    }
-    return p;
-}
-#endif /* !PCC_REALLOC */
 
 #ifndef PCC_DEBUG
 #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
@@ -249,34 +230,13 @@ static const rb_data_type_t pcc_lr_answer_data_type = {
     0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
 };
 
-static void pcc_value_refer_table__init(pcc_auxil_t auxil, pcc_value_refer_table_t *table) {
-    table->len = 0;
-    table->max = 0;
-    table->buf = NULL;
-}
-
-static void pcc_value_refer_table__resize(pcc_auxil_t auxil, pcc_value_refer_table_t *table, size_t len) {
-    size_t i;
-    if (table->max < len) {
-        size_t m = table->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
-        while (m < len && m != 0) m <<= 1;
-        if (m == 0) m = len;
-        table->buf = (pcc_value_t **)PCC_REALLOC(auxil, table->buf, sizeof(pcc_value_t *) * m);
-        table->max = m;
-    }
-    for (i = table->len; i < len; i++) table->buf[i] = NULL;
-    table->len = len;
-}
-
 MARK_FUNC_AS_USED
 static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, ID action, size_t valuec, size_t captc) {
     pcc_thunk_t *thunk;
     VALUE obj = TypedData_Make_Struct(cThunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
     thunk->robj = obj;
     rb_ivar_set(obj, rb_intern("@type"), ID2SYM(rb_intern("leaf")));
-    pcc_value_refer_table__init(auxil, &thunk->value_refs);
-    pcc_value_refer_table__resize(auxil, &thunk->value_refs, valuec);
+    rb_ivar_set(obj, rb_intern("@value_refs"), rb_ary_new());
     rb_ivar_set(obj, rb_intern("@capts"), rb_ary_new());
     rb_ivar_set(obj, rb_intern("@capt0"), rb_funcall(cCapture, rb_intern("new"), 0));
     rb_ivar_set(obj, rb_intern("@action"), ID2SYM(action));
@@ -630,7 +590,7 @@ static inline pcc_thunk_t *pcc_thunk__ptr(VALUE rthunk) {
 static VALUE pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, VALUE __pcc_rin, VALUE __pcc_rvars, VALUE __pcc_rindex) {
 #define __ pcc_value__ptr(__pcc_rvars, __pcc_rindex)->value
 <%-     code.vars.each do |ref| -%>
-#define <%= ref.var %> (pcc_thunk__ptr(__pcc_rin)->value_refs.buf[<%= ref.index %>]->value)
+#define <%= ref.var %> (pcc_value__ptr(rb_ivar_get(__pcc_rin, rb_intern("@value_refs")), SIZET2NUM(<%= ref.index %>))->value)
 <%-     end -%>
 #define _0 pcc_get_capture_string(__pcc_ctx, rb_ivar_get(__pcc_rin, rb_intern("@capt0")))
 #define _0s ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + pcc_thunk_leaf__get_capt0(__pcc_rin)->range.start))
