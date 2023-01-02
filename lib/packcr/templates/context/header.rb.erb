@@ -221,22 +221,6 @@ static VALUE pcc_apply_rule(VALUE rctx, VALUE rrule, VALUE rthunks, VALUE rvalue
     return Qtrue;
 }
 
-static VALUE pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, VALUE rindex) {
-    size_t index = NUM2SIZET(rindex);
-    size_t i;
-    for (i = 0; i < (size_t)RARRAY_LEN(rthunks); i++) {
-        VALUE rthunk = rb_funcall(rthunks, rb_intern("[]"), 1, SIZET2NUM(i));
-        VALUE rtype = rb_ivar_get(rthunk, rb_intern("@type"));
-        ID type = SYM2ID(rtype);
-        if (type == rb_intern("leaf")) {
-            rb_funcall(rctx, SYM2ID(rb_ivar_get(rthunk, rb_intern("@action"))), 3, rthunk, rvalues, SIZET2NUM(index));
-        } else if (type == rb_intern("node")) {
-            rb_funcall(rctx, rb_intern("do_action"), 3, rb_ivar_get(rthunk, rb_intern("@thunks")), rb_ivar_get(rthunk, rb_intern("@values")), rb_ivar_get(rthunk, rb_intern("@index")));
-        }
-    }
-    return rctx;
-}
-
 <%- @rules.each do |node| -%>
 static VALUE pcc_evaluate_rule_<%= node.name %>(VALUE rctx);
 <%- end -%>
@@ -274,7 +258,6 @@ void Init_<%= prefix %>(void) {
     VALUE c<%= class_name %> = rb_const_get(rb_cObject, rb_intern("<%= class_name %>"));
 
     rb_define_method(c<%= class_name %>, "apply_rule", pcc_apply_rule, 4);
-    rb_define_method(c<%= class_name %>, "do_action", pcc_do_action, 3);
     <%- @rules.each do |rule| -%>
     rb_define_method(c<%= class_name %>, "evaluate_rule_<%= rule.name %>", pcc_evaluate_rule_<%= rule.name %>, 0);
     <%- end -%>
