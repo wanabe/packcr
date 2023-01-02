@@ -173,6 +173,17 @@ class <%= class_name %>
 
   class LrEntry
   end
+
+  class Capture
+    def initialize
+      @range_start = 0
+      @range_end = 0
+      <%- if @location -%>
+      @start_loc = Location.new
+      @end_loc = Location.new
+      <%- end -%>
+    end
+  end
 end
 
 require_relative "<%= prefix%>.so"

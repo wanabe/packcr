@@ -79,10 +79,6 @@ typedef struct pcc_value_table_tag {
     size_t len;
 } pcc_value_table_t;
 
-typedef struct pcc_capture_tag {
-    VALUE robj;
-} pcc_capture_t;
-
 typedef enum pcc_lr_answer_type_tag {
     PCC_LR_ANSWER_LR,
     PCC_LR_ANSWER_CHUNK
@@ -113,35 +109,6 @@ static void pcc_error(void) {
 #endif /* !PCC_DEBUG */
 
 static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkChunk, cCapture, cValue;
-
-static void pcc_capture_mark(void *ptr) {
-}
-
-static void pcc_capture_free(void *ptr) {
-}
-
-static size_t pcc_capture_memsize(const void *ptr) {
-    return sizeof(pcc_capture_t);
-}
-
-static const rb_data_type_t pcc_capture_data_type = {
-    "pcc_capture",
-    {pcc_capture_mark, pcc_capture_free, pcc_capture_memsize,},
-    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
-};
-
-static VALUE pcc_capture_s_alloc(VALUE klass) {
-    pcc_capture_t *capt;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_capture_t, &pcc_capture_data_type, capt);
-    rb_ivar_set(obj, rb_intern("@range_start"), SIZET2NUM(0));
-    rb_ivar_set(obj, rb_intern("@range_end"), SIZET2NUM(0));
-<%- if @location -%>
-    rb_ivar_set(obj, rb_intern("@start_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
-    rb_ivar_set(obj, rb_intern("@end_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
-<%- end -%>
-
-    return obj;
-}
 
 static void pcc_value_mark(void *ptr) {
 }
@@ -510,13 +477,6 @@ static VALUE pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, VALUE rinde
     return rctx;
 }
 
-static inline pcc_capture_t *pcc_thunk_leaf__get_capt0(VALUE rthunk) {
-    VALUE rcapt0 = rb_ivar_get(rthunk, rb_intern("@capt0"));
-    pcc_capture_t *capt0;
-    TypedData_Get_Struct(rcapt0, pcc_capture_t, &pcc_capture_data_type, capt0);
-    return capt0;
-}
-
 static inline pcc_value_t *pcc_value__ptr(VALUE rvalues, VALUE rindex) {
     VALUE rvalue;
     pcc_value_t *value;
@@ -650,8 +610,7 @@ void Init_<%= prefix %>(void) {
 
     cThunkChunk = rb_const_get(c<%= class_name %>, rb_intern("ThunkChunk"));
 
-    cCapture = rb_define_class_under(c<%= class_name %>, "Capture", rb_cObject);
-    rb_define_alloc_func(cCapture, pcc_capture_s_alloc);
+    cCapture = rb_const_get(c<%= class_name %>, rb_intern("Capture"));
 
     cValue = rb_define_class_under(c<%= class_name %>, "Value", rb_cObject);
     rb_define_alloc_func(cValue, pcc_value_s_alloc);
