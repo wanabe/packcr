@@ -420,7 +420,9 @@ static size_t pcc_get_char_as_utf32(VALUE rctx, int *out) { /* with checking UTF
 
 <% end -%>
 MARK_FUNC_AS_USED
-static VALUE pcc_apply_rule(VALUE rctx, ID rule, VALUE rthunks, VALUE rvalues, size_t index) {
+static VALUE pcc_apply_rule(VALUE rctx, VALUE rrule, VALUE rthunks, VALUE rvalues, VALUE rindex) {
+    ID rule = SYM2ID(rrule);
+    size_t index = NUM2SIZET(rindex);
     const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
 <%- if @location -%>
     const VALUE p_loc = rb_funcall(rb_ivar_get(rctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rctx, rb_intern("@cur_loc")));
@@ -702,7 +704,7 @@ L0000:;
 int <%= prefix %>_parse(VALUE rctx, <%= value_def %>*ret) {
 <%- if !@rules.empty? -%>
     VALUE rthunks = rb_ivar_get(rctx, rb_intern("@thunks"));
-    if (pcc_apply_rule(rctx, rb_intern("evaluate_rule_<%= @rules[0].name %>"), rthunks, Qnil, 0))
+    if (rb_funcall(rctx, rb_intern("apply_rule"), 4, ID2SYM(rb_intern("evaluate_rule_<%= @rules[0].name %>")), rthunks, Qnil, SIZET2NUM(0)))
         rb_funcall(rctx, rb_intern("do_action"), 3, rthunks, Qnil, SIZET2NUM(0));
     else
         PCC_ERROR(NULL);
@@ -725,6 +727,7 @@ void Init_<%= prefix %>(void) {
     VALUE c<%= class_name %> = rb_const_get(rb_cObject, rb_intern("<%= class_name %>"));
 
     rb_define_method(c<%= class_name %>, "run", <%= prefix %>_run, 0);
+    rb_define_method(c<%= class_name %>, "apply_rule", pcc_apply_rule, 4);
     rb_define_method(c<%= class_name %>, "do_action", pcc_do_action, 3);
     <%- @rules.each do |rule| -%>
     rb_define_method(c<%= class_name %>, "evaluate_rule_<%= rule.name %>", pcc_evaluate_rule_<%= rule.name %>, 0);
