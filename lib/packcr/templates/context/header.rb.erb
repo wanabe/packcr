@@ -24,7 +24,7 @@ extern "C" {
 
 typedef <%= auxil_def %>pcc_auxil_t;
 
-static VALUE cLrEntry, cLrHead, cLrAnswer, cThunkLeaf, cThunkNode, cThunkChunk;
+static VALUE cThunkLeaf, cThunkChunk;
 
 <% if @utf8 -%>
 static size_t pcc_get_char_as_utf32(VALUE rctx, int *out) { /* with checking UTF-8 validity */
@@ -120,14 +120,7 @@ void Init_<%= prefix %>(void) {
     rb_define_method(c<%= class_name %>, "evaluate_rule_<%= rule.name %>", pcc_evaluate_rule_<%= rule.name %>, 0);
     <%- end -%>
 
-    cLrEntry = rb_const_get(c<%= class_name %>, rb_intern("LrEntry"));
-
-    cLrHead = rb_const_get(c<%= class_name %>, rb_intern("LrHead"));
-
-    cLrAnswer = rb_const_get(c<%= class_name %>, rb_intern("LrAnswer"));
-
     cThunkLeaf = rb_const_get(c<%= class_name %>, rb_intern("ThunkLeaf"));
-    cThunkNode = rb_const_get(c<%= class_name %>, rb_intern("ThunkNode"));
 
     cThunkChunk = rb_const_get(c<%= class_name %>, rb_intern("ThunkChunk"));
 }
