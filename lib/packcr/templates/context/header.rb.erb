@@ -110,7 +110,7 @@ typedef struct pcc_capture_tag {
 
 typedef struct pcc_thunk_tag pcc_thunk_t;
 
-typedef void (*pcc_action_t)(VALUE, pcc_thunk_t *, VALUE, size_t);
+typedef VALUE (*pcc_action_t)(VALUE, VALUE, VALUE, VALUE);
 
 struct pcc_thunk_tag {
     VALUE robj;
@@ -640,7 +640,7 @@ static void pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, size_t index
         ID type = SYM2ID(rtype);
         TypedData_Get_Struct(rthunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
         if (type == rb_intern("leaf")) {
-            thunk->action(rctx, thunk, rvalues, index);
+            thunk->action(rctx, thunk->robj, rvalues, SIZET2NUM(index));
         } else if (type == rb_intern("node")) {
             pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), thunk->index);
         }
@@ -666,23 +666,29 @@ static inline pcc_value_t *pcc_value__ptr(VALUE rvalues, VALUE rindex) {
     return value;
 }
 
+static inline pcc_thunk_t *pcc_thunk__ptr(VALUE rthunk) {
+    pcc_thunk_t *thunk;
+    TypedData_Get_Struct(rthunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
+    return thunk;
+}
+
 <%- @rules.each do |rule| -%>
 <%-   rule.codes.each do |code| -%>
-static void pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, pcc_thunk_t *__pcc_in, VALUE __pcc_rvars, size_t __pcc_index) {
-#define __ pcc_value__ptr(__pcc_rvars, SIZET2NUM(__pcc_index))->value
+static VALUE pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, VALUE __pcc_rin, VALUE __pcc_rvars, VALUE __pcc_rindex) {
+#define __ pcc_value__ptr(__pcc_rvars, __pcc_rindex)->value
 <%-     code.vars.each do |ref| -%>
-#define <%= ref.var %> (__pcc_in->value_refs.buf[<%= ref.index %>]->value)
+#define <%= ref.var %> (pcc_thunk__ptr(__pcc_rin)->value_refs.buf[<%= ref.index %>]->value)
 <%-     end -%>
-#define _0 pcc_get_capture_string(__pcc_ctx, rb_ivar_get(__pcc_in->robj, rb_intern("@capt0")))
-#define _0s ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + pcc_thunk_leaf__get_capt0(__pcc_in->robj)->range.start))
-#define _0e ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + pcc_thunk_leaf__get_capt0(__pcc_in->robj)->range.end))
+#define _0 pcc_get_capture_string(__pcc_ctx, rb_ivar_get(__pcc_rin, rb_intern("@capt0")))
+#define _0s ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + pcc_thunk_leaf__get_capt0(__pcc_rin)->range.start))
+#define _0e ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + pcc_thunk_leaf__get_capt0(__pcc_rin)->range.end))
 <%-     code.capts.each do |capture| -%>
-#define _<%= capture.index + 1 %> pcc_get_capture_string(__pcc_ctx, rb_funcall(rb_ivar_get(__pcc_in->robj, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)))
-#define _<%= capture.index + 1 %>s ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
-#define _<%= capture.index + 1 %>e ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
+#define _<%= capture.index + 1 %> pcc_get_capture_string(__pcc_ctx, rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)))
+#define _<%= capture.index + 1 %>s ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + pcc_thunk__ptr(__pcc_rin)->data.leaf.capts.buf[<%= capture.index %>]->range.start))
+#define _<%= capture.index + 1 %>e ((const size_t)(__pcc_NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + pcc_thunk__ptr(__pcc_rin)->data.leaf.capts.buf[<%= capture.index %>]->range.end))
 <%-       if @location -%>
-#define _<%= capture.index + 1 %>sl ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(__pcc_in->data.leaf.capts.buf[<%= capture.index %>]->robj, rb_intern("@start_loc")))))
-#define _<%= capture.index + 1 %>el ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(__pcc_in->data.leaf.capts.buf[<%= capture.index %>]->robj, rb_intern("@end_loc")))))
+#define _<%= capture.index + 1 %>sl ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(pcc_thunk__ptr(__pcc_rin)->data.leaf.capts.buf[<%= capture.index %>]->robj, rb_intern("@start_loc")))))
+#define _<%= capture.index + 1 %>el ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(pcc_thunk__ptr(__pcc_rin)->data.leaf.capts.buf[<%= capture.index %>]->robj, rb_intern("@end_loc")))))
 <%-       end -%>
 <%-     end -%>
 <%=     hstream.get_code_block(code.code, 4, @iname) -%>
@@ -703,6 +709,7 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, pcc_t
 <%-     end -%>
 #undef __
 #undef auxil
+    return Qnil;
 }
 
 <%-   end -%>

@@ -28,7 +28,7 @@ L<%= "%04d" % l %>:;
         capt0->range.start_loc = rb_ivar_get(rchunk, rb_intern("@pos_loc"));
         capt0->range.end_loc = rb_ivar_get(rctx, rb_intern("cur_loc"));
 <%- end -%>
-        thunk->action(rctx, thunk, Qnil, 0);
+        thunk->action(rctx, thunk->robj, Qnil, SIZET2NUM(0));
     }
     goto L<%= "%04d" % onfail %>;
 L<%= "%04d" % m %>:;
