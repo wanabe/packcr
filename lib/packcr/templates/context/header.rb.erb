@@ -379,12 +379,6 @@ static inline pcc_value_t *pcc_value__ptr(VALUE rvalues, VALUE rindex) {
     return value;
 }
 
-static inline VALUE pcc_capt__at(VALUE rcapts, VALUE rindex) {
-    VALUE rcapt;
-    rcapt = rb_funcall(rcapts, rb_intern("[]"), 1, rindex);
-    return rcapt;
-}
-
 <%- @rules.each do |rule| -%>
 <%-   rule.codes.each do |code| -%>
 static VALUE pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, VALUE __pcc_rin, VALUE __pcc_rvars, VALUE __pcc_rindex) {
