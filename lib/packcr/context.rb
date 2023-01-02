@@ -373,7 +373,11 @@ class Packcr
           else
             if !eol?
               if match_character("$".ord)
-                @buffer[@bufcur - 1] = "_".ord
+                if @lang == :rb
+                  @buffer[@bufcur - 1] = "__"
+                else
+                  @buffer[@bufcur - 1] = "_"
+                end
               else
                 match_character_any
               end

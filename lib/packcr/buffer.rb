@@ -37,7 +37,7 @@ class Packcr
     end
 
     def []=(pos, ch)
-      @buf[pos] = ch.chr
+      @buf[pos] = ch
     end
 
     def add_pos(offset)

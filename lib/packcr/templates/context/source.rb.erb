@@ -63,6 +63,32 @@ class <%= class_name %>
     nil while parse
   end
 
+  <%- @rules.each do |rule| -%>
+  <%-   rule.codes.each do |code| -%>
+  def action_<%= rule.name %>_<%= code.index %>(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    <%-   code.vars.each do |ref| -%>
+    <%= ref.var %> = (__pcc_in.value_refs[<%= ref.index %>]  ||= Value.new).value
+    <%-   end -%>
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    <%-   code.capts.each do |capture| -%>
+    __<%= capture.index + 1 %> = __pcc_in.capts[<%= capture.index %>].capture_string(@buffer)
+    __<%= capture.index + 1 %>s = @pos + __pcc_in.capts[<%= capture.index %>].range_start
+    __<%= capture.index + 1 %>e = @pos + __pcc_in.capts[<%= capture.index %>].range_end
+    <%-     if @location -%>
+    __<%= capture.index + 1 %>sl = @pos_loc + __pcc_in.capts[<%= capture.index %>].start_loc
+    __<%= capture.index + 1 %>el = @pos_loc + __pcc_in.capts[<%= capture.index %>].end_loc
+    <%-     end -%>
+    <%-   end -%>
+    <%=   sstream.get_code_block(code.code, 4, @iname) -%>
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  <%-   end -%>
+  <%- end -%>
   class LrTable
     def initialize
       super
@@ -172,6 +198,8 @@ class <%= class_name %>
   end
 
   class ThunkLeaf < Thunk
+    attr_accessor :capt0, :capts, :value_refs
+
     def initialize(action)
       @type = :leaf
       @value_refs = []
@@ -194,6 +222,8 @@ class <%= class_name %>
   end
 
   class Capture
+    attr_accessor :range_start, :range_end
+
     def initialize
       @range_start = 0
       @range_end = 0
@@ -201,6 +231,10 @@ class <%= class_name %>
       @start_loc = Location.new
       @end_loc = Location.new
       <%- end -%>
+    end
+
+    def capture_string(buffer)
+      @string ||= buffer[@range_start, @range_end - @range_start]
     end
   end
 
@@ -231,3 +265,9 @@ class <%= class_name %>
 end
 
 require_relative "<%= prefix%>.so"
+
+class <%= class_name %>
+  class Value
+    attr_accessor :value
+  end
+end

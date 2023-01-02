@@ -46,45 +46,7 @@ typedef struct pcc_value_tag {
 
 typedef <%= auxil_def %>pcc_auxil_t;
 
-static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkLeaf, cThunkNode, cThunkChunk, cCapture, cValue;
-
-static void pcc_value_mark(void *ptr) {
-}
-
-static void pcc_value_free(void *ptr) {
-}
-
-static size_t pcc_value_memsize(const void *ptr) {
-    return sizeof(pcc_value_t);
-}
-
-static const rb_data_type_t pcc_value_data_type = {
-    "pcc_value",
-    {pcc_value_mark, pcc_value_free, pcc_value_memsize,},
-    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
-};
-
-static VALUE pcc_value_s_alloc(VALUE klass) {
-    pcc_value_t *value;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_value_t, &pcc_value_data_type, value);
-
-    return obj;
-}
-
-static const char *pcc_get_capture_string(VALUE rctx, VALUE rcapt) {
-    VALUE rstring = rb_ivar_get(rcapt, rb_intern("@string"));
-    if (NIL_P(rstring)) {
-        rstring = rb_funcall(rb_ivar_get(rctx, rb_intern("@buffer")), rb_intern("[]"), 2,
-            rb_ivar_get(rcapt, rb_intern("@range_start")),
-            SIZET2NUM(
-                NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_end"))) -
-                NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_start")))
-            )
-        );
-        rb_ivar_set(rcapt, rb_intern("@string"), rstring);
-    }
-    return StringValuePtr(rstring);
-}
+static VALUE cLrEntry, cLrHead, cLrAnswer, cThunkLeaf, cThunkNode, cThunkChunk, cValue;
 
 <% if @utf8 -%>
 static size_t pcc_get_char_as_utf32(VALUE rctx, int *out) { /* with checking UTF-8 validity */
@@ -300,70 +262,6 @@ static VALUE pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, VALUE rinde
     return rctx;
 }
 
-static inline pcc_value_t *pcc_value__ptr(VALUE rvalues, VALUE rindex) {
-    VALUE rvalue;
-    pcc_value_t *value;
-    rvalue = rb_funcall(rvalues, rb_intern("[]"), 1, rindex);
-    if (NIL_P(rvalue)) {
-        rvalue = rb_funcall(cValue, rb_intern("new"), 0);
-        rb_funcall(rvalues, rb_intern("[]="), 2, rindex, rvalue);
-    }
-    TypedData_Get_Struct(rvalue, pcc_value_t, &pcc_value_data_type, value);
-    return value;
-}
-
-<%- @rules.each do |rule| -%>
-<%-   rule.codes.each do |code| -%>
-static VALUE pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, VALUE __pcc_rin, VALUE __pcc_rvars, VALUE __pcc_rindex) {
-#define __ pcc_value__ptr(__pcc_rvars, __pcc_rindex)->value
-<%-     code.vars.each do |ref| -%>
-#define <%= ref.var %> (pcc_value__ptr(rb_ivar_get(__pcc_rin, rb_intern("@value_refs")), SIZET2NUM(<%= ref.index %>))->value)
-<%-     end -%>
-#define _0 pcc_get_capture_string(__pcc_ctx, rb_ivar_get(__pcc_rin, rb_intern("@capt0")))
-#define _0s ((const size_t)(NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rb_ivar_get(__pcc_rin, rb_intern("@capt0")), rb_intern("@range_start")))))
-#define _0e ((const size_t)(NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rb_ivar_get(__pcc_rin, rb_intern("@capt0")), rb_intern("@range_end")))))
-<%-     code.capts.each do |capture| -%>
-#define _<%= capture.index + 1 %> pcc_get_capture_string(__pcc_ctx, rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)))
-#define _<%= capture.index + 1 %>s ((const size_t)(\
-    NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + \
-    NUM2SIZET(rb_ivar_get( \
-        rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)),\
-        rb_intern("@range_start") \
-    ))))
-#define _<%= capture.index + 1 %>e ((const size_t)(\
-    NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + \
-    NUM2SIZET(rb_ivar_get( \
-        rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)), \
-        rb_intern("@range_end") \
-    ))))
-<%-       if @location -%>
-#define _<%= capture.index + 1 %>sl ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)), rb_intern("@start_loc")))))
-#define _<%= capture.index + 1 %>el ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)), rb_intern("@end_loc")))))
-<%-       end -%>
-<%-     end -%>
-<%=     hstream.get_code_block(code.code, 4, @iname) -%>
-<%-     code.capts.reverse_each do |capture| -%>
-<%-       if @location -%>
-#undef _<%= capture.index + 1 %>el
-#undef _<%= capture.index + 1 %>sl
-<%-       end -%>
-#undef _<%= capture.index + 1 %>e
-#undef _<%= capture.index + 1 %>s
-#undef _<%= capture.index + 1 %>
-<%-     end -%>
-#undef _0e
-#undef _0s
-#undef _0
-<%- code.vars.reverse_each do |ref| -%>
-#undef <%= ref.var %>
-<%-     end -%>
-#undef __
-#undef auxil
-    return Qnil;
-}
-
-<%-   end -%>
-<%- end -%>
 <%- @rules.each do |node| -%>
 static VALUE pcc_evaluate_rule_<%= node.name %>(VALUE rctx);
 <%- end -%>
@@ -408,27 +306,18 @@ void Init_<%= prefix %>(void) {
     rb_define_method(c<%= class_name %>, "do_action", pcc_do_action, 3);
     <%- @rules.each do |rule| -%>
     rb_define_method(c<%= class_name %>, "evaluate_rule_<%= rule.name %>", pcc_evaluate_rule_<%= rule.name %>, 0);
-    <%-   rule.codes.each do |code| -%>
-    rb_define_method(c<%= class_name %>, "action_<%= rule.name %>_<%= code.index %>", pcc_action_<%= rule.name %>_<%= code.index %>, 3);
-    <%-   end -%>
     <%- end -%>
 
     cLrEntry = rb_const_get(c<%= class_name %>, rb_intern("LrEntry"));
-
-    cLrTableEntry = rb_const_get(c<%= class_name %>, rb_intern("LrTableEntry"));
 
     cLrHead = rb_const_get(c<%= class_name %>, rb_intern("LrHead"));
 
     cLrAnswer = rb_const_get(c<%= class_name %>, rb_intern("LrAnswer"));
 
-    cThunk = rb_const_get(c<%= class_name %>, rb_intern("Thunk"));
     cThunkLeaf = rb_const_get(c<%= class_name %>, rb_intern("ThunkLeaf"));
     cThunkNode = rb_const_get(c<%= class_name %>, rb_intern("ThunkNode"));
 
     cThunkChunk = rb_const_get(c<%= class_name %>, rb_intern("ThunkChunk"));
 
-    cCapture = rb_const_get(c<%= class_name %>, rb_intern("Capture"));
-
     cValue = rb_define_class_under(c<%= class_name %>, "Value", rb_cObject);
-    rb_define_alloc_func(cValue, pcc_value_s_alloc);
 }
