@@ -7,7 +7,7 @@ L<%= "%04d" % l %>:;
         VALUE rcapt0 = rb_ivar_get(thunk->robj, rb_intern("@capt0"));
         pcc_capture_t *capt0;
 <%- if !vars.empty? -%>
-        VALUE rvalue, rvalues = rb_ivar_get(chunk->robj, rb_intern("@values"));
+        VALUE rvalue, rvalues = rb_ivar_get(rchunk, rb_intern("@values"));
 <%- end -%>
 <%- if !capts.empty? -%>
         VALUE rcapt;
@@ -19,13 +19,13 @@ L<%= "%04d" % l %>:;
         TypedData_Get_Struct(rvalue, pcc_value_t, &pcc_value_data_type, thunk->value_refs.buf[<%= var.index %>]);
 <%- end -%>
 <%- capts.each do |capt| -%>
-        rcapt = rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capt.index %>));
+        rcapt = rb_funcall(rb_ivar_get(rchunk, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capt.index %>));
         rb_funcall(rb_ivar_get(thunk->robj, rb_intern("@capts")), rb_intern("[]="), 2, SIZET2NUM(<%= capt.index %>), rcapt);
 <%- end -%>
-        capt0->range.start = NUM2SIZET(rb_ivar_get(chunk->robj, rb_intern("@pos")));
+        capt0->range.start = NUM2SIZET(rb_ivar_get(rchunk, rb_intern("@pos")));
         capt0->range.end = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
 <%- if gen.location -%>
-        capt0->range.start_loc = rb_ivar_get(chunk->robj, rb_intern("@pos_loc"));
+        capt0->range.start_loc = rb_ivar_get(rchunk, rb_intern("@pos_loc"));
         capt0->range.end_loc = rb_ivar_get(rctx, rb_intern("cur_loc"));
 <%- end -%>
         thunk->action(rctx, thunk, Qnil, 0);

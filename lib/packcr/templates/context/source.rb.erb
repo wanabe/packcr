@@ -134,17 +134,14 @@ class <%= class_name %>
       end
     end
   end
-end
 
-require_relative "<%= prefix%>.so"
-
-class <%= class_name %>
   class ThunkChunk
     def initialize
       super
       @thunks = []
       @capts = []
       @pos = 0
+      @values = []
     end
 
     def resize_captures(len)
@@ -153,7 +150,11 @@ class <%= class_name %>
       end
     end
   end
+end
 
+require_relative "<%= prefix%>.so"
+
+class <%= class_name %>
   class LrAnswer
     attr_accessor :hold
   end

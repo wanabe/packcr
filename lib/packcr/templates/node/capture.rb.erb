@@ -10,7 +10,7 @@
 <%- r, code = gen.generate_code_str(expr, onfail, 4, false) -%>
 <%= code -%>
     q = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
-    rcapt = rb_funcall(rb_ivar_get(chunk->robj, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= index %>));
+    rcapt = rb_funcall(rb_ivar_get(rchunk, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= index %>));
     TypedData_Get_Struct(rcapt, pcc_capture_t, &pcc_capture_data_type, capt);
     capt->range.start = p;
     capt->range.end = q;
