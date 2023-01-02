@@ -1,10 +1,10 @@
 {
-    pcc_thunk_t *const thunk = pcc_thunk__create_leaf(NULL, rb_intern("action_<%= gen.rule.name %>_<%= index %>"), <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
-    VALUE rcapt0 = rb_ivar_get(thunk->robj, rb_intern("@capt0"));
+    VALUE rthunk = pcc_thunk__create_leaf(NULL, rb_intern("action_<%= gen.rule.name %>_<%= index %>"), <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
+    VALUE rcapt0 = rb_ivar_get(rthunk, rb_intern("@capt0"));
     pcc_capture_t *capt0;
 <%- if !vars.empty? -%>
     VALUE rvalue, rvalues = rb_ivar_get(rchunk, rb_intern("@values"));
-    VALUE rvalue_refs = rb_ivar_get(thunk->robj, rb_intern("@value_refs"));
+    VALUE rvalue_refs = rb_ivar_get(rthunk, rb_intern("@value_refs"));
 <%- end -%>
 <%- if !capts.empty? -%>
     VALUE rcapt;
@@ -16,7 +16,7 @@
 <%- end -%>
 <%- capts.each do |capt| -%>
     rcapt = rb_funcall(rb_ivar_get(rchunk, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capt.index %>));
-    rb_funcall(rb_ivar_get(thunk->robj, rb_intern("@capts")), rb_intern("[]="), 2, SIZET2NUM(<%= capt.index %>), rcapt);
+    rb_funcall(rb_ivar_get(rthunk, rb_intern("@capts")), rb_intern("[]="), 2, SIZET2NUM(<%= capt.index %>), rcapt);
 <%- end -%>
     capt0->range.start = NUM2SIZET(rb_ivar_get(rchunk, rb_intern("@pos")));
     capt0->range.end = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
@@ -24,5 +24,5 @@
     capt0->range.start_loc = rb_ivar_get(rchunk, rb_intern("@pos_loc"));
     capt0->range.end_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
 <%- end -%>
-    rb_funcall(rb_ivar_get(rchunk, rb_intern("@thunks")), rb_intern("push"), 1, thunk->robj);
+    rb_funcall(rb_ivar_get(rchunk, rb_intern("@thunks")), rb_intern("push"), 1, rthunk);
 }
