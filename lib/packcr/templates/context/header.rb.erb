@@ -590,8 +590,8 @@ static VALUE pcc_apply_rule(VALUE rctx, ID rule, VALUE rthunks, VALUE rvalues, s
     return Qtrue;
 }
 
-MARK_FUNC_AS_USED
-static void pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, size_t index) {
+static VALUE pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, VALUE rindex) {
+    size_t index = NUM2SIZET(rindex);
     size_t i;
     for (i = 0; i < (size_t)RARRAY_LEN(rthunks); i++) {
         pcc_thunk_t *thunk;
@@ -602,9 +602,10 @@ static void pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, size_t index
         if (type == rb_intern("leaf")) {
             rb_funcall(rctx, SYM2ID(rb_ivar_get(rthunk, rb_intern("@action"))), 3, thunk->robj, rvalues, SIZET2NUM(index));
         } else if (type == rb_intern("node")) {
-            pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), thunk->index);
+            rb_funcall(rctx, rb_intern("do_action"), 3, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), SIZET2NUM(thunk->index));
         }
     }
+    return rctx;
 }
 
 static inline pcc_capture_t *pcc_thunk_leaf__get_capt0(VALUE rthunk) {
@@ -711,7 +712,7 @@ int <%= prefix %>_parse(VALUE rctx, <%= value_def %>*ret) {
 <%- if !@rules.empty? -%>
     VALUE rthunks = rb_ivar_get(rctx, rb_intern("@thunks"));
     if (pcc_apply_rule(rctx, rb_intern("evaluate_rule_<%= @rules[0].name %>"), rthunks, Qnil, 0))
-        pcc_do_action(rctx, rthunks, Qnil, 0);
+        rb_funcall(rctx, rb_intern("do_action"), 3, rthunks, Qnil, SIZET2NUM(0));
     else
         PCC_ERROR(NULL);
     pcc_commit_buffer(rctx);
@@ -733,6 +734,7 @@ void Init_<%= prefix %>(void) {
     VALUE c<%= class_name %> = rb_const_get(rb_cObject, rb_intern("<%= class_name %>"));
 
     rb_define_method(c<%= class_name %>, "run", <%= prefix %>_run, 0);
+    rb_define_method(c<%= class_name %>, "do_action", pcc_do_action, 3);
     <%- @rules.each do |rule| -%>
     rb_define_method(c<%= class_name %>, "evaluate_rule_<%= rule.name %>", pcc_evaluate_rule_<%= rule.name %>, 0);
     <%-   rule.codes.each do |code| -%>
