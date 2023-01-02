@@ -110,13 +110,10 @@ typedef struct pcc_capture_tag {
 
 typedef struct pcc_thunk_tag pcc_thunk_t;
 
-typedef VALUE (*pcc_action_t)(VALUE, VALUE, VALUE, VALUE);
-
 struct pcc_thunk_tag {
     VALUE robj;
     size_t index;                       /* node */
     pcc_value_refer_table_t value_refs; /* leaf */
-    pcc_action_t action;                /* leaf */
 };
 
 typedef struct pcc_lr_entry_tag pcc_lr_entry_t;
@@ -307,7 +304,7 @@ static void pcc_value_refer_table__resize(pcc_auxil_t auxil, pcc_value_refer_tab
 }
 
 MARK_FUNC_AS_USED
-static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t action, size_t valuec, size_t captc) {
+static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, ID action, size_t valuec, size_t captc) {
     pcc_thunk_t *thunk;
     VALUE obj = TypedData_Make_Struct(cThunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
     thunk->robj = obj;
@@ -316,7 +313,7 @@ static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t actio
     pcc_value_refer_table__resize(auxil, &thunk->value_refs, valuec);
     rb_ivar_set(obj, rb_intern("@capts"), rb_ary_new());
     rb_ivar_set(obj, rb_intern("@capt0"), rb_funcall(cCapture, rb_intern("new"), 0));
-    thunk->action = action;
+    rb_ivar_set(obj, rb_intern("@action"), ID2SYM(action));
     return thunk;
 }
 
@@ -640,7 +637,7 @@ static void pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, size_t index
         ID type = SYM2ID(rtype);
         TypedData_Get_Struct(rthunk, pcc_thunk_t, &pcc_thunk_data_type, thunk);
         if (type == rb_intern("leaf")) {
-            thunk->action(rctx, thunk->robj, rvalues, SIZET2NUM(index));
+            rb_funcall(rctx, SYM2ID(rb_ivar_get(rthunk, rb_intern("@action"))), 3, thunk->robj, rvalues, SIZET2NUM(index));
         } else if (type == rb_intern("node")) {
             pcc_do_action(rctx, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), thunk->index);
         }
@@ -773,8 +770,11 @@ void Init_<%= prefix %>(void) {
     VALUE c<%= class_name %> = rb_const_get(rb_cObject, rb_intern("<%= class_name %>"));
 
     rb_define_method(c<%= class_name %>, "run", <%= prefix %>_run, 0);
-    <%- @rules.each do |node| -%>
-    rb_define_method(c<%= class_name %>, "evaluate_rule_<%= node.name %>", pcc_evaluate_rule_<%= node.name %>, 0);
+    <%- @rules.each do |rule| -%>
+    rb_define_method(c<%= class_name %>, "evaluate_rule_<%= rule.name %>", pcc_evaluate_rule_<%= rule.name %>, 0);
+    <%-   rule.codes.each do |code| -%>
+    rb_define_method(c<%= class_name %>, "action_<%= rule.name %>_<%= code.index %>", pcc_action_<%= rule.name %>_<%= code.index %>, 3);
+    <%-   end -%>
     <%- end -%>
 
     cLrEntry = rb_define_class_under(c<%= class_name %>, "LrEntry", rb_cObject);

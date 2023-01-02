@@ -1,5 +1,5 @@
 {
-    pcc_thunk_t *const thunk = pcc_thunk__create_leaf(NULL, pcc_action_<%= gen.rule.name %>_<%= index %>, <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
+    pcc_thunk_t *const thunk = pcc_thunk__create_leaf(NULL, rb_intern("action_<%= gen.rule.name %>_<%= index %>"), <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
     VALUE rcapt0 = rb_ivar_get(thunk->robj, rb_intern("@capt0"));
     pcc_capture_t *capt0;
 <%- if !vars.empty? -%>
