@@ -1,7 +1,7 @@
 {
 <%- if !a && charclass =~ /\A[^\\]-.\z/ -%>
     char c;
-    if (pcc_refill_buffer(rctx, 1) < 1) goto L<%= "%04d" % onfail %>;
+    if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) < 1) goto L<%= "%04d" % onfail %>;
     c = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer")))[NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))];
 <%- if a -%>
     if (c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>') goto L<%= "%04d" % onfail %>;
@@ -14,7 +14,7 @@
     rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + 1));
 <%- else -%>
     char c;
-    if (pcc_refill_buffer(rctx, 1) < 1) goto L<%= "%04d" % onfail %>;
+    if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) < 1) goto L<%= "%04d" % onfail %>;
     c = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer")))[NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))];
 <%- if a -%>
     if (

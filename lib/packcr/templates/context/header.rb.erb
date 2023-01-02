@@ -353,15 +353,6 @@ static void pcc_lr_answer__set_chunk(VALUE rctx, VALUE ranswer, VALUE rchunk) {
     rb_ivar_set(ranswer, rb_intern("@chunk"), rchunk);
 }
 
-static size_t pcc_refill_buffer(VALUE rctx, size_t num) {
-    return NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(num)));
-}
-
-MARK_FUNC_AS_USED
-static void pcc_commit_buffer(VALUE rctx) {
-    rb_funcall(rctx, rb_intern("commit_buffer"), 0);
-}
-
 MARK_FUNC_AS_USED
 static const char *pcc_get_capture_string(VALUE rctx, VALUE rcapt) {
     VALUE rstring = rb_ivar_get(rcapt, rb_intern("@string"));
@@ -378,14 +369,14 @@ static const char *pcc_get_capture_string(VALUE rctx, VALUE rcapt) {
 static size_t pcc_get_char_as_utf32(VALUE rctx, int *out) { /* with checking UTF-8 validity */
     int c, u;
     size_t n;
-    if (pcc_refill_buffer(rctx, 1) < 1) return 0;
+    if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) < 1) return 0;
     c = (int)(unsigned char)RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer")))[NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))];
     n = (c < 0x80) ? 1 :
         ((c & 0xe0) == 0xc0) ? 2 :
         ((c & 0xf0) == 0xe0) ? 3 :
         ((c & 0xf8) == 0xf0) ? 4 : 0;
     if (n < 1) return 0;
-    if (pcc_refill_buffer(rctx, n) < n) return 0;
+    if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(n))) < n) return 0;
     switch (n) {
     case 1:
         u = c;
@@ -715,10 +706,10 @@ int <%= prefix %>_parse(VALUE rctx, <%= value_def %>*ret) {
         rb_funcall(rctx, rb_intern("do_action"), 3, rthunks, Qnil, SIZET2NUM(0));
     else
         PCC_ERROR(NULL);
-    pcc_commit_buffer(rctx);
+    rb_funcall(rctx, rb_intern("commit_buffer"), 0);
 <%- end -%>
     rb_funcall(rthunks, rb_intern("clear"), 0);
-    return pcc_refill_buffer(rctx, 1) >= 1;
+    return NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) >= 1;
 }
 
 <%- @lheader.each do |code| -%>

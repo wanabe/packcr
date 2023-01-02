@@ -1,5 +1,5 @@
 if (
-    pcc_refill_buffer(rctx, <%= n %>) < <%= n %> ||
+    NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(<%= n %>))) < <%= n %> ||
 <%- (n - 1).times do |i| -%>
     (RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))))[<%= i %>] != '<%= Packcr.escape_character(value[i]) %>' ||
 <%- end -%>
