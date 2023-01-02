@@ -112,7 +112,6 @@ typedef struct pcc_thunk_tag pcc_thunk_t;
 
 struct pcc_thunk_tag {
     VALUE robj;
-    size_t index;                       /* node */
     pcc_value_refer_table_t value_refs; /* leaf */
 };
 
@@ -291,7 +290,7 @@ static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, VAL
     rb_ivar_set(obj, rb_intern("@type"), ID2SYM(rb_intern("node")));
     rb_ivar_set(obj, rb_intern("@thunks"), rthunks);
     rb_ivar_set(obj, rb_intern("@values"), rvalues);
-    thunk->index = index;
+    rb_ivar_set(obj, rb_intern("@index"), SIZET2NUM(index));
     return thunk;
 }
 
@@ -595,7 +594,7 @@ static VALUE pcc_do_action(VALUE rctx, VALUE rthunks, VALUE rvalues, VALUE rinde
         if (type == rb_intern("leaf")) {
             rb_funcall(rctx, SYM2ID(rb_ivar_get(rthunk, rb_intern("@action"))), 3, thunk->robj, rvalues, SIZET2NUM(index));
         } else if (type == rb_intern("node")) {
-            rb_funcall(rctx, rb_intern("do_action"), 3, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), SIZET2NUM(thunk->index));
+            rb_funcall(rctx, rb_intern("do_action"), 3, rb_ivar_get(thunk->robj, rb_intern("@thunks")), rb_ivar_get(thunk->robj, rb_intern("@values")), rb_ivar_get(thunk->robj, rb_intern("@index")));
         }
     }
     return rctx;
