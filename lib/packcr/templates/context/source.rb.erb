@@ -205,7 +205,7 @@ class <%= class_name %>
   end
 
   class LrAnswer
-    attr_accessor :hold
+    attr_accessor :hold, :lr, :chunk
 
     def initialize(type, pos<% if @location %>, pos_loc<% end %>)
       @type = type
@@ -213,6 +213,19 @@ class <%= class_name %>
       <%- if @location -%>
       @pos_loc = pos_loc
       <%- end -%>
+    end
+
+    def set_chunk(chunk)
+      a = LrAnswer.new(@type, @pos<% if @location %>, @pos_loc<% end %>)
+      if @type == :lr
+        a.lr = @lr
+      elsif @type == :chunk
+        a.chunk = @chunk
+      end
+      a.hold = @hold
+      @hold = a
+      @type = :chunk
+      @chunk = chunk
     end
   end
 end
