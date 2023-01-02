@@ -108,7 +108,7 @@ static void pcc_error(void) {
 #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
 #endif /* !PCC_DEBUG */
 
-static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkChunk, cCapture, cValue;
+static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkLeaf, cThunkNode, cThunkChunk, cCapture, cValue;
 
 static void pcc_value_mark(void *ptr) {
 }
@@ -148,26 +148,6 @@ static const rb_data_type_t pcc_lr_answer_data_type = {
     {pcc_lr_answer_mark, pcc_lr_answer_free, pcc_lr_answer_memsize,},
     0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
 };
-
-MARK_FUNC_AS_USED
-static VALUE pcc_thunk__create_leaf(pcc_auxil_t auxil, ID action, size_t valuec, size_t captc) {
-    VALUE obj = rb_funcall(cThunk, rb_intern("new"), 0);
-    rb_ivar_set(obj, rb_intern("@type"), ID2SYM(rb_intern("leaf")));
-    rb_ivar_set(obj, rb_intern("@value_refs"), rb_ary_new());
-    rb_ivar_set(obj, rb_intern("@capts"), rb_ary_new());
-    rb_ivar_set(obj, rb_intern("@capt0"), rb_funcall(cCapture, rb_intern("new"), 0));
-    rb_ivar_set(obj, rb_intern("@action"), ID2SYM(action));
-    return obj;
-}
-
-static VALUE pcc_thunk__create_node(pcc_auxil_t auxil, VALUE rthunks, VALUE rvalues, size_t index) {
-    VALUE obj = rb_funcall(cThunk, rb_intern("new"), 0);
-    rb_ivar_set(obj, rb_intern("@type"), ID2SYM(rb_intern("node")));
-    rb_ivar_set(obj, rb_intern("@thunks"), rthunks);
-    rb_ivar_set(obj, rb_intern("@values"), rvalues);
-    rb_ivar_set(obj, rb_intern("@index"), SIZET2NUM(index));
-    return obj;
-}
 
 static VALUE pcc_lr_answer_s_alloc(VALUE klass) {
     pcc_lr_answer_t *answer;
@@ -455,7 +435,7 @@ static VALUE pcc_apply_rule(VALUE rctx, VALUE rrule, VALUE rthunks, VALUE rvalue
         rb_funcall(rvalues, rb_intern("[]="), 2, SIZET2NUM(index), rb_funcall(cValue, rb_intern("new"), 0)); /* in case */
     }
     {
-        VALUE rt = pcc_thunk__create_node(NULL, rb_ivar_get(rc, rb_intern("@thunks")), rvalues, index);
+        VALUE rt = rb_funcall(cThunkNode, rb_intern("new"), 3, rb_ivar_get(rc, rb_intern("@thunks")), rvalues, SIZET2NUM(index));
         rb_funcall(rthunks, rb_intern("push"), 1, rt);
     }
     return Qtrue;
@@ -607,6 +587,8 @@ void Init_<%= prefix %>(void) {
     rb_define_method(cLrAnswer, "initialize", pcc_lr_answer_initialize, <% if @location %>3<% else %>2<% end %>);
 
     cThunk = rb_const_get(c<%= class_name %>, rb_intern("Thunk"));
+    cThunkLeaf = rb_const_get(c<%= class_name %>, rb_intern("ThunkLeaf"));
+    cThunkNode = rb_const_get(c<%= class_name %>, rb_intern("ThunkNode"));
 
     cThunkChunk = rb_const_get(c<%= class_name %>, rb_intern("ThunkChunk"));
 

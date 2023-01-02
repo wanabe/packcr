@@ -1,5 +1,5 @@
 {
-    VALUE rthunk = pcc_thunk__create_leaf(NULL, rb_intern("action_<%= gen.rule.name %>_<%= index %>"), <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
+    VALUE rthunk = rb_funcall(cThunkLeaf, rb_intern("new"), 1, ID2SYM(rb_intern("action_<%= gen.rule.name %>_<%= index %>")));
     VALUE rcapt0 = rb_ivar_get(rthunk, rb_intern("@capt0"));
 <%- if !vars.empty? -%>
     VALUE rvalue, rvalues = rb_ivar_get(rchunk, rb_intern("@values"));

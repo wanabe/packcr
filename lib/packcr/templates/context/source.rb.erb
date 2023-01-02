@@ -171,6 +171,25 @@ class <%= class_name %>
   class Thunk
   end
 
+  class ThunkLeaf < Thunk
+    def initialize(action)
+      @type = :leaf
+      @value_refs = []
+      @capts = []
+      @capt0 = Capture.new
+      @action = action
+    end
+  end
+
+  class ThunkNode < Thunk
+    def initialize(thunks, values, index)
+      @type = :node
+      @thunks = thunks
+      @values = values
+      @index = index
+    end
+  end
+
   class LrEntry
   end
 
