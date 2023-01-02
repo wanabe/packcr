@@ -46,6 +46,23 @@ class <%= class_name %>
     <%- end -%>
   end
 
+  def parse
+    <%- if !@rules.empty? -%>
+    if apply_rule(:evaluate_rule_<%= @rules[0].name %>, @thunks, nil, 0)
+      do_action(@thunks, nil, 0)
+    else
+      raise SyntaxError, "can't parse"
+    end
+    commit_buffer
+    <%- end -%>
+    @thunks.clear
+    refill_buffer(1) >= 1
+  end
+
+  def run
+    nil while parse
+  end
+
   class LrTable
     def initialize
       super

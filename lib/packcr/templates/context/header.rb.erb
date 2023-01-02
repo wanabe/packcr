@@ -701,32 +701,13 @@ L0000:;
 
 <%- end -%>
 
-int <%= prefix %>_parse(VALUE rctx, <%= value_def %>*ret) {
-<%- if !@rules.empty? -%>
-    VALUE rthunks = rb_ivar_get(rctx, rb_intern("@thunks"));
-    if (rb_funcall(rctx, rb_intern("apply_rule"), 4, ID2SYM(rb_intern("evaluate_rule_<%= @rules[0].name %>")), rthunks, Qnil, SIZET2NUM(0)))
-        rb_funcall(rctx, rb_intern("do_action"), 3, rthunks, Qnil, SIZET2NUM(0));
-    else
-        PCC_ERROR(NULL);
-    rb_funcall(rctx, rb_intern("commit_buffer"), 0);
-<%- end -%>
-    rb_funcall(rthunks, rb_intern("clear"), 0);
-    return NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) >= 1;
-}
-
 <%- @lheader.each do |code| -%>
 <%=   hstream.get_code_block(code, 0, @iname) -%>
 <%- end -%>
 
-static VALUE <%= prefix %>_run(VALUE self) {
-    while (<%= prefix %>_parse(self, NULL));
-    return Qfalse;
-}
-
 void Init_<%= prefix %>(void) {
     VALUE c<%= class_name %> = rb_const_get(rb_cObject, rb_intern("<%= class_name %>"));
 
-    rb_define_method(c<%= class_name %>, "run", <%= prefix %>_run, 0);
     rb_define_method(c<%= class_name %>, "apply_rule", pcc_apply_rule, 4);
     rb_define_method(c<%= class_name %>, "do_action", pcc_do_action, 3);
     <%- @rules.each do |rule| -%>
