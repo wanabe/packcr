@@ -215,6 +215,7 @@ class <%= class_name %>
       @thunks = thunks
       @values = values
       @index = index
+      values[index] ||= Value.new if values
     end
   end
 
@@ -262,12 +263,10 @@ class <%= class_name %>
       @chunk = chunk
     end
   end
-end
 
-require_relative "<%= prefix%>.so"
-
-class <%= class_name %>
   class Value
     attr_accessor :value
   end
 end
+
+require_relative "<%= prefix%>.so"
