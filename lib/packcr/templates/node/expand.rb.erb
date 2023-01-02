@@ -1,13 +1,11 @@
 {
     size_t n;
-    pcc_capture_t *capt;
     VALUE rcapt = rb_funcall(rb_ivar_get(rchunk, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= index %>));
-    TypedData_Get_Struct(rcapt, pcc_capture_t, &pcc_capture_data_type, capt);
-    n = capt->range.end - capt->range.start;
+    n = NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_end"))) - NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_start")));
     if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(n))) < n) goto L<%= "%04d" % onfail %>;
     if (n > 0) {
         const char *const p = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
-        const char *const q = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + capt->range.start;
+        const char *const q = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_start")));
         size_t i;
         for (i = 0; i < n; i++) {
             if (p[i] != q[i]) goto L<%= "%04d" % onfail %>;

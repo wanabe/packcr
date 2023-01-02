@@ -67,11 +67,6 @@ extern "C" {
 
 #define PCC_VOID_VALUE (~(size_t)0)
 
-typedef struct pcc_range_tag {
-    size_t start;
-    size_t end;
-} pcc_range_t;
-
 typedef struct pcc_value_tag {
     <%= value_def %>value;
 } pcc_value_t;
@@ -86,7 +81,6 @@ typedef struct pcc_value_table_tag {
 
 typedef struct pcc_capture_tag {
     VALUE robj;
-    pcc_range_t range;
 } pcc_capture_t;
 
 typedef enum pcc_lr_answer_type_tag {
@@ -139,8 +133,8 @@ static const rb_data_type_t pcc_capture_data_type = {
 static VALUE pcc_capture_s_alloc(VALUE klass) {
     pcc_capture_t *capt;
     VALUE obj = TypedData_Make_Struct(klass, pcc_capture_t, &pcc_capture_data_type, capt);
-    capt->range.start = 0;
-    capt->range.end = 0;
+    rb_ivar_set(obj, rb_intern("@range_start"), SIZET2NUM(0));
+    rb_ivar_set(obj, rb_intern("@range_end"), SIZET2NUM(0));
 <%- if @location -%>
     rb_ivar_set(obj, rb_intern("@start_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
     rb_ivar_set(obj, rb_intern("@end_loc"), rb_funcall(cLocation, rb_intern("new"), 0));
@@ -269,10 +263,14 @@ static void pcc_lr_answer__set_chunk(VALUE rctx, VALUE ranswer, VALUE rchunk) {
 MARK_FUNC_AS_USED
 static const char *pcc_get_capture_string(VALUE rctx, VALUE rcapt) {
     VALUE rstring = rb_ivar_get(rcapt, rb_intern("@string"));
-    pcc_capture_t *capt;
-    TypedData_Get_Struct(rcapt, pcc_capture_t, &pcc_capture_data_type, capt);
     if (NIL_P(rstring)) {
-        rstring = rb_funcall(rb_ivar_get(rctx, rb_intern("@buffer")), rb_intern("[]"), 2, SIZET2NUM(capt->range.start), SIZET2NUM(capt->range.end - capt->range.start));
+        rstring = rb_funcall(rb_ivar_get(rctx, rb_intern("@buffer")), rb_intern("[]"), 2,
+            rb_ivar_get(rcapt, rb_intern("@range_start")),
+            SIZET2NUM(
+                NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_end"))) -
+                NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_start")))
+            )
+        );
         rb_ivar_set(rcapt, rb_intern("@string"), rstring);
     }
     return StringValuePtr(rstring);
@@ -531,15 +529,10 @@ static inline pcc_value_t *pcc_value__ptr(VALUE rvalues, VALUE rindex) {
     return value;
 }
 
-static inline pcc_capture_t *pcc_capt__ptr(VALUE rcapts, VALUE rindex) {
+static inline VALUE pcc_capt__at(VALUE rcapts, VALUE rindex) {
     VALUE rcapt;
-    pcc_capture_t *capt;
     rcapt = rb_funcall(rcapts, rb_intern("[]"), 1, rindex);
-    if (NIL_P(rcapt)) {
-        return NULL;
-    }
-    TypedData_Get_Struct(rcapt, pcc_capture_t, &pcc_capture_data_type, capt);
-    return capt;
+    return rcapt;
 }
 
 <%- @rules.each do |rule| -%>
@@ -550,15 +543,25 @@ static VALUE pcc_action_<%= rule.name %>_<%= code.index %>(VALUE __pcc_ctx, VALU
 #define <%= ref.var %> (pcc_value__ptr(rb_ivar_get(__pcc_rin, rb_intern("@value_refs")), SIZET2NUM(<%= ref.index %>))->value)
 <%-     end -%>
 #define _0 pcc_get_capture_string(__pcc_ctx, rb_ivar_get(__pcc_rin, rb_intern("@capt0")))
-#define _0s ((const size_t)(NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + pcc_thunk_leaf__get_capt0(__pcc_rin)->range.start))
-#define _0e ((const size_t)(NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + pcc_thunk_leaf__get_capt0(__pcc_rin)->range.end))
+#define _0s ((const size_t)(NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rb_ivar_get(__pcc_rin, rb_intern("@capt0")), rb_intern("@range_start")))))
+#define _0e ((const size_t)(NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rb_ivar_get(__pcc_rin, rb_intern("@capt0")), rb_intern("@range_end")))))
 <%-     code.capts.each do |capture| -%>
 #define _<%= capture.index + 1 %> pcc_get_capture_string(__pcc_ctx, rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)))
-#define _<%= capture.index + 1 %>s ((const size_t)(NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + pcc_capt__ptr(rb_ivar_get(__pcc_rin, rb_intern("@capts")), SIZET2NUM(<%= capture.index %>))->range.start))
-#define _<%= capture.index + 1 %>e ((const size_t)(NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + pcc_capt__ptr(rb_ivar_get(__pcc_rin, rb_intern("@capts")), SIZET2NUM(<%= capture.index %>))->range.end))
+#define _<%= capture.index + 1 %>s ((const size_t)(\
+    NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + \
+    NUM2SIZET(rb_ivar_get( \
+        rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)),\
+        rb_intern("@range_start") \
+    ))))
+#define _<%= capture.index + 1 %>e ((const size_t)(\
+    NUM2SIZET(rb_ivar_get(__pcc_ctx, rb_intern("@pos"))) + \
+    NUM2SIZET(rb_ivar_get( \
+        rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)), \
+        rb_intern("@range_end") \
+    ))))
 <%-       if @location -%>
-#define _<%= capture.index + 1 %>sl ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(pcc_capt__ptr(rb_ivar_get(__pcc_rin, rb_intern("@capts")), SIZET2NUM(<%= capture.index %>))->robj, rb_intern("@start_loc")))))
-#define _<%= capture.index + 1 %>el ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(pcc_capt__ptr(rb_ivar_get(__pcc_rin, rb_intern("@capts")), SIZET2NUM(<%= capture.index %>))->robj, rb_intern("@end_loc")))))
+#define _<%= capture.index + 1 %>sl ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)), rb_intern("@start_loc")))))
+#define _<%= capture.index + 1 %>el ((const VALUE)(rb_funcall(rb_ivar_get(__pcc_ctx, rb_intern("@pos_loc")), rb_intern("+"), 1, rb_ivar_get(rb_funcall(rb_ivar_get(__pcc_rin, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capture.index %>)), rb_intern("@end_loc")))))
 <%-       end -%>
 <%-     end -%>
 <%=     hstream.get_code_block(code.code, 4, @iname) -%>
