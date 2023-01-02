@@ -89,6 +89,130 @@ class <%= class_name %>
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
+  def apply_rule(rule, thunks, values, index)
+    pos = @pos + @cur
+    <%- if @location -%>
+    p_loc = @pos_loc + @cur_loc
+    <%- end -%>
+    b = true
+    a = @lrtable.get_answer(pos, rule)
+    h = @lrtable.get_head(pos)
+    if h
+      invol = h.invol
+      if !a && rule != h.rule_name && !invol[rule]
+        b = false
+        c = nil
+      else
+        if h.eval.delete(rule)
+          c = public_send(rule)
+          b = false
+          a = LrAnswer.new(:chunk, @pos + @cur<% if @location %>, @pos_loc + @cur_loc<% end %>)
+          a.chunk = c
+          @lrtable.hold_answer(pos, a)
+        end
+      end
+    end
+
+    if b
+      if a
+        @cur = a.pos - @pos
+        <%- if @location -%>
+        @cur_loc = a.pos_loc - @pos_loc
+        <%- end -%>
+        type = a.type
+        if type == :lr
+          lr = a.lr
+          head = lr.head
+          if !head
+            head = LrHead.new
+            lr.head = head
+            head.rule_name = rule
+            @lrtable.hold_head(pos, head)
+          end
+          @lrstack.reverse_each do |lrentry|
+            entry_head = lrentry.head
+            lr = a.lr
+            answer_head = lr.head
+            if entry_head == answer_head
+              break
+            end
+            lrentry.head = answer_head
+            invol = answer_head.invol
+            invol[lrentry.rule] = true
+          end
+          lr = a.lr
+          c = lr.seed
+        elsif type == :chunk
+          c = a.chunk
+        end
+      else
+        entry = LrEntry.new
+        entry.rule = rule
+        @lrstack.push(entry)
+        a = LrAnswer.new(:lr, pos<% if @location %>, p_loc<% end %>)
+        a.lr = entry
+        @lrtable.set_answer(pos, rule, a)
+        c = public_send(rule)
+        @lrstack.pop
+        a.pos = @pos + @cur
+        <%- if @location -%>
+        a.pos_loc = @pos_loc + @cur_loc
+        <%- end -%>
+        if !entry.head
+          a.set_chunk(c)
+        else
+          lr = a.lr
+          entry.seed = c
+          h = lr.head
+          if h.rule_name != rule
+            c = lr.seed
+            a = LrAnswer.new(:chunk, @pos + @cur<% if @location %>, @pos_loc + @cur_loc<% end %>)
+            a.chunk = c
+            @lrtable.hold_answer(pos, a)
+          else
+            seed = lr.seed
+            a.set_chunk(seed)
+            chunk = a.chunk
+            if !chunk
+              c = nil
+            else
+              @lrtable.set_head(pos, h)
+              while true
+                @cur = pos - @pos
+                <%- if @location -%>
+                @cur_loc = p_loc - @pos_loc
+                <%- end -%>
+                h.invol_to_eval
+                c = public_send(rule)
+                if !c || @pos + @cur <= a.pos
+                  break
+                end
+                a.set_chunk(c)
+                a.pos = @pos + @cur
+                <%- if @location -%>
+                a.pos_loc = @pos_loc + @cur_loc
+                <%- end -%>
+              end
+              @lrtable.set_head(pos, nil)
+              @cur = a.pos - @pos
+              <%- if @location -%>
+              @cur_loc = a.pos_loc - @pos_loc
+              <%- end -%>
+              c = a.chunk
+            end
+          end
+        end
+      end
+    end
+
+    if !c
+      return false
+    end
+    t = ThunkNode.new(c.thunks, values, index)
+    thunks << t
+    return true
+  end
+
   def do_action(thunks, values, index)
     thunks.each do |thunk|
       case thunk.type
@@ -176,7 +300,7 @@ class <%= class_name %>
   end
 
   class LrHead
-    attr_accessor :hold
+    attr_accessor :hold, :rule_name, :invol, :eval
 
     def initialize
       @invol = {}
@@ -192,6 +316,8 @@ class <%= class_name %>
   end
 
   class ThunkChunk
+    attr_accessor :thunks
+
     def initialize
       super
       @thunks = []
@@ -236,6 +362,7 @@ class <%= class_name %>
   end
 
   class LrEntry
+    attr_accessor :rule, :head, :seed
   end
 
   class Capture
@@ -256,7 +383,7 @@ class <%= class_name %>
   end
 
   class LrAnswer
-    attr_accessor :hold, :lr, :chunk
+    attr_accessor :hold, :lr, :chunk, :pos, :type
 
     def initialize(type, pos<% if @location %>, pos_loc<% end %>)
       @type = type
