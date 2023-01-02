@@ -39,62 +39,12 @@ extern "C" {
 <%- @source.each do |code| -%>
 <%=   hstream.get_code_block(code, 0, @iname) -%>
 <%- end -%>
-#if !defined __has_attribute || defined _MSC_VER
-#define __attribute__(x)
-#endif
-
-#ifdef _MSC_VER
-#define MARK_FUNC_AS_USED __pragma(warning(suppress:4505))
-#else
-#define MARK_FUNC_AS_USED __attribute__((__unused__))
-#endif
-
-#ifndef PCC_BUFFER_MIN_SIZE
-#define PCC_BUFFER_MIN_SIZE 256
-#endif /* !PCC_BUFFER_MIN_SIZE */
-
-#ifndef PCC_ARRAY_MIN_SIZE
-#define PCC_ARRAY_MIN_SIZE 2
-#endif /* !PCC_ARRAY_MIN_SIZE */
-
-#ifndef PCC_POOL_MIN_SIZE
-#define PCC_POOL_MIN_SIZE 65536
-#endif /* !PCC_POOL_MIN_SIZE */
-
-#define PCC_DBG_EVALUATE 0
-#define PCC_DBG_MATCH    1
-#define PCC_DBG_NOMATCH  2
-
-#define PCC_VOID_VALUE (~(size_t)0)
 
 typedef struct pcc_value_tag {
     <%= value_def %>value;
 } pcc_value_t;
 
 typedef <%= auxil_def %>pcc_auxil_t;
-
-typedef struct pcc_value_table_tag {
-    pcc_value_t *buf;
-    size_t max;
-    size_t len;
-} pcc_value_table_t;
-
-#ifndef PCC_ERROR
-#define PCC_ERROR(auxil) pcc_error()
-MARK_FUNC_AS_USED
-static void pcc_error(void) {
-    fprintf(stderr, "Syntax error\n");
-    exit(1);
-}
-#endif /* !PCC_ERROR */
-
-#ifndef PCC_GETCHAR
-#define PCC_GETCHAR(auxil) NUM2INT(rb_funcall(rb_mKernel, rb_intern("getb"), 0))
-#endif /* !PCC_GETCHAR */
-
-#ifndef PCC_DEBUG
-#define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
-#endif /* !PCC_DEBUG */
 
 static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkLeaf, cThunkNode, cThunkChunk, cCapture, cValue;
 
@@ -121,7 +71,6 @@ static VALUE pcc_value_s_alloc(VALUE klass) {
     return obj;
 }
 
-MARK_FUNC_AS_USED
 static const char *pcc_get_capture_string(VALUE rctx, VALUE rcapt) {
     VALUE rstring = rb_ivar_get(rcapt, rb_intern("@string"));
     if (NIL_P(rstring)) {
@@ -191,7 +140,6 @@ static size_t pcc_get_char_as_utf32(VALUE rctx, int *out) { /* with checking UTF
 }
 
 <% end -%>
-MARK_FUNC_AS_USED
 static VALUE pcc_apply_rule(VALUE rctx, VALUE rrule, VALUE rthunks, VALUE rvalues, VALUE rindex) {
     ID rule = SYM2ID(rrule);
     size_t index = NUM2SIZET(rindex);
