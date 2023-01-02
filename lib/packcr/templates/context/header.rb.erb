@@ -116,8 +116,6 @@ struct pcc_thunk_tag {
     pcc_value_refer_table_t value_refs; /* leaf */
 };
 
-typedef struct pcc_lr_entry_tag pcc_lr_entry_t;
-
 typedef enum pcc_lr_answer_type_tag {
     PCC_LR_ANSWER_LR,
     PCC_LR_ANSWER_CHUNK
@@ -128,10 +126,6 @@ typedef struct pcc_lr_answer_tag pcc_lr_answer_t;
 struct pcc_lr_answer_tag {
     VALUE robj;
     pcc_lr_answer_type_t type;
-};
-
-struct pcc_lr_entry_tag {
-    VALUE robj;
 };
 
 #ifndef PCC_ERROR
@@ -164,32 +158,6 @@ static void *pcc_realloc_e(void *ptr, size_t size) {
 #endif /* !PCC_DEBUG */
 
 static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkChunk, cCapture, cValue;
-
-static void pcc_lr_entry_mark(void *ptr) {
-}
-
-static void pcc_lr_entry_free(void *ptr) {
-    pcc_lr_entry_t *e = ptr;
-    xfree(e);
-}
-
-static size_t pcc_lr_entry_memsize(const void *ptr) {
-    return sizeof(pcc_lr_entry_t);
-}
-
-static const rb_data_type_t pcc_lr_entry_data_type = {
-    "pcc_lr_entry",
-    {pcc_lr_entry_mark, pcc_lr_entry_free, pcc_lr_entry_memsize,},
-    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
-};
-
-static VALUE pcc_lr_entry_s_alloc(VALUE klass) {
-    pcc_lr_entry_t *lr;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_lr_entry_t, &pcc_lr_entry_data_type, lr);
-    lr->robj = obj;
-
-    return obj;
-}
 
 static void pcc_thunk_mark(void *ptr) {
 }
@@ -772,8 +740,7 @@ void Init_<%= prefix %>(void) {
     <%-   end -%>
     <%- end -%>
 
-    cLrEntry = rb_define_class_under(c<%= class_name %>, "LrEntry", rb_cObject);
-    rb_define_alloc_func(cLrEntry, pcc_lr_entry_s_alloc);
+    cLrEntry = rb_const_get(c<%= class_name %>, rb_intern("LrEntry"));
 
     cLrTableEntry = rb_const_get(c<%= class_name %>, rb_intern("LrTableEntry"));
 
