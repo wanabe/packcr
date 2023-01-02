@@ -144,13 +144,6 @@ struct pcc_lr_answer_tag {
     size_t pos; /* the absolute position in the input */
 };
 
-typedef struct pcc_rule_set_tag {
-    VALUE robj;
-    ID *buf;
-    size_t max;
-    size_t len;
-} pcc_rule_set_t;
-
 struct pcc_lr_entry_tag {
     VALUE robj;
     ID rule;
@@ -185,7 +178,7 @@ static void *pcc_realloc_e(void *ptr, size_t size) {
 #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
 #endif /* !PCC_DEBUG */
 
-static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkChunk, cCapture, cValue, cRuleSet;
+static VALUE cLrEntry, cLrTableEntry, cLrHead, cLrAnswer, cThunk, cThunkChunk, cCapture, cValue;
 
 static void pcc_lr_entry_mark(void *ptr) {
 }
@@ -320,33 +313,6 @@ static const rb_data_type_t pcc_lr_answer_data_type = {
     0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
 };
 
-static void pcc_rule_set_mark(void *ptr) {
-}
-
-static void pcc_rule_set_free(void *ptr) {
-}
-
-static size_t pcc_rule_set_memsize(const void *ptr) {
-    return sizeof(pcc_rule_set_t);
-}
-
-static const rb_data_type_t pcc_rule_set_data_type = {
-    "pcc_rule_set",
-    {pcc_rule_set_mark, pcc_rule_set_free, pcc_rule_set_memsize,},
-    0, 0, RUBY_TYPED_WB_PROTECTED | RUBY_TYPED_FREE_IMMEDIATELY
-};
-
-static VALUE pcc_rule_set_s_alloc(VALUE klass) {
-    pcc_rule_set_t *set;
-    VALUE obj = TypedData_Make_Struct(klass, pcc_rule_set_t, &pcc_rule_set_data_type, set);
-    set->robj = obj;
-    set->len = 0;
-    set->max = 0;
-    set->buf = NULL;
-
-    return obj;
-}
-
 static void pcc_value_refer_table__init(pcc_auxil_t auxil, pcc_value_refer_table_t *table) {
     table->len = 0;
     table->max = 0;
@@ -399,59 +365,6 @@ static VALUE pcc_thunk_chunk_s_alloc(VALUE klass) {
     rb_ivar_set(obj, rb_intern("@values"), rb_ary_new());
 
     return obj;
-}
-
-static size_t pcc_rule_set__index(pcc_auxil_t auxil, VALUE rset, ID rule_name) {
-    pcc_rule_set_t *set;
-    TypedData_Get_Struct(rset, pcc_rule_set_t, &pcc_rule_set_data_type, set);
-    size_t i;
-    for (i = 0; i < set->len; i++) {
-        if (set->buf[i] == rule_name) return i;
-    }
-    return PCC_VOID_VALUE;
-}
-
-static VALUE pcc_rule_set__add(pcc_auxil_t auxil, VALUE rset, ID rule) {
-    pcc_rule_set_t *set;
-    TypedData_Get_Struct(rset, pcc_rule_set_t, &pcc_rule_set_data_type, set);
-    const size_t i = pcc_rule_set__index(auxil, rset, rule);
-    if (i != PCC_VOID_VALUE) return Qfalse;
-    if (set->max <= set->len) {
-        const size_t n = set->len + 1;
-        size_t m = set->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
-        while (m < n && m != 0) m <<= 1;
-        if (m == 0) m = n;
-        set->buf = (ID *)PCC_REALLOC(auxil, set->buf, sizeof(ID) * m);
-        set->max = m;
-    }
-    set->buf[set->len++] = rule;
-    return Qtrue;
-}
-
-static VALUE pcc_rule_set__remove(pcc_auxil_t auxil, VALUE rset, ID rule_name) {
-    pcc_rule_set_t *set;
-    TypedData_Get_Struct(rset, pcc_rule_set_t, &pcc_rule_set_data_type, set);
-    const size_t i = pcc_rule_set__index(auxil, rset, rule_name);
-    if (i == PCC_VOID_VALUE) return Qfalse;
-    memmove(set->buf + i, set->buf + (i + 1), sizeof(ID) * (set->len - (i + 1)));
-    return Qtrue;
-}
-
-static void pcc_rule_set__clear(pcc_auxil_t auxil, VALUE rset) {
-    pcc_rule_set_t *set;
-    TypedData_Get_Struct(rset, pcc_rule_set_t, &pcc_rule_set_data_type, set);
-    set->len = 0;
-}
-
-static void pcc_rule_set__copy(pcc_auxil_t auxil, VALUE rset, VALUE rsrc) {
-    size_t i;
-    pcc_rule_set_t *src;
-    TypedData_Get_Struct(rsrc, pcc_rule_set_t, &pcc_rule_set_data_type, src);
-    pcc_rule_set__clear(auxil, rset);
-    for (i = 0; i < src->len; i++) {
-        pcc_rule_set__add(auxil, rset, src->buf[i]);
-    }
 }
 
 static VALUE pcc_lr_answer_s_alloc(VALUE klass) {
@@ -610,12 +523,12 @@ static VALUE pcc_apply_rule(VALUE rctx, ID rule, VALUE rthunks, VALUE rvalues, s
     if (!NIL_P(rh)) {
         VALUE rinvol = rb_ivar_get(rh, rb_intern("@invol"));
         ID rule_name = SYM2ID(rb_ivar_get(rh, rb_intern("@rule_name")));
-        if (a == NULL && rule != rule_name && pcc_rule_set__index(NULL, rinvol, rule) == PCC_VOID_VALUE) {
+        if (a == NULL && rule != rule_name && NIL_P(rb_funcall(rinvol, rb_intern("[]"), 1, ID2SYM(rule)))) {
             b = Qfalse;
             c = NULL;
         } else {
             VALUE reval = rb_ivar_get(rh, rb_intern("@eval"));
-            if (RTEST(pcc_rule_set__remove(NULL, reval, rule))) {
+            if (RTEST(rb_funcall(reval, rb_intern("delete"), 1, ID2SYM(rule)))) {
                 VALUE rc = rb_funcall(rctx, rule, 0);
                 b = Qfalse;
                 TypedData_Get_Struct(rc, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, c);
@@ -663,7 +576,7 @@ static VALUE pcc_apply_rule(VALUE rctx, ID rule, VALUE rthunks, VALUE rvalues, s
                         if (rentry_head == ranswer_head) break;
                         rb_ivar_set(rlrentry, rb_intern("@head"), ranswer_head);
                         rinvol = rb_ivar_get(ranswer_head, rb_intern("@invol"));
-                        pcc_rule_set__add(NULL, rinvol, lrentry->rule);
+                        rb_funcall(rinvol, rb_intern("[]="), 2, ID2SYM(lrentry->rule), Qtrue);
                     }
                     rlr = rb_ivar_get(a->robj, rb_intern("@lr"));
                     rseed = rb_ivar_get(rlr, rb_intern("@seed"));
@@ -744,14 +657,12 @@ static VALUE pcc_apply_rule(VALUE rctx, ID rule, VALUE rthunks, VALUE rvalues, s
                     else {
                         rb_funcall(rlrtable, rb_intern("set_head"), 2, SIZET2NUM(p), rh);
                         for (;;) {
-                            VALUE rinvol, reval, rc;
+                            VALUE rc;
                             rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p - NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos")))));
 <%- if @location -%>
                             rb_ivar_set(rctx, rb_intern("@cur_loc"), rb_funcall(p_loc, rb_intern("-"), 1, rb_ivar_get(rctx, rb_intern("@pos_loc"))));
 <%- end -%>
-                            rinvol = rb_ivar_get(rh, rb_intern("@invol"));
-                            reval = rb_ivar_get(rh, rb_intern("@eval"));
-                            pcc_rule_set__copy(NULL, reval, rinvol);
+                            rb_funcall(rh, rb_intern("invol_to_eval"), 0);
                             rc = rb_funcall(rctx, rule, 0);
                             TypedData_Get_Struct(rc, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, c);
                             if (c == NULL || NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) <= a->pos) break;
@@ -951,7 +862,4 @@ void Init_<%= prefix %>(void) {
 
     cValue = rb_define_class_under(c<%= class_name %>, "Value", rb_cObject);
     rb_define_alloc_func(cValue, pcc_value_s_alloc);
-
-    cRuleSet = rb_define_class_under(c<%= class_name %>, "RuleSet", rb_cObject);
-    rb_define_alloc_func(cRuleSet, pcc_rule_set_s_alloc);
 }

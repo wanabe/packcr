@@ -123,8 +123,15 @@ class <%= class_name %>
     attr_accessor :hold
 
     def initialize
-      @invol = RuleSet.new
-      @eval = RuleSet.new
+      @invol = {}
+      @eval = {}
+    end
+
+    def invol_to_eval
+      @eval.clear
+      @invol.each do |k, v|
+        @eval[k] = true
+      end
     end
   end
 end
