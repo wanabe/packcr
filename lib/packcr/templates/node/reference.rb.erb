@@ -1,5 +1,5 @@
 {
-    pcc_rule_t rule = {pcc_evaluate_rule_<%= name %>, rb_intern("<%= name %>")};
+    pcc_rule_t rule = {rb_intern("evaluate_rule_<%= name %>")};
 <%- if index != nil -%>
     if (!RTEST(pcc_apply_rule(rctx, rule, rb_ivar_get(chunk->robj, rb_intern("@thunks")), rb_ivar_get(chunk->robj, rb_intern("@values")), <%= index %>))) goto L<%= "%04d" % onfail %>;
 <%- else -%>

@@ -144,10 +144,7 @@ struct pcc_lr_answer_tag {
     size_t pos; /* the absolute position in the input */
 };
 
-typedef VALUE (*pcc_rule_func_t)(VALUE);
-
 typedef struct pcc_rule_tag {
-    pcc_rule_func_t func;
     ID name;
 } pcc_rule_t;
 
@@ -623,7 +620,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
         } else {
             VALUE reval = rb_ivar_get(rh, rb_intern("@eval"));
             if (RTEST(pcc_rule_set__remove(NULL, reval, rule.name))) {
-                VALUE rc = rule.func(rctx);
+                VALUE rc = rb_funcall(rctx, rule.name, 0);
                 b = Qfalse;
                 TypedData_Get_Struct(rc, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, c);
                 {
@@ -704,7 +701,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
             }
             rb_ivar_set(a->robj, rb_intern("@lr"), e->robj);
             rb_funcall(rlrtable, rb_intern("set_answer"), 3, SIZET2NUM(p), ID2SYM(rule.name), a->robj);
-            rc = rule.func(rctx);
+            rc = rb_funcall(rctx, rule.name, 0);
             TypedData_Get_Struct(rc, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, c);
             rb_funcall(rb_ivar_get(rctx, rb_intern("@lrstack")), rb_intern("pop"), 0);
             a->pos = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
@@ -759,7 +756,7 @@ static VALUE pcc_apply_rule(VALUE rctx, pcc_rule_t rule, VALUE rthunks, VALUE rv
                             rinvol = rb_ivar_get(rh, rb_intern("@invol"));
                             reval = rb_ivar_get(rh, rb_intern("@eval"));
                             pcc_rule_set__copy(NULL, reval, rinvol);
-                            rc = rule.func(rctx);
+                            rc = rb_funcall(rctx, rule.name, 0);
                             TypedData_Get_Struct(rc, pcc_thunk_chunk_t, &pcc_thunk_chunk_data_type, c);
                             if (c == NULL || NUM2SIZET(rb_ivar_get(rctx, rb_intern("@pos"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) <= a->pos) break;
                             pcc_lr_answer__set_chunk(rctx, a, c);
@@ -909,7 +906,7 @@ L0000:;
 int <%= prefix %>_parse(VALUE rctx, <%= value_def %>*ret) {
 <%- if !@rules.empty? -%>
     VALUE rthunks = rb_ivar_get(rctx, rb_intern("@thunks"));
-    pcc_rule_t rule = {pcc_evaluate_rule_<%= @rules[0].name %>, rb_intern("<%= @rules[0].name %>")};
+    pcc_rule_t rule = {rb_intern("evaluate_rule_<%= @rules[0].name %>")};
     if (pcc_apply_rule(rctx, rule, rthunks, Qnil, 0))
         pcc_do_action(rctx, rthunks, Qnil, 0);
     else
@@ -933,6 +930,9 @@ void Init_<%= prefix %>(void) {
     VALUE c<%= class_name %> = rb_const_get(rb_cObject, rb_intern("<%= class_name %>"));
 
     rb_define_method(c<%= class_name %>, "run", <%= prefix %>_run, 0);
+    <%- @rules.each do |node| -%>
+    rb_define_method(c<%= class_name %>, "evaluate_rule_<%= node.name %>", pcc_evaluate_rule_<%= node.name %>, 0);
+    <%- end -%>
 
     cLrEntry = rb_define_class_under(c<%= class_name %>, "LrEntry", rb_cObject);
     rb_define_alloc_func(cLrEntry, pcc_lr_entry_s_alloc);
