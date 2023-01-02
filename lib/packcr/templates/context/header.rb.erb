@@ -79,16 +79,10 @@ typedef struct pcc_value_table_tag {
     size_t len;
 } pcc_value_table_t;
 
-typedef enum pcc_lr_answer_type_tag {
-    PCC_LR_ANSWER_LR,
-    PCC_LR_ANSWER_CHUNK
-} pcc_lr_answer_type_t;
-
 typedef struct pcc_lr_answer_tag pcc_lr_answer_t;
 
 struct pcc_lr_answer_tag {
     VALUE robj;
-    pcc_lr_answer_type_t type;
 };
 
 #ifndef PCC_ERROR
@@ -158,16 +152,7 @@ static VALUE pcc_lr_answer_s_alloc(VALUE klass) {
 }
 
 static VALUE pcc_lr_answer_initialize(VALUE self, VALUE rtype, VALUE rpos<% if @location %>, VALUE pos_loc<% end %>) {
-    pcc_lr_answer_t *answer;
-    ID itype = SYM2ID(rtype);
-    TypedData_Get_Struct(self, pcc_lr_answer_t, &pcc_lr_answer_data_type, answer);
-    if (itype == rb_intern("lr")) {
-        answer->type = PCC_LR_ANSWER_LR;
-    } else if (itype == rb_intern("chunk")) {
-        answer->type = PCC_LR_ANSWER_CHUNK;
-    } else {
-        rb_raise(rb_eRuntimeError, "invalid type for LrAnswer");
-    }
+    rb_ivar_set(self, rb_intern("@type"), rtype);
     rb_ivar_set(self, rb_intern("@pos"), rpos);
 <%- if @location -%>
     rb_ivar_set(self, rb_intern("@pos_loc"), pos_loc);
@@ -176,34 +161,17 @@ static VALUE pcc_lr_answer_initialize(VALUE self, VALUE rtype, VALUE rpos<% if @
 }
 
 static void pcc_lr_answer__set_chunk(VALUE rctx, VALUE ranswer, VALUE rchunk) {
-    pcc_lr_answer_t *answer;
     VALUE rtype, ra;
-    TypedData_Get_Struct(ranswer, pcc_lr_answer_t, &pcc_lr_answer_data_type, answer);
-    switch (answer->type) {
-    case PCC_LR_ANSWER_LR:
-        rtype = ID2SYM(rb_intern("lr"));
-        break;
-    case PCC_LR_ANSWER_CHUNK:
-        rtype = ID2SYM(rb_intern("chunk"));
-        break;
-    default:
-        rb_raise(rb_eRuntimeError, "invalid type for set_chunk");
-        rtype = Qnil;
-    }
+    rtype = rb_ivar_get(ranswer, rb_intern("@type"));
     ra = rb_funcall(cLrAnswer, rb_intern("new"), <% if @location %>3<% else %>2<% end %>, rtype, rb_ivar_get(ranswer, rb_intern("@pos"))<% if @location %>, rb_ivar_get(ranswer, rb_intern("@pos_loc"))<% end %>);
-    switch (answer->type) {
-    case PCC_LR_ANSWER_LR:
+    if (SYM2ID(rtype) == rb_intern("lr")) {
         rb_ivar_set(ra, rb_intern("@lr"), rb_ivar_get(ranswer, rb_intern("@lr")));
-        break;
-    case PCC_LR_ANSWER_CHUNK:
+    } else if (SYM2ID(rtype) == rb_intern("chunk")) {
         rb_ivar_set(ra, rb_intern("@chunk"), rb_ivar_get(ranswer, rb_intern("@chunk")));
-        break;
-    default: /* unknown */
-        break;
     }
     rb_ivar_set(ra, rb_intern("@hold"), rb_ivar_get(ranswer, rb_intern("@hold")));
     rb_ivar_set(ranswer, rb_intern("@hold"), ra);
-    answer->type = PCC_LR_ANSWER_CHUNK;
+    rb_ivar_set(ranswer, rb_intern("@type"), ID2SYM(rb_intern("chunk")));
     rb_ivar_set(ranswer, rb_intern("@chunk"), rchunk);
 }
 
@@ -321,8 +289,8 @@ static VALUE pcc_apply_rule(VALUE rctx, VALUE rrule, VALUE rthunks, VALUE rvalue
 <%- if @location -%>
             rb_ivar_set(rctx, rb_intern("@cur_loc"), rb_funcall(rb_ivar_get(a->robj, rb_intern("@pos_loc")), rb_intern("-"), 1, rb_ivar_get(rctx, rb_intern("@pos_loc"))));
 <%- end -%>
-            switch (a->type) {
-            case PCC_LR_ANSWER_LR:
+            ID type = SYM2ID(rb_ivar_get(a->robj, rb_intern("@type")));
+            if (type == rb_intern("lr")) {
                 {
                     VALUE rlr = rb_ivar_get(a->robj, rb_intern("@lr"));
                     VALUE rhead = rb_ivar_get(rlr, rb_intern("@head"));
@@ -352,12 +320,8 @@ static VALUE pcc_apply_rule(VALUE rctx, VALUE rrule, VALUE rthunks, VALUE rvalue
                     rlr = rb_ivar_get(a->robj, rb_intern("@lr"));
                     rc = rb_ivar_get(rlr, rb_intern("@seed"));
                 }
-                break;
-            case PCC_LR_ANSWER_CHUNK:
+            } else if (type == rb_intern("chunk")) {
                 rc = rb_ivar_get(a->robj, rb_intern("@chunk"));
-                break;
-            default: /* unknown */
-                break;
             }
         }
         else {
