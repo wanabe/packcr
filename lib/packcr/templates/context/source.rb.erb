@@ -270,7 +270,7 @@ class <%= class_name %>
     end
   end
 
-  <%-   @location.each do |code| -%>
+  <%-   @location&.each do |code| -%>
   <%- %><%= sstream.get_code_block(code, 2, @iname) -%>
   <%-   end -%>
 
