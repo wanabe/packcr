@@ -2,20 +2,30 @@
 
 class <%= class_name %>
   def initialize
+    <%- if @utf8 -%>
+    @buffer = +""
+    <%- else -%>
     @buffer = +"".b
+    <%- end %>
     @pos = 0
     @cur = 0
     @level = 0
     @lrstack = []
     @thunks = []
     @lrtable = LrTable.new
-<%- if @location -%>
+    <%- if @location -%>
     @pos_loc = Location.new
     @cur_loc = Location.new
-<%- end -%>
+    <%- end -%>
   end
 
   def get_utf8_char_range_and_codepoint
+    <%- if @utf8 -%>
+    return [0, nil] if refill_buffer(1) < 1
+    c = @buffer[@cur]
+    return [0, nil] if c == nil || c == ""
+    [1, c.ord]
+    <%- else -%>
     refill_buffer(4, :utf8)
     char = @buffer.dup[@cur..-1]&.force_encoding(Encoding::UTF_8)&.chr
     if !char || char == ""
@@ -23,6 +33,7 @@ class <%= class_name %>
     else
       [char.bytesize, char.ord]
     end
+    <%- end -%>
   end
 
   def refill_buffer(num, mode = nil)
@@ -31,6 +42,9 @@ class <%= class_name %>
       return len - @cur
     end
     while len < @cur + num
+      <%- if @utf8 -%>
+      c = $stdin.getc
+      <%- else -%>
       if mode == :utf8
         c = $stdin.getc&.b
       else
@@ -40,6 +54,7 @@ class <%= class_name %>
           c = nil
         end
       end
+      <%- end -%>
       break if !c
       @buffer << c
       len = @buffer.length
