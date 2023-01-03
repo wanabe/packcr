@@ -17,6 +17,13 @@
 %source {
 #include <stdio.h>
 #include <stdlib.h>
+}
+
+%location {
+typedef struct pcc_location_tag {
+    size_t pos;
+    size_t lineno;
+} pcc_location_t;
 
 static inline void pcc_location_init(pcc_location_t *lp) {
     lp->pos = 0;
@@ -44,11 +51,7 @@ static inline pcc_location_t pcc_location_sub(pcc_location_t l1, pcc_location_t 
     pcc_location_t l = {l1.pos - l2.pos, l1.lineno - l2.lineno};
     return l;
 }
-}
 
-%location {
-    size_t pos;
-    size_t lineno;
 }
 
 statement <- _ e:expression _ EOL { printf("answer=%d\n", e); }
