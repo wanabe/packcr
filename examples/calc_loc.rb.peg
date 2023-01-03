@@ -1,0 +1,99 @@
+# This code is hereby placed in the public domain.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+%prefix "calc"
+
+%location {
+  class Location
+    attr_reader :pos, :lineno
+
+    def initialize(pos = 0, lineno = 0)
+      @pos = pos
+      @lineno = lineno
+    end
+
+    def +(other)
+      if other.lineno == 0
+        Location.new(@pos + other.pos, @lineno)
+      else
+        Location.new(other.pos, @lineno + other.lineno)
+      end
+    end
+
+    def -(other)
+      if other.lineno == 0
+        Location.new(@pos - other.pos, @lineno)
+      else
+        if other.pos == 0
+          Location.new(0, @lineno - other.lineno)
+        else
+          raise [self, other].inspect
+        end
+      end
+    end
+
+    def forward(buffer, cur, n)
+      Location.new(@pos, @lineno).forward!(buffer, cur, n)
+    end
+
+    def forward!(buffer, cur, n)
+      buffer[cur, n].scan(/(.*)(\n)?/) do
+        if Regexp.last_match[2]
+          @lineno += 1
+          @pos = 0
+        else
+          @pos += Regexp.last_match[1].length
+        end
+      end
+      self
+    end
+  end
+}
+
+statement <- _ e:expression _ EOL { puts "answer=#{e}" }
+           / ( !EOL . )* EOL      ~{ warn "error\n" }
+
+expression <- e:term { $$ = e; }
+
+term <- l:term _ '+' _ r:factor { $$ = l + r }
+      / l:term _ '-' _ r:factor { $$ = l - r }
+      / e:factor                { $$ = e }
+
+factor <- l:factor _ '*' _ r:unary { $$ = l * r }
+        / l:factor _ '/' _ r:unary { $$ = l / r }
+        / e:unary                  { $$ = e }
+
+unary <- '+' _ e:unary { $$ = +e }
+       / '-' _ e:unary { $$ = -e }
+       / e:primary     { $$ = e }
+
+primary <- < [0-9]+ > {
+                        warn "primary captured: '%s', pos [%d, %d]-[%d, %d]\n" % [$1, $1sl.pos, $1sl.lineno, $1el.pos, $1el.lineno]
+                        $$ = $1.to_i
+                      }
+         / '(' _ e:expression _ ')' { $$ = e }
+
+_      <- [ \t]*
+EOL    <- '\n' / '\r\n' / '\r' / ';'
+
+%%
+
+if ARGV[0]
+  require "stringio"
+  str = ARGV.join("\n")
+  $stdin = StringIO.new("#{str}\n", "r")
+else
+  $stdin = ARGF
+end
+Calc.new.run

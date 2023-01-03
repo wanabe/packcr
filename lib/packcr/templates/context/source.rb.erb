@@ -85,6 +85,10 @@ class <%= class_name %>
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
     __0e = @pos + __pcc_in.capt0.range_end
+    <%-     if @location -%>
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    <%-     end -%>
     <%-   code.capts.each do |capture| -%>
     __<%= capture.index + 1 %> = __pcc_in.capts[<%= capture.index %>].capture_string(@buffer)
     __<%= capture.index + 1 %>s = @pos + __pcc_in.capts[<%= capture.index %>].range_start
@@ -265,6 +269,11 @@ class <%= class_name %>
       end
     end
   end
+
+  <%-   @location.each do |code| -%>
+  <%- %><%= sstream.get_code_block(code, 2, @iname) -%>
+  <%-   end -%>
+
   class LrTable
     def initialize
       super
@@ -356,6 +365,9 @@ class <%= class_name %>
 
   class ThunkChunk
     attr_accessor :thunks, :capts, :pos, :values
+    <%- if @location -%>
+    attr_accessor :pos_loc
+    <%- end -%>
 
     def initialize
       super
@@ -406,6 +418,9 @@ class <%= class_name %>
 
   class Capture
     attr_accessor :range_start, :range_end
+    <%- if @location -%>
+    attr_accessor :start_loc, :end_loc
+    <%- end -%>
 
     def initialize
       @range_start = 0
@@ -423,6 +438,9 @@ class <%= class_name %>
 
   class LrAnswer
     attr_accessor :hold, :lr, :chunk, :pos, :type
+    <%- if @location -%>
+    attr_accessor :pos_loc
+    <%- end -%>
 
     def initialize(type, pos<% if @location %>, pos_loc<% end %>)
       @type = type
