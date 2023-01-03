@@ -27,7 +27,7 @@ class Packcr
         nodes.each_with_index do |expr, i|
           case gen.generate_code(expr, onfail, indent, false)
           when Packcr::CODE_REACH__ALWAYS_FAIL
-            if i + 1 < rnodes.length
+            if i + 1 < nodes.length
               gen.write Packcr.template("node/sequence_unreachable.#{gen.lang}.erb", binding, indent: indent)
             end
             return Packcr::CODE_REACH__ALWAYS_FAIL
