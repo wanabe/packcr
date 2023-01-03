@@ -1,4 +1,3 @@
-
 class Packcr
   module Util
     def is_identifier_string(str)
@@ -78,7 +77,9 @@ class Packcr
 
     def template(path, b, indent: 0, unwrap: false)
       template_path = File.join(File.dirname(__FILE__), "templates", path)
-      result = ERB.new(File.read(template_path), trim_mode: "%-").result(b)
+      erb = ERB.new(File.read(template_path), trim_mode: "%-")
+      erb.filename = template_path
+      result = erb.result(b)
       if unwrap
         result.gsub!(/\A\{|\}\z/, "")
         indent -= 4
