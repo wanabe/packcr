@@ -1,45 +1,55 @@
-{
-<%- if min > 0 -%>
-    const size_t p0 = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
-<%- if gen.location -%>
-    const VALUE p0_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
-<%- end -%>
-    const size_t n0 = RARRAY_LEN(rb_ivar_get(rchunk, rb_intern("@thunks")));
-<%- end -%>
-    int i;
-<%- if max < 0 -%>
-    for (i = 0;; i++) {
-<%- else -%>
-    for (i = 0; i < <%= max %>; i++) {
-<%- end -%>
-        const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
-<%- if gen.location -%>
-        const VALUE p_loc = rb_ivar_get(rctx, rb_intern("@cur_loc"));
-<%- end -%>
-        const size_t n = RARRAY_LEN(rb_ivar_get(rchunk, rb_intern("@thunks")));
-<%- l = gen.next_label -%>
-<%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
-<%= code -%>
-        if (NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) == p) break;
-<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-        continue;
-    L<%= "%04d" % l %>:;
-        rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p));
-<%- if gen.location -%>
-        rb_ivar_set(rctx, rb_intern("@cur_loc"), p_loc);
-<%- end -%>
-        rb_funcall(rb_ivar_get(rchunk, rb_intern("@thunks")), rb_intern("[]="), 3, SIZET2NUM(n), SIZET2NUM(65535), rb_ary_new());
-        break;
-<%- end -%>
-    }
-<%- if min > 0 -%>
-    if (i < <%= min %>) {
-        rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p0));
-<%- if gen.location -%>
-        rb_ivar_set(rctx, rb_intern("@cur_loc"), p0_loc);
-<%- end -%>
-        rb_funcall(rb_ivar_get(rchunk, rb_intern("@thunks")), rb_intern("[]="), 3, SIZET2NUM(n0), SIZET2NUM(65535), rb_ary_new());
-        goto L<%= "%04d" % onfail %>;
-    }
-<%- end -%>
-}
+1.times do |;p0, pc_loc, n0, i|
+  <%- if min > 0 -%>
+  p0 = @cur
+  <%-   if gen.location -%>
+  p0_loc = @cur_loc
+  <%-   end -%>
+  n0 = chunk.thunks
+  <%- end -%>
+  i = -1
+  <%- if max < 0 -%>
+  loop do |;pos, p_loc, n, stat|
+  <%- else -%>
+  <%= max %>.times do |;pos, p_loc, n, stat|
+  <%- end -%>
+    i += 1
+    pos = @cur
+    <%- if gen.location -%>
+    p_loc = @cur_loc
+    <%- end -%>
+    n = chunk.thunks.length
+    stat = nil
+    <%- l = gen.next_label -%>
+    catch(<%= l %>) do
+      <%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
+      <%- %><%= code -%>
+      if @cur == pos
+        stat = :break
+      else
+        stat = :continue
+      end
+    end
+    if stat == :break
+      break
+    <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+    elsif stat != :continue
+      @cur = pos
+      <%-   if gen.location -%>
+      @cur_loc = p_loc
+      <%-   end -%>
+      chunk.thunks[n..-1] = []
+      break
+    <%- end -%>
+    end
+  end
+  <%- if min > 0 -%>
+  if i < <%= min %>
+    @cur = p0
+    <%-   if gen.location -%>
+    @cur_loc = p0_loc
+    <%-   end -%>
+    chunk.thunks[n0..-1] = []
+    throw(<%= onfail %>)
+  end
+  <%- end -%>
+end

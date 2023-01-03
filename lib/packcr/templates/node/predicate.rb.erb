@@ -1,27 +1,25 @@
-{
-    const size_t p = NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
-<%- if gen.location -%>
-    const VALUE p_loc = rb_ivar_get(rctx, rb_intern("@cur_pos"));
-<%- end -%>
-<%= code -%>
-<%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
-    rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p));
-<%- if gen.location -%>
-    rb_ivar_set(rctx, rb_intern("@cur_loc"), p_loc);
-<%- end -%>
-<%- end -%>
-<%- if r == Packcr::CODE_REACH__BOTH -%>
-    goto L<%= "%04d" % m %>;
-<%- end -%>
-<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-L<%= "%04d" % l %>:;
-    rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(p));
-<%- if gen.location -%>
-    rb_ivar_set(rctx, rb_intern("@cur_loc"), p_loc);
-<%- end -%>
-    goto L<%= "%04d" % onfail %>;
-<%- end -%>
-<%- if r == Packcr::CODE_REACH__BOTH -%>
-L<%= "%04d" % m %>:;
-<%- end -%>
-}
+catch(<%= m %>) do |;pos, p_loc|
+  catch(<%= l %>) do
+    pos = @cur
+    <%- if gen.location -%>
+    p_loc = @cur_pos
+    <%- end -%>
+    <%- %><%= code -%>
+    <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
+    @cur = pos
+    <%-   if gen.location -%>
+    @cur_loc = p_loc
+    <%-   end -%>
+    <%- end -%>
+    <%- if r == Packcr::CODE_REACH__BOTH -%>
+    throw(<%= m %>)
+    <%- end -%>
+  end
+  <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+  @cur = pos
+  <%-   if gen.location -%>
+  @cur_loc = p_loc
+  <%-   end -%>
+  throw(<%= onfail %>)
+  <%- end -%>
+end

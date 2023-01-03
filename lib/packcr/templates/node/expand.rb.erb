@@ -1,18 +1,18 @@
-{
-    size_t n;
-    VALUE rcapt = rb_funcall(rb_ivar_get(rchunk, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= index %>));
-    n = NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_end"))) - NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_start")));
-    if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(n))) < n) goto L<%= "%04d" % onfail %>;
-    if (n > 0) {
-        const char *const p = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")));
-        const char *const q = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(rcapt, rb_intern("@range_start")));
-        size_t i;
-        for (i = 0; i < n; i++) {
-            if (p[i] != q[i]) goto L<%= "%04d" % onfail %>;
-        }
-<%- if gen.location -%>
-        rb_funcall(rb_ivar_get(rctx, rb_intern("@cur_loc")), rb_ivar_get(rctx, rb_intern("@buffer")), rb_ivar_get(rctx, rb_intern("@cur")), SIZET2NUM(n));
-<%- end -%>
-        rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + n));
-    }
-}
+1.times do |;n, capt, ptr, q|
+  capt = chunk.capts[<%= index %>]
+  n = capt.range_end - capt.range_start
+  if refill_buffer(n) < n
+    throw(<%= onfail %>)
+  end
+  if n > 0
+    ptr = @buffer[@cur, n]
+    q = @buffer[capt.range_start, n]
+    if ptr != q
+      throw(<%= onfail %>)
+    end
+    <%- if gen.location -%>
+    @cur_loc.forward(@buffer, @cur, n)
+    <%- end -%>
+    @cur += n
+  end
+end

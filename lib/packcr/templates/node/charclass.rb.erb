@@ -1,47 +1,51 @@
-{
-<%- if !a && charclass =~ /\A[^\\]-.\z/ -%>
-    char c;
-    if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) < 1) goto L<%= "%04d" % onfail %>;
-    c = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer")))[NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))];
-<%- if a -%>
-    if (c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>') goto L<%= "%04d" % onfail %>;
-<%- else -%>
-    if (!(c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>')) goto L<%= "%04d" % onfail %>;
-<%- end -%>
-<%- if gen.location -%>
-    rb_funcall(rb_ivar_get(rctx, rb_intern("@cur_loc")), rb_ivar_get(rctx, rb_intern("@buffer")), rb_ivar_get(rctx, rb_intern("@cur")), SIZET2NUM(1));
-<%- end -%>
-    rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + 1));
-<%- else -%>
-    char c;
-    if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) < 1) goto L<%= "%04d" % onfail %>;
-    c = RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer")))[NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur")))];
-<%- if a -%>
-    if (
-<%- else -%>
-    if (!(
-<%- end -%>
-<%- i = 0 -%>
-<%- while i < n -%>
-<%-   if charclass[i] == "\\" && i + 1 < n -%>
-<%-     i += 1 -%>
-<%-   end -%>
-<%-   if i + 2 < n && charclass[i + 1] == '-' -%>
-        (c >= '<%= Packcr.escape_character(charclass[i]) %>' && c <= '<%= Packcr.escape_character(charclass[i + 2]) %>')<%= (i + 3 == n) ? "" : " ||" %>
-<%-     i += 2 -%>
-<%-   else -%>
-        c == '<%= Packcr.escape_character(charclass[i]) %>'<%= (i + 1 == n) ? "" : " ||" %>
-<%-   end -%>
-<%-   i += 1 -%>
-<%- end -%>
-<%- if a -%>
-    ) goto L<%= "%04d" % onfail %>;
-<%- else -%>
-    )) goto L<%= "%04d" % onfail %>;
-<%- end -%>
-<%- if gen.location -%>
-    rb_funcall(rb_ivar_get(rctx, rb_intern("@cur_loc")), rb_ivar_get(rctx, rb_intern("@buffer")), rb_ivar_get(rctx, rb_intern("@cur")), SIZET2NUM(1));
-<%- end -%>
-    rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + 1));
-<%- end -%>
-}
+1.times do |;c|
+  <%- if !a && charclass =~ /\A[^\\]-.\z/ -%>
+  if refill_buffer(1) < 1
+    throw(<%= onfail %>)
+  end
+  c = @buffer[@cur]
+  <%-   if a -%>
+  if c >= "<%= Packcr.escape_character(charclass[0]) %>" && c <= "<%= Packcr.escape_character(charclass[2]) %>"
+    throw(<%= onfail %>)
+  end
+  <%-   else -%>
+  unless c >= "<%= Packcr.escape_character(charclass[0]) %>" && c <= "<%= Packcr.escape_character(charclass[2]) %>"
+    throw(<%= onfail %>)
+  end
+  <%-   end -%>
+  <%-   if gen.location -%>
+  @cur_loc.forward(@buffer, @cur, 1)
+  <%-   end -%>
+  @cur += 1
+  <%- else -%>
+  if refill_buffer(1) < 1
+    throw(<%= onfail %>)
+  end
+  c = @buffer[@cur]
+  <%-   if a -%>
+  if (
+  <%-   else -%>
+  unless (
+  <%-   end -%>
+  <%-   i = 0 -%>
+  <%-   while i < n -%>
+  <%-     if charclass[i] == "\\" && i + 1 < n -%>
+  <%-       i += 1 -%>
+  <%-     end -%>
+  <%-     if i + 2 < n && charclass[i + 1] == '-' -%>
+    (c >= "<%= Packcr.escape_character(charclass[i]) %>" && c <= "<%= Packcr.escape_character(charclass[i + 2]) %>")<%= (i + 3 == n) ? "" : " ||" %>
+  <%-       i += 2 -%>
+  <%-     else -%>
+    c == "<%= Packcr.escape_character(charclass[i]) %>"<%= (i + 1 == n) ? "" : " ||" %>
+  <%-     end -%>
+  <%-     i += 1 -%>
+  <%-   end -%>
+  )
+    throw(<%= onfail %>)
+  end
+  <%-   if gen.location -%>
+  @cur_loc.forward(@buffer, @cur, 1)
+  <%-   end -%>
+  @cur += 1
+  <%- end -%>
+end

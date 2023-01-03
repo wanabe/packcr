@@ -1,26 +1,23 @@
-{
-    VALUE rthunk = rb_funcall(cThunkLeaf, rb_intern("new"), 1, ID2SYM(rb_intern("action_<%= gen.rule.name %>_<%= index %>")));
-    VALUE rcapt0 = rb_ivar_get(rthunk, rb_intern("@capt0"));
-<%- if !vars.empty? -%>
-    VALUE rvalue, rvalues = rb_ivar_get(rchunk, rb_intern("@values"));
-    VALUE rvalue_refs = rb_ivar_get(rthunk, rb_intern("@value_refs"));
-<%- end -%>
-<%- if !capts.empty? -%>
-    VALUE rcapt;
-<%- end -%>
-<%- vars.each do |var| -%>
-    rvalue = rb_funcall(rvalues, rb_intern("[]"), 1, SIZET2NUM(<%= var.index %>));
-    rb_funcall(rvalue_refs, rb_intern("[]="), 2, SIZET2NUM(<%= var.index %>), rvalue);
-<%- end -%>
-<%- capts.each do |capt| -%>
-    rcapt = rb_funcall(rb_ivar_get(rchunk, rb_intern("@capts")), rb_intern("[]"), 1, SIZET2NUM(<%= capt.index %>));
-    rb_funcall(rb_ivar_get(rthunk, rb_intern("@capts")), rb_intern("[]="), 2, SIZET2NUM(<%= capt.index %>), rcapt);
-<%- end -%>
-    rb_ivar_set(rcapt0, rb_intern("@range_start"), rb_ivar_get(rchunk, rb_intern("@pos")));
-    rb_ivar_set(rcapt0, rb_intern("@range_end"), rb_ivar_get(rctx, rb_intern("@cur")));
-<%- if gen.location -%>
-    rb_ivar_set(rcapt0, rb_intern("@start_loc"), rb_ivar_get(rchunk, rb_intern("@pos_loc")));
-    rb_ivar_set(rcapt0, rb_intern("@end_loc"), rb_ivar_get(rctx, rb_intern("@cur_loc")));
-<%- end -%>
-    rb_funcall(rb_ivar_get(rchunk, rb_intern("@thunks")), rb_intern("push"), 1, rthunk);
-}
+1.times do |;thunk, capt0, value, values, value_refs, capt|
+  thunk = ThunkLeaf.new(:action_<%= gen.rule.name %>_<%= index %>)
+  capt0 = thunk.capt0
+  <%- if !vars.empty? -%>
+  values = chunk.values
+  value_refs = thunk.value_refs
+  <%- end -%>
+  <%- vars.each do |var| -%>
+  value = values[<%= var.index %>]
+  value_refs[<%= var.index %>] = value
+  <%- end -%>
+  <%- capts.each do |capt| -%>
+  capt = chunk.capts[<%= capt.index %>]
+  thunk.capts[<%= capt.index %>] = capt
+  <%- end -%>
+  capt0.range_start = chunk.pos
+  capt0.range_end = @cur
+  <%- if gen.location -%>
+  capt0.start_loc = chunk.pos_loc
+  capt0.end_loc = @cur_loc
+  <%- end -%>
+  chunk.thunks.push(thunk)
+end

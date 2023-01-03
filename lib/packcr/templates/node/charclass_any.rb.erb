@@ -1,5 +1,7 @@
-if (NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(1))) < 1) goto L<%= "%04d" % onfail %>;
+if refill_buffer(1) < 1
+  throw(<%= onfail %>)
+end
 <%- if gen.location -%>
-rb_funcall(rb_ivar_get(rctx, rb_intern("@cur_loc")), rb_ivar_get(rctx, rb_intern("@buffer")), rb_ivar_get(rctx, rb_intern("@cur")), SIZET2NUM(1));
+@cur_loc.forward(@buffer, @cur, 1)
 <%- end -%>
-rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + 1));
+@cur += 1

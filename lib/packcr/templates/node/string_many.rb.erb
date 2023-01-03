@@ -1,11 +1,13 @@
 if (
-    NUM2SIZET(rb_funcall(rctx, rb_intern("refill_buffer"), 1, SIZET2NUM(<%= n %>))) < <%= n %> ||
-<%- (n - 1).times do |i| -%>
-    (RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))))[<%= i %>] != '<%= Packcr.escape_character(value[i]) %>' ||
-<%- end -%>
-    (RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))))[<%= n - 1 %>] != '<%= s = Packcr.escape_character(value[n - 1]) %>'
-) goto L<%= "%04d" % onfail %>;
+  refill_buffer(<%= n %>) < <%= n %> ||
+  <%- (n - 1).times do |i| -%>
+  @buffer[@cur + <%= i %>] != "<%= Packcr.escape_character(value[i]) %>" ||
+  <%- end -%>
+  @buffer[@cur + <%= n - 1 %>] != "<%= Packcr.escape_character(value[n - 1]) %>"
+)
+  throw(<%= onfail %>)
+end
 <%- if gen.location -%>
-rb_funcall(rb_ivar_get(rctx, rb_intern("@cur_loc")), rb_ivar_get(rctx, rb_intern("@buffer")), rb_ivar_get(rctx, rb_intern("@cur")), SIZET2NUM(n));
+@cur_loc.forward(@buffer, @cur, n)
 <%- end -%>
-rb_ivar_set(rctx, rb_intern("@cur"), SIZET2NUM(NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) + <%= n %>));
+@cur += <%= n %>

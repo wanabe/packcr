@@ -1,7 +1,9 @@
-{
 <%- if index != nil -%>
-    if (!RTEST(rb_funcall(rctx, rb_intern("apply_rule"), 4, ID2SYM(rb_intern("evaluate_rule_<%= name %>")), rb_ivar_get(rchunk, rb_intern("@thunks")), rb_ivar_get(rchunk, rb_intern("@values")), SIZET2NUM(<%= index %>)))) goto L<%= "%04d" % onfail %>;
+if !apply_rule(:evaluate_rule_<%= name %>, chunk.thunks, chunk.values, <%= index %>)
+  throw(<%= onfail %>)
+end
 <%- else -%>
-    if (!RTEST(rb_funcall(rctx, rb_intern("apply_rule"), 4, ID2SYM(rb_intern("evaluate_rule_<%= name %>")), rb_ivar_get(rchunk, rb_intern("@thunks")), Qnil, SIZET2NUM(0)))) goto L<%= "%04d" % onfail %>;
+if !apply_rule(:evaluate_rule_<%= name %>, chunk.thunks, nil, 0)
+  throw(<%= onfail %>)
+end
 <%- end -%>
-}
