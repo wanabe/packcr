@@ -22,13 +22,13 @@ class Packcr
       when :c
         @sname = path + ".c"
         @hname = path + ".h"
+        @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
       when :rb
         @sname = path + ".rb"
-        @hname = path + ".c"
+        @hname = nil
       else
         raise "unexpected lang: #{@lang}"
       end
-      @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
 
       @lines = !!lines
       @debug = !!debug
@@ -935,10 +935,12 @@ class Packcr
     end
 
     def generate
-      File.open(@hname, "wt") do |hio|
-        hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
+      if @hname
+        File.open(@hname, "wt") do |hio|
+          hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
 
-        hstream.write Packcr.template("context/header.#{@lang}.erb", binding), rewrite_line_directive: true
+          hstream.write Packcr.template("context/header.#{@lang}.erb", binding), rewrite_line_directive: true
+        end
       end
 
       File.open(@sname, "wt") do |sio|
@@ -961,7 +963,7 @@ class Packcr
       end
 
       if !@errnum.zero?
-        File.unlink(@hname)
+        File.unlink(@hname) if @name
         File.unlink(@sname)
         return false
       end
