@@ -5,7 +5,7 @@
   p_loc = @cur_loc
   <%- end -%>
   n = chunk.thunks.length
-  <%- r, code = gen.generate_code_str(expr, l, 4, false) -%>
+  <%- r, code = gen.generate_code_str(expr, l, 6, false) -%>
   <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
   <%-   m = gen.next_label -%>
   <%- end -%>

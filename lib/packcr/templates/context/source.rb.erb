@@ -94,7 +94,7 @@ class <%= class_name %>
     __<%= capture.index + 1 %>el = @pos_loc + __pcc_in.capts[<%= capture.index %>].end_loc
     <%-     end -%>
     <%-   end -%>
-    <%=   sstream.get_code_block(code.code, 4, @iname) -%>
+    <%- %><%=   sstream.get_code_block(code.code, 4, @iname) -%>
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -116,8 +116,8 @@ class <%= class_name %>
     <%-   end -%>
     catch(0) do
       <%-   g = ::Packcr::Generator.new(node, @ascii, @location, :rb) -%>
-      <%-   r, str = g.generate_code_str(node.expr, 0, 4, false) -%>
-      <%=   str -%>
+      <%-   r, code = g.generate_code_str(node.expr, 0, 6, false) -%>
+      <%- %><%= code -%>
       # PCC_DEBUG(NULL, PCC_DBG_MATCH, "<%= node.name %>", NUM2SIZET(rb_ivar_get(rctx, rb_intern("@level"))), NUM2SIZET(rb_ivar_get(rchunk, rb_intern("@pos")))$1 (RSTRING_PTR(rb_ivar_get(rctx, rb_intern("@buffer"))) + NUM2SIZET(rb_ivar_get(rchunk, rb_intern("@pos")))$1, (NUM2SIZET(rb_ivar_get(rctx, rb_intern("@cur"))) - NUM2SIZET(rb_ivar_get(rchunk, rb_intern("@pos")))$1);
       return chunk
     ensure

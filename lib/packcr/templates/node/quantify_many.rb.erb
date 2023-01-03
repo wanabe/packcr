@@ -21,7 +21,7 @@
     stat = nil
     <%- l = gen.next_label -%>
     catch(<%= l %>) do
-      <%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
+      <%- r, code = gen.generate_code_str(expr, l, 6, false) -%>
       <%- %><%= code -%>
       if @cur == pos
         stat = :break

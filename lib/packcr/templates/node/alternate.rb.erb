@@ -1,36 +1,36 @@
-  catch(<%= m %>) do |; pos, p_loc, n|
-    pos = @cur
-    <%- if gen.location -%>
-    p_loc = @cur_loc
-    <%- end -%>
-    n = chunk.thunks.length
-    <%- nodes.each_with_index do |expr, i| -%>
-    <%-   c = i + 1 < nodes.length -%>
-    <%-   l = gen.next_label -%>
-    catch(<%= l %>) do
-      <%-   r, code = gen.generate_code_str(expr, l, 8, false) -%>
-      <%-   %><%= code -%>
-      <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-      <%-     reach = Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-      <%-     if c -%>
-      # unreachable codes omitted
-      <%-     end -%>
-      <%-     break -%>
-      <%-   else -%>
-      <%-     if r == Packcr::CODE_REACH__BOTH -%>
-      <%-       reach = Packcr::CODE_REACH__BOTH -%>
-      <%-       b = true -%>
-      throw(<%= m %>)
-      <%-     end -%>
+    catch(<%= m %>) do |; pos, p_loc, n|
+      pos = @cur
+      <%- if gen.location -%>
+      p_loc = @cur_loc
+      <%- end -%>
+      n = chunk.thunks.length
+      <%- nodes.each_with_index do |expr, i| -%>
+      <%-   c = i + 1 < nodes.length -%>
+      <%-   l = gen.next_label -%>
+      catch(<%= l %>) do
+        <%-   r, code = gen.generate_code_str(expr, l, 8, false) -%>
+        <%-   %><%= code -%>
+        <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+        <%-     reach = Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+        <%-     if c -%>
+        # unreachable codes omitted
+        <%-     end -%>
+        <%-     break -%>
+        <%-   else -%>
+        <%-     if r == Packcr::CODE_REACH__BOTH -%>
+        <%-       reach = Packcr::CODE_REACH__BOTH -%>
+        <%-       b = true -%>
+        throw(<%= m %>)
+        <%-     end -%>
+        <%-   end -%>
+      end
+      @cur = pos
+      <%- if gen.location -%>
+      @cur_loc = p_loc
+      <%- end -%>
+      chunk.thunks[n..-1] = []
+      <%-   if !c -%>
+      throw(<%= onfail %>)
       <%-   end -%>
+      <%- end -%>
     end
-    @cur = pos
-    <%- if gen.location -%>
-    @cur_loc = p_loc
-    <%- end -%>
-    chunk.thunks[n..-1] = []
-    <%-   if !c -%>
-    throw(<%= onfail %>)
-    <%-   end -%>
-    <%- end -%>
-  end
