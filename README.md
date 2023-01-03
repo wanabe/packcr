@@ -2,7 +2,7 @@
 
 ## Overview
 
-PackCR is a parser generator for C as ruby library.
+PackCR is a parser generator for C or Ruby.
 This library is a port of PackCC rewritten in ruby.
 The Original PackCC is https://github.com/arithy/packcc.
 
@@ -10,18 +10,34 @@ The Original PackCC is https://github.com/arithy/packcc.
 
 You can get Packcr object with `Packcr.new(peg_path)` and it can generate C source and header with `Packcr#run`.
 
-Example:
+Example(1):
 
 ```
-$ cat ./tmp/example.sh
+$ cat ./tmp/example1.sh
 #!/bin/sh
+set -e
 cd $0/..
-cp ../packcc/examples/calc.peg .
-bundle exec ruby -rpackcr -e 'Packcr.new("calc.peg").run'
+cp ../packcc/examples/calc.peg calc.c.peg
+bundle exec ruby -e 'require "packcr"; Packcr.new("calc.c.peg").run'
 gcc calc.c
 echo "1 + 2 * 3 - 4 / 2" | ./a.out
 
-$ ./tmp/example.sh
+$ ./tmp/example1.sh
+answer=5
+```
+
+Example(2):
+
+```
+$ cat ./tmp/example2.sh
+#!/bin/sh
+set -e
+cd $0/..
+cp ../examples/calc.rb.peg .
+bundle exec ruby -e 'require "packcr"; Packcr.new("calc.rb.peg").run'
+ruby calc.rb "1 + 2 * 3 - 4 / 2"
+
+$ ./tmp/example2.sh
 answer=5
 ```
 

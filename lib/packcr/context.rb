@@ -3,21 +3,30 @@ require "stringio"
 
 class Packcr
   class Context
-    def initialize(path, lines: false, debug: false, ascii: false, lang: :c)
+    def initialize(path, lines: false, debug: false, ascii: false, lang: nil)
       if !path
         raise ArgumentError, "bad path: #{path}";
       end
 
       @iname = path
       @ifile = File.open(path, "rb")
-      @lang = lang.to_sym
       dirname = File.dirname(path)
       basename = File.basename(path, ".*")
+      if !lang
+        lang = File.extname(basename)[1..-1]&.to_sym
+        if lang
+          basename = File.basename(basename, ".*")
+        else
+          lang = :c
+        end
+      end
       if dirname == "."
         path = basename
       else
         path = File.join(dirname, basename)
       end
+
+      @lang = lang.to_sym
       case @lang
       when :c
         @sname = path + ".c"
