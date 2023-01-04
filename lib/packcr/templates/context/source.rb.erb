@@ -19,23 +19,6 @@ class <%= class_name %>
     <%- end -%>
   end
 
-  def get_utf8_char_range_and_codepoint
-    <%- if @utf8 -%>
-    return [0, nil] if refill_buffer(1) < 1
-    c = @buffer[@cur]
-    return [0, nil] if c == nil || c == ""
-    [1, c.ord]
-    <%- else -%>
-    refill_buffer(4, :utf8)
-    char = @buffer.dup[@cur..-1]&.force_encoding(Encoding::UTF_8)&.chr
-    if !char || char == ""
-      [0, nil]
-    else
-      [char.bytesize, char.ord]
-    end
-    <%- end -%>
-  end
-
   def refill_buffer(num, mode = nil)
     len = @buffer.length
     if len >= @cur + num

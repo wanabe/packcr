@@ -1,8 +1,8 @@
 1.times do |;u, n|
-  n, u = get_utf8_char_range_and_codepoint
-  if n == 0
+  if refill_buffer(1) < 1
     throw(<%= onfail %>)
   end
+  u = @buffer[@cur].ord
   <%- if charclass && !(a && n == 1) # not '.' or '[^]' -%>
   <%-   u0 = 0 -%>
   <%-   r = false -%>
@@ -44,7 +44,7 @@
   end
   <%- end -%>
   <%- if gen.location -%>
-  @cur_loc = @cur_loc.forward(@buffer, @cur, n)
+  @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
   <%- end -%>
-  @cur += n
+  @cur += 1
 end
