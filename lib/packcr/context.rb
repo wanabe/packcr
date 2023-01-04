@@ -360,6 +360,12 @@ class Packcr
     def match_code_block
       l = @linenum
       m = column_number
+
+      replace_dollar = true
+      if match_character("$".ord)
+        replace_dollar = false
+      end
+
       if match_character("{".ord)
         d = 1
         while true
@@ -379,7 +385,7 @@ class Packcr
             end
           else
             if !eol?
-              if match_character("$".ord)
+              if replace_dollar && match_character("$".ord)
                 if @lang == :rb
                   @buffer[@bufcur - 1] = "__"
                 else
@@ -423,6 +429,7 @@ class Packcr
       l = @linenum
       m = column_number
       if match_code_block
+        pos +=1 if @buffer.to_s[pos] == "$"
         q = @bufcur
         match_spaces
         outputs.each do |output|
@@ -650,6 +657,7 @@ class Packcr
         end
         n_p.value = string
       elsif match_code_block
+        pos +=1 if @buffer.to_s[pos] == "$"
         q = @bufcur
         text = @buffer.to_s
         text = text[pos + 1, q - pos - 2]
@@ -732,6 +740,7 @@ class Packcr
         l2 = @linenum
         m = column_number
         if match_code_block
+          pos +=1 if @buffer.to_s[pos] == "$"
           q = @bufcur
           text = @buffer.to_s
           text = text[pos2 + 1, q - pos2 - 2]
