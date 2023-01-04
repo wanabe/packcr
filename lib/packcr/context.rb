@@ -428,6 +428,29 @@ class Packcr
       pos = @bufcur
       l = @linenum
       m = column_number
+
+      matched, text = match_lang_code_block
+      if text
+        while true
+          if matched
+            outputs.each do |output|
+              code = Packcr::CodeBlock.new(text, Packcr.find_trailing_blanks(text), l, m)
+              output.push(code)
+            end
+          end
+
+          state = [@bufcur, @linenum]
+          matched, text = match_lang_code_block
+          if !text
+            @bufcur, @linenum = state
+            break
+          end
+        end
+        return true
+      end
+      @bufcur = pos
+      @linenum = l
+
       if match_code_block
         pos +=1 if @buffer.to_s[pos] == "$"
         q = @bufcur
@@ -496,6 +519,34 @@ class Packcr
     class StopParsing < StandardError
     end
 
+    def match_lang_code_block
+      pos = @bufcur
+
+      unless match_identifier
+        return
+      end
+
+      lang = @buffer.to_s[pos, @bufcur - pos].to_sym
+
+      match_spaces
+      unless match_string("->")
+        return
+      end
+
+      match_spaces
+      pos = @bufcur
+      unless match_code_block
+        return
+      end
+
+      pos +=1 if @buffer.to_s[pos] == "$"
+      q = @bufcur
+      text = @buffer.to_s
+      text = text[pos + 1, q - pos - 2]
+      match_spaces
+      [lang == @lang, text]
+    end
+
     def parse_primary(rule)
       pos = @bufcur
       l = @linenum
@@ -517,6 +568,34 @@ class Packcr
         end
         if match_string("<-")
           raise StopParsing
+        end
+        if match_string("->")
+          @bufcur = pos
+          @linenum = l
+          @charnum = n
+          @linepos = o
+          while true
+            state = [@bufcur, @linenum, @charnum, @linepos]
+            matched, text = match_lang_code_block
+            if !text
+              @bufcur, @linenum, @charnum, @linepos = state
+              break
+            end
+
+            if matched
+              codes = rule.codes
+              n_p = Packcr::Node::ActionNode.new
+              n_p.code = Packcr::CodeBlock.new(text, Packcr.find_trailing_blanks(text), l, m)
+              n_p.index = codes.length
+              codes.push(n_p)
+            end
+          end
+
+          if n_p
+            return n_p
+          else
+            raise StopParsing
+          end
         end
 
         n_p = Packcr::Node::ReferenceNode.new
