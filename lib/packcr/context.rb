@@ -52,6 +52,7 @@ class Packcr
       @source = []
       @header = []
       @lheader = []
+      @lsource = []
       @location = []
       @rules = []
       @rulehash = {}
@@ -871,6 +872,7 @@ class Packcr
             parse_directive_include("%earlycommon", @esource, @eheader) ||
             parse_directive_include("%source", @source) ||
             parse_directive_include("%lateheader", @lheader) ||
+            parse_directive_include("%latesource", @lsource) ||
             parse_directive_include("%header", @header) ||
             parse_directive_include("%common", @source, @header) ||
             parse_directive_include("%location", @location) ||

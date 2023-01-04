@@ -1283,3 +1283,9 @@ int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
 void <%= prefix %>_destroy(<%= prefix %>_context_t *ctx) {
     pcc_context__destroy(ctx);
 }
+<%- if !@lsource.empty? -%>
+
+<%-   @lsource.each do |code| -%>
+<%=     sstream.get_code_block(code, 0, @iname) -%>
+<%-   end -%>
+<%- end -%>

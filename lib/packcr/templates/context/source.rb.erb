@@ -466,3 +466,9 @@ class <%= class_name %>
     attr_accessor :value
   end
 end
+<%- if !@lsource.empty? -%>
+
+<%-   @lsource.each do |code| -%>
+<%=     sstream.get_code_block(code, 0, @iname) -%>
+<%-   end -%>
+<%- end -%>
