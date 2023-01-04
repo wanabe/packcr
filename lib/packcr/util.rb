@@ -1,3 +1,5 @@
+require "erb"
+
 class Packcr
   module Util
     def is_identifier_string(str)

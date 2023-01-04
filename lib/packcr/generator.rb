@@ -1,3 +1,4 @@
+require "stringio"
 
 class Packcr
   class Generator

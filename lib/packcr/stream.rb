@@ -1,4 +1,5 @@
 require "securerandom"
+require "stringio"
 
 class Packcr
   class Stream

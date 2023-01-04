@@ -1,6 +1,3 @@
-require "erb"
-require "stringio"
-
 class Packcr
   class Context
     def initialize(path, lines: false, debug: false, ascii: false, lang: nil)
