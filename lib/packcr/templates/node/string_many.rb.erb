@@ -1,9 +1,6 @@
 if (
   refill_buffer(<%= n %>) < <%= n %> ||
-  <%- (n - 1).times do |i| -%>
-  @buffer[@cur + <%= i %>] != "<%= Packcr.escape_character(value[i]) %>" ||
-  <%- end -%>
-  @buffer[@cur + <%= n - 1 %>] != "<%= Packcr.escape_character(value[n - 1]) %>"
+  @buffer[@cur, <%= n %>] != <%= value[0, n].dump %>
 )
   throw(<%= onfail %>)
 end
