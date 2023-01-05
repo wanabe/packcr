@@ -5,6 +5,6 @@ if (
   throw(<%= onfail %>)
 end
 <%- if gen.location -%>
-@cur_loc = @cur_loc.forward(@buffer, @cur, n)
+@cur_loc = @cur_loc.forward(@buffer, @cur, <%= n %>)
 <%- end -%>
 @cur += <%= n %>
