@@ -667,6 +667,17 @@ class Packcr
           raise StopParsing
         end
         match_spaces
+      elsif match_code_block
+        pos +=1 if @buffer.to_s[pos] == "$"
+        q = @bufcur
+        text = @buffer.to_s
+        text = text[pos + 1, q - pos - 2]
+        codes = rule.codes
+        match_spaces
+        n_p = Packcr::Node::ActionNode.new
+        n_p.code = Packcr::CodeBlock.new(text, Packcr.find_trailing_blanks(text), l, m)
+        n_p.index = codes.length
+        codes.push(n_p)
       elsif match_character("$")
         match_spaces
         pos2 = @bufcur
@@ -735,17 +746,6 @@ class Packcr
           error l + 1, m + 1, "Invalid UTF-8 string"
         end
         n_p.value = string
-      elsif match_code_block
-        pos +=1 if @buffer.to_s[pos] == "$"
-        q = @bufcur
-        text = @buffer.to_s
-        text = text[pos + 1, q - pos - 2]
-        codes = rule.codes
-        match_spaces
-        n_p = Packcr::Node::ActionNode.new
-        n_p.code = Packcr::CodeBlock.new(text, Packcr.find_trailing_blanks(text), l, m)
-        n_p.index = codes.length
-        codes.push(n_p)
       else
         raise StopParsing
       end
