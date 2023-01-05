@@ -2,9 +2,9 @@
   if refill_buffer(1) < 1
     throw(<%= onfail %>)
   end
-  u = @buffer[@cur].ord
+  u = @buffer[@cur]
   <%- if charclass && !(a && n == 1) # not '.' or '[^]' -%>
-  <%-   u0 = 0 -%>
+  <%-   u0 = nil -%>
   <%-   r = false -%>
   <%-   if a -%>
   if (
@@ -15,16 +15,16 @@
     <%-     if charclass[i] == '\\' && i + 1 < n -%>
     <%-       i += 1 -%>
     <%-     end -%>
-    <%-     u = charclass[i].ord -%>
+    <%-     u = charclass[i] -%>
     <%-     i += 1 -%>
     <%-     if r -%>
     <%-       # character range -%>
-    (u >= 0x<%= "%06x" % u0  %> && u <= 0x<%= "%06x" % u %>)<% if i < n %> ||<% end %>
+    (u >= <%= u0.dump  %> && u <= <%= u.dump %>)<% if i < n %> ||<% end %>
     <%-       u0 = 0 -%>
     <%-       r = false -%>
     <%-     elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position -%>
     <%-       # single character -%>
-    u == 0x<%= "%06x" % u %><% if i < n %> ||<% end %>
+    u == <%= u.dump %><% if i < n %> ||<% end %>
     <%-       u0 = 0 -%>
     <%-       r = false -%>
     <%-     elsif charclass[i] == "-" -%>
