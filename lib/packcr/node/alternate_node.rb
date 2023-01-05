@@ -8,6 +8,11 @@ class Packcr
         self.nodes = nodes
       end
 
+      def alt(node)
+        @nodes << node
+        self
+      end
+
       def debug_dump(indent = 0)
         $stdout.print "#{" " * indent}Alternate(max:#{max}, len:#{nodes.length}) {\n"
         nodes.each do |node|

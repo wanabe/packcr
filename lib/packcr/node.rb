@@ -1,5 +1,12 @@
 class Packcr
   class Node
+    def seq(expr)
+      SequenceNode.new(self, expr)
+    end
+
+    def alt(expr)
+      AlternateNode.new(self, expr)
+    end
   end
 end
 
