@@ -727,7 +727,7 @@ class Packcr
         string = string[pos + 1, q - pos - 2]
         match_spaces
         n_p = ::Packcr::Node::StringNode.new
-        Packcr.unescape_string(string, true)
+        Packcr.unescape_string(string, false)
         if !@ascii
           string.force_encoding(Encoding::UTF_8)
         end
