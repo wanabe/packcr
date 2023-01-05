@@ -3,6 +3,10 @@ class Packcr
     class StringNode < Packcr::Node
       attr_accessor :value
 
+      def initialize(value = nil)
+        self.value = value
+      end
+
       def value=(value)
         @value = value&.b
       end

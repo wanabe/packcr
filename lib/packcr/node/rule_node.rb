@@ -3,12 +3,16 @@ class Packcr
     class RuleNode < Packcr::Node
       attr_accessor :codes, :name, :expr, :ref, :vars, :capts, :line, :col
 
-      def initialize
-        super
+      def initialize(expr = nil, name = nil, line = nil, col = nil)
+        super()
         self.ref = 0
         self.vars = []
         self.capts = []
         self.codes = []
+        @expr = expr
+        @name = name
+        @line = line
+        @col = col
       end
 
       def debug_dump(indent = 0)

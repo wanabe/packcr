@@ -3,9 +3,10 @@ class Packcr
     class PredicateNode < Packcr::Node
       attr_accessor :neg, :expr
 
-      def initialize
-        super
-        self.neg = false
+      def initialize(expr = nil, neg: false)
+        super()
+        @expr = expr
+        @neg = neg
       end
 
       def debug_dump(indent = 0)

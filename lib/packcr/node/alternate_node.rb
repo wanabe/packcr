@@ -3,9 +3,9 @@ class Packcr
     class AlternateNode < Packcr::Node
       attr_accessor :nodes
 
-      def initialize
-        super
-        self.nodes = []
+      def initialize(*nodes)
+        super()
+        self.nodes = nodes
       end
 
       def debug_dump(indent = 0)

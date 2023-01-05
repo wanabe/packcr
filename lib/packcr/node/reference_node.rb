@@ -3,6 +3,11 @@ class Packcr
     class ReferenceNode < Packcr::Node
       attr_accessor :var, :index, :name, :rule, :line, :col
 
+      def initialize(name = nil, var_name = nil)
+        @name = name
+        @var_name = nil
+      end
+
       def debug_dump(indent = 0)
         $stdout.print "#{" " * indent}Reference(var:'#{var || "(null)"}', index:"
         Packcr.dump_integer_value(index)

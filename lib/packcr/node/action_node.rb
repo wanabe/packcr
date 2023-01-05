@@ -3,8 +3,9 @@ class Packcr
     class ActionNode < Packcr::Node
       attr_accessor :code, :index, :vars, :capts
 
-      def initialize
-        super
+      def initialize(code = nil)
+        super()
+        @code = code
         self.vars = []
         self.capts = []
       end

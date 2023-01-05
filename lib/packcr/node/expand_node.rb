@@ -3,6 +3,10 @@ class Packcr
     class ExpandNode < Packcr::Node
       attr_accessor :index, :line, :col
 
+      def initialize(index = nil)
+        @index = index
+      end
+
       def debug_dump(indent = 0)
         $stdout.print "#{" " * indent}Expand(index:"
         Packcr.dump_integer_value(index)

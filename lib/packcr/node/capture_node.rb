@@ -3,6 +3,10 @@ class Packcr
     class CaptureNode < Packcr::Node
       attr_accessor :expr, :index
 
+      def initialize(expr = nil)
+        @expr = expr
+      end
+
       def debug_dump(indent = 0)
         $stdout.print "#{" " * indent}Capture(index:"
         Packcr.dump_integer_value(index)

@@ -3,10 +3,11 @@ class Packcr
     class QuantityNode < Packcr::Node
       attr_accessor :min, :max, :expr
 
-      def initialize
-        super
-        self.min = 0
-        self.max = 0
+      def initialize(expr = nil, min = 0, max = 0)
+        super()
+        @expr = expr
+        @min = min
+        @max = max
       end
 
       def debug_dump(indent = 0)

@@ -3,8 +3,11 @@ class Packcr
     class ErrorNode < Packcr::Node
       attr_accessor :expr, :code, :index, :vars, :capts
 
-      def initialize
-        super
+      def initialize(expr = nil, code = nil, index = nil)
+        super()
+        @expr = expr
+        @code = code
+        @index = index
         self.vars = []
         self.capts = []
       end
