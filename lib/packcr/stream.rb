@@ -58,7 +58,7 @@ class Packcr
       ptr.sub!(/[ \v\f\t\r\n]*\z/, "")
 
       min_indent_spaces = nil
-      ptr.gsub!(/^([ \v\f\t]+)([^ \v\f\t\r\n])/) do
+      ptr.gsub!(/^([ \v\f\t]*)([^ \v\f\t\r\n])/) do
         spaces = $1
         char = $2
 
