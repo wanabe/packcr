@@ -86,7 +86,7 @@ class Packcr
     end
 
     def class_name
-      prefix.gsub(/(?:_|^)([a-z])/) { $1.upcase }
+      prefix.gsub(/(?:_|^|(\W))([a-z])/) { "#{$1}#{$2}".upcase }
     end
 
     def auxil_def
@@ -978,7 +978,7 @@ class Packcr
             parse_directive_include("%initialize", @init) ||
             parse_directive_string("%value", "@value_type", must_not_be_empty: true, must_not_be_void: true) ||
             parse_directive_string("%auxil", "@auxil_type", must_not_be_empty: true, must_not_be_void: true) ||
-            parse_directive_string("%prefix", "@prefix", must_not_be_empty: true, must_be_identifier: true)
+            parse_directive_string("%prefix", "@prefix", must_not_be_empty: true, must_be_identifier: false)
           )
           b = true
         elsif match_character("%")
