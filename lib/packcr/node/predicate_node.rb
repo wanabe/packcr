@@ -3,7 +3,7 @@ class Packcr
     class PredicateNode < Packcr::Node
       attr_accessor :neg, :expr
 
-      def initialize(expr = nil, neg: false)
+      def initialize(expr = nil, neg = false)
         super()
         @expr = expr
         @neg = neg
