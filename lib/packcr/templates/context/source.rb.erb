@@ -18,6 +18,9 @@ class <%= class_name %>
     @pos_loc = Location.new
     @cur_loc = Location.new
     <%- end -%>
+    <%-   @init.each do |code| -%>
+    <%- %><%= sstream.get_code_block(code, 4, @iname) -%>
+    <%-   end -%>
   end
 
   def debug
