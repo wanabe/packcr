@@ -4049,12 +4049,7 @@ class Packcr::Parser
 
   def do_action(thunks, values, index)
     thunks.each do |thunk|
-      case thunk.type
-      when :leaf
-        public_send(thunk.action, thunk, values, index)
-      when :node
-        do_action(thunk.thunks, thunk.values, thunk.index)
-      end
+      thunk.do_action(self, values, index)
     end
   end
 
@@ -4214,6 +4209,10 @@ class Packcr::Parser
       @capt0 = Capture.new
       @action = action
     end
+
+    def do_action(ctx, values, index)
+      ctx.public_send(action, self, values, index)
+    end
   end
 
   class ThunkNode < Thunk
@@ -4225,6 +4224,12 @@ class Packcr::Parser
       @values = values
       @index = index
       values[index] ||= Value.new if values
+    end
+
+    def do_action(ctx, _values, _index)
+      @thunks.each do |thunk|
+        thunk.do_action(ctx, @values, @index)
+      end
     end
   end
 
