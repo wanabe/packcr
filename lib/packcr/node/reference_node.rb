@@ -3,9 +3,11 @@ class Packcr
     class ReferenceNode < Packcr::Node
       attr_accessor :var, :index, :name, :rule, :line, :col
 
-      def initialize(name = nil, var = nil)
+      def initialize(name = nil, var = nil, line = nil, col = nil)
         @name = name
         @var = var
+        @line = line
+        @col = col
       end
 
       def debug_dump(indent = 0)
