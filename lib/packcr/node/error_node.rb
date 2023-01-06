@@ -54,6 +54,12 @@ class Packcr
       def nodes
         [expr]
       end
+
+      def setup_rule(rule)
+        @index = rule.codes.length
+        rule.codes.push(self)
+        super
+      end
     end
   end
 end
