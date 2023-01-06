@@ -33,6 +33,16 @@ class Packcr
       def link_references(ctx)
         expr.link_references(ctx)
       end
+
+      def nodes
+        [expr]
+      end
+
+      def setup_rule(rule)
+        @index = rule.capts.length
+        rule.capts << self
+        super
+      end
     end
   end
 end

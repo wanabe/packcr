@@ -29,6 +29,14 @@ class Packcr
       def add_ref
         @ref += 1
       end
+
+      def setup
+        setup_rule(self)
+      end
+
+      def nodes
+        [expr]
+      end
     end
   end
 end

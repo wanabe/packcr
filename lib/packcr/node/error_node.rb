@@ -50,6 +50,10 @@ class Packcr
       def link_references(ctx)
         expr.link_references(ctx)
       end
+
+      def nodes
+        [expr]
+      end
     end
   end
 end

@@ -48,6 +48,11 @@ class Packcr
 
       def link_references(ctx)
       end
+
+      def setup_rule(rule)
+        @index = rule.codes.length
+        rule.codes.push(self.code)
+      end
     end
   end
 end

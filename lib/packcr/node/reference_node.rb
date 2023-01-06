@@ -19,6 +19,21 @@ class Packcr
         Packcr::CODE_REACH__BOTH
       end
 
+      def setup_rule(rule)
+        return unless var
+        i = rule.vars.index do |ref|
+          unless ref.is_a?(Packcr::Node::ReferenceNode)
+            raise "Unexpected node type: #{ref.class}"
+          end
+          var == ref.var
+        end
+        if !i
+          i = rule.vars.length
+          rule.vars << self
+        end
+        @index = i
+      end
+
       def verify_variables(vars)
         return if index.nil?
 

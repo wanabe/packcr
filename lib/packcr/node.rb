@@ -7,6 +7,16 @@ class Packcr
     def alt(expr)
       AlternateNode.new(self, expr)
     end
+
+    def setup_rule(rule)
+      nodes.each do |node|
+        node.setup_rule(rule)
+      end
+    end
+
+    def nodes
+      []
+    end
   end
 end
 
