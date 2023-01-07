@@ -16,14 +16,18 @@ class Packcr
       @label += 1
     end
 
-    def generate_code(node, onfail, indent, bare)
-      node.generate_code(self, onfail, indent, bare)
+    def generate_code(node, onescape, indent, bare, reverse: false)
+      if reverse
+        node.generate_reverse_code(self, onescape, indent, bare)
+      else
+        node.generate_code(self, onescape, indent, bare)
+      end
     end
 
-    def generate_code_str(node, onfail, indent, bare)
+    def generate_code_str(node, onescape, indent, bare, reverse: false)
       @stream, stream = StringIO.new, @stream
       begin
-        return generate_code(node, onfail, indent, bare), @stream.string
+        return generate_code(node, onescape, indent, bare, reverse: reverse), @stream.string
       ensure
         @stream = stream
       end

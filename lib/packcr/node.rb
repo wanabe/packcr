@@ -17,6 +17,10 @@ class Packcr
     def nodes
       []
     end
+
+    def reversible?(gen)
+      false
+    end
   end
 end
 

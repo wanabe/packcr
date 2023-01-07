@@ -747,61 +747,43 @@ class Packcr::Parser
         pos = @cur
         p_loc = @cur_loc
         n = chunk.thunks.length
+        if apply_rule(:evaluate_rule_comment, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_directive_include, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_directive_string, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_rule, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_footer, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
         catch(2) do
-          if !apply_rule(:evaluate_rule_comment, chunk.thunks, nil, 0)
-            throw(2)
-          end
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(3) do
-          if !apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
-            throw(3)
-          end
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(4) do
-          if !apply_rule(:evaluate_rule_directive_include, chunk.thunks, nil, 0)
-            throw(4)
-          end
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(5) do
-          if !apply_rule(:evaluate_rule_directive_string, chunk.thunks, nil, 0)
-            throw(5)
-          end
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(6) do
-          if !apply_rule(:evaluate_rule_rule, chunk.thunks, nil, 0)
-            throw(6)
-          end
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(7) do
-          if !apply_rule(:evaluate_rule_footer, chunk.thunks, nil, 0)
-            throw(7)
-          end
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(8) do
           1.times do |;p0, p0_loc, n0, i|
             i = -1
             loop do |;pos, p_loc, n, stat|
@@ -810,16 +792,16 @@ class Packcr::Parser
               p_loc = @cur_loc
               n = chunk.thunks.length
               stat = nil
-              catch(9) do
+              catch(3) do
                 1.times do |;u, n|
                   if refill_buffer(1) < 1
-                    throw(9)
+                    throw(3)
                   end
                   u = @buffer[@cur]
                   if (
                     u == "\n"
                   )
-                    throw(9)
+                    throw(3)
                   end
                   @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
                   @cur += 1
@@ -3084,30 +3066,24 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_quotation_single, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_quotation_double, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_quotation_single, chunk.thunks, nil, 0)
-            throw(4)
-          end
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(5) do
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, nil, 0)
-            throw(5)
-          end
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(6) do
           if (
             refill_buffer(1) < 1 ||
             @buffer[@cur] != "{"
           )
-            throw(6)
+            throw(4)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
@@ -3119,9 +3095,9 @@ class Packcr::Parser
               p_loc = @cur_loc
               n = chunk.thunks.length
               stat = nil
-              catch(7) do
+              catch(5) do
                 if !apply_rule(:evaluate_rule_code, chunk.thunks, nil, 0)
-                  throw(7)
+                  throw(5)
                 end
                 if @cur == pos
                   stat = :break
@@ -3143,7 +3119,7 @@ class Packcr::Parser
             refill_buffer(1) < 1 ||
             @buffer[@cur] != "}"
           )
-            throw(6)
+            throw(4)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
@@ -3762,19 +3738,13 @@ class Packcr::Parser
               pos = @cur
               p_loc = @cur_loc
               n = chunk.thunks.length
-              catch(3) do
-                if !apply_rule(:evaluate_rule_comment, chunk.thunks, nil, 0)
-                  throw(3)
-                end
+              if apply_rule(:evaluate_rule_comment, chunk.thunks, nil, 0)
                 throw(2)
               end
               @cur = pos
               @cur_loc = p_loc
               chunk.thunks[n..-1] = []
-              catch(4) do
-                if !apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
-                  throw(4)
-                end
+              if apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
                 throw(2)
               end
               @cur = pos

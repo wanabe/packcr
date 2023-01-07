@@ -1,0 +1,9 @@
+<%- if index != nil -%>
+if apply_rule(:evaluate_rule_<%= name %>, chunk.thunks, chunk.values, <%= index %>)
+  throw(<%= onsuccess %>)
+end
+<%- else -%>
+if apply_rule(:evaluate_rule_<%= name %>, chunk.thunks, nil, 0)
+  throw(<%= onsuccess %>)
+end
+<%- end -%>

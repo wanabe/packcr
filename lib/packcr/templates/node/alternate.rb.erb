@@ -6,6 +6,10 @@
       n = chunk.thunks.length
       <%- nodes.each_with_index do |expr, i| -%>
       <%-   c = i + 1 < nodes.length -%>
+      <%- if expr.reversible?(gen) -%>
+      <%-   r, code = gen.generate_code_str(expr, m, 6, false, reverse: true) -%>
+      <%-   %><%= code -%>
+      <%- else -%>
       <%-   l = gen.next_label -%>
       catch(<%= l %>) do
         <%-   r, code = gen.generate_code_str(expr, l, 8, false) -%>
@@ -25,6 +29,7 @@
         <%-     end -%>
         <%-   end -%>
       end
+      <%- end -%>
       @cur = pos
       <%- if gen.location -%>
       @cur_loc = p_loc
