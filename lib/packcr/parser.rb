@@ -2515,22 +2515,32 @@ class Packcr::Parser
                 pos = @cur
                 p_loc = @cur_loc
                 n = chunk.thunks.length
-                catch(3) do
-                  1.times do |;u, n|
-                    if refill_buffer(1) < 1
-                      throw(3)
-                    end
+                1.times do |;u, n|
+                  if refill_buffer(1) >= 1
                     u = @buffer[@cur]
-                    if (
+                    unless (
                       u == "\\" ||
                       u == "[" ||
                       u == "]"
                     )
-                      throw(3)
+                      @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+                      @cur += 1
+                      throw(2)
                     end
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
                   end
+                end
+                @cur = pos
+                @cur_loc = p_loc
+                chunk.thunks[n..-1] = []
+                catch(3) do
+                  if (
+                    refill_buffer(2) < 2 ||
+                    @buffer[@cur, 2] != "\\["
+                  )
+                    throw(3)
+                  end
+                  @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+                  @cur += 2
                   throw(2)
                 end
                 @cur = pos
@@ -2539,7 +2549,7 @@ class Packcr::Parser
                 catch(4) do
                   if (
                     refill_buffer(2) < 2 ||
-                    @buffer[@cur, 2] != "\\["
+                    @buffer[@cur, 2] != "\\]"
                   )
                     throw(4)
                   end
@@ -2552,24 +2562,10 @@ class Packcr::Parser
                 chunk.thunks[n..-1] = []
                 catch(5) do
                   if (
-                    refill_buffer(2) < 2 ||
-                    @buffer[@cur, 2] != "\\]"
-                  )
-                    throw(5)
-                  end
-                  @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                  @cur += 2
-                  throw(2)
-                end
-                @cur = pos
-                @cur_loc = p_loc
-                chunk.thunks[n..-1] = []
-                catch(6) do
-                  if (
                     refill_buffer(1) < 1 ||
                     @buffer[@cur] != "\\"
                   )
-                    throw(6)
+                    throw(5)
                   end
                   @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
                   @cur += 1
@@ -3151,23 +3147,33 @@ class Packcr::Parser
         pos = @cur
         p_loc = @cur_loc
         n = chunk.thunks.length
-        catch(2) do
-          1.times do |;u, n|
-            if refill_buffer(1) < 1
-              throw(2)
-            end
+        1.times do |;u, n|
+          if refill_buffer(1) >= 1
             u = @buffer[@cur]
-            if (
+            unless (
               u == "{" ||
               u == "}" ||
               u == "\"" ||
               u == "'"
             )
-              throw(2)
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
+              throw(1)
             end
-            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-            @cur += 1
           end
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(2) do
+          if (
+            refill_buffer(2) < 2 ||
+            @buffer[@cur, 2] != "\\\""
+          )
+            throw(2)
+          end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+          @cur += 2
           throw(1)
         end
         @cur = pos
@@ -3176,7 +3182,7 @@ class Packcr::Parser
         catch(3) do
           if (
             refill_buffer(2) < 2 ||
-            @buffer[@cur, 2] != "\\\""
+            @buffer[@cur, 2] != "\\'"
           )
             throw(3)
           end
@@ -3190,7 +3196,7 @@ class Packcr::Parser
         catch(4) do
           if (
             refill_buffer(2) < 2 ||
-            @buffer[@cur, 2] != "\\'"
+            @buffer[@cur, 2] != "\\{"
           )
             throw(4)
           end
@@ -3204,23 +3210,9 @@ class Packcr::Parser
         catch(5) do
           if (
             refill_buffer(2) < 2 ||
-            @buffer[@cur, 2] != "\\{"
-          )
-            throw(5)
-          end
-          @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-          @cur += 2
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(6) do
-          if (
-            refill_buffer(2) < 2 ||
             @buffer[@cur, 2] != "\\}"
           )
-            throw(6)
+            throw(5)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
           @cur += 2
@@ -3272,22 +3264,32 @@ class Packcr::Parser
                 pos = @cur
                 p_loc = @cur_loc
                 n = chunk.thunks.length
-                catch(3) do
-                  1.times do |;u, n|
-                    if refill_buffer(1) < 1
-                      throw(3)
-                    end
+                1.times do |;u, n|
+                  if refill_buffer(1) >= 1
                     u = @buffer[@cur]
-                    if (
+                    unless (
                       u == "\\" ||
                       u == "'" ||
                       u == "\n"
                     )
-                      throw(3)
+                      @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+                      @cur += 1
+                      throw(2)
                     end
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
                   end
+                end
+                @cur = pos
+                @cur_loc = p_loc
+                chunk.thunks[n..-1] = []
+                catch(3) do
+                  if (
+                    refill_buffer(2) < 2 ||
+                    @buffer[@cur, 2] != "\\'"
+                  )
+                    throw(3)
+                  end
+                  @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+                  @cur += 2
                   throw(2)
                 end
                 @cur = pos
@@ -3296,7 +3298,7 @@ class Packcr::Parser
                 catch(4) do
                   if (
                     refill_buffer(2) < 2 ||
-                    @buffer[@cur, 2] != "\\'"
+                    @buffer[@cur, 2] != "\\\n"
                   )
                     throw(4)
                   end
@@ -3309,37 +3311,23 @@ class Packcr::Parser
                 chunk.thunks[n..-1] = []
                 catch(5) do
                   if (
-                    refill_buffer(2) < 2 ||
-                    @buffer[@cur, 2] != "\\\n"
-                  )
-                    throw(5)
-                  end
-                  @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                  @cur += 2
-                  throw(2)
-                end
-                @cur = pos
-                @cur_loc = p_loc
-                chunk.thunks[n..-1] = []
-                catch(6) do
-                  if (
                     refill_buffer(1) < 1 ||
                     @buffer[@cur] != "\\"
                   )
-                    throw(6)
+                    throw(5)
                   end
                   @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
                   @cur += 1
                   1.times do |;u, n|
                     if refill_buffer(1) < 1
-                      throw(6)
+                      throw(5)
                     end
                     u = @buffer[@cur]
                     if (
                       u == "'" ||
                       u == "\n"
                     )
-                      throw(6)
+                      throw(5)
                     end
                     @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
                     @cur += 1
@@ -3435,22 +3423,32 @@ class Packcr::Parser
                 pos = @cur
                 p_loc = @cur_loc
                 n = chunk.thunks.length
-                catch(3) do
-                  1.times do |;u, n|
-                    if refill_buffer(1) < 1
-                      throw(3)
-                    end
+                1.times do |;u, n|
+                  if refill_buffer(1) >= 1
                     u = @buffer[@cur]
-                    if (
+                    unless (
                       u == "\\" ||
                       u == "\"" ||
                       u == "\n"
                     )
-                      throw(3)
+                      @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+                      @cur += 1
+                      throw(2)
                     end
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
                   end
+                end
+                @cur = pos
+                @cur_loc = p_loc
+                chunk.thunks[n..-1] = []
+                catch(3) do
+                  if (
+                    refill_buffer(2) < 2 ||
+                    @buffer[@cur, 2] != "\\\""
+                  )
+                    throw(3)
+                  end
+                  @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+                  @cur += 2
                   throw(2)
                 end
                 @cur = pos
@@ -3459,7 +3457,7 @@ class Packcr::Parser
                 catch(4) do
                   if (
                     refill_buffer(2) < 2 ||
-                    @buffer[@cur, 2] != "\\\""
+                    @buffer[@cur, 2] != "\\\n"
                   )
                     throw(4)
                   end
@@ -3472,37 +3470,23 @@ class Packcr::Parser
                 chunk.thunks[n..-1] = []
                 catch(5) do
                   if (
-                    refill_buffer(2) < 2 ||
-                    @buffer[@cur, 2] != "\\\n"
-                  )
-                    throw(5)
-                  end
-                  @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                  @cur += 2
-                  throw(2)
-                end
-                @cur = pos
-                @cur_loc = p_loc
-                chunk.thunks[n..-1] = []
-                catch(6) do
-                  if (
                     refill_buffer(1) < 1 ||
                     @buffer[@cur] != "\\"
                   )
-                    throw(6)
+                    throw(5)
                   end
                   @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
                   @cur += 1
                   1.times do |;u, n|
                     if refill_buffer(1) < 1
-                      throw(6)
+                      throw(5)
                     end
                     u = @buffer[@cur]
                     if (
                       u == "\"" ||
                       u == "\n"
                     )
-                      throw(6)
+                      throw(5)
                     end
                     @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
                     @cur += 1
