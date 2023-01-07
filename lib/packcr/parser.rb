@@ -899,7 +899,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    directive_include #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -1220,7 +1220,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    code_blocks #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -1296,7 +1296,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    directive_string #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -1419,7 +1419,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    rule #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 0)
         throw(0)
@@ -1472,7 +1472,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    expression #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -1559,7 +1559,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    sequence #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -1635,7 +1635,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    term #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -1722,7 +1722,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    pred #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -1834,7 +1834,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    quantity #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -1979,7 +1979,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    primary #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(1)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -2593,7 +2593,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    lang_code_block #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(1)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -2685,7 +2685,7 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    code_block #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    chunk.values = []
+    chunk.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
@@ -4018,14 +4018,14 @@ class Packcr::Parser
     def initialize
       super
       @thunks = []
-      @capts = []
+      @capts = {}
       @pos = 0
-      @values = []
+      @values = {}
     end
 
     def resize_captures(len)
-      (@capts.length...len).each do |i|
-        @capts << Capture.new
+      len.times do |i|
+        @capts[i] = Capture.new
       end
     end
   end
@@ -4037,8 +4037,8 @@ class Packcr::Parser
     attr_accessor :capt0, :capts, :value_refs, :action
 
     def initialize(action)
-      @value_refs = []
-      @capts = []
+      @value_refs = {}
+      @capts = {}
       @capt0 = Capture.new
       @action = action
     end

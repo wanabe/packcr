@@ -122,7 +122,7 @@ class <%= class_name %>
     @level += 1
     chunk.resize_captures(<%= node.capts.length %>)
     <%-   if node.vars.length > 0 -%>
-    chunk.values = []
+    chunk.values = {}
     <%-   end -%>
     catch(0) do
       <%-   g = ::Packcr::Generator.new(node, @ascii, @location, :rb) -%>
@@ -373,14 +373,14 @@ class <%= class_name %>
     def initialize
       super
       @thunks = []
-      @capts = []
+      @capts = {}
       @pos = 0
-      @values = []
+      @values = {}
     end
 
     def resize_captures(len)
-      (@capts.length...len).each do |i|
-        @capts << Capture.new
+      len.times do |i|
+        @capts[i] = Capture.new
       end
     end
   end
@@ -392,8 +392,8 @@ class <%= class_name %>
     attr_accessor :capt0, :capts, :value_refs, :action
 
     def initialize(action)
-      @value_refs = []
-      @capts = []
+      @value_refs = {}
+      @capts = {}
       @capt0 = Capture.new
       @action = action
     end
