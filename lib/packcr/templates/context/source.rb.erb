@@ -111,30 +111,30 @@ class <%= class_name %>
 
   <%-   end -%>
   <%- end -%>
-  <%- @rules.each do |node| -%>
-  def evaluate_rule_<%= node.name %>
+  <%- @rules.each do |rule| -%>
+  def evaluate_rule_<%= rule.name %>
     chunk = ThunkChunk.new
     chunk.pos = @cur
     <%- if @location -%>
     chunk.pos_loc = @cur_loc
     <%- end -%>
-    debug { warn "#{ "  " * @level}EVAL    <%= node.name %> #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    debug { warn "#{ "  " * @level}EVAL    <%= rule.name %> #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(<%= node.capts.length %>)
-    <%-   if node.vars.length > 0 -%>
+    chunk.resize_captures(<%= rule.capts.length %>)
+    <%-   if rule.vars.length > 0 -%>
     chunk.values = {}
     <%-   end -%>
     catch(0) do
-      <%-   g = ::Packcr::Generator.new(node, @ascii, @location, :rb) -%>
-      <%-   r, code = g.generate_code_str(node.expr, 0, 6, false) -%>
+      <%-   g = ::Packcr::Generator.new(rule, @ascii, @location, :rb) -%>
+      <%-   r, code = g.generate_code_str(rule.expr, 0, 6, false) -%>
       <%- %><%= code -%>
-      debug { warn "#{ "  " * @level}MATCH   <%= node.name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+      debug { warn "#{ "  " * @level}MATCH   <%= rule.name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
       @level -= 1
     end
     <%-   if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-    debug { warn "#{ "  " * @level}NOMATCH <%= node.name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH <%= rule.name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
     <%-   end -%>
   end
