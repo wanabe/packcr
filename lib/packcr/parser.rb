@@ -8,7 +8,7 @@ class Packcr::Parser
     @cur = 0
     @level = 0
     @lrstack = []
-    @thunks = []
+    @thunk = ThunkNode.new([], nil, 0)
     @lrtable = LrTable.new
     @debug = debug
     @pos_loc = Location.new
@@ -51,13 +51,13 @@ class Packcr::Parser
   end
 
   def parse
-    if apply_rule(:evaluate_rule_statement, @thunks, nil, 0)
-      do_action(@thunks, nil, 0)
+    if apply_rule(:evaluate_rule_statement, @thunk.thunks, nil, 0)
+      @thunk.do_action(self, nil, 0)
     else
       raise SyntaxError, "can't parse"
     end
     commit_buffer
-    @thunks.clear
+    @thunk.clear
     refill_buffer(1) >= 1
   end
 
@@ -4230,6 +4230,10 @@ class Packcr::Parser
       @thunks.each do |thunk|
         thunk.do_action(ctx, @values, @index)
       end
+    end
+
+    def clear
+      @thunks.clear
     end
   end
 
