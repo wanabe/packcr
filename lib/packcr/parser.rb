@@ -784,9 +784,9 @@ class Packcr::Parser
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
         catch(2) do
-          1.times do |;p0, p0_loc, n0, i|
+          1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
             i = -1
-            loop do |;pos, p_loc, n, stat|
+            while true
               i += 1
               pos = @cur
               p_loc = @cur_loc
@@ -856,9 +856,9 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;p0, p0_loc, n0, i|
+      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
         i = -1
-        loop do |;pos, p_loc, n, stat|
+        while true
           i += 1
           pos = @cur
           p_loc = @cur_loc
@@ -2024,9 +2024,9 @@ class Packcr::Parser
             pos = @cur
             p_loc = @cur_loc
             catch(3) do
-              1.times do |;p0, p0_loc, n0, i|
+              1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
                 i = -1
-                loop do |;pos, p_loc, n, stat|
+                while true
                   i += 1
                   pos = @cur
                   p_loc = @cur_loc
@@ -2110,9 +2110,9 @@ class Packcr::Parser
             pos = @cur
             p_loc = @cur_loc
             catch(6) do
-              1.times do |;p0, p0_loc, n0, i|
+              1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
                 i = -1
-                loop do |;pos, p_loc, n, stat|
+                while true
                   i += 1
                   pos = @cur
                   p_loc = @cur_loc
@@ -2299,9 +2299,9 @@ class Packcr::Parser
               @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
               @cur += 1
             end
-            1.times do |;p0, p0_loc, n0, i|
+            1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
               i = -1
-              loop do |;pos, p_loc, n, stat|
+              while true
                 i += 1
                 pos = @cur
                 p_loc = @cur_loc
@@ -2502,9 +2502,9 @@ class Packcr::Parser
       1.times do |;pos, q, capt, p_loc, q_loc|
         pos = @cur
         p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i|
+        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
           i = -1
-          loop do |;pos, p_loc, n, stat|
+          while true
             i += 1
             pos = @cur
             p_loc = @cur_loc
@@ -2875,21 +2875,21 @@ class Packcr::Parser
     @level += 1
     chunk.resize_captures(0)
     catch(0) do
-      1.times do |;p0, p0_loc, n0, i|
+      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
         p0 = @cur
         p0_loc = @cur_loc
         n0 = chunk.thunks.length
         i = -1
-        loop do |;pos, p_loc, n, stat|
+        while true
           i += 1
           pos = @cur
           p_loc = @cur_loc
           n = chunk.thunks.length
           stat = nil
           catch(1) do
-            1.times do |;p0, p0_loc, n0, i|
+            1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
               i = -1
-              loop do |;pos, p_loc, n, stat|
+              while true
                 i += 1
                 pos = @cur
                 p_loc = @cur_loc
@@ -2955,9 +2955,9 @@ class Packcr::Parser
           throw(0)
         end
       end
-      1.times do |;p0, p0_loc, n0, i|
+      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
         i = -1
-        loop do |;pos, p_loc, n, stat|
+        while true
           i += 1
           pos = @cur
           p_loc = @cur_loc
@@ -3020,12 +3020,12 @@ class Packcr::Parser
         p_loc = @cur_loc
         n = chunk.thunks.length
         catch(2) do
-          1.times do |;p0, p0_loc, n0, i|
+          1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
             p0 = @cur
             p0_loc = @cur_loc
             n0 = chunk.thunks.length
             i = -1
-            loop do |;pos, p_loc, n, stat|
+            while true
               i += 1
               pos = @cur
               p_loc = @cur_loc
@@ -3083,9 +3083,9 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;p0, p0_loc, n0, i|
+          1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
             i = -1
-            loop do |;pos, p_loc, n, stat|
+            while true
               i += 1
               pos = @cur
               p_loc = @cur_loc
@@ -3251,9 +3251,9 @@ class Packcr::Parser
       1.times do |;pos, q, capt, p_loc, q_loc|
         pos = @cur
         p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i|
+        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
           i = -1
-          loop do |;pos, p_loc, n, stat|
+          while true
             i += 1
             pos = @cur
             p_loc = @cur_loc
@@ -3410,9 +3410,9 @@ class Packcr::Parser
       1.times do |;pos, q, capt, p_loc, q_loc|
         pos = @cur
         p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i|
+        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
           i = -1
-          loop do |;pos, p_loc, n, stat|
+          while true
             i += 1
             pos = @cur
             p_loc = @cur_loc
@@ -3573,9 +3573,9 @@ class Packcr::Parser
         @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
         @cur += 1
       end
-      1.times do |;p0, p0_loc, n0, i|
+      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
         i = -1
-        loop do |;pos, p_loc, n, stat|
+        while true
           i += 1
           pos = @cur
           p_loc = @cur_loc
@@ -3640,12 +3640,12 @@ class Packcr::Parser
     @level += 1
     chunk.resize_captures(0)
     catch(0) do
-      1.times do |;p0, p0_loc, n0, i|
+      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
         p0 = @cur
         p0_loc = @cur_loc
         n0 = chunk.thunks.length
         i = -1
-        loop do |;pos, p_loc, n, stat|
+        while true
           i += 1
           pos = @cur
           p_loc = @cur_loc
@@ -3709,9 +3709,9 @@ class Packcr::Parser
     @level += 1
     chunk.resize_captures(0)
     catch(0) do
-      1.times do |;p0, p0_loc, n0, i|
+      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
         i = -1
-        loop do |;pos, p_loc, n, stat|
+        while true
           i += 1
           pos = @cur
           p_loc = @cur_loc
@@ -3827,9 +3827,9 @@ class Packcr::Parser
       1.times do |;pos, q, capt, p_loc, q_loc|
         pos = @cur
         p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i|
+        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
           i = -1
-          loop do |;pos, p_loc, n, stat|
+          while true
             i += 1
             pos = @cur
             p_loc = @cur_loc

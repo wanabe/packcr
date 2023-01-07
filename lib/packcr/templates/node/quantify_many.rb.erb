@@ -1,4 +1,4 @@
-1.times do |;p0, p0_loc, n0, i|
+1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
   <%- if min > 0 -%>
   p0 = @cur
   <%-   if gen.location -%>
@@ -7,11 +7,7 @@
   n0 = chunk.thunks.length
   <%- end -%>
   i = -1
-  <%- if max < 0 -%>
-  loop do |;pos, p_loc, n, stat|
-  <%- else -%>
-  <%= max %>.times do |;pos, p_loc, n, stat|
-  <%- end -%>
+  while true
     i += 1
     pos = @cur
     <%- if gen.location -%>
@@ -41,6 +37,9 @@
       break
     <%- end -%>
     end
+    <%- if max >= 0 -%>
+    break if i >= <%= max %>
+    <%- end -%>
   end
   <%- if min > 0 -%>
   if i < <%= min %>
