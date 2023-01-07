@@ -434,12 +434,12 @@ class <%= class_name %>
     attr_accessor :start_loc, :end_loc
     <%- end -%>
 
-    def initialize
-      @range_start = 0
-      @range_end = 0
+    def initialize(range_start = 0, range_end = 0<% if @location %>, start_loc = nil, end_loc = nil<% end%>)
+      @range_start = range_start
+      @range_end = range_end
       <%- if @location -%>
-      @start_loc = Location.new
-      @end_loc = Location.new
+      @start_loc = start_loc || Location.new
+      @end_loc = end_loc || Location.new
       <%- end -%>
     end
 

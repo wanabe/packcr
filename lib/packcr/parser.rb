@@ -4077,11 +4077,11 @@ class Packcr::Parser
     attr_accessor :range_start, :range_end
     attr_accessor :start_loc, :end_loc
 
-    def initialize
-      @range_start = 0
-      @range_end = 0
-      @start_loc = Location.new
-      @end_loc = Location.new
+    def initialize(range_start = 0, range_end = 0, start_loc = nil, end_loc = nil)
+      @range_start = range_start
+      @range_end = range_end
+      @start_loc = start_loc || Location.new
+      @end_loc = end_loc || Location.new
     end
 
     def capture_string(buffer)
