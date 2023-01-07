@@ -512,7 +512,7 @@ class Packcr::Parser
     __1e = @pos + __pcc_in.capts[0].range_end
     __1sl = @pos_loc + __pcc_in.capts[0].start_loc
     __1el = @pos_loc + __pcc_in.capts[0].end_loc
-    ____ = Packcr::Node::ExpandNode.new(__1.to_i - 1)
+    ____ = Packcr::Node::ExpandNode.new(__1.to_i - 1, __0sl.linenum, __0sl.charnum)
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end

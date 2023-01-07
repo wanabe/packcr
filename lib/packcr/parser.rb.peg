@@ -53,7 +53,7 @@ primary <- var_name:identifier opt_spaces_or_comments ':' opt_spaces_or_comments
          / name:identifier !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, nil, $0sl.linenum, $0sl.charnum) }
          / '(' opt_spaces_or_comments expr:expression opt_spaces_or_comments ')' { $$ = expr }
          / '<' opt_spaces_or_comments expr:expression opt_spaces_or_comments '>' { $$ = Packcr::Node::CaptureNode.new(expr) }
-         / '$' <[1-9][0-9]*> { $$ = Packcr::Node::ExpandNode.new($1.to_i - 1) }
+         / '$' <[1-9][0-9]*> { $$ = Packcr::Node::ExpandNode.new($1.to_i - 1, $0sl.linenum, $0sl.charnum) }
          / '.' { $$ = Packcr::Node::CharclassNode.new }
          / str:character_class { $$ = Packcr::Node::CharclassNode.new(Packcr.unescape_string(str, true)) }
          / str:quotation_single { $$ = Packcr::Node::StringNode.new(Packcr.unescape_string(str, false)) }

@@ -3,8 +3,10 @@ class Packcr
     class ExpandNode < Packcr::Node
       attr_accessor :index, :line, :col
 
-      def initialize(index = nil)
+      def initialize(index = nil, line = nil, col = nil)
         @index = index
+        @line = line
+        @col = col
       end
 
       def debug_dump(indent = 0)
