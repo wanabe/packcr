@@ -4,29 +4,29 @@ catch(<%= m %>) do
     throw(<%= m %>)
   end
 
-  1.times do |;thunk, capt0, value, values, value_refs, capt|
-    thunk = ThunkLeaf.new(:action_<%= gen.rule.name %>_<%= index %>)
-    capt0 = thunk.capt0
-    <%- if !vars.empty? -%>
-    values = chunk.values
-    rvalue_refs = thunk.value_refs
-    <%- end -%>
-    <%- vars.each do |var| -%>
-    value = values[<%= var.index %>]
-    value_refs[<%= var.index %>] = value
-    <%- end -%>
-    <%- capts.each do |capt| -%>
-    capt = chunk.capts[<%= capt.index %>]
-    thunk.capts[<%= capt.index %>] = capt
-    <%- end -%>
-    capt0.range_start = chunk.pos
-    capt0.range_end = @cur
-    <%- if gen.location -%>
-    capt0.start_loc = chunk.pos_loc
-    capt0.end_loc = @cur_loc
-    <%- end -%>
-    public_send(thunk.action, thunk, nil, 0)
+  action_<%= gen.rule.name %>_<%= index %>(
+    ThunkLeaf.new(
+      :action_<%= gen.rule.name %>_<%= index %>,
+      Capture.new(
+        chunk.pos, @cur,
+        <%- if gen.location -%>
+        chunk.pos_loc,@cur_loc,
+        <%- end -%>
+      ),
+      <%- if vars.empty? -%>
+      {},
+      <%- else -%>
+      chunk.values.slice(<% vars.each_with_index do |var, i| %><%= ", " if i > 0 %><%= var.index %><% end %>),
+      <%- end -%>
+      <%- if capts.empty? -%>
+      {},
+      <%- else -%>
+      chunk.capts.slice(<% capts.each_with_index do |capt, i| %><%= ", " if i > 0 %><%= capt.index %><% end %>),
+      <%- end -%>
+    ),
+    nil,
+    0
+  )
 
-    throw(<%= onfail %>)
-  end
+  throw(<%= onfail %>)
 end

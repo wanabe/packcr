@@ -815,15 +815,17 @@ class Packcr::Parser
               chunk.thunks[n..-1] = []
             end
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_statement_0)
-            capt0 = thunk.capt0
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_statement_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              {},
+              {},
+            )
+          )
         end
       end
       debug { warn "#{ "  " * @level}MATCH   statement #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
@@ -920,19 +922,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -953,19 +953,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -986,19 +984,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(4)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_2)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_2,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1019,19 +1015,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(5)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_3)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_3,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1052,19 +1046,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(6)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_4)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_4,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1085,19 +1077,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(7)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_5)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_5,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1118,19 +1108,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(8)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_6)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_6,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1151,19 +1139,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(9)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_7)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_7,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1184,19 +1170,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
             throw(10)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_include_8)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_include_8,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1236,21 +1220,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 1)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_code_blocks_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_code_blocks_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0, 1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1260,19 +1240,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 1)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_code_blocks_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_code_blocks_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1317,19 +1295,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_string_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_string_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1350,19 +1326,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_string_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_string_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1383,19 +1357,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
             throw(4)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_directive_string_2)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_directive_string_2,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1441,21 +1413,17 @@ class Packcr::Parser
       if !apply_rule(:evaluate_rule_expression, chunk.thunks, chunk.values, 1)
         throw(0)
       end
-      1.times do |;thunk, capt0, value, values, value_refs, capt|
-        thunk = ThunkLeaf.new(:action_rule_0)
-        capt0 = thunk.capt0
-        values = chunk.values
-        value_refs = thunk.value_refs
-        value = values[0]
-        value_refs[0] = value
-        value = values[1]
-        value_refs[1] = value
-        capt0.range_start = chunk.pos
-        capt0.range_end = @cur
-        capt0.start_loc = chunk.pos_loc
-        capt0.end_loc = @cur_loc
-        chunk.thunks.push(thunk)
-      end
+      chunk.thunks.push(
+        ThunkLeaf.new(
+          :action_rule_0,
+          Capture.new(
+            chunk.pos, @cur,
+            chunk.pos_loc, @cur_loc,
+          ),
+          chunk.values.slice(0, 1),
+          {},
+        )
+      )
       debug { warn "#{ "  " * @level}MATCH   rule #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
@@ -1499,21 +1467,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 1)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_expression_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_expression_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0, 1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1523,19 +1487,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 1)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_expression_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_expression_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1575,21 +1537,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_sequence_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_sequence_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0, 1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1599,19 +1557,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_sequence_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_sequence_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1662,21 +1618,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 1)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_term_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_term_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0, 1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1686,19 +1638,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_pred, chunk.thunks, chunk.values, 0)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_term_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_term_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1743,19 +1693,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_quantity, chunk.thunks, chunk.values, 0)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_pred_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_pred_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1776,19 +1724,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_quantity, chunk.thunks, chunk.values, 0)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_pred_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_pred_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1798,19 +1744,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_quantity, chunk.thunks, chunk.values, 0)
             throw(4)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_pred_2)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_pred_2,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1855,19 +1799,17 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_quantity_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_quantity_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1888,19 +1830,17 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_quantity_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_quantity_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1921,19 +1861,17 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_quantity_2)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_quantity_2,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -1943,19 +1881,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_primary, chunk.thunks, chunk.values, 0)
             throw(5)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_quantity_3)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_quantity_3,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2061,21 +1997,17 @@ class Packcr::Parser
             @cur = pos
             @cur_loc = p_loc
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0, 1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2140,19 +2072,17 @@ class Packcr::Parser
             @cur = pos
             @cur_loc = p_loc
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[1]
-            value_refs[1] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(1),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2184,19 +2114,17 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_2)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[2]
-            value_refs[2] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_2,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(2),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2228,19 +2156,17 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_3)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[2]
-            value_refs[2] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_3,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(2),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2310,17 +2236,17 @@ class Packcr::Parser
             capt.start_loc = p_loc
             capt.end_loc = q_loc
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_4)
-            capt0 = thunk.capt0
-            capt = chunk.capts[0]
-            thunk.capts[0] = capt
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_4,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              {},
+              chunk.capts.slice(0),
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2335,15 +2261,17 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_5)
-            capt0 = thunk.capt0
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_5,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              {},
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2353,19 +2281,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_character_class, chunk.thunks, chunk.values, 3)
             throw(13)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_6)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[3]
-            value_refs[3] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_6,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(3),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2375,19 +2301,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_quotation_single, chunk.thunks, chunk.values, 3)
             throw(14)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_7)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[3]
-            value_refs[3] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_7,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(3),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2397,19 +2321,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 3)
             throw(15)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_8)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[3]
-            value_refs[3] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_8,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(3),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2419,19 +2341,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 4)
             throw(16)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_primary_9)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[4]
-            value_refs[4] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_9,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(4),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2566,17 +2486,17 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;thunk, capt0, value, values, value_refs, capt|
-        thunk = ThunkLeaf.new(:action_character_class_0)
-        capt0 = thunk.capt0
-        capt = chunk.capts[0]
-        thunk.capts[0] = capt
-        capt0.range_start = chunk.pos
-        capt0.range_end = @cur
-        capt0.start_loc = chunk.pos_loc
-        capt0.end_loc = @cur_loc
-        chunk.thunks.push(thunk)
-      end
+      chunk.thunks.push(
+        ThunkLeaf.new(
+          :action_character_class_0,
+          Capture.new(
+            chunk.pos, @cur,
+            chunk.pos_loc, @cur_loc,
+          ),
+          {},
+          chunk.capts.slice(0),
+        )
+      )
       debug { warn "#{ "  " * @level}MATCH   character_class #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
@@ -2603,19 +2523,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_block, chunk.thunks, chunk.values, 0)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_lang_code_block_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_lang_code_block_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2647,21 +2565,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_code_block, chunk.thunks, chunk.values, 0)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_lang_code_block_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt = chunk.capts[0]
-            thunk.capts[0] = capt
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_lang_code_block_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              chunk.capts.slice(0),
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2703,19 +2617,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_plain_code_block, chunk.thunks, chunk.values, 0)
             throw(2)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_code_block_0)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_code_block_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2725,19 +2637,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_plain_code_block, chunk.thunks, chunk.values, 0)
             throw(3)
           end
-          1.times do |;thunk, capt0, value, values, value_refs, capt|
-            thunk = ThunkLeaf.new(:action_code_block_1)
-            capt0 = thunk.capt0
-            values = chunk.values
-            value_refs = thunk.value_refs
-            value = values[0]
-            value_refs[0] = value
-            capt0.range_start = chunk.pos
-            capt0.range_end = @cur
-            capt0.start_loc = chunk.pos_loc
-            capt0.end_loc = @cur_loc
-            chunk.thunks.push(thunk)
-          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_code_block_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
           throw(1)
         end
         @cur = pos
@@ -2805,17 +2715,17 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;thunk, capt0, value, values, value_refs, capt|
-        thunk = ThunkLeaf.new(:action_plain_code_block_0)
-        capt0 = thunk.capt0
-        capt = chunk.capts[0]
-        thunk.capts[0] = capt
-        capt0.range_start = chunk.pos
-        capt0.range_end = @cur
-        capt0.start_loc = chunk.pos_loc
-        capt0.end_loc = @cur_loc
-        chunk.thunks.push(thunk)
-      end
+      chunk.thunks.push(
+        ThunkLeaf.new(
+          :action_plain_code_block_0,
+          Capture.new(
+            chunk.pos, @cur,
+            chunk.pos_loc, @cur_loc,
+          ),
+          {},
+          chunk.capts.slice(0),
+        )
+      )
       debug { warn "#{ "  " * @level}MATCH   plain_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
@@ -3287,17 +3197,17 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;thunk, capt0, value, values, value_refs, capt|
-        thunk = ThunkLeaf.new(:action_quotation_single_0)
-        capt0 = thunk.capt0
-        capt = chunk.capts[0]
-        thunk.capts[0] = capt
-        capt0.range_start = chunk.pos
-        capt0.range_end = @cur
-        capt0.start_loc = chunk.pos_loc
-        capt0.end_loc = @cur_loc
-        chunk.thunks.push(thunk)
-      end
+      chunk.thunks.push(
+        ThunkLeaf.new(
+          :action_quotation_single_0,
+          Capture.new(
+            chunk.pos, @cur,
+            chunk.pos_loc, @cur_loc,
+          ),
+          {},
+          chunk.capts.slice(0),
+        )
+      )
       debug { warn "#{ "  " * @level}MATCH   quotation_single #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
@@ -3439,17 +3349,17 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;thunk, capt0, value, values, value_refs, capt|
-        thunk = ThunkLeaf.new(:action_quotation_double_0)
-        capt0 = thunk.capt0
-        capt = chunk.capts[0]
-        thunk.capts[0] = capt
-        capt0.range_start = chunk.pos
-        capt0.range_end = @cur
-        capt0.start_loc = chunk.pos_loc
-        capt0.end_loc = @cur_loc
-        chunk.thunks.push(thunk)
-      end
+      chunk.thunks.push(
+        ThunkLeaf.new(
+          :action_quotation_double_0,
+          Capture.new(
+            chunk.pos, @cur,
+            chunk.pos_loc, @cur_loc,
+          ),
+          {},
+          chunk.capts.slice(0),
+        )
+      )
       debug { warn "#{ "  " * @level}MATCH   quotation_double #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
@@ -3516,15 +3426,17 @@ class Packcr::Parser
           chunk.thunks[n..-1] = []
         end
       end
-      1.times do |;thunk, capt0, value, values, value_refs, capt|
-        thunk = ThunkLeaf.new(:action_identifier_0)
-        capt0 = thunk.capt0
-        capt0.range_start = chunk.pos
-        capt0.range_end = @cur
-        capt0.start_loc = chunk.pos_loc
-        capt0.end_loc = @cur_loc
-        chunk.thunks.push(thunk)
-      end
+      chunk.thunks.push(
+        ThunkLeaf.new(
+          :action_identifier_0,
+          Capture.new(
+            chunk.pos, @cur,
+            chunk.pos_loc, @cur_loc,
+          ),
+          {},
+          {},
+        )
+      )
       debug { warn "#{ "  " * @level}MATCH   identifier #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
@@ -3749,17 +3661,17 @@ class Packcr::Parser
         capt.start_loc = p_loc
         capt.end_loc = q_loc
       end
-      1.times do |;thunk, capt0, value, values, value_refs, capt|
-        thunk = ThunkLeaf.new(:action_footer_0)
-        capt0 = thunk.capt0
-        capt = chunk.capts[0]
-        thunk.capts[0] = capt
-        capt0.range_start = chunk.pos
-        capt0.range_end = @cur
-        capt0.start_loc = chunk.pos_loc
-        capt0.end_loc = @cur_loc
-        chunk.thunks.push(thunk)
-      end
+      chunk.thunks.push(
+        ThunkLeaf.new(
+          :action_footer_0,
+          Capture.new(
+            chunk.pos, @cur,
+            chunk.pos_loc, @cur_loc,
+          ),
+          {},
+          chunk.capts.slice(0),
+        )
+      )
       debug { warn "#{ "  " * @level}MATCH   footer #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
