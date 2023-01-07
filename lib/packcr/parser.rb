@@ -4196,14 +4196,12 @@ class Packcr::Parser
   end
 
   class Thunk
-    attr_accessor :type
   end
 
   class ThunkLeaf < Thunk
     attr_accessor :capt0, :capts, :value_refs, :action
 
     def initialize(action)
-      @type = :leaf
       @value_refs = []
       @capts = []
       @capt0 = Capture.new
@@ -4219,7 +4217,6 @@ class Packcr::Parser
     attr_accessor :thunks, :values, :index
 
     def initialize(thunks, values, index)
-      @type = :node
       @thunks = thunks
       @values = values
       @index = index
