@@ -6,41 +6,31 @@
   <%-   end -%>
   n0 = chunk.thunks.length
   <%- end -%>
-  i = -1
-  while true
-    i += 1
+  i = 0
+  <%- l = gen.next_label -%>
+  catch(<%= l %>) do
     pos = @cur
     <%- if gen.location -%>
     p_loc = @cur_loc
     <%- end -%>
     n = chunk.thunks.length
-    stat = nil
-    <%- l = gen.next_label -%>
-    catch(<%= l %>) do
-      <%- r, code = gen.generate_code_str(expr, l, 6, false) -%>
-      <%- %><%= code -%>
-      if @cur == pos
-        stat = :break
-      else
-        stat = :continue
-      end
+    <%- r, code = gen.generate_code_str(expr, l, 4, false) -%>
+    <%- %><%= code -%>
+    i += 1
+    if @cur != pos<% if max >= 0 %> || i < <%= max %><% end %>
+      redo
     end
-    if stat == :break
-      break
-    <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-    elsif stat != :continue
-      @cur = pos
-      <%-   if gen.location -%>
-      @cur_loc = p_loc
-      <%-   end -%>
-      chunk.thunks[n..-1] = []
-      break
-    <%- end -%>
-    end
-    <%- if max >= 0 -%>
-    break if i >= <%= max %>
-    <%- end -%>
+    pos = nil
   end
+  <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+  if pos
+    @cur = pos
+    <%-   if gen.location -%>
+    @cur_loc = p_loc
+    <%-   end -%>
+    chunk.thunks[n..-1] = []
+  end
+  <%- end -%>
   <%- if min > 0 -%>
   if i < <%= min %>
     @cur = p0
