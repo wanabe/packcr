@@ -4036,10 +4036,10 @@ class Packcr::Parser
   class ThunkLeaf < Thunk
     attr_accessor :capt0, :capts, :value_refs, :action
 
-    def initialize(action)
-      @value_refs = {}
-      @capts = {}
-      @capt0 = Capture.new
+    def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})
+      @value_refs = value_refs
+      @capts = capts
+      @capt0 = capt0
       @action = action
     end
 
