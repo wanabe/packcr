@@ -29,7 +29,7 @@ class Packcr
         $stdout.print "#{" " * indent}}\n"
       end
 
-      def generate_code(gen, onfail, indent, bare)
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
         l = gen.next_label
         m = gen.next_label
         r, code = gen.generate_code_str(expr, l, 4, true)

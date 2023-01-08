@@ -1,7 +1,7 @@
 class Packcr
   class Node
-    def seq(expr)
-      SequenceNode.new(self, expr)
+    def seq(expr, cut: false)
+      SequenceNode.new(self).seq(expr, cut: cut)
     end
 
     def alt(expr)
@@ -19,6 +19,10 @@ class Packcr
     end
 
     def reversible?(gen)
+      false
+    end
+
+    def sequence?
       false
     end
   end

@@ -17,7 +17,7 @@ class Packcr
         gen.lang == :rb && !gen.ascii
       end
 
-      def generate_code(gen, onfail, indent, bare)
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
         if gen.ascii
           return generate_ascii_code(gen, onfail, indent, bare)
         else
@@ -25,7 +25,7 @@ class Packcr
         end
       end
 
-      def generate_reverse_code(gen, onsuccess, indent, bare)
+      def generate_reverse_code(gen, onsuccess, indent, bare, oncut: nil)
         if gen.ascii
           raise "unexpected"
         else

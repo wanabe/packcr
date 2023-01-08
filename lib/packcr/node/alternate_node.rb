@@ -27,7 +27,7 @@ class Packcr
         m
       end
 
-      def generate_code(gen, onfail, indent, bare)
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
         b = false
         m = gen.next_label
 

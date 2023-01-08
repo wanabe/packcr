@@ -16,7 +16,7 @@ class Packcr
         $stdout.print "#{" " * indent}}\n"
       end
 
-      def generate_code(gen, onfail, indent, bare)
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
         if max > 1 || max < 0
           r = nil
           gen.write Packcr.template("node/quantify_many.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)

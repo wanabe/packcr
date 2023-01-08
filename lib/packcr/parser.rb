@@ -311,12 +311,26 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    ____ = seq.seq(expr)
+    ____ = seq.seq(expr, cut: true)
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
   def action_sequence_1(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    seq = (__pcc_in.value_refs[0]  ||= Value.new).value
+    expr = (__pcc_in.value_refs[1]  ||= Value.new).value
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    ____ = seq.seq(expr)
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  def action_sequence_2(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
     expr = (__pcc_in.value_refs[1]  ||= Value.new).value
     __0 = __pcc_in.capt0.capture_string(@buffer)
@@ -1534,6 +1548,17 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(2)
           end
+          if (
+            refill_buffer(2) < 2 ||
+            @buffer[@cur, 2] != "8<"
+          )
+            throw(2)
+          end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+          @cur += 2
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+            throw(2)
+          end
           if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
             throw(2)
           end
@@ -1554,12 +1579,38 @@ class Packcr::Parser
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
         catch(3) do
+          if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 0)
+            throw(3)
+          end
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+            throw(3)
+          end
           if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
             throw(3)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
               :action_sequence_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0, 1),
+              {},
+            )
+          )
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(4) do
+          if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
+            throw(4)
+          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_sequence_2,
               Capture.new(
                 chunk.pos, @cur,
                 chunk.pos_loc, @cur_loc,

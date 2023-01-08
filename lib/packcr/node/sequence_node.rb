@@ -3,18 +3,30 @@ class Packcr
     class SequenceNode < Packcr::Node
       attr_accessor :nodes
 
-      def initialize(*nodes)
+      def initialize(*nodes, cut: false)
         super()
         self.nodes = nodes
+        @cut = cut
       end
 
-      def seq(node)
-        @nodes << node
+      def sequence?
+        true
+      end
+
+      def seq(node, cut: false)
+        if cut
+          node = Packcr::Node::SequenceNode.new(node, cut: true)
+        end
+        if @nodes.last.sequence?
+          @nodes.last.seq(node)
+        else
+          @nodes << node
+        end
         self
       end
 
       def debug_dump(indent = 0)
-        $stdout.print "#{" " * indent}Sequence(max:#{max}, len:#{nodes.length}) {\n"
+        $stdout.print "#{" " * indent}Sequence(max:#{max}, len:#{nodes.length}#{@cut ? ", cut: true" : ""}) {\n"
         nodes.each do |child_node|
           child_node.debug_dump(indent + 2)
         end
@@ -27,10 +39,13 @@ class Packcr
         m
       end
 
-      def generate_code(gen, onfail, indent, bare)
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
         b = false
+        if @cut && oncut
+          onfail = oncut
+        end
         nodes.each_with_index do |expr, i|
-          case gen.generate_code(expr, onfail, indent, false)
+          case gen.generate_code(expr, onfail, indent, false, oncut: oncut)
           when Packcr::CODE_REACH__ALWAYS_FAIL
             if i + 1 < nodes.length
               gen.write Packcr.template("node/sequence_unreachable.#{gen.lang}.erb", binding, indent: indent)

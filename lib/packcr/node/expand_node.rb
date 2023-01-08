@@ -15,7 +15,7 @@ class Packcr
         $stdout.print ")\n"
       end
 
-      def generate_code(gen, onfail, indent, bare)
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
         gen.write Packcr.template("node/expand.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         return Packcr::CODE_REACH__BOTH
       end

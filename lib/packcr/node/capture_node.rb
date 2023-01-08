@@ -15,7 +15,7 @@ class Packcr
         $stdout.print "#{" " * indent}}\n"
       end
 
-      def generate_code(gen, onfail, indent, bare)
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
         r = nil
         gen.write Packcr.template("node/capture.#{gen.lang}.erb", binding, indent: indent)
         return r

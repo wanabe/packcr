@@ -17,7 +17,7 @@ class Packcr
         $stdout.print "')\n"
       end
 
-      def generate_code(gen, onfail, indent, bare)
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
         n = value&.length || 0
         if n > 0
           if n > 1
