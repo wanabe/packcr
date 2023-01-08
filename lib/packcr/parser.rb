@@ -3810,11 +3810,11 @@ class Packcr::Parser
     end
 
     def +(other)
-      Location.new(other.charnum, other.linenum)
+      Location.new(@charnum + other.charnum, @linenum + other.linenum)
     end
 
     def -(other)
-      Location.new(other.charnum, other.linenum)
+      Location.new(@charnum - other.charnum, @linenum - other.linenum)
     end
 
     def forward(buffer, cur, n)
