@@ -44,7 +44,7 @@ class Packcr::Parser
   def commit_buffer
     @buffer = @buffer[@cur, @buffer.length - @cur]
     @pos += @cur
-    @lrtable.shift(@cur)
+    @lrtable.clear
     @cur = 0
     @pos_loc = @pos_loc + @cur_loc
     @cur_loc = Location.new
@@ -3891,44 +3891,26 @@ class Packcr::Parser
       @buf = []
     end
 
-    def shift(count)
-      @buf[0, count] = []
-    end
-
-    def resize(len)
-      (@buf.length...len).each do |i|
-        @buf << nil
-      end
+    def clear
+      @buf.clear
     end
 
     def set_head(index, head)
-      if index >= @buf.length
-        resize(index + 1)
-      end
       entry = @buf[index] ||= LrTableEntry.new
       entry.head = head
     end
 
     def hold_head(index, head)
-      if index >= @buf.length
-        resize(index + 1)
-      end
       entry = @buf[index] ||= LrTableEntry.new
       head.hold, entry.hold_h = entry.hold_h, head
     end
 
     def set_answer(index, rule_name, answer)
-      if index >= @buf.length
-        resize(index + 1)
-      end
       entry = @buf[index] ||= LrTableEntry.new
       entry.memos[rule_name] = answer
     end
 
     def hold_answer(index, answer)
-      if index >= @buf.length
-        resize(index + 1)
-      end
       entry = @buf[index] ||= LrTableEntry.new
       answer.hold, entry.hold_a = entry.hold_a, answer
     end
@@ -3938,15 +3920,11 @@ class Packcr::Parser
     end
 
     def get_answer(index, rule_name)
-      if index >= @buf.length
-        return nil
-      end
       entry = @buf[index]
       if !entry
         return nil
       end
-      memos = entry.memos
-      memos[rule_name]
+      entry.memos[rule_name]
     end
   end
 
