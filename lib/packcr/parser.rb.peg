@@ -10,39 +10,39 @@ statement <- comment
 
 comment <- '#' [^\n]* lf
 
-directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @esource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%earlycommon' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ecommon  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%source'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @source   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%lateheader'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @lheader  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%latesource'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @lsource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%header'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @header   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%common'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @common   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%location'    opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @location << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%initialize'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @init     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+directive_include <- '%earlysource' 8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @esource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%earlycommon' 8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ecommon  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%source'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @source   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%lateheader'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @lheader  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%latesource'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @lsource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%header'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @header   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%common'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @common   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%location'    8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @location << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%initialize'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @init     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
 code_blocks <- blocks:code_blocks opt_spaces_or_comments block:lang_code_block { blocks.push(block) if block; $$ = blocks }
              / block:lang_code_block { $$ = block ? [block] : [] }
 
-directive_string <- '%value' opt_spaces_or_comments str:quotation_double { @value_type = str }
-                  / '%auxil' opt_spaces_or_comments str:quotation_double { @auxil_type = str }
-                  / '%prefix' opt_spaces_or_comments str:quotation_double { @prefix = str }
+directive_string <- '%value' 8< opt_spaces_or_comments str:quotation_double { @value_type = str }
+                  / '%auxil' 8< opt_spaces_or_comments str:quotation_double { @auxil_type = str }
+                  / '%prefix' 8< opt_spaces_or_comments str:quotation_double { @prefix = str }
 
 rule <- name:identifier opt_spaces_or_comments '<-' opt_spaces_or_comments expr:expression {
   rule =  Packcr::Node::RuleNode.new(expr, name, $0sl.linenum, $0sl.charnum)
   @rules << rule
 }
 
-expression <- expr:expression opt_spaces_or_comments '/' opt_spaces_or_comments seq:sequence { $$ = expr.alt(seq) }
+expression <- expr:expression opt_spaces_or_comments '/' 8< opt_spaces_or_comments seq:sequence { $$ = expr.alt(seq) }
             / seq:sequence { $$ = seq }
 
-sequence <- seq:sequence opt_spaces_or_comments '8<' opt_spaces_or_comments expr:term { $$ = seq.seq(expr, cut: true) }
+sequence <- seq:sequence opt_spaces_or_comments '8<' 8< opt_spaces_or_comments expr:term { $$ = seq.seq(expr, cut: true) }
           / seq:sequence opt_spaces_or_comments expr:term { $$ = seq.seq(expr) }
           / expr:term { $$ = expr }
 
-term <- expr:pred opt_spaces_or_comments '~' opt_spaces_or_comments code:lang_code_block { $$ = Packcr::Node::ErrorNode.new(expr, Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) }
+term <- expr:pred opt_spaces_or_comments '~' 8< opt_spaces_or_comments code:lang_code_block { $$ = Packcr::Node::ErrorNode.new(expr, Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) }
       / expr:pred { $$ = expr }
 
-pred <- '&' opt_spaces_or_comments node:quantity { $$ = Packcr::Node::PredicateNode.new(node) }
-      / '!' opt_spaces_or_comments node:quantity { $$ = Packcr::Node::PredicateNode.new(node, true) }
+pred <- '&' 8< opt_spaces_or_comments node:quantity { $$ = Packcr::Node::PredicateNode.new(node) }
+      / '!' 8< opt_spaces_or_comments node:quantity { $$ = Packcr::Node::PredicateNode.new(node, true) }
       / node:quantity { $$ = node }
 
 quantity <- node:primary opt_spaces_or_comments '*' { $$ = Packcr::Node::QuantityNode.new(node, 0, -1) }
@@ -50,12 +50,12 @@ quantity <- node:primary opt_spaces_or_comments '*' { $$ = Packcr::Node::Quantit
           / node:primary opt_spaces_or_comments '?' { $$ = Packcr::Node::QuantityNode.new(node, 0, 1) }
           / node:primary { $$ = node }
 
-primary <- var_name:identifier opt_spaces_or_comments ':' opt_spaces_or_comments name:identifier !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, var_name, $0sl.linenum, $0sl.charnum) }
-         / name:identifier !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, nil, $0sl.linenum, $0sl.charnum) }
-         / '(' opt_spaces_or_comments expr:expression opt_spaces_or_comments ')' { $$ = expr }
-         / '<' opt_spaces_or_comments expr:expression opt_spaces_or_comments '>' { $$ = Packcr::Node::CaptureNode.new(expr) }
+primary <- var_name:identifier opt_spaces_or_comments ':' 8< opt_spaces_or_comments name:identifier !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, var_name, $0sl.linenum, $0sl.charnum) }
+         / name:identifier 8< !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, nil, $0sl.linenum, $0sl.charnum) }
+         / '(' 8< opt_spaces_or_comments expr:expression opt_spaces_or_comments ')' { $$ = expr }
+         / '<' 8< opt_spaces_or_comments expr:expression opt_spaces_or_comments '>' { $$ = Packcr::Node::CaptureNode.new(expr) }
          / '$' <[1-9][0-9]*> { $$ = Packcr::Node::ExpandNode.new($1.to_i - 1, $0sl.linenum, $0sl.charnum) }
-         / '.' { $$ = Packcr::Node::CharclassNode.new }
+         / '.' 8< { $$ = Packcr::Node::CharclassNode.new }
          / str:character_class { $$ = Packcr::Node::CharclassNode.new(Packcr.unescape_string(str, true)) }
          / str:quotation_single { $$ = Packcr::Node::StringNode.new(Packcr.unescape_string(str, false)) }
          / str:quotation_double { $$ = Packcr::Node::StringNode.new(Packcr.unescape_string(str, false)) }

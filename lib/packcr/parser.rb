@@ -931,10 +931,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 12)
           @cur += 12
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(2)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(2)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -962,10 +962,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 12)
           @cur += 12
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(3)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(3)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -993,10 +993,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
           @cur += 7
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(4)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(4)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1024,10 +1024,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
           @cur += 11
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(5)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(5)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1055,10 +1055,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
           @cur += 11
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(6)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(6)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1086,10 +1086,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
           @cur += 7
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(7)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(7)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1117,10 +1117,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
           @cur += 7
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(8)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(8)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1148,10 +1148,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 9)
           @cur += 9
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(9)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(9)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1179,10 +1179,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
           @cur += 11
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(10)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
-            throw(10)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1304,10 +1304,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 6)
           @cur += 6
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(2)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
-            throw(2)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1335,10 +1335,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 6)
           @cur += 6
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(3)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
-            throw(3)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1366,10 +1366,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
           @cur += 7
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(4)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
-            throw(4)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1476,10 +1476,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(2)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 1)
-            throw(2)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1557,10 +1557,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
           @cur += 2
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(2)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
-            throw(2)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1664,10 +1664,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(2)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 1)
-            throw(2)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1739,10 +1739,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(2)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_quantity, chunk.thunks, chunk.values, 0)
-            throw(2)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1770,10 +1770,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(3)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_quantity, chunk.thunks, chunk.values, 0)
-            throw(3)
+            throw(0)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -1988,10 +1988,10 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(2)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 1)
-            throw(2)
+            throw(0)
           end
           1.times do |;pos, p_loc|
             pos = @cur
@@ -2043,7 +2043,7 @@ class Packcr::Parser
               @cur += 2
               @cur = pos
               @cur_loc = p_loc
-              throw(2)
+              throw(0)
             end
             @cur = pos
             @cur_loc = p_loc
@@ -2118,7 +2118,7 @@ class Packcr::Parser
               @cur += 2
               @cur = pos
               @cur_loc = p_loc
-              throw(5)
+              throw(0)
             end
             @cur = pos
             @cur_loc = p_loc
@@ -2149,19 +2149,19 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(8)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_expression, chunk.thunks, chunk.values, 2)
-            throw(8)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(8)
+            throw(0)
           end
           if (
             refill_buffer(1) < 1 ||
             @buffer[@cur] != ")"
           )
-            throw(8)
+            throw(0)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
@@ -2191,19 +2191,19 @@ class Packcr::Parser
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(9)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_expression, chunk.thunks, chunk.values, 2)
-            throw(9)
+            throw(0)
           end
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
-            throw(9)
+            throw(0)
           end
           if (
             refill_buffer(1) < 1 ||
             @buffer[@cur] != ">"
           )
-            throw(9)
+            throw(0)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
