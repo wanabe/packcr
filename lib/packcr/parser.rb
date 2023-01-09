@@ -11,6 +11,7 @@ class Packcr::Parser
     @thunk = ThunkNode.new([], nil, 0)
     @lrtable = LrTable.new
     @debug = debug
+    @global_values = []
     @pos_loc = Location.new
     @cur_loc = Location.new
     @ctx = ctx || self
@@ -3999,6 +4000,7 @@ class Packcr::Parser
     if !c
       return false
     end
+    values ||= @global_values
     t = ThunkNode.new(c.thunks, values, index)
     thunks << t
     return true
