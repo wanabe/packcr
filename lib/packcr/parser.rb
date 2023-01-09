@@ -78,7 +78,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    @ctx.errnum += 1; warn "err #{__0.inspect} #{__0sl.linenum}, #{__0sl.charnum}"
+    @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Illegal syntax"
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -797,62 +797,45 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_footer, chunk.thunks, nil, 0)
+        catch(2) do
+          catch(4) do
+            catch(3) do
+              if !apply_rule(:evaluate_rule_footer, chunk.thunks, nil, 0)
+                throw(3)
+              end
+              throw(4)
+            end
+
+            action_statement_0(
+              ThunkLeaf.new(
+                :action_statement_0,
+                Capture.new(
+                  chunk.pos, @cur,
+                  chunk.pos_loc,@cur_loc,
+                ),
+                {},
+                {},
+              ),
+              nil,
+              0
+            )
+
+            throw(2)
+          end
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
-        catch(2) do
-          1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-            i = 0
-            catch(3) do
-              pos = @cur
-              p_loc = @cur_loc
-              n = chunk.thunks.length
-              1.times do |;u, n|
-                if refill_buffer(1) < 1
-                  throw(3)
-                end
-                u = @buffer[@cur]
-                if (
-                  u == "\n"
-                )
-                  throw(3)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                @cur += 1
-              end
-              i += 1
-              if @cur != pos
-                redo
-              end
-              pos = nil
-            end
-            if pos
-              @cur = pos
-              @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
-            end
-          end
-          chunk.thunks.push(
-            ThunkLeaf.new(
-              :action_statement_0,
-              Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
-              ),
-              {},
-              {},
-            )
-          )
-        end
+        throw(0)
       end
       debug { warn "#{ "  " * @level}MATCH   statement #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
     ensure
       @level -= 1
     end
+    debug { warn "#{ "  " * @level}NOMATCH statement #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    return nil
   end
 
   def evaluate_rule_comment
@@ -3858,20 +3841,29 @@ class Packcr::Parser
   end
 
   class Location
-    attr_reader :charnum, :linenum, :linepos
+    attr_reader :charnum, :linenum
 
-    def initialize(charnum = 0, linenum = 0, linepos = 0)
+    def initialize(charnum = 0, linenum = 0)
       @charnum = charnum
       @linenum = linenum
-      @linepos = linepos
     end
 
     def +(other)
-      Location.new(@charnum + other.charnum, @linenum + other.linenum)
+      if other.linenum == 0
+        Location.new(@charnum + other.charnum, @linenum + other.linenum)
+      else
+        Location.new(           other.charnum, @linenum + other.linenum)
+      end
     end
 
     def -(other)
-      Location.new(@charnum - other.charnum, @linenum - other.linenum)
+      if other.linenum == self.linenum
+        Location.new(@charnum - other.charnum, @linenum - other.linenum)
+      elsif other.charnum == 0
+        Location.new(@charnum - other.charnum, @linenum - other.linenum)
+      else
+        raise "unexpected location #{self.inspect} - #{other.inspect}"
+      end
     end
 
     def forward(buffer, cur, n)
@@ -3882,7 +3874,7 @@ class Packcr::Parser
       buffer[cur, n].scan(/(.*)(\n)?/) do
         if Regexp.last_match[2]
           @linenum += 1
-          @pos = 0
+          @charnum = 0
         else
           @charnum += Regexp.last_match[1].length
         end

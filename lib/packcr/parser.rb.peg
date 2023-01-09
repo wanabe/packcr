@@ -6,7 +6,7 @@ statement <- comment
            / directive_string
            / rule
            / footer
-           / [^\n]* { @ctx.errnum += 1; warn "err #{__0.inspect} #{__0sl.linenum}, #{__0sl.charnum}" }
+           ~ { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Illegal syntax" }
 
 comment <- '#' [^\n]* lf
 
@@ -88,20 +88,29 @@ footer <- '%%' lf <.*> { @ctx.lsource << Packcr::CodeBlock.new($1, Packcr.find_t
 
 %location {
   class Location
-    attr_reader :charnum, :linenum, :linepos
+    attr_reader :charnum, :linenum
 
-    def initialize(charnum = 0, linenum = 0, linepos = 0)
+    def initialize(charnum = 0, linenum = 0)
       @charnum = charnum
       @linenum = linenum
-      @linepos = linepos
     end
 
     def +(other)
-      Location.new(@charnum + other.charnum, @linenum + other.linenum)
+      if other.linenum == 0
+        Location.new(@charnum + other.charnum, @linenum + other.linenum)
+      else
+        Location.new(           other.charnum, @linenum + other.linenum)
+      end
     end
 
     def -(other)
-      Location.new(@charnum - other.charnum, @linenum - other.linenum)
+      if other.linenum == self.linenum
+        Location.new(@charnum - other.charnum, @linenum - other.linenum)
+      elsif other.charnum == 0
+        Location.new(@charnum - other.charnum, @linenum - other.linenum)
+      else
+        raise "unexpected location #{self.inspect} - #{other.inspect}"
+      end
     end
 
     def forward(buffer, cur, n)
@@ -112,7 +121,7 @@ footer <- '%%' lf <.*> { @ctx.lsource << Packcr::CodeBlock.new($1, Packcr.find_t
       buffer[cur, n].scan(/(.*)(\n)?/) do
         if Regexp.last_match[2]
           @linenum += 1
-          @pos = 0
+          @charnum = 0
         else
           @charnum += Regexp.last_match[1].length
         end
