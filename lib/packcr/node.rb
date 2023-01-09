@@ -8,6 +8,15 @@ class Packcr
       AlternateNode.new(self).alt(expr)
     end
 
+    def verify_variables(vars)
+    end
+
+    def verify_captures(ctx, capts)
+    end
+
+    def link_references(ctx)
+    end
+
     def setup_rule(rule)
       nodes.each do |node|
         node.setup_rule(rule)
@@ -40,3 +49,4 @@ require "packcr/node/capture_node"
 require "packcr/node/expand_node"
 require "packcr/node/action_node"
 require "packcr/node/error_node"
+require "packcr/node/eof_node"

@@ -61,6 +61,7 @@ class Packcr
       @init = []
       @rules = []
       @rulehash = {}
+      @implicit_rules = []
 
       if block_given?
         yield(self)
@@ -114,10 +115,26 @@ class Packcr
       @rules.each do |rule|
         @rulehash[rule.name] = rule
       end
+      @implicit_rules.each do |rule|
+        next if @rulehash[rule.name]
+        @rules << rule
+        @rulehash[rule.name] = rule
+      end
     end
 
     def rule(name)
       @rulehash[name]
+    end
+
+    def implicit_rule(name)
+      case name
+      when "EOF"
+        expr = Packcr::Node::EofNode.new
+      else
+        raise "Unexpected implicit rule: #{name.inspect}"
+      end
+      rule = Packcr::Node::RuleNode.new(expr, name)
+      @implicit_rules << rule
     end
 
     def parse_all

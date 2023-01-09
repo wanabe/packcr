@@ -521,6 +521,19 @@ class Packcr::Parser
 
   def action_primary_2(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    @ctx.implicit_rule("EOF")
+    ____ = Packcr::Node::ReferenceNode.new("EOF", nil, __0sl.linenum, __0sl.charnum)
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  def action_primary_3(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
     name = (__pcc_in.value_refs[2]  ||= Value.new).value
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
@@ -528,19 +541,6 @@ class Packcr::Parser
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
     ____ = Packcr::Node::ReferenceNode.new(name, nil, __0sl.linenum, __0sl.charnum)
-
-    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
-  end
-
-  def action_primary_3(__pcc_in, __pcc_vars, __pcc_index)
-    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
-    expr = (__pcc_in.value_refs[3]  ||= Value.new).value
-    __0 = __pcc_in.capt0.capture_string(@buffer)
-    __0s = @pos + __pcc_in.capt0.range_start
-    __0e = @pos + __pcc_in.capt0.range_end
-    __0sl = @pos_loc + __pcc_in.capt0.start_loc
-    __0el = @pos_loc + __pcc_in.capt0.end_loc
-    ____ = expr
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -553,12 +553,25 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    ____ = Packcr::Node::CaptureNode.new(expr)
+    ____ = expr
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
   def action_primary_5(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    expr = (__pcc_in.value_refs[3]  ||= Value.new).value
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    ____ = Packcr::Node::CaptureNode.new(expr)
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  def action_primary_6(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
@@ -575,7 +588,7 @@ class Packcr::Parser
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
-  def action_primary_6(__pcc_in, __pcc_vars, __pcc_index)
+  def action_primary_7(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
@@ -583,19 +596,6 @@ class Packcr::Parser
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
     ____ = Packcr::Node::CharclassNode.new
-
-    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
-  end
-
-  def action_primary_7(__pcc_in, __pcc_vars, __pcc_index)
-    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
-    str = (__pcc_in.value_refs[4]  ||= Value.new).value
-    __0 = __pcc_in.capt0.capture_string(@buffer)
-    __0s = @pos + __pcc_in.capt0.range_start
-    __0e = @pos + __pcc_in.capt0.range_end
-    __0sl = @pos_loc + __pcc_in.capt0.start_loc
-    __0el = @pos_loc + __pcc_in.capt0.end_loc
-    ____ = Packcr::Node::CharclassNode.new(Packcr.unescape_string(str, true))
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -608,12 +608,25 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    ____ = Packcr::Node::StringNode.new(Packcr.unescape_string(str, false))
+    ____ = Packcr::Node::CharclassNode.new(Packcr.unescape_string(str, true))
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
   def action_primary_9(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    str = (__pcc_in.value_refs[4]  ||= Value.new).value
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    ____ = Packcr::Node::StringNode.new(Packcr.unescape_string(str, false))
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  def action_primary_10(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
     str = (__pcc_in.value_refs[4]  ||= Value.new).value
     __0 = __pcc_in.capt0.capture_string(@buffer)
@@ -2145,9 +2158,14 @@ class Packcr::Parser
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
         catch(6) do
-          if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 2)
+          if (
+            refill_buffer(3) < 3 ||
+            @buffer[@cur, 3] != "EOF"
+          )
             throw(6)
           end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 3)
+          @cur += 3
           1.times do |;pos, p_loc|
             pos = @cur
             p_loc = @cur_loc
@@ -2198,7 +2216,7 @@ class Packcr::Parser
               @cur += 2
               @cur = pos
               @cur_loc = p_loc
-              throw(0)
+              throw(6)
             end
             @cur = pos
             @cur_loc = p_loc
@@ -2206,6 +2224,81 @@ class Packcr::Parser
           chunk.thunks.push(
             ThunkLeaf.new(
               :action_primary_2,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              {},
+              {},
+            )
+          )
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(9) do
+          if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 2)
+            throw(9)
+          end
+          1.times do |;pos, p_loc|
+            pos = @cur
+            p_loc = @cur_loc
+            catch(10) do
+              1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
+                i = 0
+                catch(11) do
+                  pos = @cur
+                  p_loc = @cur_loc
+                  n = chunk.thunks.length
+                  1.times do |;u, n|
+                    if refill_buffer(1) < 1
+                      throw(11)
+                    end
+                    u = @buffer[@cur]
+                    if (!(
+                      u == " " ||
+                      u == "\t" ||
+                      u == "\v" ||
+                      u == "\f" ||
+                      u == "\r" ||
+                      u == "\n"
+                    ))
+                      throw(11)
+                    end
+                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+                    @cur += 1
+                  end
+                  i += 1
+                  if @cur != pos
+                    redo
+                  end
+                  pos = nil
+                end
+                if pos
+                  @cur = pos
+                  @cur_loc = p_loc
+                  chunk.thunks[n..-1] = []
+                end
+              end
+              if (
+                refill_buffer(2) < 2 ||
+                @buffer[@cur, 2] != "<-"
+              )
+                throw(10)
+              end
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+              @cur += 2
+              @cur = pos
+              @cur_loc = p_loc
+              throw(0)
+            end
+            @cur = pos
+            @cur_loc = p_loc
+          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_3,
               Capture.new(
                 chunk.pos, @cur,
                 chunk.pos_loc, @cur_loc,
@@ -2219,12 +2312,12 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
-        catch(9) do
+        catch(12) do
           if (
             refill_buffer(1) < 1 ||
             @buffer[@cur] != "("
           )
-            throw(9)
+            throw(12)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
@@ -2247,7 +2340,7 @@ class Packcr::Parser
           @cur += 1
           chunk.thunks.push(
             ThunkLeaf.new(
-              :action_primary_3,
+              :action_primary_4,
               Capture.new(
                 chunk.pos, @cur,
                 chunk.pos_loc, @cur_loc,
@@ -2261,12 +2354,12 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
-        catch(10) do
+        catch(13) do
           if (
             refill_buffer(1) < 1 ||
             @buffer[@cur] != "<"
           )
-            throw(10)
+            throw(13)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
@@ -2289,7 +2382,7 @@ class Packcr::Parser
           @cur += 1
           chunk.thunks.push(
             ThunkLeaf.new(
-              :action_primary_4,
+              :action_primary_5,
               Capture.new(
                 chunk.pos, @cur,
                 chunk.pos_loc, @cur_loc,
@@ -2303,12 +2396,12 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
-        catch(11) do
+        catch(14) do
           if (
             refill_buffer(1) < 1 ||
             @buffer[@cur] != "$"
           )
-            throw(11)
+            throw(14)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
@@ -2317,32 +2410,32 @@ class Packcr::Parser
             p_loc = @cur_loc
             1.times do |;u, n|
               if refill_buffer(1) < 1
-                throw(11)
+                throw(14)
               end
               u = @buffer[@cur]
               if (!(
                 (u >= "1" && u <= "9")
               ))
-                throw(11)
+                throw(14)
               end
               @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
               @cur += 1
             end
             1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
               i = 0
-              catch(12) do
+              catch(15) do
                 pos = @cur
                 p_loc = @cur_loc
                 n = chunk.thunks.length
                 1.times do |;u, n|
                   if refill_buffer(1) < 1
-                    throw(12)
+                    throw(15)
                   end
                   u = @buffer[@cur]
                   if (!(
                     (u >= "0" && u <= "9")
                   ))
-                    throw(12)
+                    throw(15)
                   end
                   @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
                   @cur += 1
@@ -2369,7 +2462,7 @@ class Packcr::Parser
           end
           chunk.thunks.push(
             ThunkLeaf.new(
-              :action_primary_5,
+              :action_primary_6,
               Capture.new(
                 chunk.pos, @cur,
                 chunk.pos_loc, @cur_loc,
@@ -2383,35 +2476,15 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
-        catch(13) do
+        catch(16) do
           if (
             refill_buffer(1) < 1 ||
             @buffer[@cur] != "."
           )
-            throw(13)
+            throw(16)
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          chunk.thunks.push(
-            ThunkLeaf.new(
-              :action_primary_6,
-              Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
-              ),
-              {},
-              {},
-            )
-          )
-          throw(1)
-        end
-        @cur = pos
-        @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        catch(14) do
-          if !apply_rule(:evaluate_rule_character_class, chunk.thunks, chunk.values, 4)
-            throw(14)
-          end
           chunk.thunks.push(
             ThunkLeaf.new(
               :action_primary_7,
@@ -2419,7 +2492,7 @@ class Packcr::Parser
                 chunk.pos, @cur,
                 chunk.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(4),
+              {},
               {},
             )
           )
@@ -2428,9 +2501,9 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
-        catch(15) do
-          if !apply_rule(:evaluate_rule_quotation_single, chunk.thunks, chunk.values, 4)
-            throw(15)
+        catch(17) do
+          if !apply_rule(:evaluate_rule_character_class, chunk.thunks, chunk.values, 4)
+            throw(17)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
@@ -2448,13 +2521,33 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
-        catch(16) do
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 4)
-            throw(16)
+        catch(18) do
+          if !apply_rule(:evaluate_rule_quotation_single, chunk.thunks, chunk.values, 4)
+            throw(18)
           end
           chunk.thunks.push(
             ThunkLeaf.new(
               :action_primary_9,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(4),
+              {},
+            )
+          )
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(19) do
+          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 4)
+            throw(19)
+          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_primary_10,
               Capture.new(
                 chunk.pos, @cur,
                 chunk.pos_loc, @cur_loc,
