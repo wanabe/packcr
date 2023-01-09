@@ -24,10 +24,16 @@ directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { 
 code_blocks <- blocks:code_blocks opt_spaces_or_comments block:lang_code_block { blocks.push(block) if block; $$ = blocks }
              / block:lang_code_block { $$ = block ? [block] : [] }
 
-directive_string <- '%value' opt_spaces_or_comments str:quotation_double { @ctx.value_type = str }
-                  / '%auxil' opt_spaces_or_comments str:quotation_double { @ctx.auxil_type = str }
-                  / '%prefix' opt_spaces_or_comments str:quotation_double { @ctx.prefix = str }
+directive_string <- '%value' opt_spaces_or_comments strings:lang_strings { strings.each { |str| @ctx.value_type = str } }
+                  / '%auxil' opt_spaces_or_comments strings:lang_strings { strings.each { |str| @ctx.auxil_type = str } }
+                  / '%prefix' opt_spaces_or_comments strings:lang_strings { strings.each { |str| @ctx.prefix = str } }
                   / '%' < identifier > opt_spaces_or_comments str:quotation_double { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Invalid directive: #{$1}" }
+
+lang_strings <- strings:lang_strings opt_spaces_or_comments string:lang_string { strings.push(string) if string; $$ = strings }
+              / string:lang_string { $$ = string ? [string] : [] }
+
+lang_string <- string:quotation_double { ____ = string }
+             / < identifier > opt_spaces_or_comments '->' opt_spaces_or_comments string:quotation_double { $$ = @ctx.lang == $1.to_sym ? string : nil  }
 
 rule <- name:identifier opt_spaces_or_comments '<-' opt_spaces_or_comments expr:expression {
   return unless expr

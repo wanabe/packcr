@@ -249,46 +249,46 @@ class Packcr::Parser
 
   def action_directive_string_0(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
-    str = (__pcc_in.value_refs[0]  ||= Value.new).value
+    strings = (__pcc_in.value_refs[0]  ||= Value.new).value
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    @ctx.value_type = str
+    strings.each { |str| @ctx.value_type = str }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
   def action_directive_string_1(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
-    str = (__pcc_in.value_refs[0]  ||= Value.new).value
+    strings = (__pcc_in.value_refs[0]  ||= Value.new).value
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    @ctx.auxil_type = str
+    strings.each { |str| @ctx.auxil_type = str }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
   def action_directive_string_2(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
-    str = (__pcc_in.value_refs[0]  ||= Value.new).value
+    strings = (__pcc_in.value_refs[0]  ||= Value.new).value
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    @ctx.prefix = str
+    strings.each { |str| @ctx.prefix = str }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
   def action_directive_string_3(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
-    str = (__pcc_in.value_refs[0]  ||= Value.new).value
+    str = (__pcc_in.value_refs[1]  ||= Value.new).value
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
     __0e = @pos + __pcc_in.capt0.range_end
@@ -300,6 +300,64 @@ class Packcr::Parser
     __1sl = @pos_loc + __pcc_in.capts[0].start_loc
     __1el = @pos_loc + __pcc_in.capts[0].end_loc
     @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Invalid directive: #{__1}"
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  def action_lang_strings_0(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    strings = (__pcc_in.value_refs[0]  ||= Value.new).value
+    string = (__pcc_in.value_refs[1]  ||= Value.new).value
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    strings.push(string) if string; ____ = strings
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  def action_lang_strings_1(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    string = (__pcc_in.value_refs[1]  ||= Value.new).value
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    ____ = string ? [string] : []
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  def action_lang_string_0(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    string = (__pcc_in.value_refs[0]  ||= Value.new).value
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    ____ = string
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
+  def action_lang_string_1(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    string = (__pcc_in.value_refs[0]  ||= Value.new).value
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    __1 = __pcc_in.capts[0].capture_string(@buffer)
+    __1s = @pos + __pcc_in.capts[0].range_start
+    __1e = @pos + __pcc_in.capts[0].range_end
+    __1sl = @pos_loc + __pcc_in.capts[0].start_loc
+    __1el = @pos_loc + __pcc_in.capts[0].end_loc
+    ____ = @ctx.lang == __1.to_sym ? string : nil
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -1379,7 +1437,7 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_lang_strings, chunk.thunks, chunk.values, 0)
             throw(2)
           end
           chunk.thunks.push(
@@ -1410,7 +1468,7 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(3)
           end
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_lang_strings, chunk.thunks, chunk.values, 0)
             throw(3)
           end
           chunk.thunks.push(
@@ -1441,7 +1499,7 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(4)
           end
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_lang_strings, chunk.thunks, chunk.values, 0)
             throw(4)
           end
           chunk.thunks.push(
@@ -1486,7 +1544,7 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(5)
           end
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 1)
             throw(5)
           end
           chunk.thunks.push(
@@ -1496,7 +1554,7 @@ class Packcr::Parser
                 chunk.pos, @cur,
                 chunk.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              chunk.values.slice(1),
               chunk.capts.slice(0),
             )
           )
@@ -1513,6 +1571,168 @@ class Packcr::Parser
       @level -= 1
     end
     debug { warn "#{ "  " * @level}NOMATCH directive_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    return nil
+  end
+
+  def evaluate_rule_lang_strings
+    chunk = ThunkChunk.new
+    chunk.pos = @cur
+    chunk.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    lang_strings #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    @level += 1
+    chunk.resize_captures(0)
+    chunk.values = {}
+    catch(0) do
+      catch(1) do |; pos, p_loc, n|
+        pos = @cur
+        p_loc = @cur_loc
+        n = chunk.thunks.length
+        catch(2) do
+          if !apply_rule(:evaluate_rule_lang_strings, chunk.thunks, chunk.values, 0)
+            throw(2)
+          end
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+            throw(2)
+          end
+          if !apply_rule(:evaluate_rule_lang_string, chunk.thunks, chunk.values, 1)
+            throw(2)
+          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_lang_strings_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0, 1),
+              {},
+            )
+          )
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(3) do
+          if !apply_rule(:evaluate_rule_lang_string, chunk.thunks, chunk.values, 1)
+            throw(3)
+          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_lang_strings_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(1),
+              {},
+            )
+          )
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        throw(0)
+      end
+      debug { warn "#{ "  " * @level}MATCH   lang_strings #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+      return chunk
+    ensure
+      @level -= 1
+    end
+    debug { warn "#{ "  " * @level}NOMATCH lang_strings #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    return nil
+  end
+
+  def evaluate_rule_lang_string
+    chunk = ThunkChunk.new
+    chunk.pos = @cur
+    chunk.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    lang_string #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    @level += 1
+    chunk.resize_captures(1)
+    chunk.values = {}
+    catch(0) do
+      catch(1) do |; pos, p_loc, n|
+        pos = @cur
+        p_loc = @cur_loc
+        n = chunk.thunks.length
+        catch(2) do
+          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
+            throw(2)
+          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_lang_string_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              {},
+            )
+          )
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(3) do
+          1.times do |;pos, q, capt, p_loc, q_loc|
+            pos = @cur
+            p_loc = @cur_loc
+            if !apply_rule(:evaluate_rule_identifier, chunk.thunks, nil, 0)
+              throw(3)
+            end
+            q = @cur
+            capt = chunk.capts[0]
+            capt.range_start = pos
+            capt.range_end = q
+            q_loc = @cur_loc
+            capt.start_loc = p_loc
+            capt.end_loc = q_loc
+          end
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+            throw(3)
+          end
+          if (
+            refill_buffer(2) < 2 ||
+            @buffer[@cur, 2] != "->"
+          )
+            throw(3)
+          end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+          @cur += 2
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+            throw(3)
+          end
+          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
+            throw(3)
+          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_lang_string_1,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              chunk.values.slice(0),
+              chunk.capts.slice(0),
+            )
+          )
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        throw(0)
+      end
+      debug { warn "#{ "  " * @level}MATCH   lang_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+      return chunk
+    ensure
+      @level -= 1
+    end
+    debug { warn "#{ "  " * @level}NOMATCH lang_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
 
