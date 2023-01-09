@@ -6,29 +6,30 @@ statement <- comment
            / directive_string
            / rule
            / footer
-           / [^\n]* { @errnum += 1; warn "err #{__0.inspect} #{__0sl.linenum}, #{__0sl.charnum}" }
+           / [^\n]* { @ctx.errnum += 1; warn "err #{__0.inspect} #{__0sl.linenum}, #{__0sl.charnum}" }
 
 comment <- '#' [^\n]* lf
 
-directive_include <- '%earlysource' 8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @esource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%earlycommon' 8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ecommon  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%source'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @source   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%lateheader'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @lheader  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%latesource'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @lsource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%header'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @header   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%common'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @common   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%location'    8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @location << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%initialize'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @init     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+directive_include <- '%earlysource' 8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.esource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%earlycommon' 8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.ecommon  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%source'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.source   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%lateheader'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.lheader  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%latesource'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.lsource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%header'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.header   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%common'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.common   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%location'    8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.location << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%initialize'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.init     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+
 code_blocks <- blocks:code_blocks opt_spaces_or_comments block:lang_code_block { blocks.push(block) if block; $$ = blocks }
              / block:lang_code_block { $$ = block ? [block] : [] }
 
-directive_string <- '%value' 8< opt_spaces_or_comments str:quotation_double { @value_type = str }
-                  / '%auxil' 8< opt_spaces_or_comments str:quotation_double { @auxil_type = str }
-                  / '%prefix' 8< opt_spaces_or_comments str:quotation_double { @prefix = str }
+directive_string <- '%value' 8< opt_spaces_or_comments str:quotation_double { @ctx.value_type = str }
+                  / '%auxil' 8< opt_spaces_or_comments str:quotation_double { @ctx.auxil_type = str }
+                  / '%prefix' 8< opt_spaces_or_comments str:quotation_double { @ctx.prefix = str }
 
 rule <- name:identifier opt_spaces_or_comments '<-' opt_spaces_or_comments expr:expression {
   rule =  Packcr::Node::RuleNode.new(expr, name, $0sl.linenum, $0sl.charnum)
-  @rules << rule
+  @ctx.rules << rule
 }
 
 expression <- expr:expression opt_spaces_or_comments '/' 8< opt_spaces_or_comments seq:sequence { $$ = expr.alt(seq) }
@@ -64,9 +65,9 @@ primary <- var_name:identifier opt_spaces_or_comments ':' 8< opt_spaces_or_comme
 character_class <- '[' <( [^\\\[\]] / '\[' / '\]' / '\\' )*> ']' { $$ = $1 }
 
 lang_code_block <- code:code_block { ____ = code }
-                 / < identifier > '->' code:code_block { $$ = @lang == $1.to_sym ? code : nil  }
+                 / < identifier > '->' code:code_block { $$ = @ctx.lang == $1.to_sym ? code : nil  }
 code_block <- '$' code:plain_code_block { $$ = code }
-            / code:plain_code_block ${ ____ = code.gsub("$", @lang == :rb ? "__" : "_") }
+            / code:plain_code_block ${ ____ = code.gsub("$", @ctx.lang == :rb ? "__" : "_") }
 plain_code_block <- '{' < codes? > '}' { $$ = $1 }
 codes <- ([ \t\v\f\r\n]* code)+ [ \t\v\f\r\n]*
 code <- codechar+
@@ -83,7 +84,7 @@ spaces <- ([ \t\v\f\r\n])+
 opt_spaces_or_comments <- (comment / spaces)*
 lf <- '\r'? '\n'
 
-footer <- '%%' lf <.*> { @lsource << Packcr::CodeBlock.new($1, Packcr.find_trailing_blanks($1), $1sl.linenum, $1sl.charnum) }
+footer <- '%%' lf <.*> { @ctx.lsource << Packcr::CodeBlock.new($1, Packcr.find_trailing_blanks($1), $1sl.linenum, $1sl.charnum) }
 
 %location {
   class Location
@@ -121,7 +122,11 @@ footer <- '%%' lf <.*> { @lsource << Packcr::CodeBlock.new($1, Packcr.find_trail
   end
 }
 
+%auxil "ctx = nil, ifile = nil"
+
 %initialize {
+  @ctx = ctx || self
+  @ifile = ifile || stdin
   @location = []
   @lsource = []
   @init = []
@@ -134,15 +139,9 @@ footer <- '%%' lf <.*> { @lsource << Packcr::CodeBlock.new($1, Packcr.find_trail
 %%
 
 class Packcr::Parser
-  attr_accessor :rules
+  attr_accessor :rules, :rulehash
 
-  def rule(name)
-    @rulehash[name]
-  end
-
-  def make_rulehash
-    @rules.each do |rule|
-      @rulehash[rule.name] = rule
-    end
+  def getc
+    @ifile.getc
   end
 end

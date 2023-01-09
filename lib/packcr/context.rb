@@ -1,15 +1,21 @@
 require "packcr/parser"
 
 class Packcr
-  class Context < Packcr::Parser
+  class Context
+    attr_reader :rules, :rulehash, :lang
+    attr_reader :esource, :ecommon, :source, :lheader, :lsource, :header, :common, :location, :init
+    attr_accessor :prefix, :auxil_type, :value_type
+
     def initialize(path, lines: false, debug: false, ascii: false, lang: nil)
-      super(debug: debug)
       if !path
         raise ArgumentError, "bad path: #{path}";
       end
 
       @iname = path
       @ifile = File.open(path, "rb")
+      @parser = Packcr::Parser.new(self, @ifile, debug: debug)
+      @debug = debug
+
       dirname = File.dirname(path)
       basename = File.basename(path, ".*")
       if !lang
@@ -41,13 +47,9 @@ class Packcr
 
       @lines = !!lines
       @ascii = !!ascii
+      @utf8 = !ascii
 
       @errnum = 0
-      @linenum = 0
-      @charnum = 0
-      @linepos = 0
-      @bufpos = 0
-      @bufcur = 0
 
       @esource = []
       @eheader = []
@@ -57,6 +59,8 @@ class Packcr
       @lsource = []
       @location = []
       @init = []
+      @rules = []
+      @rulehash = {}
 
       if block_given?
         yield(self)
@@ -106,9 +110,18 @@ class Packcr
       EOS
     end
 
-    def parse
-      $stdin = @ifile
-      nil while super
+    def make_rulehash
+      @rules.each do |rule|
+        @rulehash[rule.name] = rule
+      end
+    end
+
+    def rule(name)
+      @rulehash[name]
+    end
+
+    def parse_all
+      nil while @parser.parse
 
       if @location.empty?
         @location = nil

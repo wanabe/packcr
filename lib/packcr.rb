@@ -22,7 +22,7 @@ class Packcr
 
   def run
     Context.new(@path.to_s, **@opt) do |ctx|
-      if !ctx.parse
+      if !ctx.parse_all
         raise "PackCR error: can't parse"
       end
       if !ctx.generate
