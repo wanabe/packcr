@@ -11,7 +11,9 @@ Gem::Specification.new do |s|
   s.authors    = ["wanabe"]
   s.licenses   = ["MIT"]
 
-  s.files      = Dir.glob("lib/**/*.rb")
+  s.bindir      = "exe"
+  s.files       = Dir.glob("lib/**/*.rb") + Dir.glob("exe/*")
+  s.executables = ["packcr"]
 
   s.add_development_dependency "test-unit", "~> 3.5"
 end
