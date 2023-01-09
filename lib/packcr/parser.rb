@@ -3886,7 +3886,7 @@ class Packcr::Parser
   class LrTable
     def initialize
       super
-      @buf = []
+      @buf = {}
     end
 
     def clear
