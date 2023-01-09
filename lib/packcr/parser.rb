@@ -57,6 +57,7 @@ class Packcr::Parser
   end
 
   def parse
+    pos = @pos
     if apply_rule(:evaluate_rule_statement, @thunk.thunks, nil, 0)
       @thunk.do_action(self, nil, 0)
     else
@@ -64,7 +65,7 @@ class Packcr::Parser
     end
     commit_buffer
     @thunk.clear
-    refill_buffer(1) >= 1
+    refill_buffer(1) >= 1 && pos != @pos
   end
 
   def run

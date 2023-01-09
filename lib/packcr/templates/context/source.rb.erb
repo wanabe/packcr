@@ -61,6 +61,7 @@ class <%= class_name %>
   end
 
   def parse
+    pos = @pos
     <%- if !@rules.empty? -%>
     if apply_rule(:evaluate_rule_<%= @rules[0].name %>, @thunk.thunks, nil, 0)
       @thunk.do_action(self, nil, 0)
@@ -70,7 +71,7 @@ class <%= class_name %>
     commit_buffer
     <%- end -%>
     @thunk.clear
-    refill_buffer(1) >= 1
+    refill_buffer(1) >= 1 && pos != @pos
   end
 
   def run

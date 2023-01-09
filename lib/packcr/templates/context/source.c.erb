@@ -1269,6 +1269,7 @@ L0000:;
 }
 
 int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
+    size_t pos = ctx->pos;
 <%- if !@rules.empty? -%>
     if (pcc_apply_rule(ctx, pcc_evaluate_rule_<%= @rules[0].name %>, &ctx->thunks, ret))
         pcc_do_action(ctx, &ctx->thunks, ret);
@@ -1277,7 +1278,7 @@ int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
     pcc_commit_buffer(ctx);
 <%- end -%>
     pcc_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);
-    return pcc_refill_buffer(ctx, 1) >= 1;
+    return pos != ctx->pos && pcc_refill_buffer(ctx, 1) >= 1;
 }
 
 void <%= prefix %>_destroy(<%= prefix %>_context_t *ctx) {
