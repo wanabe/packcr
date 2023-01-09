@@ -10,22 +10,24 @@ statement <- comment
 
 comment <- '#' [^\n]* lf
 
-directive_include <- '%earlysource' 8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.esource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%earlycommon' 8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.ecommon  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%source'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.source   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%lateheader'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.lheader  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%latesource'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.lsource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%header'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.header   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%common'      8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.common   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%location'    8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.location << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%initialize'  8< opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.init     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.esource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%earlycommon' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.ecommon  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%source'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.source   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%lateheader'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.lheader  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%latesource'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.lsource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%header'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.header   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%common'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.common   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%location'    opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.location << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%initialize'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.init     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%' < identifier > opt_spaces_or_comments blocks:code_blocks { blocks.each { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Invalid directive: #{$1}" } }
 
 code_blocks <- blocks:code_blocks opt_spaces_or_comments block:lang_code_block { blocks.push(block) if block; $$ = blocks }
              / block:lang_code_block { $$ = block ? [block] : [] }
 
-directive_string <- '%value' 8< opt_spaces_or_comments str:quotation_double { @ctx.value_type = str }
-                  / '%auxil' 8< opt_spaces_or_comments str:quotation_double { @ctx.auxil_type = str }
-                  / '%prefix' 8< opt_spaces_or_comments str:quotation_double { @ctx.prefix = str }
+directive_string <- '%value' opt_spaces_or_comments str:quotation_double { @ctx.value_type = str }
+                  / '%auxil' opt_spaces_or_comments str:quotation_double { @ctx.auxil_type = str }
+                  / '%prefix' opt_spaces_or_comments str:quotation_double { @ctx.prefix = str }
+                  / '%' < identifier > opt_spaces_or_comments str:quotation_double { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Invalid directive: #{$1}" }
 
 rule <- name:identifier opt_spaces_or_comments '<-' opt_spaces_or_comments expr:expression {
   return unless expr
