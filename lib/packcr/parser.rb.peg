@@ -39,13 +39,11 @@ expression <- expr:expression opt_spaces_or_comments '/' 8< opt_spaces_or_commen
             / seq:sequence { $$ = seq }
 
 sequence <- seq:sequence opt_spaces_or_comments '8<' 8< opt_spaces_or_comments expr:term { $$ = seq.seq(expr, cut: true) }
+          / seq:sequence opt_spaces_or_comments '~' 8< opt_spaces_or_comments code:lang_code_block { $$ = code ? Packcr::Node::ErrorNode.new(seq, Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) : seq }
           / seq:sequence opt_spaces_or_comments expr:term { $$ = seq.seq(expr) }
           / expr:term { $$ = expr }
 
-term <- expr:pred opt_spaces_or_comments '~' 8< opt_spaces_or_comments code:lang_code_block { $$ = code && Packcr::Node::ErrorNode.new(expr, Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) }
-      / expr:pred { $$ = expr }
-
-pred <- '&' 8< opt_spaces_or_comments node:quantity { $$ = Packcr::Node::PredicateNode.new(node) }
+term <- '&' 8< opt_spaces_or_comments node:quantity { $$ = Packcr::Node::PredicateNode.new(node) }
       / '!' 8< opt_spaces_or_comments node:quantity { $$ = Packcr::Node::PredicateNode.new(node, true) }
       / node:quantity { $$ = node }
 
