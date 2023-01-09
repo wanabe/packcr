@@ -9,7 +9,7 @@ class Packcr
       end
 
       def alt(node)
-        @nodes << node
+        @nodes << node if node
         self
       end
 

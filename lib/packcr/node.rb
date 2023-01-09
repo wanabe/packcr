@@ -5,7 +5,7 @@ class Packcr
     end
 
     def alt(expr)
-      AlternateNode.new(self, expr)
+      AlternateNode.new(self).alt(expr)
     end
 
     def setup_rule(rule)

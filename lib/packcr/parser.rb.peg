@@ -28,6 +28,7 @@ directive_string <- '%value' 8< opt_spaces_or_comments str:quotation_double { @c
                   / '%prefix' 8< opt_spaces_or_comments str:quotation_double { @ctx.prefix = str }
 
 rule <- name:identifier opt_spaces_or_comments '<-' opt_spaces_or_comments expr:expression {
+  return unless expr
   rule =  Packcr::Node::RuleNode.new(expr, name, $0sl.linenum, $0sl.charnum)
   @ctx.rules << rule
 }
@@ -39,7 +40,7 @@ sequence <- seq:sequence opt_spaces_or_comments '8<' 8< opt_spaces_or_comments e
           / seq:sequence opt_spaces_or_comments expr:term { $$ = seq.seq(expr) }
           / expr:term { $$ = expr }
 
-term <- expr:pred opt_spaces_or_comments '~' 8< opt_spaces_or_comments code:lang_code_block { $$ = Packcr::Node::ErrorNode.new(expr, Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) }
+term <- expr:pred opt_spaces_or_comments '~' 8< opt_spaces_or_comments code:lang_code_block { $$ = code && Packcr::Node::ErrorNode.new(expr, Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) }
       / expr:pred { $$ = expr }
 
 pred <- '&' 8< opt_spaces_or_comments node:quantity { $$ = Packcr::Node::PredicateNode.new(node) }
@@ -51,7 +52,8 @@ quantity <- node:primary opt_spaces_or_comments '*' { $$ = Packcr::Node::Quantit
           / node:primary opt_spaces_or_comments '?' { $$ = Packcr::Node::QuantityNode.new(node, 0, 1) }
           / node:primary { $$ = node }
 
-primary <- var_name:identifier opt_spaces_or_comments ':' 8< opt_spaces_or_comments name:identifier !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, var_name, $0sl.linenum, $0sl.charnum) }
+primary <- code:lang_code_block { $$ = code && Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) }
+         / var_name:identifier opt_spaces_or_comments ':' 8< opt_spaces_or_comments name:identifier !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, var_name, $0sl.linenum, $0sl.charnum) }
          / name:identifier 8< !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, nil, $0sl.linenum, $0sl.charnum) }
          / '(' 8< opt_spaces_or_comments expr:expression opt_spaces_or_comments ')' { $$ = expr }
          / '<' 8< opt_spaces_or_comments expr:expression opt_spaces_or_comments '>' { $$ = Packcr::Node::CaptureNode.new(expr) }
@@ -60,12 +62,11 @@ primary <- var_name:identifier opt_spaces_or_comments ':' 8< opt_spaces_or_comme
          / str:character_class { $$ = Packcr::Node::CharclassNode.new(Packcr.unescape_string(str, true)) }
          / str:quotation_single { $$ = Packcr::Node::StringNode.new(Packcr.unescape_string(str, false)) }
          / str:quotation_double { $$ = Packcr::Node::StringNode.new(Packcr.unescape_string(str, false)) }
-         / code:lang_code_block { $$ = Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) }
 
 character_class <- '[' <( [^\\\[\]] / '\[' / '\]' / '\\' )*> ']' { $$ = $1 }
 
 lang_code_block <- code:code_block { ____ = code }
-                 / < identifier > '->' code:code_block { $$ = @ctx.lang == $1.to_sym ? code : nil  }
+                 / < identifier > opt_spaces_or_comments '->' opt_spaces_or_comments code:code_block { $$ = @ctx.lang == $1.to_sym ? code : nil  }
 code_block <- '$' code:plain_code_block { $$ = code }
             / code:plain_code_block ${ ____ = code.gsub("$", @ctx.lang == :rb ? "__" : "_") }
 plain_code_block <- '{' < codes? > '}' { $$ = $1 }

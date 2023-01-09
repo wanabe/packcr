@@ -15,12 +15,18 @@ class Packcr
 
       def seq(node, cut: false)
         if cut
-          node = Packcr::Node::SequenceNode.new(node, cut: true)
+          if node
+            node = Packcr::Node::SequenceNode.new(node, cut: true)
+          else
+            node = Packcr::Node::SequenceNode.new(cut: true)
+          end
         end
-        if @nodes.last.sequence?
-          @nodes.last.seq(node)
-        else
-          @nodes << node
+        if node
+          if @nodes.last.sequence?
+            @nodes.last.seq(node)
+          else
+            @nodes << node
+          end
         end
         self
       end
