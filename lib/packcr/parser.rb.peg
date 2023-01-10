@@ -4,6 +4,7 @@ statement <- comment
            / spaces
            / directive_include
            / directive_string
+           / directive_value
            / rule
            / footer
            ~ { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Illegal syntax" }
@@ -28,6 +29,8 @@ directive_string <- '%value' opt_spaces_or_comments strings:lang_strings { strin
                   / '%auxil' opt_spaces_or_comments strings:lang_strings { strings.each { |str| @ctx.auxil_type = str } }
                   / '%prefix' opt_spaces_or_comments strings:lang_strings { strings.each { |str| @ctx.prefix = str } }
                   / '%' < identifier > opt_spaces_or_comments str:quotation_double { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Invalid directive: #{$1}" }
+
+directive_value <- '%capture' spaces ('on' / 'true') { @ctx.capture_in_code = true }
 
 lang_strings <- strings:lang_strings opt_spaces_or_comments string:lang_string { strings.push(string) if string; $$ = strings }
               / string:lang_string { $$ = string ? [string] : [] }

@@ -4,7 +4,7 @@ class Packcr
   class Context
     attr_reader :rules, :rulehash, :lang
     attr_reader :esource, :ecommon, :source, :lheader, :lsource, :header, :common, :location, :init
-    attr_accessor :prefix, :auxil_type, :value_type, :errnum
+    attr_accessor :prefix, :auxil_type, :value_type, :errnum, :capture_in_code
 
     def initialize(path, lines: false, debug: false, ascii: false, lang: nil)
       if !path

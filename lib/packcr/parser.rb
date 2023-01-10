@@ -304,6 +304,18 @@ class Packcr::Parser
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
+  def action_directive_value_0(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    @ctx.capture_in_code = true
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
   def action_lang_strings_0(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
     strings = (__pcc_in.value_refs[0]  ||= Value.new).value
@@ -883,6 +895,12 @@ class Packcr::Parser
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
         if apply_rule(:evaluate_rule_directive_string, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_directive_value, chunk.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
@@ -1571,6 +1589,79 @@ class Packcr::Parser
       @level -= 1
     end
     debug { warn "#{ "  " * @level}NOMATCH directive_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    return nil
+  end
+
+  def evaluate_rule_directive_value
+    chunk = ThunkChunk.new
+    chunk.pos = @cur
+    chunk.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    directive_value #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    @level += 1
+    chunk.resize_captures(0)
+    catch(0) do
+      if (
+        refill_buffer(8) < 8 ||
+        @buffer[@cur, 8] != "%capture"
+      )
+        throw(0)
+      end
+      @cur_loc = @cur_loc.forward(@buffer, @cur, 8)
+      @cur += 8
+      if !apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
+        throw(0)
+      end
+      catch(1) do |; pos, p_loc, n|
+        pos = @cur
+        p_loc = @cur_loc
+        n = chunk.thunks.length
+        catch(2) do
+          if (
+            refill_buffer(2) < 2 ||
+            @buffer[@cur, 2] != "on"
+          )
+            throw(2)
+          end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+          @cur += 2
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(3) do
+          if (
+            refill_buffer(4) < 4 ||
+            @buffer[@cur, 4] != "true"
+          )
+            throw(3)
+          end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 4)
+          @cur += 4
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        throw(0)
+      end
+      chunk.thunks.push(
+        ThunkLeaf.new(
+          :action_directive_value_0,
+          Capture.new(
+            chunk.pos, @cur,
+            chunk.pos_loc, @cur_loc,
+          ),
+          {},
+          {},
+        )
+      )
+      debug { warn "#{ "  " * @level}MATCH   directive_value #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+      return chunk
+    ensure
+      @level -= 1
+    end
+    debug { warn "#{ "  " * @level}NOMATCH directive_value #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
 

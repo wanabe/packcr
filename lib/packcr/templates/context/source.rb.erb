@@ -95,10 +95,13 @@ class <%= class_name %>
     __0 = __pcc_in.capt0.capture_string(@buffer)
     __0s = @pos + __pcc_in.capt0.range_start
     __0e = @pos + __pcc_in.capt0.range_end
-    <%-     if @location -%>
+    <%-   if @location -%>
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    <%-     end -%>
+    <%-   end -%>
+    <%-   if @capture_in_code -%>
+    __0c = __pcc_in.capt0
+    <%-   end -%>
     <%-   code.capts.each do |capture| -%>
     __<%= capture.index + 1 %> = __pcc_in.capts[<%= capture.index %>].capture_string(@buffer)
     __<%= capture.index + 1 %>s = @pos + __pcc_in.capts[<%= capture.index %>].range_start
@@ -106,6 +109,9 @@ class <%= class_name %>
     <%-     if @location -%>
     __<%= capture.index + 1 %>sl = @pos_loc + __pcc_in.capts[<%= capture.index %>].start_loc
     __<%= capture.index + 1 %>el = @pos_loc + __pcc_in.capts[<%= capture.index %>].end_loc
+    <%-     end -%>
+    <%-     if @capture_in_code -%>
+    __<%= capture.index + 1 %>c = __pcc_in.capts[<%= capture.index %>]
     <%-     end -%>
     <%-   end -%>
     <%- %><%=   sstream.get_code_block(code.code, 4, @iname) -%>
