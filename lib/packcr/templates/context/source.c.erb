@@ -1199,6 +1199,10 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
 #define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))
 #define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))
+<%-       if @location -%>
+#define _0sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capt0.range.start_loc)))
+#define _0el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capt0.range.end_loc)))
+<%-       end -%>
 <%      code.capts.each do |capture| -%>
 #define _<%= capture.index + 1 %> pcc_get_capture_string(__pcc_ctx, __pcc_in->data.leaf.capts.buf[<%= capture.index %>])
 #define _<%= capture.index + 1 %>s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
