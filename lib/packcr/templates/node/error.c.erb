@@ -14,8 +14,8 @@ L<%= "%04d" % l %>:;
         thunk->data.leaf.capt0.range.start = chunk->pos;
         thunk->data.leaf.capt0.range.end = ctx->cur;
 <%- if gen.location -%>
-        thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
-        thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;
+        thunk->data.leaf.capt0.range.start_loc_ptr = &chunk->pos_loc;
+        thunk->data.leaf.capt0.range.end_loc_ptr = &ctx->cur_loc;
 <%- end -%>
         memset(&null, 0, sizeof(pcc_value_t)); /* in case */
         thunk->data.leaf.action(ctx, thunk, &null);
