@@ -15,5 +15,6 @@ Gem::Specification.new do |s|
   s.files       = Dir.glob("lib/**/*.rb") + Dir.glob("exe/*")
   s.executables = ["packcr"]
 
+  s.add_development_dependency "rake", "~> 13.0"
   s.add_development_dependency "test-unit", "~> 3.5"
 end
