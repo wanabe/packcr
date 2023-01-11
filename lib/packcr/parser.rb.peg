@@ -63,6 +63,12 @@ quantity <- node:primary opt_spaces_or_comments '*' { $$ = Packcr::Node::Quantit
 
 primary <- code:lang_code_block { $$ = code && Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum)) }
          / var_name:identifier opt_spaces_or_comments ':' 8< opt_spaces_or_comments name:identifier !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, var_name, $0sl.linenum, $0sl.charnum) }
+         / '$$' opt_spaces_or_comments ':' 8< opt_spaces_or_comments name:identifier !( [ \t\v\f\r\n]* '<-' ) {
+             ref = Packcr::Node::ReferenceNode.new(name, "_out", $0sl.linenum, $0sl.charnum)
+             code = @ctx.pass_value_code("_out")
+             act = Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), $0sl.linenum, $0sl.charnum))
+             $$ = ref.seq(act)
+           }
          / 'EOF' !( [ \t\v\f\r\n]* '<-' ) {
              @ctx.implicit_rule("EOF")
              $$ = Packcr::Node::ReferenceNode.new("EOF", nil, $0sl.linenum, $0sl.charnum)

@@ -14,6 +14,14 @@ class Packcr
       end
 
       def seq(node, cut: false)
+        if node&.sequence?
+          node.nodes.each do |child|
+            seq(child, cut: cut)
+            cut = false
+          end
+          return self
+        end
+
         if cut
           if node
             node = Packcr::Node::SequenceNode.new(node, cut: true)

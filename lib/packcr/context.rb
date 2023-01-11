@@ -89,6 +89,15 @@ class Packcr
       @prefix || "pcc"
     end
 
+    def pass_value_code(var)
+      case @lang
+      when :c
+        "__ = #{var};"
+      when :rb
+        "____ = #{var}"
+      end
+    end
+
     def class_name
       prefix.gsub(/(?:_|^|(\W))([a-z])/) { "#{$1}#{$2}".upcase }
     end
