@@ -164,9 +164,7 @@ class <%= class_name %>
     end
 
     if h&.eval&.delete(rule)
-      c = public_send(rule)
-      a = LrAnswer.new(:chunk, @pos + @cur<% if @location %>, @pos_loc + @cur_loc<% end %>, chunk: c)
-      return c
+      return public_send(rule)
     end
 
     if a
@@ -219,9 +217,7 @@ class <%= class_name %>
     entry.seed = c
     h = lr.head
     if h.rule_name != rule
-      c = lr.seed
-      a = LrAnswer.new(:chunk, @pos + @cur<% if @location %>, @pos_loc + @cur_loc<% end %>, chunk: c)
-      return c
+      return lr.seed
     end
 
     seed = lr.seed
@@ -427,11 +423,6 @@ class <%= class_name %>
     end
 
     def set_chunk(chunk)
-      if @type == :lr
-        a = LrAnswer.new(@type, @pos<% if @location %>, @pos_loc<% end %>, lr: @lr)
-      elsif @type == :chunk
-        a = LrAnswer.new(@type, @pos<% if @location %>, @pos_loc<% end %>, chunk: @chunk)
-      end
       @type = :chunk
       @chunk = chunk
     end

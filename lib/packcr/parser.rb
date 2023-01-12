@@ -4328,9 +4328,7 @@ class Packcr::Parser
     end
 
     if h&.eval&.delete(rule)
-      c = public_send(rule)
-      a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc, chunk: c)
-      return c
+      return public_send(rule)
     end
 
     if a
@@ -4379,9 +4377,7 @@ class Packcr::Parser
     entry.seed = c
     h = lr.head
     if h.rule_name != rule
-      c = lr.seed
-      a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc, chunk: c)
-      return c
+      return lr.seed
     end
 
     seed = lr.seed
@@ -4610,11 +4606,6 @@ class Packcr::Parser
     end
 
     def set_chunk(chunk)
-      if @type == :lr
-        a = LrAnswer.new(@type, @pos, @pos_loc, lr: @lr)
-      elsif @type == :chunk
-        a = LrAnswer.new(@type, @pos, @pos_loc, chunk: @chunk)
-      end
       @type = :chunk
       @chunk = chunk
     end
