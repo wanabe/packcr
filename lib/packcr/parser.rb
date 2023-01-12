@@ -4323,12 +4323,13 @@ class Packcr::Parser
     a = @lrtable.answers[pos, rule]
     h = @lrtable.heads[pos]
 
-    if h && !a && rule != h.rule_name && !h.invol[rule]
-      return nil
-    end
-
-    if h&.eval&.delete(rule)
-      return public_send(rule)
+    if h
+      if !a && rule != h.rule_name && !h.invol[rule]
+        return nil
+      end
+      if h.eval.delete(rule)
+        return public_send(rule)
+      end
     end
 
     if a
