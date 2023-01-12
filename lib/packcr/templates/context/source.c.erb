@@ -1267,7 +1267,8 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= node.name %>(pcc_context_t *ctx)
     pcc_value_table__clear(ctx->auxil, &chunk->values);
 <%-   end -%>
 <%-   g = ::Packcr::Generator.new(node, @ascii, @location) -%>
-<%-   r, str = g.generate_code_str(node.expr, 0, 4, false) -%>
+<%-   r = node.expr.reachability -%>
+<%-   _, str = g.generate_code_str(node.expr, 0, 4, false) -%>
 <%=   str -%>
     ctx->level--;
     PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= node.name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));

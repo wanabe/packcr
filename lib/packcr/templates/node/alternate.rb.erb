@@ -7,12 +7,14 @@
       <%- nodes.each_with_index do |expr, i| -%>
       <%-   c = i + 1 < nodes.length -%>
       <%- if expr.reversible?(gen) -%>
-      <%-   r, code = gen.generate_code_str(expr, m, 6, false, reverse: true, oncut: onfail) -%>
+      <%-   r = expr.reachability -%>
+      <%-   _, code = gen.generate_code_str(expr, m, 6, false, reverse: true, oncut: onfail) -%>
       <%-   %><%= code -%>
       <%- else -%>
       <%-   l = gen.next_label -%>
       catch(<%= l %>) do
-        <%-   r, code = gen.generate_code_str(expr, l, 8, false, oncut: onfail) -%>
+        <%-   r = expr.reachability -%>
+        <%-   _, code = gen.generate_code_str(expr, l, 8, false, oncut: onfail) -%>
         <%-   %><%= code -%>
         <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
         <%-     reach = Packcr::CODE_REACH__ALWAYS_SUCCEED -%>

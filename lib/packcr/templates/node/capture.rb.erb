@@ -3,7 +3,8 @@
   <%- if gen.location -%>
   p_loc = @cur_loc
   <%- end -%>
-  <%- r, code = gen.generate_code_str(expr, onfail, 2, false) -%>
+  <%- r = expr.reachability -%>
+  <%- _, code = gen.generate_code_str(expr, onfail, 2, false) -%>
   <%- %><%= code -%>
   q = @cur
   capt = chunk.capts[<%= index %>]

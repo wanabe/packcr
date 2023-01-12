@@ -18,7 +18,8 @@
 <%- end -%>
         const size_t n = chunk->thunks.len;
 <%- l = gen.next_label -%>
-<%- r, code = gen.generate_code_str(expr, l, 8, false) -%>
+<%- r = expr.reachability -%>
+<%- _, code = gen.generate_code_str(expr, l, 8, false) -%>
 <%= code -%>
         if (ctx->cur == p) break;
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>

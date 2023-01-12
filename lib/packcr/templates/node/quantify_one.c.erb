@@ -5,7 +5,8 @@
     const pcc_location_t p_loc = ctx->cur_loc;
 <%- end -%>
     const size_t n = chunk->thunks.len;
-<%- r, code = gen.generate_code_str(expr, l, 4, false) -%>
+<%- r = expr.reachability -%>
+<%- _, code = gen.generate_code_str(expr, l, 4, false) -%>
 <%= code -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-   m = gen.next_label -%>

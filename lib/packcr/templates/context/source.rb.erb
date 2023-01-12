@@ -136,7 +136,8 @@ class <%= class_name %>
     <%-   end -%>
     catch(0) do
       <%-   g = ::Packcr::Generator.new(rule, @ascii, @location, :rb) -%>
-      <%-   r, code = g.generate_code_str(rule.expr, 0, 6, false) -%>
+      <%-   r = rule.expr.reachability -%>
+      <%-   _, code = g.generate_code_str(rule.expr, 0, 6, false) -%>
       <%- %><%= code -%>
       debug { warn "#{ "  " * @level}MATCH   <%= rule.name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk

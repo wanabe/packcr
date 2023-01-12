@@ -7,7 +7,8 @@
 <%- nodes.each_with_index do |expr, i| -%>
 <%-   c = i + 1 < nodes.length -%>
 <%-   l = gen.next_label -%>
-<%-   r, code = gen.generate_code_str(expr, l, 8, false) -%>
+<%-   r = expr.reachability -%>
+<%-   _, code = gen.generate_code_str(expr, l, 8, false) -%>
 <%= code -%>
 <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-     reach = Packcr::CODE_REACH__ALWAYS_SUCCEED -%>

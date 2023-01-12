@@ -19,7 +19,8 @@ class Packcr
         r = nil
         if neg
           l = gen.next_label
-          r, code = gen.generate_code_str(expr, l, 4, false)
+          _, code = gen.generate_code_str(expr, l, 4, false)
+          r = expr.reachability
           gen.write Packcr.template("node/predicate_neg.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
           case r
           when Packcr::CODE_REACH__ALWAYS_SUCCEED
@@ -30,7 +31,8 @@ class Packcr
         else
           l = gen.next_label
           m = gen.next_label
-          r, code = gen.generate_code_str(expr, l, 4, false)
+          _, code = gen.generate_code_str(expr, l, 4, false)
+          r = expr.reachability
           gen.write Packcr.template("node/predicate.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         end
         reachability
