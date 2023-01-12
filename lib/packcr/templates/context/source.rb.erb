@@ -199,7 +199,7 @@ class <%= class_name %>
     entry = LrEntry.new
     entry.rule = rule
     @lrstack.push(entry)
-    a = LrAnswer.new(pos<% if @location %>, p_loc<% end %>, lr: entry)
+    a = LrAnswer.new(entry, pos<% if @location %>, p_loc<% end %>)
     @lrtable.answers[pos, rule] = a
     c = public_send(rule)
     @lrstack.pop
@@ -411,13 +411,12 @@ class <%= class_name %>
     attr_accessor :pos_loc
     <%- end -%>
 
-    def initialize(pos<% if @location %>, pos_loc<% end %>, lr: nil, chunk: nil)
+    def initialize(lr, pos<% if @location %>, pos_loc<% end %>)
       @pos = pos
       <%- if @location -%>
       @pos_loc = pos_loc
       <%- end -%>
       @lr = lr
-      @chunk = chunk
     end
 
     def chunk=(chunk)

@@ -4361,7 +4361,7 @@ class Packcr::Parser
     entry = LrEntry.new
     entry.rule = rule
     @lrstack.push(entry)
-    a = LrAnswer.new(pos, p_loc, lr: entry)
+    a = LrAnswer.new(entry, pos, p_loc)
     @lrtable.answers[pos, rule] = a
     c = public_send(rule)
     @lrstack.pop
@@ -4596,11 +4596,10 @@ class Packcr::Parser
     attr_accessor :lr, :chunk, :pos
     attr_accessor :pos_loc
 
-    def initialize(pos, pos_loc, lr: nil, chunk: nil)
+    def initialize(lr, pos, pos_loc)
       @pos = pos
       @pos_loc = pos_loc
       @lr = lr
-      @chunk = chunk
     end
 
     def chunk=(chunk)
