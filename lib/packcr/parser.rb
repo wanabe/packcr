@@ -4334,8 +4334,7 @@ class Packcr::Parser
     if a
       @cur = a.pos - @pos
       @cur_loc = a.pos_loc - @pos_loc
-      type = a.type
-      if type == :chunk
+      if !a.lr
         return a.chunk
       end
       lr = a.lr
@@ -4362,7 +4361,7 @@ class Packcr::Parser
     entry = LrEntry.new
     entry.rule = rule
     @lrstack.push(entry)
-    a = LrAnswer.new(:lr, pos, p_loc, lr: entry)
+    a = LrAnswer.new(pos, p_loc, lr: entry)
     @lrtable.answers[pos, rule] = a
     c = public_send(rule)
     @lrstack.pop
@@ -4594,11 +4593,10 @@ class Packcr::Parser
   end
 
   class LrAnswer
-    attr_accessor :lr, :chunk, :pos, :type
+    attr_accessor :lr, :chunk, :pos
     attr_accessor :pos_loc
 
-    def initialize(type, pos, pos_loc, lr: nil, chunk: nil)
-      @type = type
+    def initialize(pos, pos_loc, lr: nil, chunk: nil)
       @pos = pos
       @pos_loc = pos_loc
       @lr = lr
@@ -4606,7 +4604,7 @@ class Packcr::Parser
     end
 
     def set_chunk(chunk)
-      @type = :chunk
+      @lr = nil
       @chunk = chunk
     end
   end

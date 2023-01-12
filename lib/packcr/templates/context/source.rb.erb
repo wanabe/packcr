@@ -172,8 +172,7 @@ class <%= class_name %>
       <%- if @location -%>
       @cur_loc = a.pos_loc - @pos_loc
       <%- end -%>
-      type = a.type
-      if type == :chunk
+      if !a.lr
         return a.chunk
       end
       lr = a.lr
@@ -200,7 +199,7 @@ class <%= class_name %>
     entry = LrEntry.new
     entry.rule = rule
     @lrstack.push(entry)
-    a = LrAnswer.new(:lr, pos<% if @location %>, p_loc<% end %>, lr: entry)
+    a = LrAnswer.new(pos<% if @location %>, p_loc<% end %>, lr: entry)
     @lrtable.answers[pos, rule] = a
     c = public_send(rule)
     @lrstack.pop
@@ -407,13 +406,12 @@ class <%= class_name %>
   end
 
   class LrAnswer
-    attr_accessor :lr, :chunk, :pos, :type
+    attr_accessor :lr, :chunk, :pos
     <%- if @location -%>
     attr_accessor :pos_loc
     <%- end -%>
 
-    def initialize(type, pos<% if @location %>, pos_loc<% end %>, lr: nil, chunk: nil)
-      @type = type
+    def initialize(pos<% if @location %>, pos_loc<% end %>, lr: nil, chunk: nil)
       @pos = pos
       <%- if @location -%>
       @pos_loc = pos_loc
@@ -423,7 +421,7 @@ class <%= class_name %>
     end
 
     def set_chunk(chunk)
-      @type = :chunk
+      @lr = nil
       @chunk = chunk
     end
   end
