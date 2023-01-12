@@ -151,7 +151,7 @@ class <%= class_name %>
 
   <%- end -%>
 
-  def apply_rule(rule, thunks, values, index)
+  def rule_chunk(rule, thunks, values, index)
     pos = @pos + @cur
     <%- if @location -%>
     p_loc = @pos_loc + @cur_loc
@@ -160,7 +160,7 @@ class <%= class_name %>
     h = @lrtable.get_head(pos)
 
     if h && !a && rule != h.rule_name && !h.invol[rule]
-      return false
+      return nil
     end
 
     if h&.eval&.delete(rule)
@@ -254,6 +254,12 @@ class <%= class_name %>
       end
     end
 
+    c
+  end
+
+
+  def apply_rule(rule, thunks, values, index)
+    c = rule_chunk(rule, thunks, values, index)
     if !c
       return false
     end

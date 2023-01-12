@@ -4317,14 +4317,14 @@ class Packcr::Parser
   end
 
 
-  def apply_rule(rule, thunks, values, index)
+  def rule_chunk(rule, thunks, values, index)
     pos = @pos + @cur
     p_loc = @pos_loc + @cur_loc
     a = @lrtable.get_answer(pos, rule)
     h = @lrtable.get_head(pos)
 
     if h && !a && rule != h.rule_name && !h.invol[rule]
-      return false
+      return nil
     end
 
     if h&.eval&.delete(rule)
@@ -4408,6 +4408,12 @@ class Packcr::Parser
       end
     end
 
+    c
+  end
+
+
+  def apply_rule(rule, thunks, values, index)
+    c = rule_chunk(rule, thunks, values, index)
     if !c
       return false
     end
