@@ -4368,7 +4368,7 @@ class Packcr::Parser
     a.pos = @pos + @cur
     a.pos_loc = @pos_loc + @cur_loc
     if !entry.head
-      a.set_chunk(c)
+      a.chunk = c
       return c
     end
 
@@ -4380,7 +4380,7 @@ class Packcr::Parser
     end
 
     seed = lr.seed
-    a.set_chunk(seed)
+    a.chunk = seed
     chunk = a.chunk
     if !chunk
       return nil
@@ -4394,7 +4394,7 @@ class Packcr::Parser
       if !c || @pos + @cur <= a.pos
         break
       end
-      a.set_chunk(c)
+      a.chunk = c
       a.pos = @pos + @cur
       a.pos_loc = @pos_loc + @cur_loc
     end
@@ -4603,7 +4603,7 @@ class Packcr::Parser
       @chunk = chunk
     end
 
-    def set_chunk(chunk)
+    def chunk=(chunk)
       @lr = nil
       @chunk = chunk
     end

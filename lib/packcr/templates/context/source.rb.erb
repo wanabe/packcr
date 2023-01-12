@@ -208,7 +208,7 @@ class <%= class_name %>
     a.pos_loc = @pos_loc + @cur_loc
     <%- end -%>
     if !entry.head
-      a.set_chunk(c)
+      a.chunk = c
       return c
     end
 
@@ -220,7 +220,7 @@ class <%= class_name %>
     end
 
     seed = lr.seed
-    a.set_chunk(seed)
+    a.chunk = seed
     chunk = a.chunk
     if !chunk
       return nil
@@ -236,7 +236,7 @@ class <%= class_name %>
       if !c || @pos + @cur <= a.pos
         break
       end
-      a.set_chunk(c)
+      a.chunk = c
       a.pos = @pos + @cur
       <%- if @location -%>
       a.pos_loc = @pos_loc + @cur_loc
@@ -420,7 +420,7 @@ class <%= class_name %>
       @chunk = chunk
     end
 
-    def set_chunk(chunk)
+    def chunk=(chunk)
       @lr = nil
       @chunk = chunk
     end
