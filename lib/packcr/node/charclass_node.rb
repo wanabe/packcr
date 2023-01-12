@@ -33,6 +33,16 @@ class Packcr
         end
       end
 
+      def reachability
+        charclass = self.value
+        n = charclass&.length || 0
+        if charclass.nil? || n > 0
+          return Packcr::CODE_REACH__BOTH
+        else
+          return Packcr::CODE_REACH__ALWAYS_FAIL
+        end
+      end
+
       def verify_variables(vars)
       end
 
@@ -54,11 +64,10 @@ class Packcr
           a = charclass && charclass[0] == '^'
           i = a ? 1 : 0
           gen.write Packcr.template("node/charclass_utf8.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-          return Packcr::CODE_REACH__BOTH
         else
           gen.write Packcr.template("node/charclass_fail.#{gen.lang}.erb", binding, indent: indent)
-          return Packcr::CODE_REACH__ALWAYS_FAIL
         end
+        reachability
       end
 
       def generate_utf8_charclass_reverse_code(gen, onsuccess, indent, bare)
@@ -71,10 +80,8 @@ class Packcr
           a = charclass && charclass[0] == '^'
           i = a ? 1 : 0
           gen.write Packcr.template("node/charclass_utf8_reverse.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-          return Packcr::CODE_REACH__BOTH
-        else
-          return Packcr::CODE_REACH__ALWAYS_FAIL
         end
+        reachability
       end
 
       def generate_ascii_code(gen, onfail, indent, bare)
@@ -92,15 +99,13 @@ class Packcr
             else
               gen.write Packcr.template("node/charclass_one.#{gen.lang}.erb", binding, indent: indent)
             end
-            return Packcr::CODE_REACH__BOTH
           else
             gen.write Packcr.template("node/charclass_fail.#{gen.lang}.erb", binding, indent: indent)
-            return Packcr::CODE_REACH__ALWAYS_FAIL
           end
         else
           gen.write Packcr.template("node/charclass_any.#{gen.lang}.erb", binding, indent: indent)
-          return Packcr::CODE_REACH__BOTH
         end
+        reachability
       end
     end
   end

@@ -33,7 +33,15 @@ class Packcr
           r, code = gen.generate_code_str(expr, l, 4, false)
           gen.write Packcr.template("node/predicate.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         end
-        return r
+        reachability
+      end
+
+      def reachability
+        if neg
+          -expr.reachability
+        else
+          expr.reachability
+        end
       end
 
       def verify_variables(vars)

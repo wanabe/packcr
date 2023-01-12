@@ -34,7 +34,11 @@ class Packcr
         m = gen.next_label
         r, code = gen.generate_code_str(expr, l, 4, true)
         gen.write Packcr.template("node/error.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-        return r
+        reachability
+      end
+
+      def reachability
+        expr.reachability
       end
 
       def verify_variables(vars)

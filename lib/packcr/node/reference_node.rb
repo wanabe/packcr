@@ -22,11 +22,15 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         gen.write Packcr.template("node/reference.#{gen.lang}.erb", binding, indent: indent)
-        Packcr::CODE_REACH__BOTH
+        reachability
       end
 
       def generate_reverse_code(gen, onsuccess, indent, bare, oncut: nil)
         gen.write Packcr.template("node/reference_reverse.#{gen.lang}.erb", binding, indent: indent)
+        reachability
+      end
+
+      def reachability
         Packcr::CODE_REACH__BOTH
       end
 

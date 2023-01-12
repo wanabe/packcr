@@ -31,10 +31,22 @@ class Packcr
         b = false
         m = gen.next_label
 
-        reach = nil
         gen.write Packcr.template("node/alternate.#{gen.lang}.erb", binding, indent: indent - 4, unwrap: bare)
 
-        reach || Packcr::CODE_REACH__ALWAYS_FAIL
+        reachability
+      end
+
+      def reachability
+        reach = Packcr::CODE_REACH__ALWAYS_FAIL
+        nodes.each_with_index do |expr, i|
+          r = expr.reachability
+          if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
+            return Packcr::CODE_REACH__ALWAYS_SUCCEED
+          elsif r == Packcr::CODE_REACH__BOTH
+            reach = Packcr::CODE_REACH__BOTH
+          end
+        end
+        reach
       end
 
       def verify_variables(vars)

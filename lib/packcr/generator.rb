@@ -22,6 +22,7 @@ class Packcr
       else
         node.generate_code(self, onescape, indent, bare, oncut: oncut)
       end
+      node.reachability
     end
 
     def generate_code_str(node, onescape, indent, bare, reverse: false, oncut: nil)

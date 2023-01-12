@@ -18,24 +18,38 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         if max > 1 || max < 0
-          r = nil
           gen.write Packcr.template("node/quantify_many.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
+          return reachability
+        elsif max == 1
+          if min > 0
+            gen.generate_code(expr, onfail, indent, bare)
+            return reachability
+          else
+            gen.write Packcr.template("node/quantify_one.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
+            return reachability
+          end
+        else
+          # no code to generate
+          return reachability
+        end
+      end
+
+      def reachability
+        if max > 1 || max < 0
           if min <= 0
             return Packcr::CODE_REACH__ALWAYS_SUCCEED
           end
-          if r == Packcr::CODE_REACH__ALWAYS_FAIL
+          if expr.reachability == Packcr::CODE_REACH__ALWAYS_FAIL
             return Packcr::CODE_REACH__ALWAYS_FAIL
           end
           return Packcr::CODE_REACH__BOTH
         elsif max == 1
           if min > 0
-            return gen.generate_code(expr, onfail, indent, bare)
+            return expr.reachability
           else
-            gen.write Packcr.template("node/quantify_one.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
             return Packcr::CODE_REACH__ALWAYS_SUCCEED
           end
         else
-          # no code to generate
           return Packcr::CODE_REACH__ALWAYS_SUCCEED
         end
       end

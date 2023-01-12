@@ -64,13 +64,27 @@ class Packcr
             if i + 1 < nodes.length
               gen.write Packcr.template("node/sequence_unreachable.#{gen.lang}.erb", binding, indent: indent)
             end
-            return Packcr::CODE_REACH__ALWAYS_FAIL
+            return reachability
           when Packcr::CODE_REACH__ALWAYS_SUCCEED
           else
             b = true
           end
         end
-        return b ? Packcr::CODE_REACH__BOTH : Packcr::CODE_REACH__ALWAYS_SUCCEED
+        return reachability
+      end
+
+      def reachability
+        r = Packcr::CODE_REACH__ALWAYS_SUCCEED
+        nodes.each_with_index do |expr|
+          case expr.reachability
+          when Packcr::CODE_REACH__ALWAYS_FAIL
+            return Packcr::CODE_REACH__ALWAYS_FAIL
+          when Packcr::CODE_REACH__ALWAYS_SUCCEED
+          else
+            r = Packcr::CODE_REACH__BOTH
+          end
+        end
+        return r
       end
 
       def verify_variables(vars)

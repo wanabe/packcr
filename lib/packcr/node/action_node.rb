@@ -35,7 +35,11 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         gen.write Packcr.template("node/action.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-        return Packcr::CODE_REACH__ALWAYS_SUCCEED
+        reachability
+      end
+
+      def reachability
+        Packcr::CODE_REACH__ALWAYS_SUCCEED
       end
 
       def verify_variables(vars)
