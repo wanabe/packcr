@@ -11,7 +11,7 @@ class Packcr::Parser
     @thunk = ThunkNode.new([], nil, 0)
     @lrtable = LrTable.new
     @debug = debug
-    @global_values = []
+    @global_values = {}
     @pos_loc = Location.new
     @cur_loc = Location.new
     @ctx = ctx || self
