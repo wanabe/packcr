@@ -4338,18 +4338,14 @@ class Packcr::Parser
       if !answer.lr
         return answer.chunk
       end
-      lr = answer.lr
-      lr.head ||= LrHead.new(rule)
+      answer.lr.head ||= LrHead.new(rule)
       @lrstack.reverse_each do |lrentry|
-        entry_head = lrentry.head
-        lr = answer.lr
-        answer_head = lr.head
-        if entry_head == answer_head
+        answer_head = answer.lr.head
+        if lrentry.head == answer_head
           break
         end
         lrentry.head = answer_head
-        invol = answer_head.invol
-        invol[lrentry.rule] = true
+        answer_head.invol[lrentry.rule] = true
       end
       return answer.lr.seed
     end
@@ -4375,10 +4371,8 @@ class Packcr::Parser
       return lr.seed
     end
 
-    seed = lr.seed
-    answer.chunk = seed
-    chunk = answer.chunk
-    if !chunk
+    answer.chunk = lr.seed
+    if !answer.chunk
       return nil
     end
     @lrtable.heads[pos] = head
@@ -4406,8 +4400,7 @@ class Packcr::Parser
       return false
     end
     values ||= @global_values
-    thunk = ThunkNode.new(chunk.thunks, values, index)
-    thunks << thunk
+    thunks << ThunkNode.new(chunk.thunks, values, index)
     return true
   end
 
