@@ -8,14 +8,12 @@
       <%-   c = i + 1 < nodes.length -%>
       <%- if expr.reversible?(gen) -%>
       <%-   r = expr.reachability -%>
-      <%-   _, code = gen.generate_code_str(expr, m, 6, false, reverse: true, oncut: onfail) -%>
-      <%-   %><%= code -%>
+      <%-   %><%= gen.generate_code_str(expr, m, 6, false, reverse: true, oncut: onfail) -%>
       <%- else -%>
       <%-   l = gen.next_label -%>
       catch(<%= l %>) do
         <%-   r = expr.reachability -%>
-        <%-   _, code = gen.generate_code_str(expr, l, 8, false, oncut: onfail) -%>
-        <%-   %><%= code -%>
+        <%-   %><%= gen.generate_code_str(expr, l, 8, false, oncut: onfail) -%>
         <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
         <%-     reach = Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
         <%-     if c -%>

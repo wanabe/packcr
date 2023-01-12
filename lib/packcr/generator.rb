@@ -22,13 +22,13 @@ class Packcr
       else
         node.generate_code(self, onescape, indent, bare, oncut: oncut)
       end
-      node.reachability
     end
 
     def generate_code_str(node, onescape, indent, bare, reverse: false, oncut: nil)
       @stream, stream = StringIO.new, @stream
       begin
-        return generate_code(node, onescape, indent, bare, reverse: reverse, oncut: oncut), @stream.string
+        generate_code(node, onescape, indent, bare, reverse: reverse, oncut: oncut)
+        @stream.string
       ensure
         @stream = stream
       end

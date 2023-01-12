@@ -6,13 +6,12 @@
   <%- end -%>
   n = chunk.thunks.length
   <%- r = expr.reachability -%>
-  <%- _, code = gen.generate_code_str(expr, l, 6, false) -%>
   <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
   <%-   m = gen.next_label -%>
   <%- end -%>
   catch(<%= m %>) do
     catch(<%= l %>) do
-      <%- %><%= code -%>
+      <%- %><%= gen.generate_code_str(expr, l, 6, false) -%>
     <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
       throw(<%= m %>)
     end

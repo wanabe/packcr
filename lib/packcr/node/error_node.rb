@@ -32,7 +32,7 @@ class Packcr
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         l = gen.next_label
         m = gen.next_label
-        _, code = gen.generate_code_str(expr, l, 4, true)
+        code = gen.generate_code_str(expr, l, 4, true)
         r = expr.reachability
         gen.write Packcr.template("node/error.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         reachability
