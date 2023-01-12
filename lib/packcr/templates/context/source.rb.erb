@@ -283,33 +283,30 @@ class <%= class_name %>
   class LrTable
     def initialize
       super
-      @buf = {}
+      @heads = {}
+      @answers = {}
     end
 
     def clear
-      @buf.clear
+      @heads.clear
+      @answers.clear
     end
 
     def set_head(index, head)
-      entry = @buf[index] ||= LrTableEntry.new
-      entry.head = head
+      @heads[index] = head
     end
 
     def set_answer(index, rule_name, answer)
-      entry = @buf[index] ||= LrTableEntry.new
-      entry.memos[rule_name] = answer
+      entry = @answers[index] ||= {}
+      entry[rule_name] = answer
     end
 
     def get_head(index)
-      @buf[index]&.head
+      @heads[index]
     end
 
     def get_answer(index, rule_name)
-      entry = @buf[index]
-      if !entry
-        return nil
-      end
-      entry.memos[rule_name]
+      @answers.dig(index, rule_name)
     end
   end
 
