@@ -4331,84 +4331,85 @@ class Packcr::Parser
       c = public_send(rule)
       a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc)
       a.chunk = c
-    elsif a
+      return c
+    end
+
+    if a
       @cur = a.pos - @pos
       @cur_loc = a.pos_loc - @pos_loc
       type = a.type
-      if type == :lr
-        lr = a.lr
-        head = lr.head
-        if !head
-          head = LrHead.new
-          lr.head = head
-          head.rule_name = rule
-        end
-        @lrstack.reverse_each do |lrentry|
-          entry_head = lrentry.head
-          lr = a.lr
-          answer_head = lr.head
-          if entry_head == answer_head
-            break
-          end
-          lrentry.head = answer_head
-          invol = answer_head.invol
-          invol[lrentry.rule] = true
-        end
-        lr = a.lr
-        c = lr.seed
-      elsif type == :chunk
-        c = a.chunk
+      if type == :chunk
+        return a.chunk
       end
-    else
-      entry = LrEntry.new
-      entry.rule = rule
-      @lrstack.push(entry)
-      a = LrAnswer.new(:lr, pos, p_loc)
-      a.lr = entry
-      @lrtable.set_answer(pos, rule, a)
-      c = public_send(rule)
-      @lrstack.pop
-      a.pos = @pos + @cur
-      a.pos_loc = @pos_loc + @cur_loc
-      if !entry.head
-        a.set_chunk(c)
-      else
-        lr = a.lr
-        entry.seed = c
-        h = lr.head
-        if h.rule_name != rule
-          c = lr.seed
-          a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc)
-          a.chunk = c
-        else
-          seed = lr.seed
-          a.set_chunk(seed)
-          chunk = a.chunk
-          if !chunk
-            return nil
-          end
-          @lrtable.set_head(pos, h)
-          while true
-            @cur = pos - @pos
-            @cur_loc = p_loc - @pos_loc
-            h.invol_to_eval
-            c = public_send(rule)
-            if !c || @pos + @cur <= a.pos
-              break
-            end
-            a.set_chunk(c)
-            a.pos = @pos + @cur
-            a.pos_loc = @pos_loc + @cur_loc
-          end
-          @lrtable.set_head(pos, nil)
-          @cur = a.pos - @pos
-          @cur_loc = a.pos_loc - @pos_loc
-          c = a.chunk
-        end
+      lr = a.lr
+      head = lr.head
+      if !head
+        head = LrHead.new
+        lr.head = head
+        head.rule_name = rule
       end
+      @lrstack.reverse_each do |lrentry|
+        entry_head = lrentry.head
+        lr = a.lr
+        answer_head = lr.head
+        if entry_head == answer_head
+          break
+        end
+        lrentry.head = answer_head
+        invol = answer_head.invol
+        invol[lrentry.rule] = true
+      end
+      return a.lr.seed
     end
 
-    c
+    entry = LrEntry.new
+    entry.rule = rule
+    @lrstack.push(entry)
+    a = LrAnswer.new(:lr, pos, p_loc)
+    a.lr = entry
+    @lrtable.set_answer(pos, rule, a)
+    c = public_send(rule)
+    @lrstack.pop
+    a.pos = @pos + @cur
+    a.pos_loc = @pos_loc + @cur_loc
+    if !entry.head
+      a.set_chunk(c)
+      return c
+    end
+
+    lr = a.lr
+    entry.seed = c
+    h = lr.head
+    if h.rule_name != rule
+      c = lr.seed
+      a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc)
+      a.chunk = c
+      return c
+    end
+
+    seed = lr.seed
+    a.set_chunk(seed)
+    chunk = a.chunk
+    if !chunk
+      return nil
+    end
+    @lrtable.set_head(pos, h)
+    while true
+      @cur = pos - @pos
+      @cur_loc = p_loc - @pos_loc
+      h.invol_to_eval
+      c = public_send(rule)
+      if !c || @pos + @cur <= a.pos
+        break
+      end
+      a.set_chunk(c)
+      a.pos = @pos + @cur
+      a.pos_loc = @pos_loc + @cur_loc
+    end
+    @lrtable.set_head(pos, nil)
+    @cur = a.pos - @pos
+    @cur_loc = a.pos_loc - @pos_loc
+    a.chunk
   end
 
 
