@@ -4334,7 +4334,6 @@ class Packcr::Parser
           b = false
           a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc)
           a.chunk = c
-          @lrtable.hold_answer(pos, a)
         end
       end
     end
@@ -4351,7 +4350,6 @@ class Packcr::Parser
             head = LrHead.new
             lr.head = head
             head.rule_name = rule
-            @lrtable.hold_head(pos, head)
           end
           @lrstack.reverse_each do |lrentry|
             entry_head = lrentry.head
@@ -4390,7 +4388,6 @@ class Packcr::Parser
             c = lr.seed
             a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc)
             a.chunk = c
-            @lrtable.hold_answer(pos, a)
           else
             seed = lr.seed
             a.set_chunk(seed)
@@ -4494,19 +4491,9 @@ class Packcr::Parser
       entry.head = head
     end
 
-    def hold_head(index, head)
-      entry = @buf[index] ||= LrTableEntry.new
-      head.hold, entry.hold_h = entry.hold_h, head
-    end
-
     def set_answer(index, rule_name, answer)
       entry = @buf[index] ||= LrTableEntry.new
       entry.memos[rule_name] = answer
-    end
-
-    def hold_answer(index, answer)
-      entry = @buf[index] ||= LrTableEntry.new
-      answer.hold, entry.hold_a = entry.hold_a, answer
     end
 
     def get_head(index)
@@ -4523,7 +4510,7 @@ class Packcr::Parser
   end
 
   class LrTableEntry
-    attr_accessor :head, :hold_a, :hold_h, :memos
+    attr_accessor :head, :memos
 
     def initialize
       @memos = {}
@@ -4531,7 +4518,7 @@ class Packcr::Parser
   end
 
   class LrHead
-    attr_accessor :hold, :rule_name, :invol, :eval
+    attr_accessor :rule_name, :invol, :eval
 
     def initialize
       @invol = {}
@@ -4625,7 +4612,7 @@ class Packcr::Parser
   end
 
   class LrAnswer
-    attr_accessor :hold, :lr, :chunk, :pos, :type
+    attr_accessor :lr, :chunk, :pos, :type
     attr_accessor :pos_loc
 
     def initialize(type, pos, pos_loc)
@@ -4641,8 +4628,6 @@ class Packcr::Parser
       elsif @type == :chunk
         a.chunk = @chunk
       end
-      a.hold = @hold
-      @hold = a
       @type = :chunk
       @chunk = chunk
     end
