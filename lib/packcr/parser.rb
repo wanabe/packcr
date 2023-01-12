@@ -4329,8 +4329,7 @@ class Packcr::Parser
 
     if h&.eval&.delete(rule)
       c = public_send(rule)
-      a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc)
-      a.chunk = c
+      a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc, chunk: c)
       return c
     end
 
@@ -4365,8 +4364,7 @@ class Packcr::Parser
     entry = LrEntry.new
     entry.rule = rule
     @lrstack.push(entry)
-    a = LrAnswer.new(:lr, pos, p_loc)
-    a.lr = entry
+    a = LrAnswer.new(:lr, pos, p_loc, lr: entry)
     @lrtable.answers[pos, rule] = a
     c = public_send(rule)
     @lrstack.pop
@@ -4382,8 +4380,7 @@ class Packcr::Parser
     h = lr.head
     if h.rule_name != rule
       c = lr.seed
-      a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc)
-      a.chunk = c
+      a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc, chunk: c)
       return c
     end
 
@@ -4506,14 +4503,6 @@ class Packcr::Parser
     end
   end
 
-  class LrTableEntry
-    attr_accessor :head, :memos
-
-    def initialize
-      @memos = {}
-    end
-  end
-
   class LrHead
     attr_accessor :rule_name, :invol, :eval
 
@@ -4612,18 +4601,19 @@ class Packcr::Parser
     attr_accessor :lr, :chunk, :pos, :type
     attr_accessor :pos_loc
 
-    def initialize(type, pos, pos_loc)
+    def initialize(type, pos, pos_loc, lr: nil, chunk: nil)
       @type = type
       @pos = pos
       @pos_loc = pos_loc
+      @lr = lr
+      @chunk = chunk
     end
 
     def set_chunk(chunk)
-      a = LrAnswer.new(@type, @pos, @pos_loc)
       if @type == :lr
-        a.lr = @lr
+        a = LrAnswer.new(@type, @pos, @pos_loc, lr: @lr)
       elsif @type == :chunk
-        a.chunk = @chunk
+        a = LrAnswer.new(@type, @pos, @pos_loc, chunk: @chunk)
       end
       @type = :chunk
       @chunk = chunk

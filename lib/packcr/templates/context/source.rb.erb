@@ -165,8 +165,7 @@ class <%= class_name %>
 
     if h&.eval&.delete(rule)
       c = public_send(rule)
-      a = LrAnswer.new(:chunk, @pos + @cur<% if @location %>, @pos_loc + @cur_loc<% end %>)
-      a.chunk = c
+      a = LrAnswer.new(:chunk, @pos + @cur<% if @location %>, @pos_loc + @cur_loc<% end %>, chunk: c)
       return c
     end
 
@@ -203,8 +202,7 @@ class <%= class_name %>
     entry = LrEntry.new
     entry.rule = rule
     @lrstack.push(entry)
-    a = LrAnswer.new(:lr, pos<% if @location %>, p_loc<% end %>)
-    a.lr = entry
+    a = LrAnswer.new(:lr, pos<% if @location %>, p_loc<% end %>, lr: entry)
     @lrtable.answers[pos, rule] = a
     c = public_send(rule)
     @lrstack.pop
@@ -222,8 +220,7 @@ class <%= class_name %>
     h = lr.head
     if h.rule_name != rule
       c = lr.seed
-      a = LrAnswer.new(:chunk, @pos + @cur<% if @location %>, @pos_loc + @cur_loc<% end %>)
-      a.chunk = c
+      a = LrAnswer.new(:chunk, @pos + @cur<% if @location %>, @pos_loc + @cur_loc<% end %>, chunk: c)
       return c
     end
 
@@ -419,20 +416,21 @@ class <%= class_name %>
     attr_accessor :pos_loc
     <%- end -%>
 
-    def initialize(type, pos<% if @location %>, pos_loc<% end %>)
+    def initialize(type, pos<% if @location %>, pos_loc<% end %>, lr: nil, chunk: nil)
       @type = type
       @pos = pos
       <%- if @location -%>
       @pos_loc = pos_loc
       <%- end -%>
+      @lr = lr
+      @chunk = chunk
     end
 
     def set_chunk(chunk)
-      a = LrAnswer.new(@type, @pos<% if @location %>, @pos_loc<% end %>)
       if @type == :lr
-        a.lr = @lr
+        a = LrAnswer.new(@type, @pos<% if @location %>, @pos_loc<% end %>, lr: @lr)
       elsif @type == :chunk
-        a.chunk = @chunk
+        a = LrAnswer.new(@type, @pos<% if @location %>, @pos_loc<% end %>, chunk: @chunk)
       end
       @type = :chunk
       @chunk = chunk
