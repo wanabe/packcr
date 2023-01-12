@@ -156,27 +156,27 @@ class <%= class_name %>
     <%- if @location -%>
     p_loc = @pos_loc + @cur_loc
     <%- end -%>
-    a = @lrtable.answers[pos, rule]
-    h = @lrtable.heads[pos]
+    answer = @lrtable.answers[pos, rule]
+    head = @lrtable.heads[pos]
 
-    if h
-      if !a && rule != h.rule_name && !h.invol[rule]
+    if head
+      if !answer && rule != head.rule_name && !head.invol[rule]
         return nil
       end
-      if h.eval.delete(rule)
+      if head.eval.delete(rule)
         return public_send(rule)
       end
     end
 
-    if a
-      @cur = a.pos - @pos
+    if answer
+      @cur = answer.pos - @pos
       <%- if @location -%>
-      @cur_loc = a.pos_loc - @pos_loc
+      @cur_loc = answer.pos_loc - @pos_loc
       <%- end -%>
-      if !a.lr
-        return a.chunk
+      if !answer.lr
+        return answer.chunk
       end
-      lr = a.lr
+      lr = answer.lr
       head = lr.head
       if !head
         head = LrHead.new
@@ -185,7 +185,7 @@ class <%= class_name %>
       end
       @lrstack.reverse_each do |lrentry|
         entry_head = lrentry.head
-        lr = a.lr
+        lr = answer.lr
         answer_head = lr.head
         if entry_head == answer_head
           break
@@ -194,71 +194,71 @@ class <%= class_name %>
         invol = answer_head.invol
         invol[lrentry.rule] = true
       end
-      return a.lr.seed
+      return answer.lr.seed
     end
 
     entry = LrEntry.new
     entry.rule = rule
     @lrstack.push(entry)
-    a = LrAnswer.new(entry, pos<% if @location %>, p_loc<% end %>)
-    @lrtable.answers[pos, rule] = a
-    c = public_send(rule)
+    answer = LrAnswer.new(entry, pos<% if @location %>, p_loc<% end %>)
+    @lrtable.answers[pos, rule] = answer
+    chunk = public_send(rule)
     @lrstack.pop
-    a.pos = @pos + @cur
+    answer.pos = @pos + @cur
     <%- if @location -%>
-    a.pos_loc = @pos_loc + @cur_loc
+    answer.pos_loc = @pos_loc + @cur_loc
     <%- end -%>
     if !entry.head
-      a.chunk = c
-      return c
+      answer.chunk = chunk
+      return chunk
     end
 
-    lr = a.lr
-    entry.seed = c
-    h = lr.head
-    if h.rule_name != rule
+    lr = answer.lr
+    entry.seed = chunk
+    head = lr.head
+    if head.rule_name != rule
       return lr.seed
     end
 
     seed = lr.seed
-    a.chunk = seed
-    chunk = a.chunk
+    answer.chunk = seed
+    chunk = answer.chunk
     if !chunk
       return nil
     end
-    @lrtable.heads[pos] = h
+    @lrtable.heads[pos] = head
     while true
       @cur = pos - @pos
       <%- if @location -%>
       @cur_loc = p_loc - @pos_loc
       <%- end -%>
-      h.invol_to_eval
-      c = public_send(rule)
-      if !c || @pos + @cur <= a.pos
+      head.invol_to_eval
+      chunk = public_send(rule)
+      if !chunk || @pos + @cur <= answer.pos
         break
       end
-      a.chunk = c
-      a.pos = @pos + @cur
+      answer.chunk = chunk
+      answer.pos = @pos + @cur
       <%- if @location -%>
-      a.pos_loc = @pos_loc + @cur_loc
+      answer.pos_loc = @pos_loc + @cur_loc
       <%- end -%>
     end
     @lrtable.heads[pos] = nil
-    @cur = a.pos - @pos
+    @cur = answer.pos - @pos
     <%- if @location -%>
-    @cur_loc = a.pos_loc - @pos_loc
+    @cur_loc = answer.pos_loc - @pos_loc
     <%- end -%>
-    a.chunk
+    answer.chunk
   end
 
   def apply_rule(rule, thunks, values, index)
-    c = rule_chunk(rule, thunks, values, index)
-    if !c
+    chunk = rule_chunk(rule, thunks, values, index)
+    if !chunk
       return false
     end
     values ||= @global_values
-    t = ThunkNode.new(c.thunks, values, index)
-    thunks << t
+    thunk = ThunkNode.new(chunk.thunks, values, index)
+    thunks << thunk
     return true
   end
 
