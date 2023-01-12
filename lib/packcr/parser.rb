@@ -4320,8 +4320,8 @@ class Packcr::Parser
   def rule_chunk(rule, thunks, values, index)
     pos = @pos + @cur
     p_loc = @pos_loc + @cur_loc
-    a = @lrtable.get_answer(pos, rule)
-    h = @lrtable.get_head(pos)
+    a = @lrtable.answers[pos, rule]
+    h = @lrtable.heads[pos]
 
     if h && !a && rule != h.rule_name && !h.invol[rule]
       return nil
@@ -4367,7 +4367,7 @@ class Packcr::Parser
     @lrstack.push(entry)
     a = LrAnswer.new(:lr, pos, p_loc)
     a.lr = entry
-    @lrtable.set_answer(pos, rule, a)
+    @lrtable.answers[pos, rule] = a
     c = public_send(rule)
     @lrstack.pop
     a.pos = @pos + @cur
@@ -4393,7 +4393,7 @@ class Packcr::Parser
     if !chunk
       return nil
     end
-    @lrtable.set_head(pos, h)
+    @lrtable.heads[pos] = h
     while true
       @cur = pos - @pos
       @cur_loc = p_loc - @pos_loc
@@ -4406,7 +4406,7 @@ class Packcr::Parser
       a.pos = @pos + @cur
       a.pos_loc = @pos_loc + @cur_loc
     end
-    @lrtable.set_head(pos, nil)
+    @lrtable.heads[pos] = nil
     @cur = a.pos - @pos
     @cur_loc = a.pos_loc - @pos_loc
     a.chunk
@@ -4474,8 +4474,9 @@ class Packcr::Parser
   end
 
   class LrTable
+    attr_reader :heads, :answers
+
     def initialize
-      super
       @heads = {}
       @answers = LrAnswerTable.new
     end
@@ -4483,22 +4484,6 @@ class Packcr::Parser
     def clear
       @heads.clear
       @answers.clear
-    end
-
-    def set_head(index, head)
-      @heads[index] = head
-    end
-
-    def set_answer(index, rule_name, answer)
-      @answers[index, rule_name] = answer
-    end
-
-    def get_head(index)
-      @heads[index]
-    end
-
-    def get_answer(index, rule_name)
-      @answers[index, rule_name]
     end
   end
 
