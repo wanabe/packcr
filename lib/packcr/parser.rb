@@ -4477,7 +4477,7 @@ class Packcr::Parser
     def initialize
       super
       @heads = {}
-      @answers = {}
+      @answers = LrAnswerTable.new
     end
 
     def clear
@@ -4490,8 +4490,7 @@ class Packcr::Parser
     end
 
     def set_answer(index, rule_name, answer)
-      entry = @answers[index] ||= {}
-      entry[rule_name] = answer
+      @answers[index, rule_name] = answer
     end
 
     def get_head(index)
@@ -4499,6 +4498,25 @@ class Packcr::Parser
     end
 
     def get_answer(index, rule_name)
+      @answers[index, rule_name]
+    end
+  end
+
+  class LrAnswerTable
+    def initialize
+      @answers = {}
+    end
+
+    def clear
+      @answers.clear
+    end
+
+    def []=(index, rule_name, answer)
+      entry = @answers[index] ||= {}
+      entry[rule_name] = answer
+    end
+
+    def [](index, rule_name)
       @answers.dig(index, rule_name)
     end
   end
