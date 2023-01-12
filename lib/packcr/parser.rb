@@ -4322,10 +4322,12 @@ class Packcr::Parser
     p_loc = @pos_loc + @cur_loc
     a = @lrtable.get_answer(pos, rule)
     h = @lrtable.get_head(pos)
-    invol = h&.invol
-    if h && !a && rule != h.rule_name && !invol[rule]
-      c = nil
-    elsif h&.eval&.delete(rule)
+
+    if h && !a && rule != h.rule_name && !h.invol[rule]
+      return false
+    end
+
+    if h&.eval&.delete(rule)
       c = public_send(rule)
       a = LrAnswer.new(:chunk, @pos + @cur, @pos_loc + @cur_loc)
       a.chunk = c
@@ -4383,26 +4385,25 @@ class Packcr::Parser
           a.set_chunk(seed)
           chunk = a.chunk
           if !chunk
-            c = nil
-          else
-            @lrtable.set_head(pos, h)
-            while true
-              @cur = pos - @pos
-              @cur_loc = p_loc - @pos_loc
-              h.invol_to_eval
-              c = public_send(rule)
-              if !c || @pos + @cur <= a.pos
-                break
-              end
-              a.set_chunk(c)
-              a.pos = @pos + @cur
-              a.pos_loc = @pos_loc + @cur_loc
-            end
-            @lrtable.set_head(pos, nil)
-            @cur = a.pos - @pos
-            @cur_loc = a.pos_loc - @pos_loc
-            c = a.chunk
+            return nil
           end
+          @lrtable.set_head(pos, h)
+          while true
+            @cur = pos - @pos
+            @cur_loc = p_loc - @pos_loc
+            h.invol_to_eval
+            c = public_send(rule)
+            if !c || @pos + @cur <= a.pos
+              break
+            end
+            a.set_chunk(c)
+            a.pos = @pos + @cur
+            a.pos_loc = @pos_loc + @cur_loc
+          end
+          @lrtable.set_head(pos, nil)
+          @cur = a.pos - @pos
+          @cur_loc = a.pos_loc - @pos_loc
+          c = a.chunk
         end
       end
     end
