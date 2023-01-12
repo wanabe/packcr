@@ -4339,12 +4339,7 @@ class Packcr::Parser
         return answer.chunk
       end
       lr = answer.lr
-      head = lr.head
-      if !head
-        head = LrHead.new
-        lr.head = head
-        head.rule_name = rule
-      end
+      lr.head ||= LrHead.new(rule)
       @lrstack.reverse_each do |lrentry|
         entry_head = lrentry.head
         lr = answer.lr
@@ -4501,7 +4496,8 @@ class Packcr::Parser
   class LrHead
     attr_accessor :rule_name, :invol, :eval
 
-    def initialize
+    def initialize(rule_name)
+      @rule_name = rule_name
       @invol = {}
       @eval = {}
     end
