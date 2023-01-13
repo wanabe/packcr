@@ -85,6 +85,18 @@ class Packcr::Parser
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
+  def action_supported_language_0(__pcc_in, __pcc_vars, __pcc_index)
+    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+    __0 = __pcc_in.capt0.capture_string(@buffer)
+    __0s = @pos + __pcc_in.capt0.range_start
+    __0e = @pos + __pcc_in.capt0.range_end
+    __0sl = @pos_loc + __pcc_in.capt0.start_loc
+    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Not supported language: #{__0}"
+
+    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+  end
+
   def action_directive_include_0(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
     blocks = (__pcc_in.value_refs[0]  ||= Value.new).value
@@ -969,6 +981,77 @@ class Packcr::Parser
     return nil
   end
 
+  def evaluate_rule_supported_language
+    chunk = ThunkChunk.new
+    chunk.pos = @cur
+    chunk.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    supported_language #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    @level += 1
+    chunk.resize_captures(0)
+    catch(0) do
+      catch(1) do |; pos, p_loc, n|
+        pos = @cur
+        p_loc = @cur_loc
+        n = chunk.thunks.length
+        catch(2) do
+          if (
+            refill_buffer(1) < 1 ||
+            @buffer[@cur] != "c"
+          )
+            throw(2)
+          end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+          @cur += 1
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(3) do
+          if (
+            refill_buffer(2) < 2 ||
+            @buffer[@cur, 2] != "rb"
+          )
+            throw(3)
+          end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+          @cur += 2
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        catch(4) do
+          if !apply_rule(:evaluate_rule_identifier, chunk.thunks, nil, 0)
+            throw(4)
+          end
+          chunk.thunks.push(
+            ThunkLeaf.new(
+              :action_supported_language_0,
+              Capture.new(
+                chunk.pos, @cur,
+                chunk.pos_loc, @cur_loc,
+              ),
+              {},
+              {},
+            )
+          )
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        throw(0)
+      end
+      @level -= 1
+      debug { warn "#{ "  " * @level}MATCH   supported_language #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+      return chunk
+    end
+    @level -= 1
+    debug { warn "#{ "  " * @level}NOMATCH supported_language #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    return nil
+  end
+
   def evaluate_rule_comment
     chunk = ThunkChunk.new
     chunk.pos = @cur
@@ -1788,7 +1871,7 @@ class Packcr::Parser
           1.times do |;pos, q, capt, p_loc, q_loc|
             pos = @cur
             p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_identifier, chunk.thunks, nil, 0)
+            if !apply_rule(:evaluate_rule_supported_language, chunk.thunks, nil, 0)
               throw(3)
             end
             q = @cur
@@ -3172,7 +3255,7 @@ class Packcr::Parser
           1.times do |;pos, q, capt, p_loc, q_loc|
             pos = @cur
             p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_identifier, chunk.thunks, nil, 0)
+            if !apply_rule(:evaluate_rule_supported_language, chunk.thunks, nil, 0)
               throw(3)
             end
             q = @cur

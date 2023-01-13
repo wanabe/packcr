@@ -9,6 +9,12 @@ statement <- comment
            / footer
            ~ { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Illegal syntax" }
 
+supported_language <- 'c'
+                    / 'rb'
+                    / identifier {
+                      @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Not supported language: #{$0}"
+                    }
+
 comment <- '#' [^\n]* lf
 
 directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.esource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
@@ -36,7 +42,7 @@ lang_strings <- strings:lang_strings opt_spaces_or_comments string:lang_string {
               / string:lang_string { $$ = string ? [string] : [] }
 
 lang_string <- string:quotation_double { ____ = string }
-             / < identifier > opt_spaces_or_comments '->' opt_spaces_or_comments string:quotation_double { $$ = @ctx.lang == $1.to_sym ? string : nil  }
+             / < supported_language > opt_spaces_or_comments '->' opt_spaces_or_comments string:quotation_double { $$ = @ctx.lang == $1.to_sym ? string : nil  }
 
 rule <- name:identifier opt_spaces_or_comments '<-' opt_spaces_or_comments expr:expression {
   return unless expr
@@ -85,7 +91,7 @@ primary <- code:lang_code_block { $$ = code && Packcr::Node::ActionNode.new(Pack
 character_class <- '[' <( [^\\\[\]] / '\[' / '\]' / '\\' )*> ']' { $$ = $1 }
 
 lang_code_block <- code:code_block { ____ = code }
-                 / < identifier > opt_spaces_or_comments '->' opt_spaces_or_comments code:code_block { $$ = @ctx.lang == $1.to_sym ? code : nil  }
+                 / < supported_language > opt_spaces_or_comments '->' opt_spaces_or_comments code:code_block { $$ = @ctx.lang == $1.to_sym ? code : nil  }
 code_block <- '$' code:plain_code_block { $$ = code }
             / code:plain_code_block ${ ____ = code.gsub("$", @ctx.lang == :rb ? "__" : "_") }
 plain_code_block <- '{' < codes? > '}' { $$ = $1 }
