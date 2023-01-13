@@ -59,7 +59,7 @@ class Packcr
           onfail = oncut
         end
         nodes.each_with_index do |expr, i|
-          gen.generate_code(expr, onfail, indent, false, oncut: oncut)
+          gen.write gen.generate_code_str(expr, onfail, indent, false, oncut: oncut)
           case expr.reachability
           when Packcr::CODE_REACH__ALWAYS_FAIL
             if i + 1 < nodes.length
