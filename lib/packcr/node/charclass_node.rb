@@ -61,8 +61,6 @@ class Packcr
         end
         n = charclass&.length || 0
         if charclass.nil? || n > 0
-          a = charclass && charclass[0] == '^'
-          i = a ? 1 : 0
           gen.write Packcr.template("node/charclass_utf8.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         else
           gen.write Packcr.template("node/charclass_fail.#{gen.lang}.erb", binding, indent: indent)
@@ -76,8 +74,6 @@ class Packcr
         end
         n = charclass&.length || 0
         if charclass.nil? || n > 0
-          a = charclass && charclass[0] == '^'
-          i = a ? 1 : 0
           gen.write Packcr.template("node/charclass_utf8_reverse.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         end
       end

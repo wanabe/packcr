@@ -1,3 +1,5 @@
+<%- a = charclass && charclass[0] == '^' -%>
+<%- i = a ? 1 : 0 -%>
 {
     int u;
     const size_t n = pcc_get_char_as_utf32(ctx, &u);

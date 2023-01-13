@@ -1,3 +1,5 @@
+<%- a = charclass && charclass[0] == '^' -%>
+<%- i = a ? 1 : 0 -%>
 1.times do |;u, n|
   if refill_buffer(1) < 1
     throw(<%= onfail %>)

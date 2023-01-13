@@ -16,17 +16,9 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
-        r = nil
         if neg
-          l = gen.next_label
-          code = gen.generate_code_str(expr, l, 4, false)
-          r = expr.reachability
           gen.write Packcr.template("node/predicate_neg.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         else
-          l = gen.next_label
-          m = gen.next_label
-          code = gen.generate_code_str(expr, l, 4, false)
-          r = expr.reachability
           gen.write Packcr.template("node/predicate.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         end
       end

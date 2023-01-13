@@ -1,10 +1,13 @@
+<%- l = gen.next_label -%>
+<%- m = gen.next_label -%>
+<%- r = expr.reachability -%>
 catch(<%= m %>) do |;pos, p_loc|
   catch(<%= l %>) do
     pos = @cur
     <%- if gen.location -%>
     p_loc = @cur_pos
     <%- end -%>
-    <%- %><%= code -%>
+    <%- %><%= gen.generate_code_str(expr, l, 4, false) -%>
     <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     @cur = pos
     <%-   if gen.location -%>

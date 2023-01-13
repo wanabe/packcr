@@ -1,9 +1,11 @@
+<%- l = gen.next_label -%>
+<%- r = expr.reachability -%>
 {
     const size_t p = ctx->cur;
 <%- if gen.location -%>
     const pcc_location_t p_loc = ctx->cur_loc;
 <%- end -%>
-<%= code -%>
+<%= gen.generate_code_str(expr, l, 4, false) -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     ctx->cur = p;
 <%-   if gen.location -%>

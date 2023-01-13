@@ -28,9 +28,6 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
-        b = false
-        m = gen.next_label
-
         gen.write Packcr.template("node/alternate.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
       end
 
