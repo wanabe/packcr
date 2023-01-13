@@ -21,7 +21,7 @@ class Packcr
           gen.write Packcr.template("node/quantify_many.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         elsif max == 1
           if min > 0
-            gen.write gen.generate_code_str(expr, onfail, indent, bare)
+            gen.write gen.generate_code(expr, onfail, indent, bare)
           else
             gen.write Packcr.template("node/quantify_one.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
           end

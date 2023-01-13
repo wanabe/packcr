@@ -1,7 +1,7 @@
 {
     <%- l = gen.next_label -%>
     <%- m = gen.next_label -%>
-    <%- -%><%= gen.generate_code_str(expr, l, 4, true) -%>
+    <%- -%><%= gen.generate_code(expr, l, 4, true) -%>
     goto L<%= "%04d" % m %>;
 L<%= "%04d" % l %>:;
     {

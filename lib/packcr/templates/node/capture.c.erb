@@ -5,7 +5,7 @@
     pcc_location_t p_loc = ctx->cur_loc;
     pcc_location_t q_loc;
 <%- end -%>
-<%= gen.generate_code_str(expr, onfail, 4, false) -%>
+<%= gen.generate_code(expr, onfail, 4, false) -%>
     q = ctx->cur;
     chunk->capts.buf[<%= index %>].range.start = p;
     chunk->capts.buf[<%= index %>].range.end = q;

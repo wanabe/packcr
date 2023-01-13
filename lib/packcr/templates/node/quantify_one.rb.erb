@@ -7,12 +7,12 @@
   n = chunk.thunks.length
   <%- r = expr.reachability -%>
   <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-  <%- %><%= gen.generate_code_str(expr, l, 2, false) -%>
+  <%- %><%= gen.generate_code(expr, l, 2, false) -%>
   <%- else -%>
   <%-   m = gen.next_label -%>
   catch(<%= m %>) do
     catch(<%= l %>) do
-      <%- %><%= gen.generate_code_str(expr, l, 6, false) -%>
+      <%- %><%= gen.generate_code(expr, l, 6, false) -%>
       throw(<%= m %>)
     end
     <%-   if gen.location -%>

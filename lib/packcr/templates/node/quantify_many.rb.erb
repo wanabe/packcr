@@ -15,7 +15,7 @@
     <%- end -%>
     n = chunk.thunks.length
     <%- r = expr.reachability -%>
-    <%- %><%= gen.generate_code_str(expr, l, 4, false) -%>
+    <%- %><%= gen.generate_code(expr, l, 4, false) -%>
     i += 1
     if @cur != pos<% if max >= 0 %> || i < <%= max %><% end %>
       redo

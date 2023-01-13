@@ -16,7 +16,7 @@ class Packcr
       @label += 1
     end
 
-    def generate_code_str(node, onescape, indent, bare, reverse: false, oncut: nil)
+    def generate_code(node, onescape, indent, bare, reverse: false, oncut: nil)
       @stream, stream = StringIO.new, @stream
       begin
         if reverse

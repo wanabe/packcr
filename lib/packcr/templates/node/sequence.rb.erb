@@ -2,7 +2,7 @@
 <%-   onfail, oncut = oncut, nil -%>
 <%- end -%>
 <%- nodes.each_with_index do |expr, i| -%>
-<%- -%><%= gen.generate_code_str(expr, onfail, 0, false, oncut: oncut) -%>
+<%- -%><%= gen.generate_code(expr, onfail, 0, false, oncut: oncut) -%>
 <%-   if expr.reachability == Packcr::CODE_REACH__ALWAYS_FAIL -%>
 <%-     if i + 1 < nodes.length -%>
 # unreachable codes omitted

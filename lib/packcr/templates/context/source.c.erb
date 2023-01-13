@@ -1260,7 +1260,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx)
     chunk->pos_loc = ctx->cur_loc;
 <%-   end -%>
 <%-   gen = ::Packcr::Generator.new(rule, @ascii, @location) -%>
-<%=   gen.generate_code_str(rule, 0, 0, false) -%>
+<%=   gen.generate_code(rule, 0, 0, false) -%>
 }
 
 <%- end -%>

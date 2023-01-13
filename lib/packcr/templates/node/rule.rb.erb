@@ -6,13 +6,13 @@ chunk.values = {}
 <%- end -%>
 <%- r = expr.reachability -%>
 <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-<%- -%><%= gen.generate_code_str(expr, 0, 0, false) -%>
+<%- -%><%= gen.generate_code(expr, 0, 0, false) -%>
 @level -= 1
 debug { warn "#{ "  " * @level}MATCH   <%= name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
 return chunk
 <%- else -%>
 catch(0) do
-  <%- -%><%= gen.generate_code_str(expr, 0, 2, false) -%>
+  <%- -%><%= gen.generate_code(expr, 0, 2, false) -%>
   @level -= 1
   debug { warn "#{ "  " * @level}MATCH   <%= name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
   return chunk

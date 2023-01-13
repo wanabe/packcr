@@ -6,7 +6,7 @@
 <%- end -%>
     const size_t n = chunk->thunks.len;
 <%- r = expr.reachability -%>
-<%= gen.generate_code_str(expr, l, 4, false) -%>
+<%= gen.generate_code(expr, l, 4, false) -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-   m = gen.next_label -%>
     goto L<%= "%04d" % m %>;

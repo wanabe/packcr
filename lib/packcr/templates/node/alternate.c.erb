@@ -9,7 +9,7 @@
 <%-   c = i + 1 < nodes.length -%>
 <%-   l = gen.next_label -%>
 <%-   r = expr.reachability -%>
-<%-   -%><%= gen.generate_code_str(expr, l, 4, false) -%>
+<%-   -%><%= gen.generate_code(expr, l, 4, false) -%>
 <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-     if c -%>
     /* unreachable codes omitted */

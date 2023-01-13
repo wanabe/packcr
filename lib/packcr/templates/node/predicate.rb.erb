@@ -7,7 +7,7 @@ catch(<%= m %>) do |;pos, p_loc|
     <%- if gen.location -%>
     p_loc = @cur_pos
     <%- end -%>
-    <%- %><%= gen.generate_code_str(expr, l, 4, false) -%>
+    <%- %><%= gen.generate_code(expr, l, 4, false) -%>
     <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     @cur = pos
     <%-   if gen.location -%>

@@ -129,7 +129,7 @@ class <%= class_name %>
     chunk.pos_loc = @cur_loc
     <%-   end -%>
     <%-   gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb) -%>
-    <%-   -%><%= gen.generate_code_str(rule, 0, 4, false) -%>
+    <%-   -%><%= gen.generate_code(rule, 0, 4, false) -%>
   end
 
   <%- end -%>

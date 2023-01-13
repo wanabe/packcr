@@ -3,7 +3,7 @@
   <%- if gen.location -%>
   p_loc = @cur_loc
   <%- end -%>
-  <%- %><%= gen.generate_code_str(expr, onfail, 2, false) -%>
+  <%- %><%= gen.generate_code(expr, onfail, 2, false) -%>
   q = @cur
   capt = chunk.capts[<%= index %>]
   capt.range_start = pos
