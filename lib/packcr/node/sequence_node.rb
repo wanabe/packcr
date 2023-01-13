@@ -54,18 +54,7 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
-        if @cut && oncut
-          onfail = oncut
-        end
-        nodes.each_with_index do |expr, i|
-          gen.write gen.generate_code_str(expr, onfail, indent, false, oncut: oncut)
-          if expr.reachability == Packcr::CODE_REACH__ALWAYS_FAIL
-            if i + 1 < nodes.length
-              gen.write Packcr.template("node/sequence_unreachable.#{gen.lang}.erb", binding, indent: indent)
-            end
-            return
-          end
-        end
+        gen.write Packcr.template("node/sequence.#{gen.lang}.erb", binding, indent: indent)
       end
 
       def reachability
