@@ -1,39 +1,39 @@
-    catch(<%= m %>) do |; pos, p_loc, n|
-      pos = @cur
-      <%- if gen.location -%>
-      p_loc = @cur_loc
-      <%- end -%>
-      n = chunk.thunks.length
-      <%- nodes.each_with_index do |expr, i| -%>
-      <%-   c = i + 1 < nodes.length -%>
-      <%- if expr.reversible?(gen) -%>
-      <%-   r = expr.reachability -%>
-      <%-   %><%= gen.generate_code_str(expr, m, 6, false, reverse: true, oncut: onfail) -%>
-      <%- else -%>
-      <%-   l = gen.next_label -%>
-      catch(<%= l %>) do
-        <%-   r = expr.reachability -%>
-        <%-   %><%= gen.generate_code_str(expr, l, 8, false, oncut: onfail) -%>
-        <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-        <%-     if c -%>
-        # unreachable codes omitted
-        <%-     end -%>
-      end
-        <%-     break -%>
-        <%-   else -%>
-        <%-     if r == Packcr::CODE_REACH__BOTH -%>
-        throw(<%= m %>)
-        <%-     end -%>
-        <%-   end -%>
-      end
-      <%- end -%>
-      @cur = pos
-      <%- if gen.location -%>
-      @cur_loc = p_loc
-      <%- end -%>
-      chunk.thunks[n..-1] = []
-      <%-   if !c -%>
-      throw(<%= onfail %>)
-      <%-   end -%>
-      <%- end -%>
-    end
+catch(<%= m %>) do |; pos, p_loc, n|
+  pos = @cur
+  <%- if gen.location -%>
+  p_loc = @cur_loc
+  <%- end -%>
+  n = chunk.thunks.length
+  <%- nodes.each_with_index do |expr, i| -%>
+  <%-   c = i + 1 < nodes.length -%>
+  <%- if expr.reversible?(gen) -%>
+  <%-   r = expr.reachability -%>
+  <%-   %><%= gen.generate_code_str(expr, m, 2, false, reverse: true, oncut: onfail) -%>
+  <%- else -%>
+  <%-   l = gen.next_label -%>
+  catch(<%= l %>) do
+    <%-   r = expr.reachability -%>
+    <%-   %><%= gen.generate_code_str(expr, l, 4, false, oncut: onfail) -%>
+    <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+    <%-     if c -%>
+    # unreachable codes omitted
+    <%-     end -%>
+  end
+    <%-     break -%>
+    <%-   else -%>
+    <%-     if r == Packcr::CODE_REACH__BOTH -%>
+    throw(<%= m %>)
+    <%-     end -%>
+    <%-   end -%>
+  end
+  <%- end -%>
+  @cur = pos
+  <%- if gen.location -%>
+  @cur_loc = p_loc
+  <%- end -%>
+  chunk.thunks[n..-1] = []
+  <%-   if !c -%>
+  throw(<%= onfail %>)
+  <%-   end -%>
+  <%- end -%>
+end
