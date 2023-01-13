@@ -21,6 +21,14 @@ class Packcr
         $stdout.print "#{" " * indent}}\n"
       end
 
+      def generate_code(gen, onfail, indent, bare, oncut: nil)
+        gen.write Packcr.template("node/rule.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
+      end
+
+      def reachability
+        expr.reachability
+      end
+
       def verify(ctx)
         expr.verify_variables([])
         expr.verify_captures(ctx, [])

@@ -1,0 +1,18 @@
+debug { warn "#{ "  " * @level}EVAL    <%= name %> #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+@level += 1
+chunk.resize_captures(<%= capts.length %>)
+<%- if vars.length > 0 -%>
+chunk.values = {}
+<%- end -%>
+<%- r = expr.reachability -%>
+catch(0) do
+  <%- -%><%= gen.generate_code_str(expr, 0, 2, false) -%>
+  debug { warn "#{ "  " * @level}MATCH   <%= name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+  return chunk
+ensure
+  @level -= 1
+end
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+debug { warn "#{ "  " * @level}NOMATCH <%= name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+return nil
+<%- end -%>
