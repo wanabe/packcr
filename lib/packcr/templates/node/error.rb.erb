@@ -2,7 +2,7 @@
 <%- m = gen.next_label -%>
 catch(<%= m %>) do
   catch(<%= l %>) do
-    <%- -%><%= gen.generate_code_str(expr, l, 4, true) -%>
+    <%- -%><%= gen.generate_code_str(expr, l, 4, false) -%>
     throw(<%= m %>)
   end
 
