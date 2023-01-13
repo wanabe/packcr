@@ -22,16 +22,10 @@ class Packcr
         if n > 0
           if n > 1
             gen.write Packcr.template("node/string_many.#{gen.lang}.erb", binding, indent: indent)
-            return reachability
           else
             gen.write Packcr.template("node/string_one.#{gen.lang}.erb", binding, indent: indent)
-            return reachability
           end
-        else
-          # no code to generate
-          return reachability
         end
-        reachability
       end
 
       def reachability

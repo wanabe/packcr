@@ -67,7 +67,6 @@ class Packcr
         else
           gen.write Packcr.template("node/charclass_fail.#{gen.lang}.erb", binding, indent: indent)
         end
-        reachability
       end
 
       def generate_utf8_charclass_reverse_code(gen, onsuccess, indent, bare)
@@ -81,7 +80,6 @@ class Packcr
           i = a ? 1 : 0
           gen.write Packcr.template("node/charclass_utf8_reverse.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         end
-        reachability
       end
 
       def generate_ascii_code(gen, onfail, indent, bare)
@@ -105,7 +103,6 @@ class Packcr
         else
           gen.write Packcr.template("node/charclass_any.#{gen.lang}.erb", binding, indent: indent)
         end
-        reachability
       end
     end
   end

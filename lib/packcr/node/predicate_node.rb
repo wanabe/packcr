@@ -22,12 +22,6 @@ class Packcr
           code = gen.generate_code_str(expr, l, 4, false)
           r = expr.reachability
           gen.write Packcr.template("node/predicate_neg.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-          case r
-          when Packcr::CODE_REACH__ALWAYS_SUCCEED
-            r = Packcr::CODE_REACH__ALWAYS_FAIL
-          when Packcr::CODE_REACH__ALWAYS_FAIL
-            r = Packcr::CODE_REACH__ALWAYS_SUCCEED
-          end
         else
           l = gen.next_label
           m = gen.next_label
@@ -35,7 +29,6 @@ class Packcr
           r = expr.reachability
           gen.write Packcr.template("node/predicate.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         end
-        reachability
       end
 
       def reachability

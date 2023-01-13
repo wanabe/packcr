@@ -32,8 +32,6 @@ class Packcr
         m = gen.next_label
 
         gen.write Packcr.template("node/alternate.#{gen.lang}.erb", binding, indent: indent - 4, unwrap: bare)
-
-        reachability
       end
 
       def reachability

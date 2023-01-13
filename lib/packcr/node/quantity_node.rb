@@ -19,18 +19,12 @@ class Packcr
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         if max > 1 || max < 0
           gen.write Packcr.template("node/quantify_many.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-          return reachability
         elsif max == 1
           if min > 0
             gen.write gen.generate_code_str(expr, onfail, indent, bare)
-            return reachability
           else
             gen.write Packcr.template("node/quantify_one.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-            return reachability
           end
-        else
-          # no code to generate
-          return reachability
         end
       end
 

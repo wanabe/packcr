@@ -35,7 +35,6 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         gen.write Packcr.template("node/action.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-        reachability
       end
 
       def reachability
