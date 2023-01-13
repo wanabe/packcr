@@ -35,16 +35,16 @@ class Packcr
       end
 
       def reachability
-        reach = Packcr::CODE_REACH__ALWAYS_FAIL
-        nodes.each_with_index do |expr, i|
-          r = expr.reachability
-          if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
+        r = Packcr::CODE_REACH__ALWAYS_FAIL
+        nodes.each do |expr|
+          case expr.reachability
+          when Packcr::CODE_REACH__ALWAYS_SUCCEED
             return Packcr::CODE_REACH__ALWAYS_SUCCEED
-          elsif r == Packcr::CODE_REACH__BOTH
-            reach = Packcr::CODE_REACH__BOTH
+          when Packcr::CODE_REACH__BOTH
+            r = Packcr::CODE_REACH__BOTH
           end
         end
-        reach
+        r
       end
 
       def verify_variables(vars)
