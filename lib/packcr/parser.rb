@@ -960,11 +960,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   statement #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH statement #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1019,11 +1019,11 @@ class Packcr::Parser
       if !apply_rule(:evaluate_rule_lf, chunk.thunks, nil, 0)
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   comment #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH comment #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1367,11 +1367,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   directive_include #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH directive_include #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1437,11 +1437,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   code_blocks #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH code_blocks #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1599,11 +1599,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   directive_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH directive_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1672,11 +1672,11 @@ class Packcr::Parser
           {},
         )
       )
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   directive_value #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH directive_value #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1742,11 +1742,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   lang_strings #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH lang_strings #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1834,11 +1834,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   lang_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH lang_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1883,11 +1883,11 @@ class Packcr::Parser
           {},
         )
       )
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   rule #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH rule #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -1964,11 +1964,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   expression #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH expression #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -2108,11 +2108,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   sequence #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH sequence #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -2214,11 +2214,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   term #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH term #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -2351,11 +2351,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   quantity #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH quantity #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -2988,11 +2988,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   primary #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH primary #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3126,11 +3126,11 @@ class Packcr::Parser
           chunk.capts.slice(0),
         )
       )
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   character_class #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH character_class #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3218,11 +3218,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   lang_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH lang_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3290,11 +3290,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3361,11 +3361,11 @@ class Packcr::Parser
           chunk.capts.slice(0),
         )
       )
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   plain_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH plain_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3480,11 +3480,11 @@ class Packcr::Parser
           chunk.thunks[n..-1] = []
         end
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   codes #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH codes #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3594,11 +3594,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   code #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH code #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3691,11 +3691,11 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         throw(0)
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   codechar #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH codechar #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3843,11 +3843,11 @@ class Packcr::Parser
           chunk.capts.slice(0),
         )
       )
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   quotation_single #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH quotation_single #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -3995,11 +3995,11 @@ class Packcr::Parser
           chunk.capts.slice(0),
         )
       )
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   quotation_double #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH quotation_double #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -4072,11 +4072,11 @@ class Packcr::Parser
           {},
         )
       )
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   identifier #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH identifier #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -4134,11 +4134,11 @@ class Packcr::Parser
           throw(0)
         end
       end
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   spaces #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH spaces #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -4150,48 +4150,45 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    opt_spaces_or_comments #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    catch(0) do
-      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-        i = 0
-        catch(1) do
+    1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
+      i = 0
+      catch(1) do
+        pos = @cur
+        p_loc = @cur_loc
+        n = chunk.thunks.length
+        catch(2) do |; pos, p_loc, n|
           pos = @cur
           p_loc = @cur_loc
           n = chunk.thunks.length
-          catch(2) do |; pos, p_loc, n|
-            pos = @cur
-            p_loc = @cur_loc
-            n = chunk.thunks.length
-            if apply_rule(:evaluate_rule_comment, chunk.thunks, nil, 0)
-              throw(2)
-            end
-            @cur = pos
-            @cur_loc = p_loc
-            chunk.thunks[n..-1] = []
-            if apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
-              throw(2)
-            end
-            @cur = pos
-            @cur_loc = p_loc
-            chunk.thunks[n..-1] = []
-            throw(1)
+          if apply_rule(:evaluate_rule_comment, chunk.thunks, nil, 0)
+            throw(2)
           end
-          i += 1
-          if @cur != pos
-            redo
-          end
-          pos = nil
-        end
-        if pos
           @cur = pos
           @cur_loc = p_loc
           chunk.thunks[n..-1] = []
+          if apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
+            throw(2)
+          end
+          @cur = pos
+          @cur_loc = p_loc
+          chunk.thunks[n..-1] = []
+          throw(1)
         end
+        i += 1
+        if @cur != pos
+          redo
+        end
+        pos = nil
       end
-      debug { warn "#{ "  " * @level}MATCH   opt_spaces_or_comments #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
-    ensure
-      @level -= 1
+      if pos
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+      end
     end
+    @level -= 1
+    debug { warn "#{ "  " * @level}MATCH   opt_spaces_or_comments #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    return chunk
   end
 
   def evaluate_rule_lf
@@ -4231,11 +4228,11 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   lf #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH lf #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
@@ -4307,11 +4304,11 @@ class Packcr::Parser
           chunk.capts.slice(0),
         )
       )
+      @level -= 1
       debug { warn "#{ "  " * @level}MATCH   footer #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
       return chunk
-    ensure
-      @level -= 1
     end
+    @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH footer #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end

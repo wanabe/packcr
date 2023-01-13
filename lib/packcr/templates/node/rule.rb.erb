@@ -5,14 +5,19 @@ chunk.resize_captures(<%= capts.length %>)
 chunk.values = {}
 <%- end -%>
 <%- r = expr.reachability -%>
+<%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+<%- -%><%= gen.generate_code_str(expr, 0, 0, false) -%>
+@level -= 1
+debug { warn "#{ "  " * @level}MATCH   <%= name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+return chunk
+<%- else -%>
 catch(0) do
   <%- -%><%= gen.generate_code_str(expr, 0, 2, false) -%>
+  @level -= 1
   debug { warn "#{ "  " * @level}MATCH   <%= name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
   return chunk
-ensure
-  @level -= 1
 end
-<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+@level -= 1
 debug { warn "#{ "  " * @level}NOMATCH <%= name %> #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
 return nil
 <%- end -%>
