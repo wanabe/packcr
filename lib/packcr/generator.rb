@@ -1,5 +1,3 @@
-require "stringio"
-
 class Packcr
   class Generator
     attr_reader :ascii, :rule, :location, :lang
@@ -17,21 +15,21 @@ class Packcr
     end
 
     def generate_code(node, onescape, indent, bare, reverse: false, oncut: nil)
-      @stream, stream = StringIO.new, @stream
+      @stream, stream = +"", @stream
       begin
         if reverse
           node.generate_reverse_code(self, onescape, indent, bare, oncut: oncut)
         else
           node.generate_code(self, onescape, indent, bare, oncut: oncut)
         end
-        @stream.string
+        @stream
       ensure
         @stream = stream
       end
     end
 
     def write(str)
-      @stream.write(str)
+      @stream << str
     end
   end
 end
