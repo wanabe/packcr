@@ -1,9 +1,9 @@
 {
 <%- if min > 0 -%>
     const size_t p0 = ctx->cur;
-<%- if gen.location -%>
+<%-   if gen.location -%>
     const pcc_location_t p0_loc = ctx->cur_loc;
-<%- end -%>
+<%-   end -%>
     const size_t n0 = chunk->thunks.len;
 <%- end -%>
     int i;
@@ -25,9 +25,9 @@
         continue;
     L<%= "%04d" % l %>:;
         ctx->cur = p;
-<%- if gen.location -%>
+<%-   if gen.location -%>
         ctx->cur_loc = p_loc;
-<%- end -%>
+<%-   end -%>
         pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
         break;
 <%- end -%>
@@ -35,9 +35,9 @@
 <%- if min > 0 -%>
     if (i < <%= min %>) {
         ctx->cur = p0;
-<%- if gen.location -%>
+<%-   if gen.location -%>
         ctx->cur_loc = p0_loc;
-<%- end -%>
+<%-   end -%>
         pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);
         goto L<%= "%04d" % onfail %>;
     }

@@ -10,15 +10,12 @@
 <%-   r = expr.reachability -%>
 <%-   -%><%= gen.generate_code_str(expr, l, 8, false) -%>
 <%-   if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-<%-     reach = Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-     if c -%>
         /* unreachable codes omitted */
 <%-     end -%>
 <%-     break -%>
 <%-   else -%>
 <%-     if r == Packcr::CODE_REACH__BOTH -%>
-<%-       reach = Packcr::CODE_REACH__BOTH -%>
-<%-       b = true -%>
         goto L<%= "%04d" % m %>;
 <%-     end -%>
 <%-   end -%>

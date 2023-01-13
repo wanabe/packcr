@@ -6,16 +6,16 @@
 <%= code -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     ctx->cur = p;
-<%- if gen.location -%>
+<%-   if gen.location -%>
     ctx->cur_loc = p_loc;
-<%- end -%>
+<%-   end -%>
     goto L<%= "%04d" % onfail %>;
 <%- end -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 L<%= "%04d" % l %>:;
     ctx->cur = p;
-<%- if gen.location -%>
+<%-   if gen.location -%>
     ctx->cur_loc = p_loc;
-<%- end -%>
+<%-   end -%>
 <%- end -%>
 }
