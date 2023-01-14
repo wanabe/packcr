@@ -23,17 +23,9 @@ class Packcr
         expr.reachability
       end
 
-      def verify_variables(vars)
-        expr.verify_variables(vars)
-      end
-
       def verify_captures(ctx, capts)
-        expr.verify_captures(ctx, capts)
+        super
         capts.push(self)
-      end
-
-      def link_references(ctx)
-        expr.link_references(ctx)
       end
 
       def nodes

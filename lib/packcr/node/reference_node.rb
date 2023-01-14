@@ -59,9 +59,6 @@ class Packcr
         vars.push(self) if !found
       end
 
-      def verify_captures(ctx, capts)
-      end
-
       def link_references(ctx)
         rule = ctx.rule(name)
         if !rule

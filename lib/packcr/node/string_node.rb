@@ -35,15 +35,6 @@ class Packcr
         end
         Packcr::CODE_REACH__BOTH
       end
-
-      def verify_variables(vars)
-      end
-
-      def verify_captures(ctx, capts)
-      end
-
-      def link_references(ctx)
-      end
     end
   end
 end

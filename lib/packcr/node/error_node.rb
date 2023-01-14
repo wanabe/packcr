@@ -39,16 +39,12 @@ class Packcr
 
       def verify_variables(vars)
         @vars = vars
-        expr.verify_variables(vars)
+        super
       end
 
       def verify_captures(ctx, capts)
         @capts = capts
-        expr.verify_captures(ctx, capts)
-      end
-
-      def link_references(ctx)
-        expr.link_references(ctx)
+        super
       end
 
       def nodes

@@ -49,9 +49,6 @@ class Packcr
         @capts = capts
       end
 
-      def link_references(ctx)
-      end
-
       def setup_rule(rule)
         @index = rule.codes.length
         rule.codes.push(self)
