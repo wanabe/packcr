@@ -46,6 +46,7 @@ class Packcr
   end
 end
 
+require "packcr/node/root_node"
 require "packcr/node/rule_node"
 require "packcr/node/reference_node"
 require "packcr/node/string_node"

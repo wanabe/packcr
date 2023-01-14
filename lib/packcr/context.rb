@@ -4,7 +4,7 @@ require "packcr/broadcast"
 
 class Packcr
   class Context
-    attr_reader :rules, :rulehash, :lang
+    attr_reader :lang, :root
     attr_accessor :prefix, :auxil_type, :value_type, :errnum, :capture_in_code
 
     def initialize(path, lines: false, debug: false, ascii: false, lang: nil)
@@ -60,9 +60,7 @@ class Packcr
       @errnum = 0
 
       @codes = {}
-      @rules = []
-      @rulehash = {}
-      @implicit_rules = []
+      @root = Node::RootNode.new
 
       if block_given?
         yield(self)
@@ -132,36 +130,6 @@ class Packcr
       EOS
     end
 
-    def make_rulehash
-      @rules.each do |rule|
-        if@rulehash[rule.name]
-          error rule.line + 1, rule.col + 1, "Multiple definition of rule '#{rule.name}'"
-        else
-          @rulehash[rule.name] = rule
-        end
-      end
-      @implicit_rules.each do |rule|
-        next if @rulehash[rule.name]
-        @rules << rule
-        @rulehash[rule.name] = rule
-      end
-    end
-
-    def rule(name)
-      @rulehash[name]
-    end
-
-    def implicit_rule(name)
-      case name
-      when "EOF"
-        expr = Packcr::Node::EofNode.new
-      else
-        raise "Unexpected implicit rule: #{name.inspect}"
-      end
-      rule = Packcr::Node::RuleNode.new(expr, name)
-      @implicit_rules << rule
-    end
-
     def parse_all
       File.open(@iname, "rb") do |r|
         parser = Packcr::Parser.new(self, r, debug: @debug)
@@ -172,18 +140,10 @@ class Packcr
         @location = true
       end
 
-      make_rulehash
-      @rules.first&.top = true
-      @rules.each do |rule|
-        rule.setup
-        rule.expr.link_references(self)
-      end
-      @rules.each do |rule|
-        rule.verify(self)
-      end
+      @root.setup(self)
 
       if @debug
-        @rules.each(&:debug_dump)
+        @root.debug_dump
         dump_options
       end
 

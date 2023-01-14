@@ -60,7 +60,7 @@ class Packcr
       end
 
       def link_references(ctx)
-        rule = ctx.rule(name)
+        rule = ctx.root.rulehash[name]
         if !rule
           ctx.error line + 1, col + 1, "No definition of rule '#{name}'"
         else

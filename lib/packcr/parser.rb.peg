@@ -47,7 +47,7 @@ lang_string <- string:quotation_double { ____ = string }
 rule <- name:identifier opt_spaces_or_comments '<-' opt_spaces_or_comments expr:expression {
   return unless expr
   rule =  Packcr::Node::RuleNode.new(expr, name, $0sl.linenum, $0sl.charnum)
-  @ctx.rules << rule
+  @ctx.root.rules << rule
 }
 
 expression <- expr:expression opt_spaces_or_comments '/' 8< opt_spaces_or_comments seq:sequence { $$ = expr.alt(seq) }
@@ -76,7 +76,7 @@ primary <- code:lang_code_block { $$ = code && Packcr::Node::ActionNode.new(Pack
              $$ = ref.seq(act)
            }
          / 'EOF' !( [ \t\v\f\r\n]* '<-' ) {
-             @ctx.implicit_rule("EOF")
+             @ctx.root.implicit_rule("EOF")
              $$ = Packcr::Node::ReferenceNode.new("EOF", nil, $0sl.linenum, $0sl.charnum)
            }
          / name:identifier 8< !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, nil, $0sl.linenum, $0sl.charnum) }

@@ -397,7 +397,7 @@ class Packcr::Parser
     __0el = @pos_loc + __pcc_in.capt0.end_loc
     return unless expr
     rule =  Packcr::Node::RuleNode.new(expr, name, __0sl.linenum, __0sl.charnum)
-    @ctx.rules << rule
+    @ctx.root.rules << rule
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -625,7 +625,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    @ctx.implicit_rule("EOF")
+    @ctx.root.implicit_rule("EOF")
     ____ = Packcr::Node::ReferenceNode.new("EOF", nil, __0sl.linenum, __0sl.charnum)
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars

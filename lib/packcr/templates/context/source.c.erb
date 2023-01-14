@@ -1196,7 +1196,7 @@ static void pcc_do_action(pcc_context_t *ctx, const pcc_thunk_array_t *thunks, p
     }
 }
 
-<%- @rules.each do |rule| -%>
+<%- @root.rules.each do |rule| -%>
 <%-   rule.codes.each do |code| -%>
 static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
 #define auxil (__pcc_ctx->auxil)
@@ -1248,11 +1248,11 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_
 
 <%-   end -%>
 <%- end -%>
-<%- @rules.each do |rule| -%>
+<%- @root.rules.each do |rule| -%>
 static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx);
 <%- end -%>
 
-<%- @rules.each do |rule| -%>
+<%- @root.rules.each do |rule| -%>
 static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx) {
     pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
     chunk->pos = ctx->cur;
@@ -1270,8 +1270,8 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx)
 
 int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
     size_t pos = ctx->pos;
-<%- if !@rules.empty? -%>
-    if (pcc_apply_rule(ctx, pcc_evaluate_rule_<%= @rules[0].name %>, &ctx->thunks, ret))
+<%- if !@root.rules.empty? -%>
+    if (pcc_apply_rule(ctx, pcc_evaluate_rule_<%= @root.rules[0].name %>, &ctx->thunks, ret))
         pcc_do_action(ctx, &ctx->thunks, ret);
     else
         PCC_ERROR(ctx->auxil);

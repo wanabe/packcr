@@ -69,8 +69,8 @@ class <%= class_name %>
 
   def parse
     pos = @pos
-    <%- if !@rules.empty? -%>
-    if apply_rule(:evaluate_rule_<%= @rules[0].name %>, @thunk.thunks, nil, 0)
+    <%- if !@root.rules.empty? -%>
+    if apply_rule(:evaluate_rule_<%= @root.rules[0].name %>, @thunk.thunks, nil, 0)
       @thunk.do_action(self, nil, 0)
     else
       raise SyntaxError, "can't parse"
@@ -85,7 +85,7 @@ class <%= class_name %>
     nil while parse
   end
 
-  <%- @rules.each do |rule| -%>
+  <%- @root.rules.each do |rule| -%>
   <%-   rule.codes.each do |code| -%>
   def action_<%= rule.name %>_<%= code.index %>(__pcc_in, __pcc_vars, __pcc_index)
     ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
@@ -121,7 +121,7 @@ class <%= class_name %>
 
   <%-   end -%>
   <%- end -%>
-  <%- @rules.each do |rule| -%>
+  <%- @root.rules.each do |rule| -%>
   def evaluate_rule_<%= rule.name %>
     chunk = ThunkChunk.new
     chunk.pos = @cur
