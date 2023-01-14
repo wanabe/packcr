@@ -2,10 +2,6 @@ require "erb"
 
 class Packcr
   module Util
-    def is_identifier_string(str)
-      str.match?(/\A(?!\d)\w+\z/)
-    end
-
     def unescape_string(str, is_charclass)
       if is_charclass
         str.gsub!("\\" * 2) { "\\" * 4 }
