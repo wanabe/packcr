@@ -2,7 +2,7 @@
 <%- if !@source.empty? -%>
 
 <%-   @source.each do |code| -%>
-<%=     sstream.get_code_block(code, 0, @iname) -%>
+<%=     stream.get_code_block(code, 0, @iname) -%>
 <%-   end -%>
 <%- end -%>
 
@@ -26,7 +26,7 @@ class <%= class_name %>
     @cur_loc = Location.new
     <%- end -%>
     <%-   @init.each do |code| -%>
-    <%- %><%= sstream.get_code_block(code, 4, @iname) -%>
+    <%- %><%= stream.get_code_block(code, 4, @iname) -%>
     <%-   end -%>
   end
 
@@ -114,7 +114,7 @@ class <%= class_name %>
     __<%= capture.index + 1 %>c = __pcc_in.capts[<%= capture.index %>]
     <%-     end -%>
     <%-   end -%>
-    <%- %><%=   sstream.get_code_block(code.code, 4, @iname) -%>
+    <%- %><%=   stream.get_code_block(code.code, 4, @iname) -%>
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -240,7 +240,7 @@ class <%= class_name %>
   end
 
   <%-   @location&.each do |code| -%>
-  <%- %><%= sstream.get_code_block(code, 2, @iname) -%>
+  <%- %><%= stream.get_code_block(code, 2, @iname) -%>
   <%-   end -%>
 
   class LrTable
@@ -404,6 +404,6 @@ end
 <%- if !@lsource.empty? -%>
 
 <%-   @lsource.each do |code| -%>
-<%=     sstream.get_code_block(code, 0, @iname) -%>
+<%=     stream.get_code_block(code, 0, @iname) -%>
 <%-   end -%>
 <%- end -%>

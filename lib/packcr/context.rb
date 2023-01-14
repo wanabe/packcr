@@ -185,15 +185,15 @@ class Packcr
         result = Tempfile.new
         result.unlink
         results << [@hname, result]
-        hstream = Packcr::Stream.new(result, @hname, @lines ? 0 : nil)
-        hstream.write Packcr.template("context/header.#{@lang}.erb", binding), rewrite_line_directive: true
+        stream = Packcr::Stream.new(result, @hname, @lines ? 0 : nil)
+        stream.write Packcr.template("context/header.#{@lang}.erb", binding), rewrite_line_directive: true
       end
 
       result = Tempfile.new
       result.unlink
       results << [@sname, result]
-      sstream = ::Packcr::Stream.new(result, @sname, @lines ? 0 : nil)
-      sstream.write Packcr.template("context/source.#{@lang}.erb", binding), rewrite_line_directive: true
+      stream = ::Packcr::Stream.new(result, @sname, @lines ? 0 : nil)
+      stream.write Packcr.template("context/source.#{@lang}.erb", binding), rewrite_line_directive: true
 
       if !@errnum.zero?
         results.each do |_, result|
