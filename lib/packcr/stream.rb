@@ -1,5 +1,4 @@
 require "securerandom"
-require "stringio"
 
 class Packcr
   class Stream
@@ -15,7 +14,7 @@ class Packcr
         s.gsub!(@line_directive_tag) { (@line + $`.count("\n") + 1).to_s }
         @line_directive_tag = nil
       end
-      @stream.write(s)
+      @stream << s
       if @line.respond_to?(:+)
         @line += s.count("\n")
       end
@@ -91,10 +90,10 @@ class Packcr
     end
 
     def get_code_block(code, indent, fname)
-      buf = StringIO.new
+      buf = +""
       line, stream, @stream, @line = @line, @stream, buf, @line && :uuid
       write_code_block(code, indent, fname)
-      return buf.string
+      return buf
     ensure
       @line, @stream = line, stream
     end
