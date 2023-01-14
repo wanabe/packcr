@@ -36,12 +36,16 @@ class Packcr
       @lang = lang.to_sym
       case @lang
       when :c
-        @sname = path + ".c"
         @hname = path + ".h"
+        @patterns = {
+          source: path + ".c",
+          header: @hname
+        }
         @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
       when :rb
-        @sname = path + ".rb"
-        @hname = nil
+        @patterns = {
+          source: path + ".rb"
+        }
       else
         raise "unexpected lang: #{@lang}"
       end
@@ -181,25 +185,20 @@ class Packcr
 
     def generate
       results = []
-      if @hname
+
+      @patterns.each do |template, ofile|
         result = Tempfile.new
         result.unlink
-        results << [@hname, result]
-        stream = Packcr::Stream.new(result, @hname, @lines ? 0 : nil)
-        stream.write Packcr.template("context/header.#{@lang}.erb", binding), rewrite_line_directive: true
-      end
+        results << [ofile, result]
+        stream = Packcr::Stream.new(result, ofile, @lines ? 0 : nil)
+        stream.write Packcr.template("context/#{template}.#{@lang}.erb", binding), rewrite_line_directive: true
 
-      result = Tempfile.new
-      result.unlink
-      results << [@sname, result]
-      stream = ::Packcr::Stream.new(result, @sname, @lines ? 0 : nil)
-      stream.write Packcr.template("context/source.#{@lang}.erb", binding), rewrite_line_directive: true
-
-      if !@errnum.zero?
-        results.each do |_, result|
-          result.close
+        if !@errnum.zero?
+          results.each do |_, result|
+            result.close
+          end
+          return false
         end
-        return false
       end
 
       results.each do |(name, result)|
