@@ -1,3 +1,4 @@
+require "tempfile"
 require "packcr/parser"
 
 class Packcr
@@ -179,24 +180,33 @@ class Packcr
     end
 
     def generate
+      results = []
       if @hname
-        File.open(@hname, "wt") do |hio|
-          hstream = ::Packcr::Stream.new(hio, @hname, @lines ? 0 : nil)
-
-          hstream.write Packcr.template("context/header.#{@lang}.erb", binding), rewrite_line_directive: true
-        end
+        result = Tempfile.new
+        result.unlink
+        results << [@hname, result]
+        hstream = Packcr::Stream.new(result, @hname, @lines ? 0 : nil)
+        hstream.write Packcr.template("context/header.#{@lang}.erb", binding), rewrite_line_directive: true
       end
 
-      File.open(@sname, "wt") do |sio|
-        sstream = ::Packcr::Stream.new(sio, @sname, @lines ? 0 : nil)
-
-        sstream.write Packcr.template("context/source.#{@lang}.erb", binding), rewrite_line_directive: true
-      end
+      result = Tempfile.new
+      result.unlink
+      results << [@sname, result]
+      sstream = ::Packcr::Stream.new(result, @sname, @lines ? 0 : nil)
+      sstream.write Packcr.template("context/source.#{@lang}.erb", binding), rewrite_line_directive: true
 
       if !@errnum.zero?
-        File.unlink(@hname) if @name
-        File.unlink(@sname)
+        results.each do |_, result|
+          result.close
+        end
         return false
+      end
+
+      results.each do |(name, result)|
+        result.rewind
+        open(name, "wt") do |f|
+          IO.copy_stream(result, f)
+        end
       end
       true
     end
