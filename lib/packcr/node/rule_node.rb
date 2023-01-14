@@ -39,8 +39,6 @@ class Packcr
         return if top
         if ref == 0
           ctx.error line + 1, col + 1, "Never used rule '#{name}'"
-        elsif ref < 0 # impossible?
-          ctx.error line + 1, col + 1, "Multiple definition of rule '#{name}'"
         end
       end
 

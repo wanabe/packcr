@@ -134,7 +134,11 @@ class Packcr
 
     def make_rulehash
       @rules.each do |rule|
-        @rulehash[rule.name] = rule
+        if@rulehash[rule.name]
+          error rule.line + 1, rule.col + 1, "Multiple definition of rule '#{rule.name}'"
+        else
+          @rulehash[rule.name] = rule
+        end
       end
       @implicit_rules.each do |rule|
         next if @rulehash[rule.name]
