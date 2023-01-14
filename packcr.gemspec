@@ -16,5 +16,6 @@ Gem::Specification.new do |s|
   s.executables = ["packcr"]
 
   s.add_development_dependency "rake", "~> 13.0"
-  s.add_development_dependency "test-unit", "~> 3.5"
+  s.add_development_dependency "rspec", "~> 3.12"
+  s.add_development_dependency "rspec-parameterized", "~> 1.0"
 end
