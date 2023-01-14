@@ -17,15 +17,15 @@ supported_language <- 'c'
 
 comment <- '#' [^\n]* lf
 
-directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.esource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%earlycommon' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.ecommon  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%source'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.source   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%lateheader'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.lheader  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%latesource'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.lsource  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%header'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.header   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%common'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.common   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%location'    opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.location << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
-                   / '%initialize'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.init     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:esource)  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%earlycommon' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:ecommon)  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%source'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:source)   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%lateheader'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:lheader)  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%latesource'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:lsource)  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%header'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:header)   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%common'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:common)   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%location'    opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:location) << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
+                   / '%initialize'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:init)     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), $0sl.linenum, $0sl.charnum) } }
                    / '%' < identifier > opt_spaces_or_comments blocks:code_blocks { blocks.each { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Invalid directive: #{$1}" } }
 
 code_blocks <- blocks:code_blocks opt_spaces_or_comments block:lang_code_block { blocks.push(block) if block; $$ = blocks }
@@ -110,7 +110,7 @@ spaces <- ([ \t\v\f\r\n])+
 opt_spaces_or_comments <- (comment / spaces)*
 lf <- '\r'? '\n'
 
-footer <- '%%' lf <.*> { @ctx.lsource << Packcr::CodeBlock.new($1, Packcr.find_trailing_blanks($1), $1sl.linenum, $1sl.charnum) }
+footer <- '%%' lf <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1, Packcr.find_trailing_blanks($1), $1sl.linenum, $1sl.charnum) }
 
 %location {
   class Location

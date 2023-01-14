@@ -1,10 +1,10 @@
 require "tempfile"
 require "packcr/parser"
+require "packcr/broadcast"
 
 class Packcr
   class Context
     attr_reader :rules, :rulehash, :lang
-    attr_reader :esource, :ecommon, :source, :lheader, :lsource, :header, :common, :location, :init
     attr_accessor :prefix, :auxil_type, :value_type, :errnum, :capture_in_code
 
     def initialize(path, lines: false, debug: false, ascii: false, lang: nil)
@@ -41,11 +41,16 @@ class Packcr
           source: path + ".c",
           header: @hname
         }
+        @broadcasts = {
+          ecommon: %i[eheader esource],
+          common: %i[header source],
+        }
         @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
       when :rb
         @patterns = {
           source: path + ".rb"
         }
+        @broadcasts = {}
       else
         raise "unexpected lang: #{@lang}"
       end
@@ -56,20 +61,24 @@ class Packcr
 
       @errnum = 0
 
-      @esource = []
-      @eheader = []
-      @source = []
-      @header = []
-      @lheader = []
-      @lsource = []
-      @location = []
-      @init = []
+      @codes = {}
       @rules = []
       @rulehash = {}
       @implicit_rules = []
 
       if block_given?
         yield(self)
+      end
+    end
+
+    def code(name)
+      return @codes[name] if @codes[name]
+      names = @broadcasts[name]
+      if !names
+        @codes[name] = []
+      else
+        arrays = names.map{ |n| code(n) }
+        @codes[name] = BroadCast.new(arrays)
       end
     end
 
@@ -154,8 +163,8 @@ class Packcr
     def parse_all
       nil while @parser.parse
 
-      if @location.empty?
-        @location = nil
+      if !code(:location).empty?
+        @location = true
       end
 
       make_rulehash
