@@ -35,6 +35,13 @@ class Packcr
         end
         Packcr::CODE_REACH__BOTH
       end
+
+      def to_h
+        {
+          type: :string,
+          value: value,
+        }
+      end
     end
   end
 end

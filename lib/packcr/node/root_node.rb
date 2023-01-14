@@ -48,6 +48,13 @@ class Packcr
         @rules << rule
         @rulehash[name] = rule
       end
+
+      def to_h
+        {
+          type: :root,
+          rules: rules.map(&:to_h),
+        }
+      end
     end
   end
 end

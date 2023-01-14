@@ -34,6 +34,14 @@ class Packcr
       def nodes
         [expr]
       end
+
+      def to_h
+        {
+          type: :predicate,
+          expr: expr&.to_h,
+          neg: neg,
+        }
+      end
     end
   end
 end

@@ -36,6 +36,13 @@ class Packcr
         @index = rule.capts.length
         rule.capts << self
       end
+
+      def to_h
+        {
+          type: :capture,
+          expr: expr&.to_h,
+        }
+      end
     end
   end
 end

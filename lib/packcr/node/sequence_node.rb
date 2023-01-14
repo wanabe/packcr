@@ -69,6 +69,13 @@ class Packcr
         end
         r
       end
+
+      def to_h
+        {
+          type: :sequence,
+          nodes: nodes.map(&:to_h),
+        }
+      end
     end
   end
 end

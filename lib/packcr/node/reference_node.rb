@@ -71,6 +71,14 @@ class Packcr
           self.rule = rule
         end
       end
+
+      def to_h
+        {
+          type: :reference,
+          name: name,
+          var: var,
+        }
+      end
     end
   end
 end

@@ -53,6 +53,13 @@ class Packcr
       def nodes
         [expr]
       end
+
+      def to_h
+        {
+          type: :rule,
+          expr: expr&.to_h,
+        }
+      end
     end
   end
 end

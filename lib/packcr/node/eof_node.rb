@@ -12,6 +12,12 @@ class Packcr
       def reachability
         return Packcr::CODE_REACH__BOTH
       end
+
+      def to_h
+        {
+          type: :eof,
+        }
+      end
     end
   end
 end

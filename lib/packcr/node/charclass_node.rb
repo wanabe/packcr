@@ -91,6 +91,13 @@ class Packcr
           gen.write Packcr.template("node/charclass_any.#{gen.lang}.erb", binding, indent: indent)
         end
       end
+
+      def to_h
+        {
+          type: :charclass,
+          value: value,
+        }
+      end
     end
   end
 end

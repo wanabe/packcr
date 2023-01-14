@@ -55,6 +55,16 @@ class Packcr
         @index = rule.codes.length
         rule.codes.push(self)
       end
+
+      def to_h
+        {
+          type: :error,
+          code: code&.text,
+          vars: vars&.map(&:to_h),
+          capts: capts&.map(&:to_h),
+          index: @index,
+        }
+      end
     end
   end
 end

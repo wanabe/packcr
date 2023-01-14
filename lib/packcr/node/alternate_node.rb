@@ -72,6 +72,13 @@ class Packcr
           end
         end
       end
+
+      def to_h
+        {
+          type: :alternate,
+          nodes: nodes&.map(&:to_h),
+        }
+      end
     end
   end
 end

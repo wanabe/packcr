@@ -34,6 +34,13 @@ class Packcr
           ctx.error line + 1, col + 1, "Capture #{index + 1} not available at this position"
         end
       end
+
+      def to_h
+        {
+          type: :expand,
+          index: index,
+        }
+      end
     end
   end
 end
