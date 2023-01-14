@@ -13,8 +13,6 @@ class Packcr
       end
 
       @iname = path
-      @ifile = File.open(path, "rb")
-      @parser = Packcr::Parser.new(self, @ifile, debug: debug)
       @debug = debug
 
       dirname = File.dirname(path)
@@ -161,7 +159,10 @@ class Packcr
     end
 
     def parse_all
-      nil while @parser.parse
+      File.open(@iname, "rb") do |r|
+        parser = Packcr::Parser.new(self, r, debug: @debug)
+        nil while parser.parse
+      end
 
       if !code(:location).empty?
         @location = true
