@@ -1,7 +1,7 @@
 class Packcr
   class Node
     class RuleNode < Packcr::Node
-      attr_accessor :codes, :name, :expr, :ref, :vars, :capts, :line, :col
+      attr_accessor :codes, :name, :expr, :ref, :vars, :capts, :line, :col, :top
 
       def initialize(expr = nil, name = nil, line = nil, col = nil)
         super()
@@ -32,6 +32,16 @@ class Packcr
       def verify(ctx)
         expr.verify_variables([])
         expr.verify_captures(ctx, [])
+        verify_rule_reference(ctx)
+      end
+
+      def verify_rule_reference(ctx)
+        return if top
+        if ref == 0
+          ctx.error line + 1, col + 1, "Never used rule '#{name}'"
+        elsif ref < 0 # impossible?
+          ctx.error line + 1, col + 1, "Multiple definition of rule '#{name}'"
+        end
       end
 
       def add_ref

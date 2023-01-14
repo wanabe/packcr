@@ -169,18 +169,11 @@ class Packcr
       end
 
       make_rulehash
+      @rules.first&.top = true
       @rules.each do |rule|
         rule.setup
         rule.expr.link_references(self)
       end
-      @rules[1..-1]&.each do |rule|
-        if rule.ref == 0
-          error rule.line + 1, rule.col + 1, "Never used rule '#{rule.name}'"
-        elsif rule.ref < 0 # impossible?
-          error rule.line + 1, rule.col + 1, "Multiple definition of rule '#{rule.name}'"
-        end
-      end
-
       @rules.each do |rule|
         rule.verify(self)
       end
