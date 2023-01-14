@@ -28,8 +28,7 @@ class Packcr
         make_rulehash(ctx)
         @rules.first&.top = true
         @rules.each do |rule|
-          rule.setup
-          rule.expr.link_references(ctx)
+          rule.setup(ctx)
         end
         @rules.each do |rule|
           rule.verify(ctx)

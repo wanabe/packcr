@@ -46,8 +46,8 @@ class Packcr
         @ref += 1
       end
 
-      def setup
-        super(self)
+      def setup(ctx)
+        super(ctx, self)
       end
 
       def nodes

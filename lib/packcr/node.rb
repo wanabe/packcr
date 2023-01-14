@@ -21,18 +21,17 @@ class Packcr
     end
 
     def link_references(ctx)
-      nodes.each do |node|
-        node.link_references(ctx)
-      end
     end
 
     def setup_rule(rule)
     end
 
-    def setup(rule)
+    def setup(ctx, rule)
       setup_rule(rule)
+      link_references(ctx)
+
       nodes.each do |node|
-        node.setup(rule)
+        node.setup(ctx, rule)
       end
     end
 
