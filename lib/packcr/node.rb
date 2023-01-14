@@ -27,8 +27,12 @@ class Packcr
     end
 
     def setup_rule(rule)
+    end
+
+    def setup(rule)
+      setup_rule(rule)
       nodes.each do |node|
-        node.setup_rule(rule)
+        node.setup(rule)
       end
     end
 

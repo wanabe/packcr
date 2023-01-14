@@ -47,7 +47,7 @@ class Packcr
       end
 
       def setup
-        setup_rule(self)
+        super(self)
       end
 
       def nodes

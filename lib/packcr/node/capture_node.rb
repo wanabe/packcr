@@ -35,7 +35,6 @@ class Packcr
       def setup_rule(rule)
         @index = rule.capts.length
         rule.capts << self
-        super
       end
     end
   end

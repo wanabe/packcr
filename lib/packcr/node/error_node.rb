@@ -54,7 +54,6 @@ class Packcr
       def setup_rule(rule)
         @index = rule.codes.length
         rule.codes.push(self)
-        super
       end
     end
   end
