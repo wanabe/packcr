@@ -7,6 +7,7 @@ statement <- comment
            / directive_value
            / rule
            / footer
+           / EOF
            ~ { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Illegal syntax" }
 
 supported_language <- 'c'
@@ -15,7 +16,7 @@ supported_language <- 'c'
                       @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Not supported language: #{$0}"
                     }
 
-comment <- '#' [^\n]* lf
+comment <- '#' [^\n]* (lf / EOF)
 
 directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:esource)  << Packcr::CodeBlock.new(b, $0sl.linenum, $0sl.charnum) } }
                    / '%earlycommon' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:ecommon)  << Packcr::CodeBlock.new(b, $0sl.linenum, $0sl.charnum) } }
@@ -90,8 +91,8 @@ lang_code_block <- code:code_block { ____ = code }
                  / < supported_language > opt_spaces_or_comments '->' opt_spaces_or_comments code:code_block { $$ = @ctx.lang == $1.to_sym ? code : nil  }
 code_block <- '$' code:plain_code_block { $$ = code }
             / code:plain_code_block ${ ____ = code.gsub("$", @ctx.lang == :rb ? "__" : "_") }
-plain_code_block <- '{' < codes? > '}' { $$ = $1 }
-codes <- ([ \t\v\f\r\n]* code)+ [ \t\v\f\r\n]*
+plain_code_block <- '{' < [ \t\v\f\r\n]* opt_codes > '}' { $$ = $1 }
+opt_codes <- (code [ \t\v\f\r\n]*)*
 code <- codechar+
       / quotation_single
       / quotation_double
@@ -106,7 +107,7 @@ spaces <- ([ \t\v\f\r\n])+
 opt_spaces_or_comments <- (comment / spaces)*
 lf <- '\r'? '\n'
 
-footer <- '%%' lf <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1, $1sl.linenum, $1sl.charnum) }
+footer <- '%%' (lf / EOF) <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1, $1sl.linenum, $1sl.charnum) }
 
 %location {
   class Location

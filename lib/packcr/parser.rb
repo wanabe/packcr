@@ -922,10 +922,16 @@ class Packcr::Parser
         @cur = pos
         @cur_loc = p_loc
         chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_footer, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
         catch(2) do
           catch(4) do
             catch(3) do
-              if !apply_rule(:evaluate_rule_footer, chunk.thunks, nil, 0)
+              if !apply_rule(:evaluate_rule_EOF, chunk.thunks, nil, 0)
                 throw(3)
               end
               throw(4)
@@ -1081,7 +1087,22 @@ class Packcr::Parser
           chunk.thunks[n..-1] = []
         end
       end
-      if !apply_rule(:evaluate_rule_lf, chunk.thunks, nil, 0)
+      catch(2) do |; pos, p_loc, n|
+        pos = @cur
+        p_loc = @cur_loc
+        n = chunk.thunks.length
+        if apply_rule(:evaluate_rule_lf, chunk.thunks, nil, 0)
+          throw(2)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_EOF, chunk.thunks, nil, 0)
+          throw(2)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
@@ -3303,21 +3324,44 @@ class Packcr::Parser
       1.times do |;pos, q, capt, p_loc, q_loc|
         pos = @cur
         p_loc = @cur_loc
-        1.times do |;pos, p_loc, n|
-          pos = @cur
-          p_loc = @cur_loc
-          n = chunk.thunks.length
-          catch(2) do
-            catch(1) do
-              if !apply_rule(:evaluate_rule_codes, chunk.thunks, nil, 0)
+        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
+          i = 0
+          catch(1) do
+            pos = @cur
+            p_loc = @cur_loc
+            n = chunk.thunks.length
+            1.times do |;u, n|
+              if refill_buffer(1) < 1
                 throw(1)
               end
-              throw(2)
+              u = @buffer[@cur]
+              if (!(
+                u == " " ||
+                u == "\t" ||
+                u == "\v" ||
+                u == "\f" ||
+                u == "\r" ||
+                u == "\n"
+              ))
+                throw(1)
+              end
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
             end
-            @cur_loc = p_loc
+            i += 1
+            if @cur != pos
+              redo
+            end
+            pos = nil
+          end
+          if pos
             @cur = pos
+            @cur_loc = p_loc
             chunk.thunks[n..-1] = []
           end
+        end
+        if !apply_rule(:evaluate_rule_opt_codes, chunk.thunks, nil, 0)
+          throw(0)
         end
         q = @cur
         capt = chunk.capts[0]
@@ -3355,123 +3399,73 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_codes
+  def evaluate_rule_opt_codes
     chunk = ThunkChunk.new
     chunk.pos = @cur
     chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    codes #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    debug { warn "#{ "  " * @level}EVAL    opt_codes #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
     @level += 1
     chunk.resize_captures(0)
-    catch(0) do
-      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-        p0 = @cur
-        p0_loc = @cur_loc
-        n0 = chunk.thunks.length
-        i = 0
-        catch(1) do
-          pos = @cur
-          p_loc = @cur_loc
-          n = chunk.thunks.length
-          1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-            i = 0
-            catch(2) do
-              pos = @cur
-              p_loc = @cur_loc
-              n = chunk.thunks.length
-              1.times do |;u, n|
-                if refill_buffer(1) < 1
-                  throw(2)
-                end
-                u = @buffer[@cur]
-                if (!(
-                  u == " " ||
-                  u == "\t" ||
-                  u == "\v" ||
-                  u == "\f" ||
-                  u == "\r" ||
-                  u == "\n"
-                ))
-                  throw(2)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                @cur += 1
+    1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
+      i = 0
+      catch(1) do
+        pos = @cur
+        p_loc = @cur_loc
+        n = chunk.thunks.length
+        if !apply_rule(:evaluate_rule_code, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
+          i = 0
+          catch(2) do
+            pos = @cur
+            p_loc = @cur_loc
+            n = chunk.thunks.length
+            1.times do |;u, n|
+              if refill_buffer(1) < 1
+                throw(2)
               end
-              i += 1
-              if @cur != pos
-                redo
+              u = @buffer[@cur]
+              if (!(
+                u == " " ||
+                u == "\t" ||
+                u == "\v" ||
+                u == "\f" ||
+                u == "\r" ||
+                u == "\n"
+              ))
+                throw(2)
               end
-              pos = nil
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
             end
-            if pos
-              @cur = pos
-              @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+            i += 1
+            if @cur != pos
+              redo
             end
+            pos = nil
           end
-          if !apply_rule(:evaluate_rule_code, chunk.thunks, nil, 0)
-            throw(1)
+          if pos
+            @cur = pos
+            @cur_loc = p_loc
+            chunk.thunks[n..-1] = []
           end
-          i += 1
-          if @cur != pos
-            redo
-          end
-          pos = nil
         end
-        if pos
-          @cur = pos
-          @cur_loc = p_loc
-          chunk.thunks[n..-1] = []
+        i += 1
+        if @cur != pos
+          redo
         end
-        if i < 1
-          @cur = p0
-          @cur_loc = p0_loc
-          chunk.thunks[n0..-1] = []
-          throw(0)
-        end
+        pos = nil
       end
-      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-        i = 0
-        catch(3) do
-          pos = @cur
-          p_loc = @cur_loc
-          n = chunk.thunks.length
-          1.times do |;u, n|
-            if refill_buffer(1) < 1
-              throw(3)
-            end
-            u = @buffer[@cur]
-            if (!(
-              u == " " ||
-              u == "\t" ||
-              u == "\v" ||
-              u == "\f" ||
-              u == "\r" ||
-              u == "\n"
-            ))
-              throw(3)
-            end
-            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-            @cur += 1
-          end
-          i += 1
-          if @cur != pos
-            redo
-          end
-          pos = nil
-        end
-        if pos
-          @cur = pos
-          @cur_loc = p_loc
-          chunk.thunks[n..-1] = []
-        end
+      if pos
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
       end
-      @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   codes #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH codes #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-    return nil
+    debug { warn "#{ "  " * @level}MATCH   opt_codes #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    return chunk
   end
 
   def evaluate_rule_code
@@ -4238,7 +4232,22 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
       @cur += 2
-      if !apply_rule(:evaluate_rule_lf, chunk.thunks, nil, 0)
+      catch(1) do |; pos, p_loc, n|
+        pos = @cur
+        p_loc = @cur_loc
+        n = chunk.thunks.length
+        if apply_rule(:evaluate_rule_lf, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_EOF, chunk.thunks, nil, 0)
+          throw(1)
+        end
+        @cur = pos
+        @cur_loc = p_loc
+        chunk.thunks[n..-1] = []
         throw(0)
       end
       1.times do |;pos, q, capt, p_loc, q_loc|
@@ -4246,13 +4255,13 @@ class Packcr::Parser
         p_loc = @cur_loc
         1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
           i = 0
-          catch(1) do
+          catch(2) do
             pos = @cur
             p_loc = @cur_loc
             n = chunk.thunks.length
             1.times do |;u, n|
               if refill_buffer(1) < 1
-                throw(1)
+                throw(2)
               end
               u = @buffer[@cur]
               @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
@@ -4295,6 +4304,26 @@ class Packcr::Parser
     end
     @level -= 1
     debug { warn "#{ "  " * @level}NOMATCH footer #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    return nil
+  end
+
+  def evaluate_rule_EOF
+    chunk = ThunkChunk.new
+    chunk.pos = @cur
+    chunk.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    EOF #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    @level += 1
+    chunk.resize_captures(0)
+    catch(0) do
+      if refill_buffer(1) >= 1
+        throw(0)
+      end
+      @level -= 1
+      debug { warn "#{ "  " * @level}MATCH   EOF #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+      return chunk
+    end
+    @level -= 1
+    debug { warn "#{ "  " * @level}NOMATCH EOF #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
     return nil
   end
 
