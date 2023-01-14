@@ -75,10 +75,6 @@ primary <- code:lang_code_block { $$ = code && Packcr::Node::ActionNode.new(Pack
              act = Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, $0sl.linenum, $0sl.charnum))
              $$ = ref.seq(act)
            }
-         / 'EOF' !( [ \t\v\f\r\n]* '<-' ) {
-             @ctx.root.implicit_rule("EOF")
-             $$ = Packcr::Node::ReferenceNode.new("EOF", nil, $0sl.linenum, $0sl.charnum)
-           }
          / name:identifier 8< !( [ \t\v\f\r\n]* '<-' ) { $$ = Packcr::Node::ReferenceNode.new(name, nil, $0sl.linenum, $0sl.charnum) }
          / '(' 8< opt_spaces_or_comments expr:expression opt_spaces_or_comments ')' { $$ = expr }
          / '<' 8< opt_spaces_or_comments expr:expression opt_spaces_or_comments '>' { $$ = Packcr::Node::CaptureNode.new(expr) }

@@ -22,11 +22,6 @@ class Packcr
             @rulehash[rule.name] = rule
           end
         end
-        @implicit_rules.each do |rule|
-          next if @rulehash[rule.name]
-          @rules << rule
-          @rulehash[rule.name] = rule
-        end
       end
 
       def setup(ctx)
@@ -41,15 +36,18 @@ class Packcr
         end
       end
 
-      def implicit_rule(name)
+      def rule(name)
+        rule = @rulehash[name]
+        return rule if rule
         case name
         when "EOF"
           expr = Packcr::Node::EofNode.new
         else
-          raise "Unexpected implicit rule: #{name.inspect}"
+          return nil
         end
         rule = Packcr::Node::RuleNode.new(expr, name)
-        @implicit_rules << rule
+        @rules << rule
+        @rulehash[name] = rule
       end
     end
   end
