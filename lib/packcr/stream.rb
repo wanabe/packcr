@@ -44,11 +44,7 @@ class Packcr
     def write_code_block(code, indent, fname)
       text = code.text
       ptr = text.b
-      len = code.len
       lineno = code.line
-      if len == nil
-        return # for safety
-      end
 
       ptr.sub!(/\A\n+/) do
         lineno += $&.length

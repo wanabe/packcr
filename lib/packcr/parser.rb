@@ -105,7 +105,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:esource)  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:esource)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -118,7 +118,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:ecommon)  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:ecommon)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -131,7 +131,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:source)   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:source)   << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -144,7 +144,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:lheader)  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:lheader)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -157,7 +157,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:lsource)  << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:lsource)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -170,7 +170,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:header)   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:header)   << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -183,7 +183,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:common)   << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:common)   << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -196,7 +196,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:location) << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:location) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -209,7 +209,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:init)     << Packcr::CodeBlock.new(b, Packcr.find_trailing_blanks(b), __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:init)     << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -452,7 +452,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    ____ = code ? Packcr::Node::ErrorNode.new(seq, Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), __0sl.linenum, __0sl.charnum)) : seq
+    ____ = code ? Packcr::Node::ErrorNode.new(seq, Packcr::CodeBlock.new(code, __0sl.linenum, __0sl.charnum)) : seq
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -583,7 +583,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    ____ = code && Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), __0sl.linenum, __0sl.charnum))
+    ____ = code && Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, __0sl.linenum, __0sl.charnum))
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -612,7 +612,7 @@ class Packcr::Parser
     __0el = @pos_loc + __pcc_in.capt0.end_loc
     ref = Packcr::Node::ReferenceNode.new(name, "_out", __0sl.linenum, __0sl.charnum)
     code = @ctx.pass_value_code("_out")
-    act = Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, Packcr.find_trailing_blanks(code), __0sl.linenum, __0sl.charnum))
+    act = Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, __0sl.linenum, __0sl.charnum))
     ____ = ref.seq(act)
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
@@ -887,7 +887,7 @@ class Packcr::Parser
     __1e = @pos + __pcc_in.capts[0].range_end
     __1sl = @pos_loc + __pcc_in.capts[0].start_loc
     __1el = @pos_loc + __pcc_in.capts[0].end_loc
-    @ctx.code(:lsource) << Packcr::CodeBlock.new(__1, Packcr.find_trailing_blanks(__1), __1sl.linenum, __1sl.charnum)
+    @ctx.code(:lsource) << Packcr::CodeBlock.new(__1, __1sl.linenum, __1sl.charnum)
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
