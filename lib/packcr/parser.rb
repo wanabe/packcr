@@ -16,14 +16,9 @@ class Packcr::Parser
     @cur_loc = Location.new
     @ctx = ctx || self
     @ifile = ifile || stdin
-    @location = []
-    @lsource = []
-    @init = []
     @utf8 = true
     @ascii = false
     @lang = :rb
-    @rules = []
-    @rulehash = {}
   end
 
   def debug
@@ -4683,8 +4678,6 @@ class Packcr::Parser
 end
 
 class Packcr::Parser
-  attr_accessor :rules, :rulehash
-
   def getc
     @ifile.getc
   end

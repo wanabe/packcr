@@ -162,20 +162,13 @@ footer <- '%%' lf <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1, $1sl.l
 %initialize {
   @ctx = ctx || self
   @ifile = ifile || stdin
-  @location = []
-  @lsource = []
-  @init = []
   @utf8 = true
   @ascii = false
   @lang = :rb
-  @rules = []
-  @rulehash = {}
 }
 %%
 
 class Packcr::Parser
-  attr_accessor :rules, :rulehash
-
   def getc
     @ifile.getc
   end
