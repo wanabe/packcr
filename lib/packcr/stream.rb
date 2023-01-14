@@ -3,8 +3,8 @@ require "stringio"
 
 class Packcr
   class Stream
-    def initialize(io, name, line)
-      @io = io
+    def initialize(stream, name, line)
+      @stream = stream
       @name = name
       @line = line
       @line_directive_tag = nil
@@ -15,7 +15,7 @@ class Packcr
         s.gsub!(@line_directive_tag) { (@line + $`.count("\n") + 1).to_s }
         @line_directive_tag = nil
       end
-      @io.write(s)
+      @stream.write(s)
       if @line.respond_to?(:+)
         @line += s.count("\n")
       end
@@ -92,11 +92,11 @@ class Packcr
 
     def get_code_block(code, indent, fname)
       buf = StringIO.new
-      line, io, @io, @line = @line, @io, buf, @line && :uuid
+      line, stream, @stream, @line = @line, @stream, buf, @line && :uuid
       write_code_block(code, indent, fname)
       return buf.string
     ensure
-      @line, @io = line, io
+      @line, @stream = line, stream
     end
   end
 end
