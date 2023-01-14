@@ -58,10 +58,6 @@ class Packcr
       $stdout.print escape_string(str)
     end
 
-    def find_trailing_blanks(str)
-      str =~ /[ \v\f\t\n\r]*\z/
-    end
-
     def unify_indent_spaces(spaces)
       offset = 0
       spaces.tr!("\v\f", " ")

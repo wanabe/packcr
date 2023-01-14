@@ -89,27 +89,6 @@ RSpec.describe Packcr::Util do
     end
   end
 
-  describe "#find_trailing_blanks" do
-    subject { Packcr.find_trailing_blanks(str) }
-
-    where(:str, :expected) do
-      [
-        ["abcde",   5],
-        ["  cde",   5],
-        ["a\n\nde", 5],
-        ["abc\n\n", 3],
-        ["a c  ",   3],
-        ["   ",     0]
-      ]
-    end
-
-    with_them do
-      it do
-        expect(subject).to eq(expected)
-      end
-    end
-  end
-
   describe "#unify_indent_spaces" do
     subject { Packcr.unify_indent_spaces(str) }
 
