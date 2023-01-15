@@ -60,13 +60,13 @@ RSpec.describe Packcr::Parser do
       where(:peg, :codes) do
         [
           ["%earlysource {}", esource: [""]],
-          ["%earlycommon { }", ecommon: [" "]],
+          ["%earlycommon { }", esource: [" "], eheader: [" "]],
           ["%source {  test();  }", source: ["  test();  "]],
           ["%source rb -> { other language code is just ignore }", {}],
           ["%lateheader rb->{} c->{\n if () {\n} \n}", lheader: ["\n if () {\n} \n"]],
           ['%latesource { "}}\\"}" }', lsource: [' "}}\\"}" ']],
           ["%header {1}\n rb->{2} {3}", header: ["1", "3"]],
-          ["%common { $$ = 1; }", common: [" __ = 1; "]],
+          ["%common { $$ = 1; }", source: [" __ = 1; "], header: [" __ = 1; "]],
           ["%location ${ $$ = 2; }", location: [" $$ = 2; "]],
           ["%initialize {}", init: [""]],
         ]

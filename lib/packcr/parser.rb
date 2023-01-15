@@ -113,7 +113,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:ecommon)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:source)   << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -126,7 +126,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:source)   << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:lheader)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -139,7 +139,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:lheader)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:lsource)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -152,7 +152,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:lsource)  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:header)   << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -165,7 +165,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:header)   << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:location) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -178,7 +178,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:common)   << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| @ctx.code(:init)     << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -191,7 +191,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:location) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -204,7 +204,7 @@ class Packcr::Parser
     __0e = @pos + __pcc_in.capt0.range_end
     __0sl = @pos_loc + __pcc_in.capt0.start_loc
     __0el = @pos_loc + __pcc_in.capt0.end_loc
-    blocks.each { |b| @ctx.code(:init)     << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+    blocks.each { |b| Packcr::BroadCast.new(@ctx.code(:header),  @ctx.code(:source))  << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
 
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
@@ -1160,13 +1160,13 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         catch(3) do
           if (
-            refill_buffer(12) < 12 ||
-            @buffer[@cur, 12] != "%earlycommon"
+            refill_buffer(7) < 7 ||
+            @buffer[@cur, 7] != "%source"
           )
             throw(3)
           end
-          @cur_loc = @cur_loc.forward(@buffer, @cur, 12)
-          @cur += 12
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
+          @cur += 7
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(3)
           end
@@ -1191,13 +1191,13 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         catch(4) do
           if (
-            refill_buffer(7) < 7 ||
-            @buffer[@cur, 7] != "%source"
+            refill_buffer(11) < 11 ||
+            @buffer[@cur, 11] != "%lateheader"
           )
             throw(4)
           end
-          @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
-          @cur += 7
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
+          @cur += 11
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(4)
           end
@@ -1223,7 +1223,7 @@ class Packcr::Parser
         catch(5) do
           if (
             refill_buffer(11) < 11 ||
-            @buffer[@cur, 11] != "%lateheader"
+            @buffer[@cur, 11] != "%latesource"
           )
             throw(5)
           end
@@ -1253,13 +1253,13 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         catch(6) do
           if (
-            refill_buffer(11) < 11 ||
-            @buffer[@cur, 11] != "%latesource"
+            refill_buffer(7) < 7 ||
+            @buffer[@cur, 7] != "%header"
           )
             throw(6)
           end
-          @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
-          @cur += 11
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
+          @cur += 7
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(6)
           end
@@ -1284,13 +1284,13 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         catch(7) do
           if (
-            refill_buffer(7) < 7 ||
-            @buffer[@cur, 7] != "%header"
+            refill_buffer(9) < 9 ||
+            @buffer[@cur, 9] != "%location"
           )
             throw(7)
           end
-          @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
-          @cur += 7
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 9)
+          @cur += 9
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(7)
           end
@@ -1315,13 +1315,13 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         catch(8) do
           if (
-            refill_buffer(7) < 7 ||
-            @buffer[@cur, 7] != "%common"
+            refill_buffer(11) < 11 ||
+            @buffer[@cur, 11] != "%initialize"
           )
             throw(8)
           end
-          @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
-          @cur += 7
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
+          @cur += 11
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(8)
           end
@@ -1346,13 +1346,13 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         catch(9) do
           if (
-            refill_buffer(9) < 9 ||
-            @buffer[@cur, 9] != "%location"
+            refill_buffer(12) < 12 ||
+            @buffer[@cur, 12] != "%earlycommon"
           )
             throw(9)
           end
-          @cur_loc = @cur_loc.forward(@buffer, @cur, 9)
-          @cur += 9
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 12)
+          @cur += 12
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(9)
           end
@@ -1377,13 +1377,13 @@ class Packcr::Parser
         chunk.thunks[n..-1] = []
         catch(10) do
           if (
-            refill_buffer(11) < 11 ||
-            @buffer[@cur, 11] != "%initialize"
+            refill_buffer(7) < 7 ||
+            @buffer[@cur, 7] != "%common"
           )
             throw(10)
           end
-          @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
-          @cur += 11
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
+          @cur += 7
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
             throw(10)
           end

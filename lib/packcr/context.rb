@@ -39,16 +39,11 @@ class Packcr
           source: path + ".c",
           header: @hname
         }
-        @broadcasts = {
-          ecommon: %i[eheader esource],
-          common: %i[header source],
-        }
         @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
       when :rb
         @patterns = {
           source: path + ".rb"
         }
-        @broadcasts = {}
       else
         raise "unexpected lang: #{@lang}"
       end
@@ -68,14 +63,7 @@ class Packcr
     end
 
     def code(name)
-      return @codes[name] if @codes[name]
-      names = @broadcasts[name]
-      if !names
-        @codes[name] = []
-      else
-        arrays = names.map{ |n| code(n) }
-        @codes[name] = BroadCast.new(arrays)
-      end
+      @codes[name] ||= []
     end
 
     def inspect
