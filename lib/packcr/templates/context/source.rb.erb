@@ -171,10 +171,10 @@ class <%= class_name %>
       return answer.lr.seed
     end
 
-    entry = LrEntry.new
-    entry.rule = rule
-    @lrstack.push(entry)
-    answer = LrAnswer.new(entry, pos<% if @location %>, p_loc<% end %>)
+    lr = LrEntry.new
+    lr.rule = rule
+    @lrstack.push(lr)
+    answer = LrAnswer.new(lr, pos<% if @location %>, p_loc<% end %>)
     @lrtable.answers[pos, rule] = answer
     chunk = public_send(rule)
     @lrstack.pop
@@ -182,13 +182,12 @@ class <%= class_name %>
     <%- if @location -%>
     answer.pos_loc = @pos_loc + @cur_loc
     <%- end -%>
-    if !entry.head
+    if !lr.head
       answer.chunk = chunk
       return chunk
     end
 
-    lr = answer.lr
-    entry.seed = chunk
+    lr.seed = chunk
     head = lr.head
     if head.rule_name != rule
       return lr.seed

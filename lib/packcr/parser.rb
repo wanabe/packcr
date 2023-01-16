@@ -4361,22 +4361,21 @@ class Packcr::Parser
       return answer.lr.seed
     end
 
-    entry = LrEntry.new
-    entry.rule = rule
-    @lrstack.push(entry)
-    answer = LrAnswer.new(entry, pos, p_loc)
+    lr = LrEntry.new
+    lr.rule = rule
+    @lrstack.push(lr)
+    answer = LrAnswer.new(lr, pos, p_loc)
     @lrtable.answers[pos, rule] = answer
     chunk = public_send(rule)
     @lrstack.pop
     answer.pos = @pos + @cur
     answer.pos_loc = @pos_loc + @cur_loc
-    if !entry.head
+    if !lr.head
       answer.chunk = chunk
       return chunk
     end
 
-    lr = answer.lr
-    entry.seed = chunk
+    lr.seed = chunk
     head = lr.head
     if head.rule_name != rule
       return lr.seed
