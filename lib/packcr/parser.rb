@@ -4378,11 +4378,11 @@ class Packcr::Parser
     lr.seed = chunk
     head = lr.head
     if head.rule_name != rule
-      return lr.seed
+      return chunk
     end
 
-    answer.chunk = lr.seed
-    if !answer.chunk
+    answer.chunk = chunk
+    if !chunk
       return nil
     end
     @lrtable.heads[pos] = head
