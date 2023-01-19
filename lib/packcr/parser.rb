@@ -4373,7 +4373,7 @@ class Packcr::Parser
     grow_lr(rule, memo, head, pos, p_loc)
   end
 
-  def rule_answer(rule, thunks, values, index)
+  def rule_answer(rule)
     pos = @pos + @cur
     p_loc = @pos_loc + @cur_loc
     memo = @memos[pos, rule]
@@ -4417,7 +4417,7 @@ class Packcr::Parser
   end
 
   def apply_rule(rule, thunks, values, index)
-    answer = rule_answer(rule, thunks, values, index)
+    answer = rule_answer(rule)
     if !answer
       return false
     end

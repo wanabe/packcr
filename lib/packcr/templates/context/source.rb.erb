@@ -185,7 +185,7 @@ class <%= class_name %>
     grow_lr(rule, memo, head, pos<% if @location %>, p_loc<% end %>)
   end
 
-  def rule_answer(rule, thunks, values, index)
+  def rule_answer(rule)
     pos = @pos + @cur
     <%- if @location -%>
     p_loc = @pos_loc + @cur_loc
@@ -235,7 +235,7 @@ class <%= class_name %>
   end
 
   def apply_rule(rule, thunks, values, index)
-    answer = rule_answer(rule, thunks, values, index)
+    answer = rule_answer(rule)
     if !answer
       return false
     end
