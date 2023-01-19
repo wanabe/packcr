@@ -1,44 +1,47 @@
-1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-  <%- if min > 0 -%>
-  p0 = @cur
-  <%-   if gen.location -%>
-  p0_loc = @cur_loc
-  <%-   end -%>
-  n0 = answer.thunks.length
+<%- if min > 0 -%>
+q<%= gen.level %> = @cur
+<%-   if gen.location -%>
+q_loc<%= gen.level %> = @cur_loc
+<%-   end -%>
+m<%= gen.level %> = answer.thunks.length
+<%- end -%>
+i<%= gen.level %> = 0
+pos<%= gen.level %> = nil
+<%- if gen.location -%>
+p_loc<%= gen.level %> = nil
+<%- end -%>
+n<%= gen.level %> = nil
+<%- l = gen.next_label -%>
+catch(<%= l %>) do
+  pos<%= gen.level %> = @cur
+  <%- if gen.location -%>
+  p_loc<%= gen.level %> = @cur_loc
   <%- end -%>
-  i = 0
-  <%- l = gen.next_label -%>
-  catch(<%= l %>) do
-    pos = @cur
-    <%- if gen.location -%>
-    p_loc = @cur_loc
-    <%- end -%>
-    n = answer.thunks.length
-    <%- r = expr.reachability -%>
-    <%- %><%= gen.generate_code(expr, l, 4, false) -%>
-    i += 1
-    if @cur != pos<% if max >= 0 %> || i < <%= max %><% end %>
-      redo
-    end
-    pos = nil
+  n<%= gen.level %> = answer.thunks.length
+  <%- r = expr.reachability -%>
+  <%- %><%= gen.generate_code(expr, l, 2, false) -%>
+  i<%= gen.level %> += 1
+  if @cur != pos<%= gen.level %><% if max >= 0 %> || i<%= gen.level %> < <%= max %><% end %>
+    redo
   end
-  <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-  if pos
-    @cur = pos
-    <%-   if gen.location -%>
-    @cur_loc = p_loc
-    <%-   end -%>
-    answer.thunks[n..-1] = []
-  end
-  <%- end -%>
-  <%- if min > 0 -%>
-  if i < <%= min %>
-    @cur = p0
-    <%-   if gen.location -%>
-    @cur_loc = p0_loc
-    <%-   end -%>
-    answer.thunks[n0..-1] = []
-    throw(<%= onfail %>)
-  end
-  <%- end -%>
+  pos<%= gen.level %> = nil
 end
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+if pos<%= gen.level %>
+  @cur = pos<%= gen.level %>
+  <%-   if gen.location -%>
+  @cur_loc = p_loc<%= gen.level %>
+  <%-   end -%>
+  answer.thunks[n<%= gen.level %>..-1] = []
+end
+<%- end -%>
+<%- if min > 0 -%>
+if i<%= gen.level %> < <%= min %>
+  @cur = q<%= gen.level %>
+  <%-   if gen.location -%>
+  @cur_loc = q_loc<%= gen.level %>
+  <%-   end -%>
+  answer.thunks[m<%= gen.level %>..-1] = []
+  throw(<%= onfail %>)
+end
+<%- end -%>

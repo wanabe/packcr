@@ -1,25 +1,23 @@
 <%- l = gen.next_label -%>
-1.times do |;pos, p_loc, n|
-  pos = @cur
-  <%- if gen.location -%>
-  p_loc = @cur_loc
-  <%- end -%>
-  n = answer.thunks.length
-  <%- r = expr.reachability -%>
-  <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-  <%- %><%= gen.generate_code(expr, l, 2, false) -%>
-  <%- else -%>
-  <%-   m = gen.next_label -%>
-  catch(<%= m %>) do
-    catch(<%= l %>) do
-      <%- %><%= gen.generate_code(expr, l, 6, false) -%>
-      throw(<%= m %>)
-    end
-    <%-   if gen.location -%>
-    @cur_loc = p_loc
-    <%-   end -%>
-    @cur = pos
-    answer.thunks[n..-1] = []
+pos<%= gen.level %> = @cur
+<%- if gen.location -%>
+p_loc<%= gen.level %> = @cur_loc
+<%- end -%>
+n<%= gen.level %> = answer.thunks.length
+<%- r = expr.reachability -%>
+<%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+<%- %><%= gen.generate_code(expr, l, 0, false) -%>
+<%- else -%>
+<%-   m = gen.next_label -%>
+catch(<%= m %>) do
+  catch(<%= l %>) do
+    <%- %><%= gen.generate_code(expr, l, 4, false) -%>
+    throw(<%= m %>)
   end
-  <%- end -%>
+  <%-   if gen.location -%>
+  @cur_loc = p_loc<%= gen.level %>
+  <%-   end -%>
+  @cur = pos<%= gen.level %>
+  answer.thunks[n<%= gen.level %>..-1] = []
 end
+<%- end -%>

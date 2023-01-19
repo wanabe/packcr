@@ -1,24 +1,22 @@
 <%- l = gen.next_label -%>
 <%- r = expr.reachability -%>
-1.times do |;pos, p_loc|
-  pos = @cur
-  <%- if gen.location -%>
-  p_loc = @cur_loc
-  <%- end -%>
-  catch(<%= l %>) do
-    <%- %><%= gen.generate_code(expr, l, 4, false) -%>
-    <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
-    @cur = pos
-    <%-   if gen.location -%>
-    @cur_loc = p_loc
-    <%-   end -%>
-    throw(<%= onfail %>)
-    <%- end -%>
-  end
-  <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-  @cur = pos
+pos<%= gen.level %> = @cur
+<%- if gen.location -%>
+p_loc<%= gen.level %> = @cur_loc
+<%- end -%>
+catch(<%= l %>) do
+  <%- %><%= gen.generate_code(expr, l, 2, false) -%>
+  <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
+  @cur = pos<%= gen.level %>
   <%-   if gen.location -%>
-  @cur_loc = p_loc
+  @cur_loc = p_loc<%= gen.level %>
   <%-   end -%>
+  throw(<%= onfail %>)
   <%- end -%>
 end
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+@cur = pos<%= gen.level %>
+<%-   if gen.location -%>
+@cur_loc = p_loc<%= gen.level %>
+<%-   end -%>
+<%- end -%>

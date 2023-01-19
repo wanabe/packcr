@@ -1,18 +1,16 @@
-1.times do |;n, capt, ptr, q|
-  capt = answer.capts[<%= index %>]
-  n = capt.range_end - capt.range_start
-  if refill_buffer(n) < n
+capt<%= gen.level %> = answer.capts[<%= index %>]
+n<%= gen.level %> = capt<%= gen.level %>.range_end - capt<%= gen.level %>.range_start
+if refill_buffer(n<%= gen.level %>) < n<%= gen.level %>
+  throw(<%= onfail %>)
+end
+if n<%= gen.level %> > 0
+  ptr<%= gen.level %> = @buffer[@cur, n<%= gen.level %>]
+  q<%= gen.level %> = @buffer[capt<%= gen.level %>.range_start, n<%= gen.level %>]
+  if ptr<%= gen.level %> != q<%= gen.level %>
     throw(<%= onfail %>)
   end
-  if n > 0
-    ptr = @buffer[@cur, n]
-    q = @buffer[capt.range_start, n]
-    if ptr != q
-      throw(<%= onfail %>)
-    end
-    <%- if gen.location -%>
-    @cur_loc = @cur_loc.forward(@buffer, @cur, n)
-    <%- end -%>
-    @cur += n
-  end
+  <%- if gen.location -%>
+  @cur_loc = @cur_loc.forward(@buffer, @cur, n<%= gen.level %>)
+  <%- end -%>
+  @cur += n<%= gen.level %>
 end

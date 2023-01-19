@@ -884,52 +884,52 @@ class Packcr::Parser
     @level += 1
     answer.resize_captures(0)
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         if apply_rule(:evaluate_rule_directive_include, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         if apply_rule(:evaluate_rule_directive_string, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         if apply_rule(:evaluate_rule_directive_value, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         if apply_rule(:evaluate_rule_rule, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         if apply_rule(:evaluate_rule_footer, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(2) do
           catch(4) do
             catch(3) do
@@ -957,9 +957,9 @@ class Packcr::Parser
           end
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -979,10 +979,10 @@ class Packcr::Parser
     @level += 1
     answer.resize_captures(0)
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(1) < 1 ||
@@ -994,9 +994,9 @@ class Packcr::Parser
           @cur += 1
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if (
             refill_buffer(2) < 2 ||
@@ -1008,9 +1008,9 @@ class Packcr::Parser
           @cur += 2
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(4) do
           if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
             throw(4)
@@ -1028,9 +1028,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -1058,53 +1058,52 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-        i = 0
-        catch(1) do
-          pos = @cur
-          p_loc = @cur_loc
-          n = answer.thunks.length
-          1.times do |;u, n|
-            if refill_buffer(1) < 1
-              throw(1)
-            end
-            u = @buffer[@cur]
-            if (
-              u == "\n"
-            )
-              throw(1)
-            end
-            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-            @cur += 1
-          end
-          i += 1
-          if @cur != pos
-            redo
-          end
-          pos = nil
+      i3 = 0
+      pos3 = nil
+      p_loc3 = nil
+      n3 = nil
+      catch(1) do
+        pos3 = @cur
+        p_loc3 = @cur_loc
+        n3 = answer.thunks.length
+        if refill_buffer(1) < 1
+          throw(1)
         end
-        if pos
-          @cur = pos
-          @cur_loc = p_loc
-          answer.thunks[n..-1] = []
+        u4 = @buffer[@cur]
+        if (
+          u4 == "\n"
+        )
+          throw(1)
         end
+        @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+        @cur += 1
+        i3 += 1
+        if @cur != pos3
+          redo
+        end
+        pos3 = nil
       end
-      catch(2) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      if pos3
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
+      end
+      catch(2) do
+        pos3 = @cur
+        p_loc3 = @cur_loc
+        n3 = answer.thunks.length
         if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0)
           throw(2)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
         if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0)
           throw(2)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
         throw(0)
       end
       @level -= 1
@@ -1125,10 +1124,10 @@ class Packcr::Parser
     answer.resize_captures(1)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(12) < 12 ||
@@ -1157,9 +1156,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if (
             refill_buffer(7) < 7 ||
@@ -1188,9 +1187,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(4) do
           if (
             refill_buffer(11) < 11 ||
@@ -1219,9 +1218,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(5) do
           if (
             refill_buffer(11) < 11 ||
@@ -1250,9 +1249,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(6) do
           if (
             refill_buffer(7) < 7 ||
@@ -1281,9 +1280,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(7) do
           if (
             refill_buffer(9) < 9 ||
@@ -1312,9 +1311,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(8) do
           if (
             refill_buffer(11) < 11 ||
@@ -1343,9 +1342,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(9) do
           if (
             refill_buffer(12) < 12 ||
@@ -1374,9 +1373,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(10) do
           if (
             refill_buffer(7) < 7 ||
@@ -1405,9 +1404,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(11) do
           if (
             refill_buffer(1) < 1 ||
@@ -1417,20 +1416,18 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;pos, q, capt, p_loc, q_loc|
-            pos = @cur
-            p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
-              throw(11)
-            end
-            q = @cur
-            capt = answer.capts[0]
-            capt.range_start = pos
-            capt.range_end = q
-            q_loc = @cur_loc
-            capt.start_loc = p_loc
-            capt.end_loc = q_loc
+          pos4 = @cur
+          p_loc4 = @cur_loc
+          if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
+            throw(11)
           end
+          q4 = @cur
+          capt4 = answer.capts[0]
+          capt4.range_start = pos4
+          capt4.range_end = q4
+          q_loc4 = @cur_loc
+          capt4.start_loc = p_loc4
+          capt4.end_loc = q_loc4
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(11)
           end
@@ -1450,9 +1447,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -1473,10 +1470,10 @@ class Packcr::Parser
     answer.resize_captures(0)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(2)
@@ -1500,9 +1497,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1)
             throw(3)
@@ -1520,9 +1517,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -1543,10 +1540,10 @@ class Packcr::Parser
     answer.resize_captures(1)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(6) < 6 ||
@@ -1575,9 +1572,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if (
             refill_buffer(6) < 6 ||
@@ -1606,9 +1603,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(4) do
           if (
             refill_buffer(7) < 7 ||
@@ -1637,9 +1634,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(5) do
           if (
             refill_buffer(1) < 1 ||
@@ -1649,20 +1646,18 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;pos, q, capt, p_loc, q_loc|
-            pos = @cur
-            p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
-              throw(5)
-            end
-            q = @cur
-            capt = answer.capts[0]
-            capt.range_start = pos
-            capt.range_end = q
-            q_loc = @cur_loc
-            capt.start_loc = p_loc
-            capt.end_loc = q_loc
+          pos4 = @cur
+          p_loc4 = @cur_loc
+          if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
+            throw(5)
           end
+          q4 = @cur
+          capt4 = answer.capts[0]
+          capt4.range_start = pos4
+          capt4.range_end = q4
+          q_loc4 = @cur_loc
+          capt4.start_loc = p_loc4
+          capt4.end_loc = q_loc4
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(5)
           end
@@ -1682,9 +1677,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -1715,10 +1710,10 @@ class Packcr::Parser
       if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
         throw(0)
       end
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos3 = @cur
+        p_loc3 = @cur_loc
+        n3 = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(2) < 2 ||
@@ -1730,9 +1725,9 @@ class Packcr::Parser
           @cur += 2
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
         catch(3) do
           if (
             refill_buffer(4) < 4 ||
@@ -1744,9 +1739,9 @@ class Packcr::Parser
           @cur += 4
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
         throw(0)
       end
       answer.thunks.push(
@@ -1778,10 +1773,10 @@ class Packcr::Parser
     answer.resize_captures(0)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
             throw(2)
@@ -1805,9 +1800,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1)
             throw(3)
@@ -1825,9 +1820,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -1848,10 +1843,10 @@ class Packcr::Parser
     answer.resize_captures(1)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0)
             throw(2)
@@ -1869,24 +1864,22 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
-          1.times do |;pos, q, capt, p_loc, q_loc|
-            pos = @cur
-            p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0)
-              throw(3)
-            end
-            q = @cur
-            capt = answer.capts[0]
-            capt.range_start = pos
-            capt.range_end = q
-            q_loc = @cur_loc
-            capt.start_loc = p_loc
-            capt.end_loc = q_loc
+          pos4 = @cur
+          p_loc4 = @cur_loc
+          if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0)
+            throw(3)
           end
+          q4 = @cur
+          capt4 = answer.capts[0]
+          capt4.range_start = pos4
+          capt4.range_end = q4
+          q_loc4 = @cur_loc
+          capt4.start_loc = p_loc4
+          capt4.end_loc = q_loc4
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
@@ -1917,9 +1910,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -1989,10 +1982,10 @@ class Packcr::Parser
     answer.resize_captures(0)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 0)
             throw(2)
@@ -2027,9 +2020,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1)
             throw(3)
@@ -2047,9 +2040,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -2070,10 +2063,10 @@ class Packcr::Parser
     answer.resize_captures(0)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
             throw(2)
@@ -2108,9 +2101,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
             throw(3)
@@ -2145,9 +2138,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(4) do
           if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
             throw(4)
@@ -2171,9 +2164,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(5) do
           if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1)
             throw(5)
@@ -2191,9 +2184,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -2214,10 +2207,10 @@ class Packcr::Parser
     answer.resize_captures(0)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(1) < 1 ||
@@ -2246,9 +2239,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if (
             refill_buffer(1) < 1 ||
@@ -2277,9 +2270,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(4) do
           if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0)
             throw(4)
@@ -2297,9 +2290,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -2320,10 +2313,10 @@ class Packcr::Parser
     answer.resize_captures(0)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
             throw(2)
@@ -2352,9 +2345,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
             throw(3)
@@ -2383,9 +2376,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(4) do
           if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
             throw(4)
@@ -2414,9 +2407,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(5) do
           if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
             throw(5)
@@ -2434,9 +2427,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -2457,10 +2450,10 @@ class Packcr::Parser
     answer.resize_captures(1)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 0)
             throw(2)
@@ -2478,9 +2471,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 1)
             throw(3)
@@ -2502,61 +2495,58 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
             throw(0)
           end
-          1.times do |;pos, p_loc|
-            pos = @cur
-            p_loc = @cur_loc
-            catch(4) do
-              1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-                i = 0
-                catch(5) do
-                  pos = @cur
-                  p_loc = @cur_loc
-                  n = answer.thunks.length
-                  1.times do |;u, n|
-                    if refill_buffer(1) < 1
-                      throw(5)
-                    end
-                    u = @buffer[@cur]
-                    if (!(
-                      u == " " ||
-                      u == "\t" ||
-                      u == "\v" ||
-                      u == "\f" ||
-                      u == "\r" ||
-                      u == "\n"
-                    ))
-                      throw(5)
-                    end
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
-                  end
-                  i += 1
-                  if @cur != pos
-                    redo
-                  end
-                  pos = nil
-                end
-                if pos
-                  @cur = pos
-                  @cur_loc = p_loc
-                  answer.thunks[n..-1] = []
-                end
+          pos5 = @cur
+          p_loc5 = @cur_loc
+          catch(4) do
+            i7 = 0
+            pos7 = nil
+            p_loc7 = nil
+            n7 = nil
+            catch(5) do
+              pos7 = @cur
+              p_loc7 = @cur_loc
+              n7 = answer.thunks.length
+              if refill_buffer(1) < 1
+                throw(5)
               end
-              if (
-                refill_buffer(2) < 2 ||
-                @buffer[@cur, 2] != "<-"
-              )
-                throw(4)
+              u8 = @buffer[@cur]
+              if (!(
+                u8 == " " ||
+                u8 == "\t" ||
+                u8 == "\v" ||
+                u8 == "\f" ||
+                u8 == "\r" ||
+                u8 == "\n"
+              ))
+                throw(5)
               end
-              @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-              @cur += 2
-              @cur = pos
-              @cur_loc = p_loc
-              throw(0)
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
+              i7 += 1
+              if @cur != pos7
+                redo
+              end
+              pos7 = nil
             end
-            @cur = pos
-            @cur_loc = p_loc
+            if pos7
+              @cur = pos7
+              @cur_loc = p_loc7
+              answer.thunks[n7..-1] = []
+            end
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "<-"
+            )
+              throw(4)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            @cur = pos5
+            @cur_loc = p_loc5
+            throw(0)
           end
+          @cur = pos5
+          @cur_loc = p_loc5
           answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_1,
@@ -2570,9 +2560,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(6) do
           if (
             refill_buffer(2) < 2 ||
@@ -2599,61 +2589,58 @@ class Packcr::Parser
           if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
             throw(0)
           end
-          1.times do |;pos, p_loc|
-            pos = @cur
-            p_loc = @cur_loc
-            catch(7) do
-              1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-                i = 0
-                catch(8) do
-                  pos = @cur
-                  p_loc = @cur_loc
-                  n = answer.thunks.length
-                  1.times do |;u, n|
-                    if refill_buffer(1) < 1
-                      throw(8)
-                    end
-                    u = @buffer[@cur]
-                    if (!(
-                      u == " " ||
-                      u == "\t" ||
-                      u == "\v" ||
-                      u == "\f" ||
-                      u == "\r" ||
-                      u == "\n"
-                    ))
-                      throw(8)
-                    end
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
-                  end
-                  i += 1
-                  if @cur != pos
-                    redo
-                  end
-                  pos = nil
-                end
-                if pos
-                  @cur = pos
-                  @cur_loc = p_loc
-                  answer.thunks[n..-1] = []
-                end
+          pos5 = @cur
+          p_loc5 = @cur_loc
+          catch(7) do
+            i7 = 0
+            pos7 = nil
+            p_loc7 = nil
+            n7 = nil
+            catch(8) do
+              pos7 = @cur
+              p_loc7 = @cur_loc
+              n7 = answer.thunks.length
+              if refill_buffer(1) < 1
+                throw(8)
               end
-              if (
-                refill_buffer(2) < 2 ||
-                @buffer[@cur, 2] != "<-"
-              )
-                throw(7)
+              u8 = @buffer[@cur]
+              if (!(
+                u8 == " " ||
+                u8 == "\t" ||
+                u8 == "\v" ||
+                u8 == "\f" ||
+                u8 == "\r" ||
+                u8 == "\n"
+              ))
+                throw(8)
               end
-              @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-              @cur += 2
-              @cur = pos
-              @cur_loc = p_loc
-              throw(0)
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
+              i7 += 1
+              if @cur != pos7
+                redo
+              end
+              pos7 = nil
             end
-            @cur = pos
-            @cur_loc = p_loc
+            if pos7
+              @cur = pos7
+              @cur_loc = p_loc7
+              answer.thunks[n7..-1] = []
+            end
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "<-"
+            )
+              throw(7)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            @cur = pos5
+            @cur_loc = p_loc5
+            throw(0)
           end
+          @cur = pos5
+          @cur_loc = p_loc5
           answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_2,
@@ -2667,68 +2654,65 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(9) do
           if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
             throw(9)
           end
-          1.times do |;pos, p_loc|
-            pos = @cur
-            p_loc = @cur_loc
-            catch(10) do
-              1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-                i = 0
-                catch(11) do
-                  pos = @cur
-                  p_loc = @cur_loc
-                  n = answer.thunks.length
-                  1.times do |;u, n|
-                    if refill_buffer(1) < 1
-                      throw(11)
-                    end
-                    u = @buffer[@cur]
-                    if (!(
-                      u == " " ||
-                      u == "\t" ||
-                      u == "\v" ||
-                      u == "\f" ||
-                      u == "\r" ||
-                      u == "\n"
-                    ))
-                      throw(11)
-                    end
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
-                  end
-                  i += 1
-                  if @cur != pos
-                    redo
-                  end
-                  pos = nil
-                end
-                if pos
-                  @cur = pos
-                  @cur_loc = p_loc
-                  answer.thunks[n..-1] = []
-                end
+          pos5 = @cur
+          p_loc5 = @cur_loc
+          catch(10) do
+            i7 = 0
+            pos7 = nil
+            p_loc7 = nil
+            n7 = nil
+            catch(11) do
+              pos7 = @cur
+              p_loc7 = @cur_loc
+              n7 = answer.thunks.length
+              if refill_buffer(1) < 1
+                throw(11)
               end
-              if (
-                refill_buffer(2) < 2 ||
-                @buffer[@cur, 2] != "<-"
-              )
-                throw(10)
+              u8 = @buffer[@cur]
+              if (!(
+                u8 == " " ||
+                u8 == "\t" ||
+                u8 == "\v" ||
+                u8 == "\f" ||
+                u8 == "\r" ||
+                u8 == "\n"
+              ))
+                throw(11)
               end
-              @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-              @cur += 2
-              @cur = pos
-              @cur_loc = p_loc
-              throw(0)
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
+              i7 += 1
+              if @cur != pos7
+                redo
+              end
+              pos7 = nil
             end
-            @cur = pos
-            @cur_loc = p_loc
+            if pos7
+              @cur = pos7
+              @cur_loc = p_loc7
+              answer.thunks[n7..-1] = []
+            end
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "<-"
+            )
+              throw(10)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            @cur = pos5
+            @cur_loc = p_loc5
+            throw(0)
           end
+          @cur = pos5
+          @cur_loc = p_loc5
           answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_3,
@@ -2742,9 +2726,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(12) do
           if (
             refill_buffer(1) < 1 ||
@@ -2784,9 +2768,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(13) do
           if (
             refill_buffer(1) < 1 ||
@@ -2826,9 +2810,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(14) do
           if (
             refill_buffer(1) < 1 ||
@@ -2838,61 +2822,56 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;pos, q, capt, p_loc, q_loc|
-            pos = @cur
-            p_loc = @cur_loc
-            1.times do |;u, n|
-              if refill_buffer(1) < 1
-                throw(14)
-              end
-              u = @buffer[@cur]
-              if (!(
-                (u >= "1" && u <= "9")
-              ))
-                throw(14)
-              end
-              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-              @cur += 1
-            end
-            1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-              i = 0
-              catch(15) do
-                pos = @cur
-                p_loc = @cur_loc
-                n = answer.thunks.length
-                1.times do |;u, n|
-                  if refill_buffer(1) < 1
-                    throw(15)
-                  end
-                  u = @buffer[@cur]
-                  if (!(
-                    (u >= "0" && u <= "9")
-                  ))
-                    throw(15)
-                  end
-                  @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                  @cur += 1
-                end
-                i += 1
-                if @cur != pos
-                  redo
-                end
-                pos = nil
-              end
-              if pos
-                @cur = pos
-                @cur_loc = p_loc
-                answer.thunks[n..-1] = []
-              end
-            end
-            q = @cur
-            capt = answer.capts[0]
-            capt.range_start = pos
-            capt.range_end = q
-            q_loc = @cur_loc
-            capt.start_loc = p_loc
-            capt.end_loc = q_loc
+          pos4 = @cur
+          p_loc4 = @cur_loc
+          if refill_buffer(1) < 1
+            throw(14)
           end
+          u6 = @buffer[@cur]
+          if (!(
+            (u6 >= "1" && u6 <= "9")
+          ))
+            throw(14)
+          end
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+          @cur += 1
+          i6 = 0
+          pos6 = nil
+          p_loc6 = nil
+          n6 = nil
+          catch(15) do
+            pos6 = @cur
+            p_loc6 = @cur_loc
+            n6 = answer.thunks.length
+            if refill_buffer(1) < 1
+              throw(15)
+            end
+            u7 = @buffer[@cur]
+            if (!(
+              (u7 >= "0" && u7 <= "9")
+            ))
+              throw(15)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+            @cur += 1
+            i6 += 1
+            if @cur != pos6
+              redo
+            end
+            pos6 = nil
+          end
+          if pos6
+            @cur = pos6
+            @cur_loc = p_loc6
+            answer.thunks[n6..-1] = []
+          end
+          q4 = @cur
+          capt4 = answer.capts[0]
+          capt4.range_start = pos4
+          capt4.range_end = q4
+          q_loc4 = @cur_loc
+          capt4.start_loc = p_loc4
+          capt4.end_loc = q_loc4
           answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_6,
@@ -2906,9 +2885,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(16) do
           if (
             refill_buffer(1) < 1 ||
@@ -2931,9 +2910,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(17) do
           if !apply_rule(:evaluate_rule_character_class, answer.thunks, answer.values, 4)
             throw(17)
@@ -2951,9 +2930,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(18) do
           if !apply_rule(:evaluate_rule_quotation_single, answer.thunks, answer.values, 4)
             throw(18)
@@ -2971,9 +2950,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(19) do
           if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 4)
             throw(19)
@@ -2991,9 +2970,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -3021,100 +3000,97 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;pos, q, capt, p_loc, q_loc|
-        pos = @cur
-        p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-          i = 0
-          catch(1) do
-            pos = @cur
-            p_loc = @cur_loc
-            n = answer.thunks.length
-            catch(2) do |; pos, p_loc, n|
-              pos = @cur
-              p_loc = @cur_loc
-              n = answer.thunks.length
-              1.times do |;u, n|
-                if refill_buffer(1) >= 1
-                  u = @buffer[@cur]
-                  unless (
-                    u == "\\" ||
-                    u == "[" ||
-                    u == "]"
-                  )
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
-                    throw(2)
-                  end
-                end
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(3) do
-                if (
-                  refill_buffer(2) < 2 ||
-                  @buffer[@cur, 2] != "\\["
-                )
-                  throw(3)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                @cur += 2
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(4) do
-                if (
-                  refill_buffer(2) < 2 ||
-                  @buffer[@cur, 2] != "\\]"
-                )
-                  throw(4)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                @cur += 2
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(5) do
-                if (
-                  refill_buffer(1) < 1 ||
-                  @buffer[@cur] != "\\"
-                )
-                  throw(5)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                @cur += 1
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              throw(1)
+      pos3 = @cur
+      p_loc3 = @cur_loc
+      i4 = 0
+      pos4 = nil
+      p_loc4 = nil
+      n4 = nil
+      catch(1) do
+        pos4 = @cur
+        p_loc4 = @cur_loc
+        n4 = answer.thunks.length
+        catch(2) do
+          pos5 = @cur
+          p_loc5 = @cur_loc
+          n5 = answer.thunks.length
+          if refill_buffer(1) >= 1
+            u6 = @buffer[@cur]
+            unless (
+              u6 == "\\" ||
+              u6 == "[" ||
+              u6 == "]"
+            )
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
+              throw(2)
             end
-            i += 1
-            if @cur != pos
-              redo
+          end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(3) do
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "\\["
+            )
+              throw(3)
             end
-            pos = nil
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            throw(2)
           end
-          if pos
-            @cur = pos
-            @cur_loc = p_loc
-            answer.thunks[n..-1] = []
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(4) do
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "\\]"
+            )
+              throw(4)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            throw(2)
           end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(5) do
+            if (
+              refill_buffer(1) < 1 ||
+              @buffer[@cur] != "\\"
+            )
+              throw(5)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+            @cur += 1
+            throw(2)
+          end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          throw(1)
         end
-        q = @cur
-        capt = answer.capts[0]
-        capt.range_start = pos
-        capt.range_end = q
-        q_loc = @cur_loc
-        capt.start_loc = p_loc
-        capt.end_loc = q_loc
+        i4 += 1
+        if @cur != pos4
+          redo
+        end
+        pos4 = nil
       end
+      if pos4
+        @cur = pos4
+        @cur_loc = p_loc4
+        answer.thunks[n4..-1] = []
+      end
+      q3 = @cur
+      capt3 = answer.capts[0]
+      capt3.range_start = pos3
+      capt3.range_end = q3
+      q_loc3 = @cur_loc
+      capt3.start_loc = p_loc3
+      capt3.end_loc = q_loc3
       if (
         refill_buffer(1) < 1 ||
         @buffer[@cur] != "]"
@@ -3152,10 +3128,10 @@ class Packcr::Parser
     answer.resize_captures(1)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0)
             throw(2)
@@ -3173,24 +3149,22 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
-          1.times do |;pos, q, capt, p_loc, q_loc|
-            pos = @cur
-            p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0)
-              throw(3)
-            end
-            q = @cur
-            capt = answer.capts[0]
-            capt.range_start = pos
-            capt.range_end = q
-            q_loc = @cur_loc
-            capt.start_loc = p_loc
-            capt.end_loc = q_loc
+          pos4 = @cur
+          p_loc4 = @cur_loc
+          if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0)
+            throw(3)
           end
+          q4 = @cur
+          capt4 = answer.capts[0]
+          capt4.range_start = pos4
+          capt4.range_end = q4
+          q_loc4 = @cur_loc
+          capt4.start_loc = p_loc4
+          capt4.end_loc = q_loc4
           if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
@@ -3221,9 +3195,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -3244,10 +3218,10 @@ class Packcr::Parser
     answer.resize_captures(0)
     answer.values = {}
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(1) < 1 ||
@@ -3273,9 +3247,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0)
             throw(3)
@@ -3293,9 +3267,9 @@ class Packcr::Parser
           )
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -3323,56 +3297,53 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;pos, q, capt, p_loc, q_loc|
-        pos = @cur
-        p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-          i = 0
-          catch(1) do
-            pos = @cur
-            p_loc = @cur_loc
-            n = answer.thunks.length
-            1.times do |;u, n|
-              if refill_buffer(1) < 1
-                throw(1)
-              end
-              u = @buffer[@cur]
-              if (!(
-                u == " " ||
-                u == "\t" ||
-                u == "\v" ||
-                u == "\f" ||
-                u == "\r" ||
-                u == "\n"
-              ))
-                throw(1)
-              end
-              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-              @cur += 1
-            end
-            i += 1
-            if @cur != pos
-              redo
-            end
-            pos = nil
-          end
-          if pos
-            @cur = pos
-            @cur_loc = p_loc
-            answer.thunks[n..-1] = []
-          end
+      pos3 = @cur
+      p_loc3 = @cur_loc
+      i5 = 0
+      pos5 = nil
+      p_loc5 = nil
+      n5 = nil
+      catch(1) do
+        pos5 = @cur
+        p_loc5 = @cur_loc
+        n5 = answer.thunks.length
+        if refill_buffer(1) < 1
+          throw(1)
         end
-        if !apply_rule(:evaluate_rule_opt_codes, answer.thunks, nil, 0)
-          throw(0)
+        u6 = @buffer[@cur]
+        if (!(
+          u6 == " " ||
+          u6 == "\t" ||
+          u6 == "\v" ||
+          u6 == "\f" ||
+          u6 == "\r" ||
+          u6 == "\n"
+        ))
+          throw(1)
         end
-        q = @cur
-        capt = answer.capts[0]
-        capt.range_start = pos
-        capt.range_end = q
-        q_loc = @cur_loc
-        capt.start_loc = p_loc
-        capt.end_loc = q_loc
+        @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+        @cur += 1
+        i5 += 1
+        if @cur != pos5
+          redo
+        end
+        pos5 = nil
       end
+      if pos5
+        @cur = pos5
+        @cur_loc = p_loc5
+        answer.thunks[n5..-1] = []
+      end
+      if !apply_rule(:evaluate_rule_opt_codes, answer.thunks, nil, 0)
+        throw(0)
+      end
+      q3 = @cur
+      capt3 = answer.capts[0]
+      capt3.range_start = pos3
+      capt3.range_end = q3
+      q_loc3 = @cur_loc
+      capt3.start_loc = p_loc3
+      capt3.end_loc = q_loc3
       if (
         refill_buffer(1) < 1 ||
         @buffer[@cur] != "}"
@@ -3408,62 +3379,62 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    opt_codes #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
     answer.resize_captures(0)
-    1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-      i = 0
-      catch(1) do
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
-        if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0)
-          throw(1)
+    i2 = 0
+    pos2 = nil
+    p_loc2 = nil
+    n2 = nil
+    catch(1) do
+      pos2 = @cur
+      p_loc2 = @cur_loc
+      n2 = answer.thunks.length
+      if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0)
+        throw(1)
+      end
+      i4 = 0
+      pos4 = nil
+      p_loc4 = nil
+      n4 = nil
+      catch(2) do
+        pos4 = @cur
+        p_loc4 = @cur_loc
+        n4 = answer.thunks.length
+        if refill_buffer(1) < 1
+          throw(2)
         end
-        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-          i = 0
-          catch(2) do
-            pos = @cur
-            p_loc = @cur_loc
-            n = answer.thunks.length
-            1.times do |;u, n|
-              if refill_buffer(1) < 1
-                throw(2)
-              end
-              u = @buffer[@cur]
-              if (!(
-                u == " " ||
-                u == "\t" ||
-                u == "\v" ||
-                u == "\f" ||
-                u == "\r" ||
-                u == "\n"
-              ))
-                throw(2)
-              end
-              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-              @cur += 1
-            end
-            i += 1
-            if @cur != pos
-              redo
-            end
-            pos = nil
-          end
-          if pos
-            @cur = pos
-            @cur_loc = p_loc
-            answer.thunks[n..-1] = []
-          end
+        u5 = @buffer[@cur]
+        if (!(
+          u5 == " " ||
+          u5 == "\t" ||
+          u5 == "\v" ||
+          u5 == "\f" ||
+          u5 == "\r" ||
+          u5 == "\n"
+        ))
+          throw(2)
         end
-        i += 1
-        if @cur != pos
+        @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+        @cur += 1
+        i4 += 1
+        if @cur != pos4
           redo
         end
-        pos = nil
+        pos4 = nil
       end
-      if pos
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+      if pos4
+        @cur = pos4
+        @cur_loc = p_loc4
+        answer.thunks[n4..-1] = []
       end
+      i2 += 1
+      if @cur != pos2
+        redo
+      end
+      pos2 = nil
+    end
+    if pos2
+      @cur = pos2
+      @cur_loc = p_loc2
+      answer.thunks[n2..-1] = []
     end
     @level -= 1
     debug { warn "#{ "  " * @level}MATCH   opt_codes #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
@@ -3478,58 +3449,59 @@ class Packcr::Parser
     @level += 1
     answer.resize_captures(0)
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
         catch(2) do
-          1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-            p0 = @cur
-            p0_loc = @cur_loc
-            n0 = answer.thunks.length
-            i = 0
-            catch(3) do
-              pos = @cur
-              p_loc = @cur_loc
-              n = answer.thunks.length
-              if !apply_rule(:evaluate_rule_codechar, answer.thunks, nil, 0)
-                throw(3)
-              end
-              i += 1
-              if @cur != pos
-                redo
-              end
-              pos = nil
+          q3 = @cur
+          q_loc3 = @cur_loc
+          m3 = answer.thunks.length
+          i3 = 0
+          pos3 = nil
+          p_loc3 = nil
+          n3 = nil
+          catch(3) do
+            pos3 = @cur
+            p_loc3 = @cur_loc
+            n3 = answer.thunks.length
+            if !apply_rule(:evaluate_rule_codechar, answer.thunks, nil, 0)
+              throw(3)
             end
-            if pos
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
+            i3 += 1
+            if @cur != pos3
+              redo
             end
-            if i < 1
-              @cur = p0
-              @cur_loc = p0_loc
-              answer.thunks[n0..-1] = []
-              throw(2)
-            end
+            pos3 = nil
+          end
+          if pos3
+            @cur = pos3
+            @cur_loc = p_loc3
+            answer.thunks[n3..-1] = []
+          end
+          if i3 < 1
+            @cur = q3
+            @cur_loc = q_loc3
+            answer.thunks[m3..-1] = []
+            throw(2)
           end
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         if apply_rule(:evaluate_rule_quotation_single, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         if apply_rule(:evaluate_rule_quotation_double, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(4) do
           if (
             refill_buffer(1) < 1 ||
@@ -3539,26 +3511,27 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-            i = 0
-            catch(5) do
-              pos = @cur
-              p_loc = @cur_loc
-              n = answer.thunks.length
-              if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0)
-                throw(5)
-              end
-              i += 1
-              if @cur != pos
-                redo
-              end
-              pos = nil
+          i4 = 0
+          pos4 = nil
+          p_loc4 = nil
+          n4 = nil
+          catch(5) do
+            pos4 = @cur
+            p_loc4 = @cur_loc
+            n4 = answer.thunks.length
+            if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0)
+              throw(5)
             end
-            if pos
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
+            i4 += 1
+            if @cur != pos4
+              redo
             end
+            pos4 = nil
+          end
+          if pos4
+            @cur = pos4
+            @cur_loc = p_loc4
+            answer.thunks[n4..-1] = []
           end
           if (
             refill_buffer(1) < 1 ||
@@ -3570,9 +3543,9 @@ class Packcr::Parser
           @cur += 1
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -3592,28 +3565,26 @@ class Packcr::Parser
     @level += 1
     answer.resize_captures(0)
     catch(0) do
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
-        1.times do |;u, n|
-          if refill_buffer(1) >= 1
-            u = @buffer[@cur]
-            unless (
-              u == "{" ||
-              u == "}" ||
-              u == "\"" ||
-              u == "'"
-            )
-              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-              @cur += 1
-              throw(1)
-            end
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
+        if refill_buffer(1) >= 1
+          u3 = @buffer[@cur]
+          unless (
+            u3 == "{" ||
+            u3 == "}" ||
+            u3 == "\"" ||
+            u3 == "'"
+          )
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+            @cur += 1
+            throw(1)
           end
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(2) do
           if (
             refill_buffer(2) < 2 ||
@@ -3625,9 +3596,9 @@ class Packcr::Parser
           @cur += 2
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(3) do
           if (
             refill_buffer(2) < 2 ||
@@ -3639,9 +3610,9 @@ class Packcr::Parser
           @cur += 2
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(4) do
           if (
             refill_buffer(2) < 2 ||
@@ -3653,9 +3624,9 @@ class Packcr::Parser
           @cur += 2
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         catch(5) do
           if (
             refill_buffer(2) < 2 ||
@@ -3667,9 +3638,9 @@ class Packcr::Parser
           @cur += 2
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
         throw(0)
       end
       @level -= 1
@@ -3697,114 +3668,109 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;pos, q, capt, p_loc, q_loc|
-        pos = @cur
-        p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-          i = 0
-          catch(1) do
-            pos = @cur
-            p_loc = @cur_loc
-            n = answer.thunks.length
-            catch(2) do |; pos, p_loc, n|
-              pos = @cur
-              p_loc = @cur_loc
-              n = answer.thunks.length
-              1.times do |;u, n|
-                if refill_buffer(1) >= 1
-                  u = @buffer[@cur]
-                  unless (
-                    u == "\\" ||
-                    u == "'" ||
-                    u == "\n"
-                  )
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
-                    throw(2)
-                  end
-                end
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(3) do
-                if (
-                  refill_buffer(2) < 2 ||
-                  @buffer[@cur, 2] != "\\'"
-                )
-                  throw(3)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                @cur += 2
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(4) do
-                if (
-                  refill_buffer(2) < 2 ||
-                  @buffer[@cur, 2] != "\\\n"
-                )
-                  throw(4)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                @cur += 2
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(5) do
-                if (
-                  refill_buffer(1) < 1 ||
-                  @buffer[@cur] != "\\"
-                )
-                  throw(5)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                @cur += 1
-                1.times do |;u, n|
-                  if refill_buffer(1) < 1
-                    throw(5)
-                  end
-                  u = @buffer[@cur]
-                  if (
-                    u == "'" ||
-                    u == "\n"
-                  )
-                    throw(5)
-                  end
-                  @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                  @cur += 1
-                end
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              throw(1)
+      pos3 = @cur
+      p_loc3 = @cur_loc
+      i4 = 0
+      pos4 = nil
+      p_loc4 = nil
+      n4 = nil
+      catch(1) do
+        pos4 = @cur
+        p_loc4 = @cur_loc
+        n4 = answer.thunks.length
+        catch(2) do
+          pos5 = @cur
+          p_loc5 = @cur_loc
+          n5 = answer.thunks.length
+          if refill_buffer(1) >= 1
+            u6 = @buffer[@cur]
+            unless (
+              u6 == "\\" ||
+              u6 == "'" ||
+              u6 == "\n"
+            )
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
+              throw(2)
             end
-            i += 1
-            if @cur != pos
-              redo
+          end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(3) do
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "\\'"
+            )
+              throw(3)
             end
-            pos = nil
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            throw(2)
           end
-          if pos
-            @cur = pos
-            @cur_loc = p_loc
-            answer.thunks[n..-1] = []
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(4) do
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "\\\n"
+            )
+              throw(4)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            throw(2)
           end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(5) do
+            if (
+              refill_buffer(1) < 1 ||
+              @buffer[@cur] != "\\"
+            )
+              throw(5)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+            @cur += 1
+            if refill_buffer(1) < 1
+              throw(5)
+            end
+            u7 = @buffer[@cur]
+            if (
+              u7 == "'" ||
+              u7 == "\n"
+            )
+              throw(5)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+            @cur += 1
+            throw(2)
+          end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          throw(1)
         end
-        q = @cur
-        capt = answer.capts[0]
-        capt.range_start = pos
-        capt.range_end = q
-        q_loc = @cur_loc
-        capt.start_loc = p_loc
-        capt.end_loc = q_loc
+        i4 += 1
+        if @cur != pos4
+          redo
+        end
+        pos4 = nil
       end
+      if pos4
+        @cur = pos4
+        @cur_loc = p_loc4
+        answer.thunks[n4..-1] = []
+      end
+      q3 = @cur
+      capt3 = answer.capts[0]
+      capt3.range_start = pos3
+      capt3.range_end = q3
+      q_loc3 = @cur_loc
+      capt3.start_loc = p_loc3
+      capt3.end_loc = q_loc3
       if (
         refill_buffer(1) < 1 ||
         @buffer[@cur] != "\'"
@@ -3849,114 +3815,109 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      1.times do |;pos, q, capt, p_loc, q_loc|
-        pos = @cur
-        p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-          i = 0
-          catch(1) do
-            pos = @cur
-            p_loc = @cur_loc
-            n = answer.thunks.length
-            catch(2) do |; pos, p_loc, n|
-              pos = @cur
-              p_loc = @cur_loc
-              n = answer.thunks.length
-              1.times do |;u, n|
-                if refill_buffer(1) >= 1
-                  u = @buffer[@cur]
-                  unless (
-                    u == "\\" ||
-                    u == "\"" ||
-                    u == "\n"
-                  )
-                    @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                    @cur += 1
-                    throw(2)
-                  end
-                end
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(3) do
-                if (
-                  refill_buffer(2) < 2 ||
-                  @buffer[@cur, 2] != "\\\""
-                )
-                  throw(3)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                @cur += 2
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(4) do
-                if (
-                  refill_buffer(2) < 2 ||
-                  @buffer[@cur, 2] != "\\\n"
-                )
-                  throw(4)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
-                @cur += 2
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              catch(5) do
-                if (
-                  refill_buffer(1) < 1 ||
-                  @buffer[@cur] != "\\"
-                )
-                  throw(5)
-                end
-                @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                @cur += 1
-                1.times do |;u, n|
-                  if refill_buffer(1) < 1
-                    throw(5)
-                  end
-                  u = @buffer[@cur]
-                  if (
-                    u == "\"" ||
-                    u == "\n"
-                  )
-                    throw(5)
-                  end
-                  @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-                  @cur += 1
-                end
-                throw(2)
-              end
-              @cur = pos
-              @cur_loc = p_loc
-              answer.thunks[n..-1] = []
-              throw(1)
+      pos3 = @cur
+      p_loc3 = @cur_loc
+      i4 = 0
+      pos4 = nil
+      p_loc4 = nil
+      n4 = nil
+      catch(1) do
+        pos4 = @cur
+        p_loc4 = @cur_loc
+        n4 = answer.thunks.length
+        catch(2) do
+          pos5 = @cur
+          p_loc5 = @cur_loc
+          n5 = answer.thunks.length
+          if refill_buffer(1) >= 1
+            u6 = @buffer[@cur]
+            unless (
+              u6 == "\\" ||
+              u6 == "\"" ||
+              u6 == "\n"
+            )
+              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+              @cur += 1
+              throw(2)
             end
-            i += 1
-            if @cur != pos
-              redo
+          end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(3) do
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "\\\""
+            )
+              throw(3)
             end
-            pos = nil
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            throw(2)
           end
-          if pos
-            @cur = pos
-            @cur_loc = p_loc
-            answer.thunks[n..-1] = []
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(4) do
+            if (
+              refill_buffer(2) < 2 ||
+              @buffer[@cur, 2] != "\\\n"
+            )
+              throw(4)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
+            @cur += 2
+            throw(2)
           end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          catch(5) do
+            if (
+              refill_buffer(1) < 1 ||
+              @buffer[@cur] != "\\"
+            )
+              throw(5)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+            @cur += 1
+            if refill_buffer(1) < 1
+              throw(5)
+            end
+            u7 = @buffer[@cur]
+            if (
+              u7 == "\"" ||
+              u7 == "\n"
+            )
+              throw(5)
+            end
+            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+            @cur += 1
+            throw(2)
+          end
+          @cur = pos5
+          @cur_loc = p_loc5
+          answer.thunks[n5..-1] = []
+          throw(1)
         end
-        q = @cur
-        capt = answer.capts[0]
-        capt.range_start = pos
-        capt.range_end = q
-        q_loc = @cur_loc
-        capt.start_loc = p_loc
-        capt.end_loc = q_loc
+        i4 += 1
+        if @cur != pos4
+          redo
+        end
+        pos4 = nil
       end
+      if pos4
+        @cur = pos4
+        @cur_loc = p_loc4
+        answer.thunks[n4..-1] = []
+      end
+      q3 = @cur
+      capt3 = answer.capts[0]
+      capt3.range_start = pos3
+      capt3.range_end = q3
+      q_loc3 = @cur_loc
+      capt3.start_loc = p_loc3
+      capt3.end_loc = q_loc3
       if (
         refill_buffer(1) < 1 ||
         @buffer[@cur] != "\""
@@ -3993,54 +3954,51 @@ class Packcr::Parser
     @level += 1
     answer.resize_captures(0)
     catch(0) do
-      1.times do |;u, n|
+      if refill_buffer(1) < 1
+        throw(0)
+      end
+      u3 = @buffer[@cur]
+      if (!(
+        (u3 >= "a" && u3 <= "z") ||
+        (u3 >= "A" && u3 <= "Z") ||
+        u3 == "_"
+      ))
+        throw(0)
+      end
+      @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+      @cur += 1
+      i3 = 0
+      pos3 = nil
+      p_loc3 = nil
+      n3 = nil
+      catch(1) do
+        pos3 = @cur
+        p_loc3 = @cur_loc
+        n3 = answer.thunks.length
         if refill_buffer(1) < 1
-          throw(0)
+          throw(1)
         end
-        u = @buffer[@cur]
+        u4 = @buffer[@cur]
         if (!(
-          (u >= "a" && u <= "z") ||
-          (u >= "A" && u <= "Z") ||
-          u == "_"
+          (u4 >= "a" && u4 <= "z") ||
+          (u4 >= "A" && u4 <= "Z") ||
+          u4 == "_" ||
+          (u4 >= "0" && u4 <= "9")
         ))
-          throw(0)
+          throw(1)
         end
         @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
         @cur += 1
+        i3 += 1
+        if @cur != pos3
+          redo
+        end
+        pos3 = nil
       end
-      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-        i = 0
-        catch(1) do
-          pos = @cur
-          p_loc = @cur_loc
-          n = answer.thunks.length
-          1.times do |;u, n|
-            if refill_buffer(1) < 1
-              throw(1)
-            end
-            u = @buffer[@cur]
-            if (!(
-              (u >= "a" && u <= "z") ||
-              (u >= "A" && u <= "Z") ||
-              u == "_" ||
-              (u >= "0" && u <= "9")
-            ))
-              throw(1)
-            end
-            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-            @cur += 1
-          end
-          i += 1
-          if @cur != pos
-            redo
-          end
-          pos = nil
-        end
-        if pos
-          @cur = pos
-          @cur_loc = p_loc
-          answer.thunks[n..-1] = []
-        end
+      if pos3
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
       end
       answer.thunks.push(
         ThunkLeaf.new(
@@ -4070,50 +4028,49 @@ class Packcr::Parser
     @level += 1
     answer.resize_captures(0)
     catch(0) do
-      1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-        p0 = @cur
-        p0_loc = @cur_loc
-        n0 = answer.thunks.length
-        i = 0
-        catch(1) do
-          pos = @cur
-          p_loc = @cur_loc
-          n = answer.thunks.length
-          1.times do |;u, n|
-            if refill_buffer(1) < 1
-              throw(1)
-            end
-            u = @buffer[@cur]
-            if (!(
-              u == " " ||
-              u == "\t" ||
-              u == "\v" ||
-              u == "\f" ||
-              u == "\r" ||
-              u == "\n"
-            ))
-              throw(1)
-            end
-            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-            @cur += 1
-          end
-          i += 1
-          if @cur != pos
-            redo
-          end
-          pos = nil
+      q2 = @cur
+      q_loc2 = @cur_loc
+      m2 = answer.thunks.length
+      i2 = 0
+      pos2 = nil
+      p_loc2 = nil
+      n2 = nil
+      catch(1) do
+        pos2 = @cur
+        p_loc2 = @cur_loc
+        n2 = answer.thunks.length
+        if refill_buffer(1) < 1
+          throw(1)
         end
-        if pos
-          @cur = pos
-          @cur_loc = p_loc
-          answer.thunks[n..-1] = []
+        u3 = @buffer[@cur]
+        if (!(
+          u3 == " " ||
+          u3 == "\t" ||
+          u3 == "\v" ||
+          u3 == "\f" ||
+          u3 == "\r" ||
+          u3 == "\n"
+        ))
+          throw(1)
         end
-        if i < 1
-          @cur = p0
-          @cur_loc = p0_loc
-          answer.thunks[n0..-1] = []
-          throw(0)
+        @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+        @cur += 1
+        i2 += 1
+        if @cur != pos2
+          redo
         end
+        pos2 = nil
+      end
+      if pos2
+        @cur = pos2
+        @cur_loc = p_loc2
+        answer.thunks[n2..-1] = []
+      end
+      if i2 < 1
+        @cur = q2
+        @cur_loc = q_loc2
+        answer.thunks[m2..-1] = []
+        throw(0)
       end
       @level -= 1
       debug { warn "#{ "  " * @level}MATCH   spaces #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
@@ -4131,41 +4088,42 @@ class Packcr::Parser
     debug { warn "#{ "  " * @level}EVAL    opt_spaces_or_comments #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
     answer.resize_captures(0)
-    1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-      i = 0
-      catch(1) do
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
-        catch(2) do |; pos, p_loc, n|
-          pos = @cur
-          p_loc = @cur_loc
-          n = answer.thunks.length
-          if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0)
-            throw(2)
-          end
-          @cur = pos
-          @cur_loc = p_loc
-          answer.thunks[n..-1] = []
-          if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
-            throw(2)
-          end
-          @cur = pos
-          @cur_loc = p_loc
-          answer.thunks[n..-1] = []
-          throw(1)
+    i2 = 0
+    pos2 = nil
+    p_loc2 = nil
+    n2 = nil
+    catch(1) do
+      pos2 = @cur
+      p_loc2 = @cur_loc
+      n2 = answer.thunks.length
+      catch(2) do
+        pos3 = @cur
+        p_loc3 = @cur_loc
+        n3 = answer.thunks.length
+        if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0)
+          throw(2)
         end
-        i += 1
-        if @cur != pos
-          redo
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
+        if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
+          throw(2)
         end
-        pos = nil
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
+        throw(1)
       end
-      if pos
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+      i2 += 1
+      if @cur != pos2
+        redo
       end
+      pos2 = nil
+    end
+    if pos2
+      @cur = pos2
+      @cur_loc = p_loc2
+      answer.thunks[n2..-1] = []
     end
     @level -= 1
     debug { warn "#{ "  " * @level}MATCH   opt_spaces_or_comments #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
@@ -4180,26 +4138,24 @@ class Packcr::Parser
     @level += 1
     answer.resize_captures(0)
     catch(0) do
-      1.times do |;pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
-        catch(2) do
-          catch(1) do
-            if (
-              refill_buffer(1) < 1 ||
-              @buffer[@cur] != "\r"
-            )
-              throw(1)
-            end
-            @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-            @cur += 1
-            throw(2)
+      pos3 = @cur
+      p_loc3 = @cur_loc
+      n3 = answer.thunks.length
+      catch(2) do
+        catch(1) do
+          if (
+            refill_buffer(1) < 1 ||
+            @buffer[@cur] != "\r"
+          )
+            throw(1)
           end
-          @cur_loc = p_loc
-          @cur = pos
-          answer.thunks[n..-1] = []
+          @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+          @cur += 1
+          throw(2)
         end
+        @cur_loc = p_loc3
+        @cur = pos3
+        answer.thunks[n3..-1] = []
       end
       if (
         refill_buffer(1) < 1 ||
@@ -4234,61 +4190,58 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
       @cur += 2
-      catch(1) do |; pos, p_loc, n|
-        pos = @cur
-        p_loc = @cur_loc
-        n = answer.thunks.length
+      catch(1) do
+        pos3 = @cur
+        p_loc3 = @cur_loc
+        n3 = answer.thunks.length
         if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
         if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0)
           throw(1)
         end
-        @cur = pos
-        @cur_loc = p_loc
-        answer.thunks[n..-1] = []
+        @cur = pos3
+        @cur_loc = p_loc3
+        answer.thunks[n3..-1] = []
         throw(0)
       end
-      1.times do |;pos, q, capt, p_loc, q_loc|
-        pos = @cur
-        p_loc = @cur_loc
-        1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
-          i = 0
-          catch(2) do
-            pos = @cur
-            p_loc = @cur_loc
-            n = answer.thunks.length
-            1.times do |;u, n|
-              if refill_buffer(1) < 1
-                throw(2)
-              end
-              u = @buffer[@cur]
-              @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
-              @cur += 1
-            end
-            i += 1
-            if @cur != pos
-              redo
-            end
-            pos = nil
-          end
-          if pos
-            @cur = pos
-            @cur_loc = p_loc
-            answer.thunks[n..-1] = []
-          end
+      pos3 = @cur
+      p_loc3 = @cur_loc
+      i4 = 0
+      pos4 = nil
+      p_loc4 = nil
+      n4 = nil
+      catch(2) do
+        pos4 = @cur
+        p_loc4 = @cur_loc
+        n4 = answer.thunks.length
+        if refill_buffer(1) < 1
+          throw(2)
         end
-        q = @cur
-        capt = answer.capts[0]
-        capt.range_start = pos
-        capt.range_end = q
-        q_loc = @cur_loc
-        capt.start_loc = p_loc
-        capt.end_loc = q_loc
+        u5 = @buffer[@cur]
+        @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+        @cur += 1
+        i4 += 1
+        if @cur != pos4
+          redo
+        end
+        pos4 = nil
       end
+      if pos4
+        @cur = pos4
+        @cur_loc = p_loc4
+        answer.thunks[n4..-1] = []
+      end
+      q3 = @cur
+      capt3 = answer.capts[0]
+      capt3.range_start = pos3
+      capt3.range_end = q3
+      q_loc3 = @cur_loc
+      capt3.start_loc = p_loc3
+      capt3.end_loc = q_loc3
       answer.thunks.push(
         ThunkLeaf.new(
           :action_footer_0,

@@ -1,6 +1,6 @@
 class Packcr
   class Generator
-    attr_reader :ascii, :rule, :location, :lang
+    attr_reader :ascii, :rule, :location, :lang, :level
 
     def initialize(rule, ascii, location, lang = :c)
       @rule = rule
@@ -8,6 +8,7 @@ class Packcr
       @ascii = !!ascii
       @location = !!location
       @lang = lang
+      @level = 0
     end
 
     def next_label
@@ -16,6 +17,7 @@ class Packcr
 
     def generate_code(node, onescape, indent, bare, reverse: false, oncut: nil)
       @stream, stream = +"", @stream
+      @level += 1
       begin
         if reverse
           node.generate_reverse_code(self, onescape, indent, bare, oncut: oncut)
@@ -24,6 +26,7 @@ class Packcr
         end
         @stream
       ensure
+        @level -= 1
         @stream = stream
       end
     end

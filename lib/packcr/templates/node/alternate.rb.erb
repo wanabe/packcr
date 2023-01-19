@@ -1,10 +1,10 @@
 <%-   m = gen.next_label -%>
-catch(<%= m %>) do |; pos, p_loc, n|
-  pos = @cur
+catch(<%= m %>) do
+  pos<%= gen.level %> = @cur
   <%- if gen.location -%>
-  p_loc = @cur_loc
+  p_loc<%= gen.level %> = @cur_loc
   <%- end -%>
-  n = answer.thunks.length
+  n<%= gen.level %> = answer.thunks.length
   <%- nodes.each_with_index do |expr, i| -%>
   <%-   c = i + 1 < nodes.length -%>
   <%- if expr.reversible?(gen) -%>
@@ -28,11 +28,11 @@ catch(<%= m %>) do |; pos, p_loc, n|
     <%-   end -%>
   end
   <%- end -%>
-  @cur = pos
+  @cur = pos<%= gen.level %>
   <%- if gen.location -%>
-  @cur_loc = p_loc
+  @cur_loc = p_loc<%= gen.level %>
   <%- end -%>
-  answer.thunks[n..-1] = []
+  answer.thunks[n<%= gen.level %>..-1] = []
   <%-   if !c -%>
   throw(<%= onfail %>)
   <%-   end -%>

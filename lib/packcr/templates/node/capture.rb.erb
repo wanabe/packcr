@@ -1,16 +1,14 @@
-1.times do |;pos, q, capt, p_loc, q_loc|
-  pos = @cur
-  <%- if gen.location -%>
-  p_loc = @cur_loc
-  <%- end -%>
-  <%- %><%= gen.generate_code(expr, onfail, 2, false) -%>
-  q = @cur
-  capt = answer.capts[<%= index %>]
-  capt.range_start = pos
-  capt.range_end = q
-  <%- if gen.location -%>
-  q_loc = @cur_loc
-  capt.start_loc = p_loc
-  capt.end_loc = q_loc
-  <%- end -%>
-end
+pos<%= gen.level %> = @cur
+<%- if gen.location -%>
+p_loc<%= gen.level %> = @cur_loc
+<%- end -%>
+<%- %><%= gen.generate_code(expr, onfail, 0, false) -%>
+q<%= gen.level %> = @cur
+capt<%= gen.level %> = answer.capts[<%= index %>]
+capt<%= gen.level %>.range_start = pos<%= gen.level %>
+capt<%= gen.level %>.range_end = q<%= gen.level %>
+<%- if gen.location -%>
+q_loc<%= gen.level %> = @cur_loc
+capt<%= gen.level %>.start_loc = p_loc<%= gen.level %>
+capt<%= gen.level %>.end_loc = q_loc<%= gen.level %>
+<%- end -%>
