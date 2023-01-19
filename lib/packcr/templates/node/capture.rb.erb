@@ -5,7 +5,7 @@
   <%- end -%>
   <%- %><%= gen.generate_code(expr, onfail, 2, false) -%>
   q = @cur
-  capt = chunk.capts[<%= index %>]
+  capt = answer.capts[<%= index %>]
   capt.range_start = pos
   capt.range_end = q
   <%- if gen.location -%>

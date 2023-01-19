@@ -123,10 +123,10 @@ class <%= class_name %>
   <%- end -%>
   <%- @root.rules.each do |rule| -%>
   def evaluate_rule_<%= rule.name %>
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
+    answer = ThunkChunk.new
+    answer.pos = @cur
     <%-   if @location -%>
-    chunk.pos_loc = @cur_loc
+    answer.pos_loc = @cur_loc
     <%-   end -%>
     <%-   gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb) -%>
     <%-   -%><%= gen.generate_code(rule, 0, 4, false) -%>
@@ -134,7 +134,7 @@ class <%= class_name %>
 
   <%- end -%>
 
-  def rule_chunk(rule, thunks, values, index)
+  def rule_answer(rule, thunks, values, index)
     pos = @pos + @cur
     <%- if @location -%>
     p_loc = @pos_loc + @cur_loc
@@ -157,7 +157,7 @@ class <%= class_name %>
       @cur_loc = memo.pos_loc - @pos_loc
       <%- end -%>
       if !memo.lr
-        return memo.chunk
+        return memo.answer
       end
       memo.lr.head ||= LrHead.new(rule)
       @lrstack.reverse_each do |lrentry|
@@ -176,25 +176,25 @@ class <%= class_name %>
     @lrstack.push(lr)
     memo = LrMemo.new(lr, pos<% if @location %>, p_loc<% end %>)
     @lrtable.memos[pos, rule] = memo
-    chunk = public_send(rule)
+    answer = public_send(rule)
     @lrstack.pop
     memo.pos = @pos + @cur
     <%- if @location -%>
     memo.pos_loc = @pos_loc + @cur_loc
     <%- end -%>
     if !lr.head
-      memo.chunk = chunk
-      return chunk
+      memo.answer = answer
+      return answer
     end
 
-    lr.seed = chunk
+    lr.seed = answer
     head = lr.head
     if head.rule_name != rule
-      return chunk
+      return answer
     end
 
-    memo.chunk = chunk
-    if !chunk
+    memo.answer = answer
+    if !answer
       return nil
     end
     @lrtable.heads[pos] = head
@@ -204,11 +204,11 @@ class <%= class_name %>
       @cur_loc = p_loc - @pos_loc
       <%- end -%>
       head.involved_set_to_eval_set
-      chunk = public_send(rule)
-      if !chunk || @pos + @cur <= memo.pos
+      answer = public_send(rule)
+      if !answer || @pos + @cur <= memo.pos
         break
       end
-      memo.chunk = chunk
+      memo.answer = answer
       memo.pos = @pos + @cur
       <%- if @location -%>
       memo.pos_loc = @pos_loc + @cur_loc
@@ -219,16 +219,16 @@ class <%= class_name %>
     <%- if @location -%>
     @cur_loc = memo.pos_loc - @pos_loc
     <%- end -%>
-    memo.chunk
+    memo.answer
   end
 
   def apply_rule(rule, thunks, values, index)
-    chunk = rule_chunk(rule, thunks, values, index)
-    if !chunk
+    answer = rule_answer(rule, thunks, values, index)
+    if !answer
       return false
     end
     values ||= @global_values
-    thunks << ThunkNode.new(chunk.thunks, values, index)
+    thunks << ThunkNode.new(answer.thunks, values, index)
     return true
   end
 
@@ -377,7 +377,7 @@ class <%= class_name %>
   end
 
   class LrMemo
-    attr_accessor :lr, :chunk, :pos
+    attr_accessor :lr, :answer, :pos
     <%- if @location -%>
     attr_accessor :pos_loc
     <%- end -%>
@@ -390,9 +390,9 @@ class <%= class_name %>
       @lr = lr
     end
 
-    def chunk=(chunk)
+    def answer=(answer)
       @lr = nil
-      @chunk = chunk
+      @answer = answer
     end
   end
 

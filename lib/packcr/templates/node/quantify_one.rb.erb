@@ -4,7 +4,7 @@
   <%- if gen.location -%>
   p_loc = @cur_loc
   <%- end -%>
-  n = chunk.thunks.length
+  n = answer.thunks.length
   <%- r = expr.reachability -%>
   <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
   <%- %><%= gen.generate_code(expr, l, 2, false) -%>
@@ -19,7 +19,7 @@
     @cur_loc = p_loc
     <%-   end -%>
     @cur = pos
-    chunk.thunks[n..-1] = []
+    answer.thunks[n..-1] = []
   end
   <%- end -%>
 end

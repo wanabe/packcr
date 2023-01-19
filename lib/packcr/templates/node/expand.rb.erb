@@ -1,5 +1,5 @@
 1.times do |;n, capt, ptr, q|
-  capt = chunk.capts[<%= index %>]
+  capt = answer.capts[<%= index %>]
   n = capt.range_end - capt.range_start
   if refill_buffer(n) < n
     throw(<%= onfail %>)

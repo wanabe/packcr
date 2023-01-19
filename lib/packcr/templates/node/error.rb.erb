@@ -10,20 +10,20 @@ catch(<%= m %>) do
     ThunkLeaf.new(
       :action_<%= gen.rule.name %>_<%= index %>,
       Capture.new(
-        chunk.pos, @cur,
+        answer.pos, @cur,
         <%- if gen.location -%>
-        chunk.pos_loc,@cur_loc,
+        answer.pos_loc,@cur_loc,
         <%- end -%>
       ),
       <%- if vars.empty? -%>
       {},
       <%- else -%>
-      chunk.values.slice(<% vars.each_with_index do |var, i| %><%= ", " if i > 0 %><%= var.index %><% end %>),
+      answer.values.slice(<% vars.each_with_index do |var, i| %><%= ", " if i > 0 %><%= var.index %><% end %>),
       <%- end -%>
       <%- if capts.empty? -%>
       {},
       <%- else -%>
-      chunk.capts.slice(<% capts.each_with_index do |capt, i| %><%= ", " if i > 0 %><%= capt.index %><% end %>),
+      answer.capts.slice(<% capts.each_with_index do |capt, i| %><%= ", " if i > 0 %><%= capt.index %><% end %>),
       <%- end -%>
     ),
     nil,

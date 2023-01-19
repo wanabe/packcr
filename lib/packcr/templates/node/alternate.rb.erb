@@ -4,7 +4,7 @@ catch(<%= m %>) do |; pos, p_loc, n|
   <%- if gen.location -%>
   p_loc = @cur_loc
   <%- end -%>
-  n = chunk.thunks.length
+  n = answer.thunks.length
   <%- nodes.each_with_index do |expr, i| -%>
   <%-   c = i + 1 < nodes.length -%>
   <%- if expr.reversible?(gen) -%>
@@ -32,7 +32,7 @@ catch(<%= m %>) do |; pos, p_loc, n|
   <%- if gen.location -%>
   @cur_loc = p_loc
   <%- end -%>
-  chunk.thunks[n..-1] = []
+  answer.thunks[n..-1] = []
   <%-   if !c -%>
   throw(<%= onfail %>)
   <%-   end -%>

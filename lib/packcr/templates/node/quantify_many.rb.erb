@@ -4,7 +4,7 @@
   <%-   if gen.location -%>
   p0_loc = @cur_loc
   <%-   end -%>
-  n0 = chunk.thunks.length
+  n0 = answer.thunks.length
   <%- end -%>
   i = 0
   <%- l = gen.next_label -%>
@@ -13,7 +13,7 @@
     <%- if gen.location -%>
     p_loc = @cur_loc
     <%- end -%>
-    n = chunk.thunks.length
+    n = answer.thunks.length
     <%- r = expr.reachability -%>
     <%- %><%= gen.generate_code(expr, l, 4, false) -%>
     i += 1
@@ -28,7 +28,7 @@
     <%-   if gen.location -%>
     @cur_loc = p_loc
     <%-   end -%>
-    chunk.thunks[n..-1] = []
+    answer.thunks[n..-1] = []
   end
   <%- end -%>
   <%- if min > 0 -%>
@@ -37,7 +37,7 @@
     <%-   if gen.location -%>
     @cur_loc = p0_loc
     <%-   end -%>
-    chunk.thunks[n0..-1] = []
+    answer.thunks[n0..-1] = []
     throw(<%= onfail %>)
   end
   <%- end -%>

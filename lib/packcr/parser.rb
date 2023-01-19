@@ -875,63 +875,63 @@ class Packcr::Parser
   end
 
   def evaluate_rule_statement
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    statement #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    statement #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
-        if apply_rule(:evaluate_rule_comment, chunk.thunks, nil, 0)
+        n = answer.thunks.length
+        if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_directive_include, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_directive_include, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_directive_string, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_directive_string, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_directive_value, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_directive_value, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_rule, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_rule, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_footer, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_footer, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(2) do
           catch(4) do
             catch(3) do
-              if !apply_rule(:evaluate_rule_EOF, chunk.thunks, nil, 0)
+              if !apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0)
                 throw(3)
               end
               throw(4)
@@ -941,8 +941,8 @@ class Packcr::Parser
               ThunkLeaf.new(
                 :action_statement_0,
                 Capture.new(
-                  chunk.pos, @cur,
-                  chunk.pos_loc,@cur_loc,
+                  answer.pos, @cur,
+                  answer.pos_loc,@cur_loc,
                 ),
                 {},
                 {},
@@ -957,30 +957,30 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   statement #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   statement #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH statement #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH statement #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_supported_language
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    supported_language #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    supported_language #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(1) < 1 ||
@@ -994,7 +994,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
           if (
             refill_buffer(2) < 2 ||
@@ -1008,17 +1008,17 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_identifier, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
             throw(4)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_supported_language_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
               {},
               {},
@@ -1028,25 +1028,25 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   supported_language #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   supported_language #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH supported_language #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH supported_language #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_comment
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    comment #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    comment #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       if (
         refill_buffer(1) < 1 ||
@@ -1061,7 +1061,7 @@ class Packcr::Parser
         catch(1) do
           pos = @cur
           p_loc = @cur_loc
-          n = chunk.thunks.length
+          n = answer.thunks.length
           1.times do |;u, n|
             if refill_buffer(1) < 1
               throw(1)
@@ -1084,49 +1084,49 @@ class Packcr::Parser
         if pos
           @cur = pos
           @cur_loc = p_loc
-          chunk.thunks[n..-1] = []
+          answer.thunks[n..-1] = []
         end
       end
       catch(2) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
-        if apply_rule(:evaluate_rule_lf, chunk.thunks, nil, 0)
+        n = answer.thunks.length
+        if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0)
           throw(2)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_EOF, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0)
           throw(2)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   comment #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   comment #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH comment #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH comment #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_directive_include
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    directive_include #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    directive_include #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
-    chunk.values = {}
+    answer.resize_captures(1)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(12) < 12 ||
@@ -1136,20 +1136,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 12)
           @cur += 12
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(2)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1157,7 +1157,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
           if (
             refill_buffer(7) < 7 ||
@@ -1167,20 +1167,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
           @cur += 7
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(3)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1188,7 +1188,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(4) do
           if (
             refill_buffer(11) < 11 ||
@@ -1198,20 +1198,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
           @cur += 11
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(4)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(4)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_2,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1219,7 +1219,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(5) do
           if (
             refill_buffer(11) < 11 ||
@@ -1229,20 +1229,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
           @cur += 11
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(5)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(5)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_3,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1250,7 +1250,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(6) do
           if (
             refill_buffer(7) < 7 ||
@@ -1260,20 +1260,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
           @cur += 7
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(6)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(6)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_4,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1281,7 +1281,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(7) do
           if (
             refill_buffer(9) < 9 ||
@@ -1291,20 +1291,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 9)
           @cur += 9
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(7)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(7)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_5,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1312,7 +1312,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(8) do
           if (
             refill_buffer(11) < 11 ||
@@ -1322,20 +1322,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 11)
           @cur += 11
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(8)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(8)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_6,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1343,7 +1343,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(9) do
           if (
             refill_buffer(12) < 12 ||
@@ -1353,20 +1353,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 12)
           @cur += 12
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(9)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(9)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_7,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1374,7 +1374,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(10) do
           if (
             refill_buffer(7) < 7 ||
@@ -1384,20 +1384,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
           @cur += 7
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(10)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(10)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_8,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1405,7 +1405,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(11) do
           if (
             refill_buffer(1) < 1 ||
@@ -1418,81 +1418,81 @@ class Packcr::Parser
           1.times do |;pos, q, capt, p_loc, q_loc|
             pos = @cur
             p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_identifier, chunk.thunks, nil, 0)
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
               throw(11)
             end
             q = @cur
-            capt = chunk.capts[0]
+            capt = answer.capts[0]
             capt.range_start = pos
             capt.range_end = q
             q_loc = @cur_loc
             capt.start_loc = p_loc
             capt.end_loc = q_loc
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(11)
           end
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(11)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_include_9,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
-              chunk.capts.slice(0),
+              answer.values.slice(0),
+              answer.capts.slice(0),
             )
           )
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   directive_include #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   directive_include #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH directive_include #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH directive_include #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_code_blocks
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    code_blocks #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    code_blocks #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
-    chunk.values = {}
+    answer.resize_captures(0)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_code_blocks, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1)
             throw(2)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_code_blocks_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0, 1),
+              answer.values.slice(0, 1),
               {},
             )
           )
@@ -1500,19 +1500,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1)
             throw(3)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_code_blocks_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(1),
+              answer.values.slice(1),
               {},
             )
           )
@@ -1520,31 +1520,31 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   code_blocks #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   code_blocks #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH code_blocks #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH code_blocks #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_directive_string
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    directive_string #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    directive_string #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
-    chunk.values = {}
+    answer.resize_captures(1)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(6) < 6 ||
@@ -1554,20 +1554,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 6)
           @cur += 6
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_lang_strings, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
             throw(2)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_string_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1575,7 +1575,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
           if (
             refill_buffer(6) < 6 ||
@@ -1585,20 +1585,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 6)
           @cur += 6
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
-          if !apply_rule(:evaluate_rule_lang_strings, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
             throw(3)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_string_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1606,7 +1606,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(4) do
           if (
             refill_buffer(7) < 7 ||
@@ -1616,20 +1616,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 7)
           @cur += 7
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(4)
           end
-          if !apply_rule(:evaluate_rule_lang_strings, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
             throw(4)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_string_2,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1637,7 +1637,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(5) do
           if (
             refill_buffer(1) < 1 ||
@@ -1650,57 +1650,57 @@ class Packcr::Parser
           1.times do |;pos, q, capt, p_loc, q_loc|
             pos = @cur
             p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_identifier, chunk.thunks, nil, 0)
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
               throw(5)
             end
             q = @cur
-            capt = chunk.capts[0]
+            capt = answer.capts[0]
             capt.range_start = pos
             capt.range_end = q
             q_loc = @cur_loc
             capt.start_loc = p_loc
             capt.end_loc = q_loc
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(5)
           end
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 1)
             throw(5)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_directive_string_3,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(1),
-              chunk.capts.slice(0),
+              answer.values.slice(1),
+              answer.capts.slice(0),
             )
           )
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   directive_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   directive_string #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH directive_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH directive_string #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_directive_value
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    directive_value #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    directive_value #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       if (
         refill_buffer(8) < 8 ||
@@ -1710,13 +1710,13 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 8)
       @cur += 8
-      if !apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
+      if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
         throw(0)
       end
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(2) < 2 ||
@@ -1730,7 +1730,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
           if (
             refill_buffer(4) < 4 ||
@@ -1744,60 +1744,60 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
-      chunk.thunks.push(
+      answer.thunks.push(
         ThunkLeaf.new(
           :action_directive_value_0,
           Capture.new(
-            chunk.pos, @cur,
-            chunk.pos_loc, @cur_loc,
+            answer.pos, @cur,
+            answer.pos_loc, @cur_loc,
           ),
           {},
           {},
         )
       )
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   directive_value #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   directive_value #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH directive_value #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH directive_value #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_lang_strings
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    lang_strings #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    lang_strings #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
-    chunk.values = {}
+    answer.resize_captures(0)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_lang_strings, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_lang_string, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1)
             throw(2)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_lang_strings_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0, 1),
+              answer.values.slice(0, 1),
               {},
             )
           )
@@ -1805,19 +1805,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_lang_string, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1)
             throw(3)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_lang_strings_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(1),
+              answer.values.slice(1),
               {},
             )
           )
@@ -1825,43 +1825,43 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   lang_strings #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   lang_strings #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH lang_strings #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH lang_strings #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_lang_string
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    lang_string #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    lang_string #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
-    chunk.values = {}
+    answer.resize_captures(1)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0)
             throw(2)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_lang_string_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -1869,23 +1869,23 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
           1.times do |;pos, q, capt, p_loc, q_loc|
             pos = @cur
             p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_supported_language, chunk.thunks, nil, 0)
+            if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0)
               throw(3)
             end
             q = @cur
-            capt = chunk.capts[0]
+            capt = answer.capts[0]
             capt.range_start = pos
             capt.range_end = q
             q_loc = @cur_loc
             capt.start_loc = p_loc
             capt.end_loc = q_loc
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
           if (
@@ -1896,52 +1896,52 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
           @cur += 2
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0)
             throw(3)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_lang_string_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
-              chunk.capts.slice(0),
+              answer.values.slice(0),
+              answer.capts.slice(0),
             )
           )
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   lang_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   lang_string #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH lang_string #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH lang_string #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_rule
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    rule #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    rule #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
-    chunk.values = {}
+    answer.resize_captures(0)
+    answer.values = {}
     catch(0) do
-      if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 0)
+      if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 0)
         throw(0)
       end
-      if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+      if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
         throw(0)
       end
       if (
@@ -1952,50 +1952,50 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
       @cur += 2
-      if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+      if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
         throw(0)
       end
-      if !apply_rule(:evaluate_rule_expression, chunk.thunks, chunk.values, 1)
+      if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 1)
         throw(0)
       end
-      chunk.thunks.push(
+      answer.thunks.push(
         ThunkLeaf.new(
           :action_rule_0,
           Capture.new(
-            chunk.pos, @cur,
-            chunk.pos_loc, @cur_loc,
+            answer.pos, @cur,
+            answer.pos_loc, @cur_loc,
           ),
-          chunk.values.slice(0, 1),
+          answer.values.slice(0, 1),
           {},
         )
       )
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   rule #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   rule #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH rule #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH rule #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_expression
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    expression #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    expression #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
-    chunk.values = {}
+    answer.resize_captures(0)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_expression, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(2)
           end
           if (
@@ -2006,20 +2006,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1)
             throw(0)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_expression_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0, 1),
+              answer.values.slice(0, 1),
               {},
             )
           )
@@ -2027,19 +2027,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1)
             throw(3)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_expression_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(1),
+              answer.values.slice(1),
               {},
             )
           )
@@ -2047,36 +2047,36 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   expression #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   expression #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH expression #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH expression #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_sequence
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    sequence #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    sequence #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
-    chunk.values = {}
+    answer.resize_captures(0)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(2)
           end
           if (
@@ -2087,20 +2087,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
           @cur += 2
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1)
             throw(0)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_sequence_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0, 1),
+              answer.values.slice(0, 1),
               {},
             )
           )
@@ -2108,12 +2108,12 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
             throw(3)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
           if (
@@ -2124,20 +2124,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 2)
+          if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 2)
             throw(0)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_sequence_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0, 2),
+              answer.values.slice(0, 2),
               {},
             )
           )
@@ -2145,25 +2145,25 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_sequence, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
             throw(4)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(4)
           end
-          if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1)
             throw(4)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_sequence_2,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0, 1),
+              answer.values.slice(0, 1),
               {},
             )
           )
@@ -2171,19 +2171,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(5) do
-          if !apply_rule(:evaluate_rule_term, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1)
             throw(5)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_sequence_3,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(1),
+              answer.values.slice(1),
               {},
             )
           )
@@ -2191,31 +2191,31 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   sequence #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   sequence #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH sequence #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH sequence #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_term
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    term #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    term #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
-    chunk.values = {}
+    answer.resize_captures(0)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(1) < 1 ||
@@ -2225,20 +2225,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_quantity, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0)
             throw(0)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_term_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -2246,7 +2246,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
           if (
             refill_buffer(1) < 1 ||
@@ -2256,20 +2256,20 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_quantity, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0)
             throw(0)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_term_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -2277,19 +2277,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_quantity, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0)
             throw(4)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_term_2,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -2297,36 +2297,36 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   term #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   term #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH term #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH term #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_quantity
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    quantity #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    quantity #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
-    chunk.values = {}
+    answer.resize_captures(0)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_primary, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
             throw(2)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(2)
           end
           if (
@@ -2337,14 +2337,14 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_quantity_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -2352,12 +2352,12 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_primary, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
             throw(3)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
           if (
@@ -2368,14 +2368,14 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_quantity_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -2383,12 +2383,12 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_primary, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
             throw(4)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(4)
           end
           if (
@@ -2399,14 +2399,14 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_quantity_2,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -2414,19 +2414,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(5) do
-          if !apply_rule(:evaluate_rule_primary, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
             throw(5)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_quantity_3,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -2434,43 +2434,43 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   quantity #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   quantity #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH quantity #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH quantity #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_primary
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    primary #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    primary #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
-    chunk.values = {}
+    answer.resize_captures(1)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_lang_code_block, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 0)
             throw(2)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -2478,12 +2478,12 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 1)
+          if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 1)
             throw(3)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
           if (
@@ -2494,10 +2494,10 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 2)
+          if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
             throw(0)
           end
           1.times do |;pos, p_loc|
@@ -2509,7 +2509,7 @@ class Packcr::Parser
                 catch(5) do
                   pos = @cur
                   p_loc = @cur_loc
-                  n = chunk.thunks.length
+                  n = answer.thunks.length
                   1.times do |;u, n|
                     if refill_buffer(1) < 1
                       throw(5)
@@ -2537,7 +2537,7 @@ class Packcr::Parser
                 if pos
                   @cur = pos
                   @cur_loc = p_loc
-                  chunk.thunks[n..-1] = []
+                  answer.thunks[n..-1] = []
                 end
               end
               if (
@@ -2555,14 +2555,14 @@ class Packcr::Parser
             @cur = pos
             @cur_loc = p_loc
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(1, 2),
+              answer.values.slice(1, 2),
               {},
             )
           )
@@ -2570,7 +2570,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(6) do
           if (
             refill_buffer(2) < 2 ||
@@ -2580,7 +2580,7 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
           @cur += 2
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(6)
           end
           if (
@@ -2591,10 +2591,10 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 2)
+          if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
             throw(0)
           end
           1.times do |;pos, p_loc|
@@ -2606,7 +2606,7 @@ class Packcr::Parser
                 catch(8) do
                   pos = @cur
                   p_loc = @cur_loc
-                  n = chunk.thunks.length
+                  n = answer.thunks.length
                   1.times do |;u, n|
                     if refill_buffer(1) < 1
                       throw(8)
@@ -2634,7 +2634,7 @@ class Packcr::Parser
                 if pos
                   @cur = pos
                   @cur_loc = p_loc
-                  chunk.thunks[n..-1] = []
+                  answer.thunks[n..-1] = []
                 end
               end
               if (
@@ -2652,14 +2652,14 @@ class Packcr::Parser
             @cur = pos
             @cur_loc = p_loc
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_2,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(2),
+              answer.values.slice(2),
               {},
             )
           )
@@ -2667,9 +2667,9 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(9) do
-          if !apply_rule(:evaluate_rule_identifier, chunk.thunks, chunk.values, 2)
+          if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
             throw(9)
           end
           1.times do |;pos, p_loc|
@@ -2681,7 +2681,7 @@ class Packcr::Parser
                 catch(11) do
                   pos = @cur
                   p_loc = @cur_loc
-                  n = chunk.thunks.length
+                  n = answer.thunks.length
                   1.times do |;u, n|
                     if refill_buffer(1) < 1
                       throw(11)
@@ -2709,7 +2709,7 @@ class Packcr::Parser
                 if pos
                   @cur = pos
                   @cur_loc = p_loc
-                  chunk.thunks[n..-1] = []
+                  answer.thunks[n..-1] = []
                 end
               end
               if (
@@ -2727,14 +2727,14 @@ class Packcr::Parser
             @cur = pos
             @cur_loc = p_loc
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_3,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(2),
+              answer.values.slice(2),
               {},
             )
           )
@@ -2742,7 +2742,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(12) do
           if (
             refill_buffer(1) < 1 ||
@@ -2752,13 +2752,13 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_expression, chunk.thunks, chunk.values, 3)
+          if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 3)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
           if (
@@ -2769,14 +2769,14 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_4,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(3),
+              answer.values.slice(3),
               {},
             )
           )
@@ -2784,7 +2784,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(13) do
           if (
             refill_buffer(1) < 1 ||
@@ -2794,13 +2794,13 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_expression, chunk.thunks, chunk.values, 3)
+          if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 3)
             throw(0)
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(0)
           end
           if (
@@ -2811,14 +2811,14 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_5,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(3),
+              answer.values.slice(3),
               {},
             )
           )
@@ -2826,7 +2826,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(14) do
           if (
             refill_buffer(1) < 1 ||
@@ -2857,7 +2857,7 @@ class Packcr::Parser
               catch(15) do
                 pos = @cur
                 p_loc = @cur_loc
-                n = chunk.thunks.length
+                n = answer.thunks.length
                 1.times do |;u, n|
                   if refill_buffer(1) < 1
                     throw(15)
@@ -2880,33 +2880,33 @@ class Packcr::Parser
               if pos
                 @cur = pos
                 @cur_loc = p_loc
-                chunk.thunks[n..-1] = []
+                answer.thunks[n..-1] = []
               end
             end
             q = @cur
-            capt = chunk.capts[0]
+            capt = answer.capts[0]
             capt.range_start = pos
             capt.range_end = q
             q_loc = @cur_loc
             capt.start_loc = p_loc
             capt.end_loc = q_loc
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_6,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
               {},
-              chunk.capts.slice(0),
+              answer.capts.slice(0),
             )
           )
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(16) do
           if (
             refill_buffer(1) < 1 ||
@@ -2916,12 +2916,12 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_7,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
               {},
               {},
@@ -2931,19 +2931,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(17) do
-          if !apply_rule(:evaluate_rule_character_class, chunk.thunks, chunk.values, 4)
+          if !apply_rule(:evaluate_rule_character_class, answer.thunks, answer.values, 4)
             throw(17)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_8,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(4),
+              answer.values.slice(4),
               {},
             )
           )
@@ -2951,19 +2951,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(18) do
-          if !apply_rule(:evaluate_rule_quotation_single, chunk.thunks, chunk.values, 4)
+          if !apply_rule(:evaluate_rule_quotation_single, answer.thunks, answer.values, 4)
             throw(18)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_9,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(4),
+              answer.values.slice(4),
               {},
             )
           )
@@ -2971,19 +2971,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(19) do
-          if !apply_rule(:evaluate_rule_quotation_double, chunk.thunks, chunk.values, 4)
+          if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 4)
             throw(19)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_primary_10,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(4),
+              answer.values.slice(4),
               {},
             )
           )
@@ -2991,25 +2991,25 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   primary #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   primary #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH primary #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH primary #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_character_class
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    character_class #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    character_class #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
+    answer.resize_captures(1)
     catch(0) do
       if (
         refill_buffer(1) < 1 ||
@@ -3027,11 +3027,11 @@ class Packcr::Parser
           catch(1) do
             pos = @cur
             p_loc = @cur_loc
-            n = chunk.thunks.length
+            n = answer.thunks.length
             catch(2) do |; pos, p_loc, n|
               pos = @cur
               p_loc = @cur_loc
-              n = chunk.thunks.length
+              n = answer.thunks.length
               1.times do |;u, n|
                 if refill_buffer(1) >= 1
                   u = @buffer[@cur]
@@ -3048,7 +3048,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(3) do
                 if (
                   refill_buffer(2) < 2 ||
@@ -3062,7 +3062,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(4) do
                 if (
                   refill_buffer(2) < 2 ||
@@ -3076,7 +3076,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(5) do
                 if (
                   refill_buffer(1) < 1 ||
@@ -3090,7 +3090,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               throw(1)
             end
             i += 1
@@ -3102,11 +3102,11 @@ class Packcr::Parser
           if pos
             @cur = pos
             @cur_loc = p_loc
-            chunk.thunks[n..-1] = []
+            answer.thunks[n..-1] = []
           end
         end
         q = @cur
-        capt = chunk.capts[0]
+        capt = answer.capts[0]
         capt.range_start = pos
         capt.range_end = q
         q_loc = @cur_loc
@@ -3121,51 +3121,51 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      chunk.thunks.push(
+      answer.thunks.push(
         ThunkLeaf.new(
           :action_character_class_0,
           Capture.new(
-            chunk.pos, @cur,
-            chunk.pos_loc, @cur_loc,
+            answer.pos, @cur,
+            answer.pos_loc, @cur_loc,
           ),
           {},
-          chunk.capts.slice(0),
+          answer.capts.slice(0),
         )
       )
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   character_class #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   character_class #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH character_class #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH character_class #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_lang_code_block
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    lang_code_block #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    lang_code_block #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
-    chunk.values = {}
+    answer.resize_captures(1)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_code_block, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0)
             throw(2)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_lang_code_block_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -3173,23 +3173,23 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
           1.times do |;pos, q, capt, p_loc, q_loc|
             pos = @cur
             p_loc = @cur_loc
-            if !apply_rule(:evaluate_rule_supported_language, chunk.thunks, nil, 0)
+            if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0)
               throw(3)
             end
             q = @cur
-            capt = chunk.capts[0]
+            capt = answer.capts[0]
             capt.range_start = pos
             capt.range_end = q
             q_loc = @cur_loc
             capt.start_loc = p_loc
             capt.end_loc = q_loc
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
           if (
@@ -3200,52 +3200,52 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 2)
           @cur += 2
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, chunk.thunks, nil, 0)
+          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
             throw(3)
           end
-          if !apply_rule(:evaluate_rule_code_block, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0)
             throw(3)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_lang_code_block_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
-              chunk.capts.slice(0),
+              answer.values.slice(0),
+              answer.capts.slice(0),
             )
           )
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   lang_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   lang_code_block #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH lang_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH lang_code_block #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_code_block
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    code_block #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    code_block #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
-    chunk.values = {}
+    answer.resize_captures(0)
+    answer.values = {}
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
           if (
             refill_buffer(1) < 1 ||
@@ -3255,17 +3255,17 @@ class Packcr::Parser
           end
           @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
           @cur += 1
-          if !apply_rule(:evaluate_rule_plain_code_block, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0)
             throw(2)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_code_block_0,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -3273,19 +3273,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_plain_code_block, chunk.thunks, chunk.values, 0)
+          if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0)
             throw(3)
           end
-          chunk.thunks.push(
+          answer.thunks.push(
             ThunkLeaf.new(
               :action_code_block_1,
               Capture.new(
-                chunk.pos, @cur,
-                chunk.pos_loc, @cur_loc,
+                answer.pos, @cur,
+                answer.pos_loc, @cur_loc,
               ),
-              chunk.values.slice(0),
+              answer.values.slice(0),
               {},
             )
           )
@@ -3293,25 +3293,25 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   code_block #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH code_block #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_plain_code_block
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    plain_code_block #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    plain_code_block #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
+    answer.resize_captures(1)
     catch(0) do
       if (
         refill_buffer(1) < 1 ||
@@ -3329,7 +3329,7 @@ class Packcr::Parser
           catch(1) do
             pos = @cur
             p_loc = @cur_loc
-            n = chunk.thunks.length
+            n = answer.thunks.length
             1.times do |;u, n|
               if refill_buffer(1) < 1
                 throw(1)
@@ -3357,14 +3357,14 @@ class Packcr::Parser
           if pos
             @cur = pos
             @cur_loc = p_loc
-            chunk.thunks[n..-1] = []
+            answer.thunks[n..-1] = []
           end
         end
-        if !apply_rule(:evaluate_rule_opt_codes, chunk.thunks, nil, 0)
+        if !apply_rule(:evaluate_rule_opt_codes, answer.thunks, nil, 0)
           throw(0)
         end
         q = @cur
-        capt = chunk.capts[0]
+        capt = answer.capts[0]
         capt.range_start = pos
         capt.range_end = q
         q_loc = @cur_loc
@@ -3379,40 +3379,40 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      chunk.thunks.push(
+      answer.thunks.push(
         ThunkLeaf.new(
           :action_plain_code_block_0,
           Capture.new(
-            chunk.pos, @cur,
-            chunk.pos_loc, @cur_loc,
+            answer.pos, @cur,
+            answer.pos_loc, @cur_loc,
           ),
           {},
-          chunk.capts.slice(0),
+          answer.capts.slice(0),
         )
       )
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   plain_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   plain_code_block #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH plain_code_block #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH plain_code_block #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_opt_codes
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    opt_codes #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    opt_codes #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
       i = 0
       catch(1) do
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
-        if !apply_rule(:evaluate_rule_code, chunk.thunks, nil, 0)
+        n = answer.thunks.length
+        if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0)
           throw(1)
         end
         1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
@@ -3420,7 +3420,7 @@ class Packcr::Parser
           catch(2) do
             pos = @cur
             p_loc = @cur_loc
-            n = chunk.thunks.length
+            n = answer.thunks.length
             1.times do |;u, n|
               if refill_buffer(1) < 1
                 throw(2)
@@ -3448,7 +3448,7 @@ class Packcr::Parser
           if pos
             @cur = pos
             @cur_loc = p_loc
-            chunk.thunks[n..-1] = []
+            answer.thunks[n..-1] = []
           end
         end
         i += 1
@@ -3460,37 +3460,37 @@ class Packcr::Parser
       if pos
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
       end
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}MATCH   opt_codes #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-    return chunk
+    debug { warn "#{ "  " * @level}MATCH   opt_codes #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+    return answer
   end
 
   def evaluate_rule_code
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    code #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    code #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
           1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
             p0 = @cur
             p0_loc = @cur_loc
-            n0 = chunk.thunks.length
+            n0 = answer.thunks.length
             i = 0
             catch(3) do
               pos = @cur
               p_loc = @cur_loc
-              n = chunk.thunks.length
-              if !apply_rule(:evaluate_rule_codechar, chunk.thunks, nil, 0)
+              n = answer.thunks.length
+              if !apply_rule(:evaluate_rule_codechar, answer.thunks, nil, 0)
                 throw(3)
               end
               i += 1
@@ -3502,12 +3502,12 @@ class Packcr::Parser
             if pos
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
             end
             if i < 1
               @cur = p0
               @cur_loc = p0_loc
-              chunk.thunks[n0..-1] = []
+              answer.thunks[n0..-1] = []
               throw(2)
             end
           end
@@ -3515,19 +3515,19 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_quotation_single, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_quotation_single, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_quotation_double, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_quotation_double, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(4) do
           if (
             refill_buffer(1) < 1 ||
@@ -3542,8 +3542,8 @@ class Packcr::Parser
             catch(5) do
               pos = @cur
               p_loc = @cur_loc
-              n = chunk.thunks.length
-              if !apply_rule(:evaluate_rule_code, chunk.thunks, nil, 0)
+              n = answer.thunks.length
+              if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0)
                 throw(5)
               end
               i += 1
@@ -3555,7 +3555,7 @@ class Packcr::Parser
             if pos
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
             end
           end
           if (
@@ -3570,30 +3570,30 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   code #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   code #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH code #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH code #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_codechar
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    codechar #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    codechar #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         1.times do |;u, n|
           if refill_buffer(1) >= 1
             u = @buffer[@cur]
@@ -3611,7 +3611,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(2) do
           if (
             refill_buffer(2) < 2 ||
@@ -3625,7 +3625,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(3) do
           if (
             refill_buffer(2) < 2 ||
@@ -3639,7 +3639,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(4) do
           if (
             refill_buffer(2) < 2 ||
@@ -3653,7 +3653,7 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         catch(5) do
           if (
             refill_buffer(2) < 2 ||
@@ -3667,25 +3667,25 @@ class Packcr::Parser
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   codechar #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   codechar #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH codechar #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH codechar #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_quotation_single
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    quotation_single #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    quotation_single #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
+    answer.resize_captures(1)
     catch(0) do
       if (
         refill_buffer(1) < 1 ||
@@ -3703,11 +3703,11 @@ class Packcr::Parser
           catch(1) do
             pos = @cur
             p_loc = @cur_loc
-            n = chunk.thunks.length
+            n = answer.thunks.length
             catch(2) do |; pos, p_loc, n|
               pos = @cur
               p_loc = @cur_loc
-              n = chunk.thunks.length
+              n = answer.thunks.length
               1.times do |;u, n|
                 if refill_buffer(1) >= 1
                   u = @buffer[@cur]
@@ -3724,7 +3724,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(3) do
                 if (
                   refill_buffer(2) < 2 ||
@@ -3738,7 +3738,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(4) do
                 if (
                   refill_buffer(2) < 2 ||
@@ -3752,7 +3752,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(5) do
                 if (
                   refill_buffer(1) < 1 ||
@@ -3780,7 +3780,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               throw(1)
             end
             i += 1
@@ -3792,11 +3792,11 @@ class Packcr::Parser
           if pos
             @cur = pos
             @cur_loc = p_loc
-            chunk.thunks[n..-1] = []
+            answer.thunks[n..-1] = []
           end
         end
         q = @cur
-        capt = chunk.capts[0]
+        capt = answer.capts[0]
         capt.range_start = pos
         capt.range_end = q
         q_loc = @cur_loc
@@ -3811,33 +3811,33 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      chunk.thunks.push(
+      answer.thunks.push(
         ThunkLeaf.new(
           :action_quotation_single_0,
           Capture.new(
-            chunk.pos, @cur,
-            chunk.pos_loc, @cur_loc,
+            answer.pos, @cur,
+            answer.pos_loc, @cur_loc,
           ),
           {},
-          chunk.capts.slice(0),
+          answer.capts.slice(0),
         )
       )
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   quotation_single #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   quotation_single #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH quotation_single #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH quotation_single #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_quotation_double
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    quotation_double #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    quotation_double #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
+    answer.resize_captures(1)
     catch(0) do
       if (
         refill_buffer(1) < 1 ||
@@ -3855,11 +3855,11 @@ class Packcr::Parser
           catch(1) do
             pos = @cur
             p_loc = @cur_loc
-            n = chunk.thunks.length
+            n = answer.thunks.length
             catch(2) do |; pos, p_loc, n|
               pos = @cur
               p_loc = @cur_loc
-              n = chunk.thunks.length
+              n = answer.thunks.length
               1.times do |;u, n|
                 if refill_buffer(1) >= 1
                   u = @buffer[@cur]
@@ -3876,7 +3876,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(3) do
                 if (
                   refill_buffer(2) < 2 ||
@@ -3890,7 +3890,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(4) do
                 if (
                   refill_buffer(2) < 2 ||
@@ -3904,7 +3904,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               catch(5) do
                 if (
                   refill_buffer(1) < 1 ||
@@ -3932,7 +3932,7 @@ class Packcr::Parser
               end
               @cur = pos
               @cur_loc = p_loc
-              chunk.thunks[n..-1] = []
+              answer.thunks[n..-1] = []
               throw(1)
             end
             i += 1
@@ -3944,11 +3944,11 @@ class Packcr::Parser
           if pos
             @cur = pos
             @cur_loc = p_loc
-            chunk.thunks[n..-1] = []
+            answer.thunks[n..-1] = []
           end
         end
         q = @cur
-        capt = chunk.capts[0]
+        capt = answer.capts[0]
         capt.range_start = pos
         capt.range_end = q
         q_loc = @cur_loc
@@ -3963,33 +3963,33 @@ class Packcr::Parser
       end
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
-      chunk.thunks.push(
+      answer.thunks.push(
         ThunkLeaf.new(
           :action_quotation_double_0,
           Capture.new(
-            chunk.pos, @cur,
-            chunk.pos_loc, @cur_loc,
+            answer.pos, @cur,
+            answer.pos_loc, @cur_loc,
           ),
           {},
-          chunk.capts.slice(0),
+          answer.capts.slice(0),
         )
       )
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   quotation_double #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   quotation_double #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH quotation_double #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH quotation_double #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_identifier
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    identifier #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    identifier #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       1.times do |;u, n|
         if refill_buffer(1) < 1
@@ -4011,7 +4011,7 @@ class Packcr::Parser
         catch(1) do
           pos = @cur
           p_loc = @cur_loc
-          n = chunk.thunks.length
+          n = answer.thunks.length
           1.times do |;u, n|
             if refill_buffer(1) < 1
               throw(1)
@@ -4037,46 +4037,46 @@ class Packcr::Parser
         if pos
           @cur = pos
           @cur_loc = p_loc
-          chunk.thunks[n..-1] = []
+          answer.thunks[n..-1] = []
         end
       end
-      chunk.thunks.push(
+      answer.thunks.push(
         ThunkLeaf.new(
           :action_identifier_0,
           Capture.new(
-            chunk.pos, @cur,
-            chunk.pos_loc, @cur_loc,
+            answer.pos, @cur,
+            answer.pos_loc, @cur_loc,
           ),
           {},
           {},
         )
       )
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   identifier #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   identifier #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH identifier #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH identifier #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_spaces
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    spaces #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    spaces #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
         p0 = @cur
         p0_loc = @cur_loc
-        n0 = chunk.thunks.length
+        n0 = answer.thunks.length
         i = 0
         catch(1) do
           pos = @cur
           p_loc = @cur_loc
-          n = chunk.thunks.length
+          n = answer.thunks.length
           1.times do |;u, n|
             if refill_buffer(1) < 1
               throw(1)
@@ -4104,53 +4104,53 @@ class Packcr::Parser
         if pos
           @cur = pos
           @cur_loc = p_loc
-          chunk.thunks[n..-1] = []
+          answer.thunks[n..-1] = []
         end
         if i < 1
           @cur = p0
           @cur_loc = p0_loc
-          chunk.thunks[n0..-1] = []
+          answer.thunks[n0..-1] = []
           throw(0)
         end
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   spaces #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   spaces #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH spaces #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH spaces #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_opt_spaces_or_comments
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    opt_spaces_or_comments #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    opt_spaces_or_comments #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     1.times do |;p0, p0_loc, n0, i, pos, p_loc, n, stat|
       i = 0
       catch(1) do
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do |; pos, p_loc, n|
           pos = @cur
           p_loc = @cur_loc
-          n = chunk.thunks.length
-          if apply_rule(:evaluate_rule_comment, chunk.thunks, nil, 0)
+          n = answer.thunks.length
+          if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0)
             throw(2)
           end
           @cur = pos
           @cur_loc = p_loc
-          chunk.thunks[n..-1] = []
-          if apply_rule(:evaluate_rule_spaces, chunk.thunks, nil, 0)
+          answer.thunks[n..-1] = []
+          if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
             throw(2)
           end
           @cur = pos
           @cur_loc = p_loc
-          chunk.thunks[n..-1] = []
+          answer.thunks[n..-1] = []
           throw(1)
         end
         i += 1
@@ -4162,26 +4162,26 @@ class Packcr::Parser
       if pos
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
       end
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}MATCH   opt_spaces_or_comments #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-    return chunk
+    debug { warn "#{ "  " * @level}MATCH   opt_spaces_or_comments #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+    return answer
   end
 
   def evaluate_rule_lf
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    lf #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    lf #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       1.times do |;pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
+        n = answer.thunks.length
         catch(2) do
           catch(1) do
             if (
@@ -4196,7 +4196,7 @@ class Packcr::Parser
           end
           @cur_loc = p_loc
           @cur = pos
-          chunk.thunks[n..-1] = []
+          answer.thunks[n..-1] = []
         end
       end
       if (
@@ -4208,21 +4208,21 @@ class Packcr::Parser
       @cur_loc = @cur_loc.forward(@buffer, @cur, 1)
       @cur += 1
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   lf #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   lf #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH lf #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH lf #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_footer
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    footer #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    footer #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(1)
+    answer.resize_captures(1)
     catch(0) do
       if (
         refill_buffer(2) < 2 ||
@@ -4235,19 +4235,19 @@ class Packcr::Parser
       catch(1) do |; pos, p_loc, n|
         pos = @cur
         p_loc = @cur_loc
-        n = chunk.thunks.length
-        if apply_rule(:evaluate_rule_lf, chunk.thunks, nil, 0)
+        n = answer.thunks.length
+        if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
-        if apply_rule(:evaluate_rule_EOF, chunk.thunks, nil, 0)
+        answer.thunks[n..-1] = []
+        if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0)
           throw(1)
         end
         @cur = pos
         @cur_loc = p_loc
-        chunk.thunks[n..-1] = []
+        answer.thunks[n..-1] = []
         throw(0)
       end
       1.times do |;pos, q, capt, p_loc, q_loc|
@@ -4258,7 +4258,7 @@ class Packcr::Parser
           catch(2) do
             pos = @cur
             p_loc = @cur_loc
-            n = chunk.thunks.length
+            n = answer.thunks.length
             1.times do |;u, n|
               if refill_buffer(1) < 1
                 throw(2)
@@ -4276,59 +4276,59 @@ class Packcr::Parser
           if pos
             @cur = pos
             @cur_loc = p_loc
-            chunk.thunks[n..-1] = []
+            answer.thunks[n..-1] = []
           end
         end
         q = @cur
-        capt = chunk.capts[0]
+        capt = answer.capts[0]
         capt.range_start = pos
         capt.range_end = q
         q_loc = @cur_loc
         capt.start_loc = p_loc
         capt.end_loc = q_loc
       end
-      chunk.thunks.push(
+      answer.thunks.push(
         ThunkLeaf.new(
           :action_footer_0,
           Capture.new(
-            chunk.pos, @cur,
-            chunk.pos_loc, @cur_loc,
+            answer.pos, @cur,
+            answer.pos_loc, @cur_loc,
           ),
           {},
-          chunk.capts.slice(0),
+          answer.capts.slice(0),
         )
       )
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   footer #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   footer #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH footer #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH footer #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
   def evaluate_rule_EOF
-    chunk = ThunkChunk.new
-    chunk.pos = @cur
-    chunk.pos_loc = @cur_loc
-    debug { warn "#{ "  " * @level}EVAL    EOF #{chunk.pos} #{@buffer[chunk.pos..-1].inspect}" }
+    answer = ThunkChunk.new
+    answer.pos = @cur
+    answer.pos_loc = @cur_loc
+    debug { warn "#{ "  " * @level}EVAL    EOF #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
     @level += 1
-    chunk.resize_captures(0)
+    answer.resize_captures(0)
     catch(0) do
       if refill_buffer(1) >= 1
         throw(0)
       end
       @level -= 1
-      debug { warn "#{ "  " * @level}MATCH   EOF #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
-      return chunk
+      debug { warn "#{ "  " * @level}MATCH   EOF #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+      return answer
     end
     @level -= 1
-    debug { warn "#{ "  " * @level}NOMATCH EOF #{chunk.pos} #{@buffer[chunk.pos...@cur].inspect}" }
+    debug { warn "#{ "  " * @level}NOMATCH EOF #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
     return nil
   end
 
 
-  def rule_chunk(rule, thunks, values, index)
+  def rule_answer(rule, thunks, values, index)
     pos = @pos + @cur
     p_loc = @pos_loc + @cur_loc
     memo = @lrtable.memos[pos, rule]
@@ -4347,7 +4347,7 @@ class Packcr::Parser
       @cur = memo.pos - @pos
       @cur_loc = memo.pos_loc - @pos_loc
       if !memo.lr
-        return memo.chunk
+        return memo.answer
       end
       memo.lr.head ||= LrHead.new(rule)
       @lrstack.reverse_each do |lrentry|
@@ -4366,23 +4366,23 @@ class Packcr::Parser
     @lrstack.push(lr)
     memo = LrMemo.new(lr, pos, p_loc)
     @lrtable.memos[pos, rule] = memo
-    chunk = public_send(rule)
+    answer = public_send(rule)
     @lrstack.pop
     memo.pos = @pos + @cur
     memo.pos_loc = @pos_loc + @cur_loc
     if !lr.head
-      memo.chunk = chunk
-      return chunk
+      memo.answer = answer
+      return answer
     end
 
-    lr.seed = chunk
+    lr.seed = answer
     head = lr.head
     if head.rule_name != rule
-      return chunk
+      return answer
     end
 
-    memo.chunk = chunk
-    if !chunk
+    memo.answer = answer
+    if !answer
       return nil
     end
     @lrtable.heads[pos] = head
@@ -4390,27 +4390,27 @@ class Packcr::Parser
       @cur = pos - @pos
       @cur_loc = p_loc - @pos_loc
       head.involved_set_to_eval_set
-      chunk = public_send(rule)
-      if !chunk || @pos + @cur <= memo.pos
+      answer = public_send(rule)
+      if !answer || @pos + @cur <= memo.pos
         break
       end
-      memo.chunk = chunk
+      memo.answer = answer
       memo.pos = @pos + @cur
       memo.pos_loc = @pos_loc + @cur_loc
     end
     @lrtable.heads[pos] = nil
     @cur = memo.pos - @pos
     @cur_loc = memo.pos_loc - @pos_loc
-    memo.chunk
+    memo.answer
   end
 
   def apply_rule(rule, thunks, values, index)
-    chunk = rule_chunk(rule, thunks, values, index)
-    if !chunk
+    answer = rule_answer(rule, thunks, values, index)
+    if !answer
       return false
     end
     values ||= @global_values
-    thunks << ThunkNode.new(chunk.thunks, values, index)
+    thunks << ThunkNode.new(answer.thunks, values, index)
     return true
   end
 
@@ -4592,7 +4592,7 @@ class Packcr::Parser
   end
 
   class LrMemo
-    attr_accessor :lr, :chunk, :pos
+    attr_accessor :lr, :answer, :pos
     attr_accessor :pos_loc
 
     def initialize(lr, pos, pos_loc)
@@ -4601,9 +4601,9 @@ class Packcr::Parser
       @lr = lr
     end
 
-    def chunk=(chunk)
+    def answer=(answer)
       @lr = nil
-      @chunk = chunk
+      @answer = answer
     end
   end
 
