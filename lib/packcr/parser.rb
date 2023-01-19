@@ -4331,47 +4331,47 @@ class Packcr::Parser
   def rule_chunk(rule, thunks, values, index)
     pos = @pos + @cur
     p_loc = @pos_loc + @cur_loc
-    answer = @lrtable.answers[pos, rule]
+    memo = @lrtable.memos[pos, rule]
     head = @lrtable.heads[pos]
 
     if head
-      if !answer && rule != head.rule_name && !head.invol[rule]
+      if !memo && rule != head.rule_name && !head.involved_set[rule]
         return nil
       end
-      if head.eval.delete(rule)
+      if head.eval_set.delete(rule)
         return public_send(rule)
       end
     end
 
-    if answer
-      @cur = answer.pos - @pos
-      @cur_loc = answer.pos_loc - @pos_loc
-      if !answer.lr
-        return answer.chunk
+    if memo
+      @cur = memo.pos - @pos
+      @cur_loc = memo.pos_loc - @pos_loc
+      if !memo.lr
+        return memo.chunk
       end
-      answer.lr.head ||= LrHead.new(rule)
+      memo.lr.head ||= LrHead.new(rule)
       @lrstack.reverse_each do |lrentry|
-        answer_head = answer.lr.head
-        if lrentry.head == answer_head
+        memo_head = memo.lr.head
+        if lrentry.head == memo_head
           break
         end
-        lrentry.head = answer_head
-        answer_head.invol[lrentry.rule] = true
+        lrentry.head = memo_head
+        memo_head.involved_set[lrentry.rule] = true
       end
-      return answer.lr.seed
+      return memo.lr.seed
     end
 
     lr = LrEntry.new
     lr.rule = rule
     @lrstack.push(lr)
-    answer = LrAnswer.new(lr, pos, p_loc)
-    @lrtable.answers[pos, rule] = answer
+    memo = LrMemo.new(lr, pos, p_loc)
+    @lrtable.memos[pos, rule] = memo
     chunk = public_send(rule)
     @lrstack.pop
-    answer.pos = @pos + @cur
-    answer.pos_loc = @pos_loc + @cur_loc
+    memo.pos = @pos + @cur
+    memo.pos_loc = @pos_loc + @cur_loc
     if !lr.head
-      answer.chunk = chunk
+      memo.chunk = chunk
       return chunk
     end
 
@@ -4381,7 +4381,7 @@ class Packcr::Parser
       return chunk
     end
 
-    answer.chunk = chunk
+    memo.chunk = chunk
     if !chunk
       return nil
     end
@@ -4389,19 +4389,19 @@ class Packcr::Parser
     while true
       @cur = pos - @pos
       @cur_loc = p_loc - @pos_loc
-      head.invol_to_eval
+      head.involved_set_to_eval_set
       chunk = public_send(rule)
-      if !chunk || @pos + @cur <= answer.pos
+      if !chunk || @pos + @cur <= memo.pos
         break
       end
-      answer.chunk = chunk
-      answer.pos = @pos + @cur
-      answer.pos_loc = @pos_loc + @cur_loc
+      memo.chunk = chunk
+      memo.pos = @pos + @cur
+      memo.pos_loc = @pos_loc + @cur_loc
     end
     @lrtable.heads[pos] = nil
-    @cur = answer.pos - @pos
-    @cur_loc = answer.pos_loc - @pos_loc
-    answer.chunk
+    @cur = memo.pos - @pos
+    @cur_loc = memo.pos_loc - @pos_loc
+    memo.chunk
   end
 
   def apply_rule(rule, thunks, values, index)
@@ -4464,51 +4464,51 @@ class Packcr::Parser
   end
 
   class LrTable
-    attr_reader :heads, :answers
+    attr_reader :heads, :memos
 
     def initialize
       @heads = {}
-      @answers = LrAnswerTable.new
+      @memos = LrMemoTable.new
     end
 
     def clear
       @heads.clear
-      @answers.clear
+      @memos.clear
     end
   end
 
-  class LrAnswerTable
+  class LrMemoTable
     def initialize
-      @answers = {}
+      @memos = {}
     end
 
     def clear
-      @answers.clear
+      @memos.clear
     end
 
-    def []=(index, rule_name, answer)
-      entry = @answers[index] ||= {}
-      entry[rule_name] = answer
+    def []=(index, rule_name, memo)
+      entry = @memos[index] ||= {}
+      entry[rule_name] = memo
     end
 
     def [](index, rule_name)
-      @answers.dig(index, rule_name)
+      @memos.dig(index, rule_name)
     end
   end
 
   class LrHead
-    attr_accessor :rule_name, :invol, :eval
+    attr_accessor :rule_name, :involved_set, :eval_set
 
     def initialize(rule_name)
       @rule_name = rule_name
-      @invol = {}
-      @eval = {}
+      @involved_set = {}
+      @eval_set = {}
     end
 
-    def invol_to_eval
-      @eval.clear
-      @invol.each do |k, v|
-        @eval[k] = true
+    def involved_set_to_eval_set
+      @eval_set.clear
+      @involved_set.each do |k, v|
+        @eval_set[k] = true
       end
     end
   end
@@ -4591,7 +4591,7 @@ class Packcr::Parser
     end
   end
 
-  class LrAnswer
+  class LrMemo
     attr_accessor :lr, :chunk, :pos
     attr_accessor :pos_loc
 
