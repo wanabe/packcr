@@ -18,7 +18,8 @@ class <%= class_name %>
     @level = 0
     @lrstack = []
     @thunk = ThunkNode.new([], nil, 0)
-    @lrtable = LrTable.new
+    @heads = {}
+    @memos = LrMemoTable.new
     @debug = debug
     @global_values = {}
     <%- if @location -%>
@@ -59,7 +60,8 @@ class <%= class_name %>
   def commit_buffer
     @buffer = @buffer[@cur, @buffer.length - @cur]
     @pos += @cur
-    @lrtable.clear
+    @heads.clear
+    @memos.clear
     @cur = 0
     <%- if @location -%>
     @pos_loc = @pos_loc + @cur_loc
@@ -139,8 +141,8 @@ class <%= class_name %>
     <%- if @location -%>
     p_loc = @pos_loc + @cur_loc
     <%- end -%>
-    memo = @lrtable.memos[pos, rule]
-    head = @lrtable.heads[pos]
+    memo = @memos[pos, rule]
+    head = @heads[pos]
 
     if head
       if !memo && rule != head.rule_name && !head.involved_set[rule]
@@ -175,7 +177,7 @@ class <%= class_name %>
     lr.rule = rule
     @lrstack.push(lr)
     memo = LrMemo.new(lr, pos<% if @location %>, p_loc<% end %>)
-    @lrtable.memos[pos, rule] = memo
+    @memos[pos, rule] = memo
     answer = public_send(rule)
     @lrstack.pop
     memo.pos = @pos + @cur
@@ -197,7 +199,7 @@ class <%= class_name %>
     if !answer
       return nil
     end
-    @lrtable.heads[pos] = head
+    @heads[pos] = head
     while true
       @cur = pos - @pos
       <%- if @location -%>
@@ -214,7 +216,7 @@ class <%= class_name %>
       memo.pos_loc = @pos_loc + @cur_loc
       <%- end -%>
     end
-    @lrtable.heads[pos] = nil
+    @heads[pos] = nil
     @cur = memo.pos - @pos
     <%- if @location -%>
     @cur_loc = memo.pos_loc - @pos_loc
@@ -242,20 +244,6 @@ class <%= class_name %>
   <%- %><%= stream.get_code_block(code, 2, @iname) -%>
 
   <%-   end -%>
-  class LrTable
-    attr_reader :heads, :memos
-
-    def initialize
-      @heads = {}
-      @memos = LrMemoTable.new
-    end
-
-    def clear
-      @heads.clear
-      @memos.clear
-    end
-  end
-
   class LrMemoTable
     def initialize
       @memos = {}

@@ -9,7 +9,8 @@ class Packcr::Parser
     @level = 0
     @lrstack = []
     @thunk = ThunkNode.new([], nil, 0)
-    @lrtable = LrTable.new
+    @heads = {}
+    @memos = LrMemoTable.new
     @debug = debug
     @global_values = {}
     @pos_loc = Location.new
@@ -46,7 +47,8 @@ class Packcr::Parser
   def commit_buffer
     @buffer = @buffer[@cur, @buffer.length - @cur]
     @pos += @cur
-    @lrtable.clear
+    @heads.clear
+    @memos.clear
     @cur = 0
     @pos_loc = @pos_loc + @cur_loc
     @cur_loc = Location.new
@@ -4331,8 +4333,8 @@ class Packcr::Parser
   def rule_answer(rule, thunks, values, index)
     pos = @pos + @cur
     p_loc = @pos_loc + @cur_loc
-    memo = @lrtable.memos[pos, rule]
-    head = @lrtable.heads[pos]
+    memo = @memos[pos, rule]
+    head = @heads[pos]
 
     if head
       if !memo && rule != head.rule_name && !head.involved_set[rule]
@@ -4365,7 +4367,7 @@ class Packcr::Parser
     lr.rule = rule
     @lrstack.push(lr)
     memo = LrMemo.new(lr, pos, p_loc)
-    @lrtable.memos[pos, rule] = memo
+    @memos[pos, rule] = memo
     answer = public_send(rule)
     @lrstack.pop
     memo.pos = @pos + @cur
@@ -4385,7 +4387,7 @@ class Packcr::Parser
     if !answer
       return nil
     end
-    @lrtable.heads[pos] = head
+    @heads[pos] = head
     while true
       @cur = pos - @pos
       @cur_loc = p_loc - @pos_loc
@@ -4398,7 +4400,7 @@ class Packcr::Parser
       memo.pos = @pos + @cur
       memo.pos_loc = @pos_loc + @cur_loc
     end
-    @lrtable.heads[pos] = nil
+    @heads[pos] = nil
     @cur = memo.pos - @pos
     @cur_loc = memo.pos_loc - @pos_loc
     memo.answer
@@ -4460,20 +4462,6 @@ class Packcr::Parser
         end
       end
       self
-    end
-  end
-
-  class LrTable
-    attr_reader :heads, :memos
-
-    def initialize
-      @heads = {}
-      @memos = LrMemoTable.new
-    end
-
-    def clear
-      @heads.clear
-      @memos.clear
     end
   end
 
