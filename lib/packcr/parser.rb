@@ -4329,6 +4329,49 @@ class Packcr::Parser
     return nil
   end
 
+  def setup_lr(rule, lr)
+    lr.head ||= LrHead.new(rule)
+    @lrstack.reverse_each do |lrentry|
+      if lrentry.head == lr.head
+        break
+      end
+      lrentry.head = lr.head
+      lr.head.involved_set[lrentry.rule] = true
+    end
+  end
+
+  def grow_lr(rule, memo, head, pos, p_loc)
+    @heads[pos] = head
+    while true
+      @cur = pos - @pos
+      @cur_loc = p_loc - @pos_loc
+      head.involved_set_to_eval_set
+      answer = public_send(rule)
+      if !answer || @pos + @cur <= memo.pos
+        break
+      end
+      memo.answer = answer
+      memo.pos = @pos + @cur
+      memo.pos_loc = @pos_loc + @cur_loc
+    end
+    @heads[pos] = nil
+    @cur = memo.pos - @pos
+    @cur_loc = memo.pos_loc - @pos_loc
+    memo.answer
+  end
+
+  def lr_answer(rule, memo, pos, p_loc)
+    head = memo.lr.head
+    if head.rule_name != rule
+      return memo.lr.seed
+    end
+
+    memo.answer = memo.lr.seed
+    if !memo.answer
+      return nil
+    end
+    grow_lr(rule, memo, head, pos, p_loc)
+  end
 
   def rule_answer(rule, thunks, values, index)
     pos = @pos + @cur
@@ -4351,15 +4394,7 @@ class Packcr::Parser
       if !memo.lr
         return memo.answer
       end
-      memo.lr.head ||= LrHead.new(rule)
-      @lrstack.reverse_each do |lrentry|
-        memo_head = memo.lr.head
-        if lrentry.head == memo_head
-          break
-        end
-        lrentry.head = memo_head
-        memo_head.involved_set[lrentry.rule] = true
-      end
+      setup_lr(rule, memo.lr)
       return memo.lr.seed
     end
 
@@ -4378,32 +4413,7 @@ class Packcr::Parser
     end
 
     lr.seed = answer
-    head = lr.head
-    if head.rule_name != rule
-      return answer
-    end
-
-    memo.answer = answer
-    if !answer
-      return nil
-    end
-    @heads[pos] = head
-    while true
-      @cur = pos - @pos
-      @cur_loc = p_loc - @pos_loc
-      head.involved_set_to_eval_set
-      answer = public_send(rule)
-      if !answer || @pos + @cur <= memo.pos
-        break
-      end
-      memo.answer = answer
-      memo.pos = @pos + @cur
-      memo.pos_loc = @pos_loc + @cur_loc
-    end
-    @heads[pos] = nil
-    @cur = memo.pos - @pos
-    @cur_loc = memo.pos_loc - @pos_loc
-    memo.answer
+    lr_answer(rule, memo, pos, p_loc)
   end
 
   def apply_rule(rule, thunks, values, index)
