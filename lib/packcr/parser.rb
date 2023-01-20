@@ -4293,27 +4293,27 @@ class Packcr::Parser
     end
   end
 
-  def grow_lr(rule, memo, head, pos, p_loc)
-    @heads[pos] = head
+  def grow_lr(rule, memo, head, offset, offset_loc)
+    @heads[offset] = head
     while true
-      @position_offset = pos - @buffer_start_position
-      @position_offset_loc = p_loc - @buffer_start_position_loc
+      @position_offset = offset
+      @position_offset_loc = offset_loc
       head.involved_set_to_eval_set
       answer = public_send(rule)
-      if !answer || @buffer_start_position + @position_offset <= memo.pos
+      if !answer || @position_offset <= memo.offset
         break
       end
       memo.answer = answer
-      memo.pos = @buffer_start_position + @position_offset
-      memo.pos_loc = @buffer_start_position_loc + @position_offset_loc
+      memo.offset = @position_offset
+      memo.offset_loc = @position_offset_loc
     end
-    @heads[pos] = nil
-    @position_offset = memo.pos - @buffer_start_position
-    @position_offset_loc = memo.pos_loc - @buffer_start_position_loc
+    @heads[offset] = nil
+    @position_offset = memo.offset
+    @position_offset_loc = memo.offset_loc
     memo.answer
   end
 
-  def lr_answer(rule, memo, pos, p_loc)
+  def lr_answer(rule, memo, offset, offset_loc)
     head = memo.lr.head
     if head.rule_name != rule
       return memo.lr.seed
@@ -4323,14 +4323,14 @@ class Packcr::Parser
     if !memo.answer
       return nil
     end
-    grow_lr(rule, memo, head, pos, p_loc)
+    grow_lr(rule, memo, head, offset, offset_loc)
   end
 
   def rule_answer(rule)
-    pos = @buffer_start_position + @position_offset
-    p_loc = @buffer_start_position_loc + @position_offset_loc
-    memo = @memos[pos, rule]
-    head = @heads[pos]
+    offset = @position_offset
+    offset_loc = @position_offset_loc
+    memo = @memos[offset, rule]
+    head = @heads[offset]
 
     if head
       if !memo && rule != head.rule_name && !head.involved_set[rule]
@@ -4342,8 +4342,8 @@ class Packcr::Parser
     end
 
     if memo
-      @position_offset = memo.pos - @buffer_start_position
-      @position_offset_loc = memo.pos_loc - @buffer_start_position_loc
+      @position_offset = memo.offset
+      @position_offset_loc = memo.offset_loc
       if !memo.lr
         return memo.answer
       end
@@ -4354,19 +4354,19 @@ class Packcr::Parser
     lr = LrEntry.new
     lr.rule = rule
     @lrstack.push(lr)
-    memo = LrMemo.new(lr, pos, p_loc)
-    @memos[pos, rule] = memo
+    memo = LrMemo.new(lr, offset, offset_loc)
+    @memos[offset, rule] = memo
     answer = public_send(rule)
     @lrstack.pop
-    memo.pos = @buffer_start_position + @position_offset
-    memo.pos_loc = @buffer_start_position_loc + @position_offset_loc
+    memo.offset = @position_offset
+    memo.offset_loc = @position_offset_loc
     if !lr.head
       memo.answer = answer
       return answer
     end
 
     lr.seed = answer
-    lr_answer(rule, memo, pos, p_loc)
+    lr_answer(rule, memo, offset, offset_loc)
   end
 
   def apply_rule(rule, thunks, values, index)
@@ -4543,12 +4543,12 @@ class Packcr::Parser
   end
 
   class LrMemo
-    attr_accessor :lr, :answer, :pos
-    attr_accessor :pos_loc
+    attr_accessor :lr, :answer, :offset
+    attr_accessor :offset_loc
 
-    def initialize(lr, pos, pos_loc)
-      @pos = pos
-      @pos_loc = pos_loc
+    def initialize(lr, offset, offset_loc)
+      @offset = offset
+      @offset_loc = offset_loc
       @lr = lr
     end
 

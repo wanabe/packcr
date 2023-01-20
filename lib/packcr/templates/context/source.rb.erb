@@ -146,33 +146,33 @@ class <%= class_name %>
     end
   end
 
-  def grow_lr(rule, memo, head, pos<% if @location %>, p_loc<% end %>)
-    @heads[pos] = head
+  def grow_lr(rule, memo, head, offset<% if @location %>, offset_loc<% end %>)
+    @heads[offset] = head
     while true
-      @position_offset = pos - @buffer_start_position
+      @position_offset = offset
       <%- if @location -%>
-      @position_offset_loc = p_loc - @buffer_start_position_loc
+      @position_offset_loc = offset_loc
       <%- end -%>
       head.involved_set_to_eval_set
       answer = public_send(rule)
-      if !answer || @buffer_start_position + @position_offset <= memo.pos
+      if !answer || @position_offset <= memo.offset
         break
       end
       memo.answer = answer
-      memo.pos = @buffer_start_position + @position_offset
+      memo.offset = @position_offset
       <%- if @location -%>
-      memo.pos_loc = @buffer_start_position_loc + @position_offset_loc
+      memo.offset_loc = @position_offset_loc
       <%- end -%>
     end
-    @heads[pos] = nil
-    @position_offset = memo.pos - @buffer_start_position
+    @heads[offset] = nil
+    @position_offset = memo.offset
     <%- if @location -%>
-    @position_offset_loc = memo.pos_loc - @buffer_start_position_loc
+    @position_offset_loc = memo.offset_loc
     <%- end -%>
     memo.answer
   end
 
-  def lr_answer(rule, memo, pos<% if @location %>, p_loc<% end %>)
+  def lr_answer(rule, memo, offset<% if @location %>, offset_loc<% end %>)
     head = memo.lr.head
     if head.rule_name != rule
       return memo.lr.seed
@@ -182,16 +182,16 @@ class <%= class_name %>
     if !memo.answer
       return nil
     end
-    grow_lr(rule, memo, head, pos<% if @location %>, p_loc<% end %>)
+    grow_lr(rule, memo, head, offset<% if @location %>, offset_loc<% end %>)
   end
 
   def rule_answer(rule)
-    pos = @buffer_start_position + @position_offset
+    offset = @position_offset
     <%- if @location -%>
-    p_loc = @buffer_start_position_loc + @position_offset_loc
+    offset_loc = @position_offset_loc
     <%- end -%>
-    memo = @memos[pos, rule]
-    head = @heads[pos]
+    memo = @memos[offset, rule]
+    head = @heads[offset]
 
     if head
       if !memo && rule != head.rule_name && !head.involved_set[rule]
@@ -203,9 +203,9 @@ class <%= class_name %>
     end
 
     if memo
-      @position_offset = memo.pos - @buffer_start_position
+      @position_offset = memo.offset
       <%- if @location -%>
-      @position_offset_loc = memo.pos_loc - @buffer_start_position_loc
+      @position_offset_loc = memo.offset_loc
       <%- end -%>
       if !memo.lr
         return memo.answer
@@ -217,13 +217,13 @@ class <%= class_name %>
     lr = LrEntry.new
     lr.rule = rule
     @lrstack.push(lr)
-    memo = LrMemo.new(lr, pos<% if @location %>, p_loc<% end %>)
-    @memos[pos, rule] = memo
+    memo = LrMemo.new(lr, offset<% if @location %>, offset_loc<% end %>)
+    @memos[offset, rule] = memo
     answer = public_send(rule)
     @lrstack.pop
-    memo.pos = @buffer_start_position + @position_offset
+    memo.offset = @position_offset
     <%- if @location -%>
-    memo.pos_loc = @buffer_start_position_loc + @position_offset_loc
+    memo.offset_loc = @position_offset_loc
     <%- end -%>
     if !lr.head
       memo.answer = answer
@@ -231,7 +231,7 @@ class <%= class_name %>
     end
 
     lr.seed = answer
-    lr_answer(rule, memo, pos<% if @location %>, p_loc<% end %>)
+    lr_answer(rule, memo, offset<% if @location %>, offset_loc<% end %>)
   end
 
   def apply_rule(rule, thunks, values, index)
@@ -375,15 +375,15 @@ class <%= class_name %>
   end
 
   class LrMemo
-    attr_accessor :lr, :answer, :pos
+    attr_accessor :lr, :answer, :offset
     <%- if @location -%>
-    attr_accessor :pos_loc
+    attr_accessor :offset_loc
     <%- end -%>
 
-    def initialize(lr, pos<% if @location %>, pos_loc<% end %>)
-      @pos = pos
+    def initialize(lr, offset<% if @location %>, offset_loc<% end %>)
+      @offset = offset
       <%- if @location -%>
-      @pos_loc = pos_loc
+      @offset_loc = offset_loc
       <%- end -%>
       @lr = lr
     end
