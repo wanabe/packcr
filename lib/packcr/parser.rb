@@ -56,7 +56,7 @@ class Packcr::Parser
 
   def parse
     pos = @buffer_start_position
-    if apply_rule(:evaluate_rule_statement, @thunk.thunks, nil, 0)
+    if apply_rule(:evaluate_rule_statement, @thunk.thunks, nil, 0, @buffer_start_position, @buffer_start_position_loc)
       @thunk.do_action(self, nil, 0)
     else
       raise SyntaxError, "can't parse"
@@ -876,7 +876,7 @@ class Packcr::Parser
     __pcc_vars[__pcc_index].value = ____ if __pcc_vars
   end
 
-  def evaluate_rule_statement
+  def evaluate_rule_statement(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -888,44 +888,86 @@ class Packcr::Parser
         pos2 = @position_offset
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
-        if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_comment]
+          if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
-        if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_spaces]
+          if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
-        if apply_rule(:evaluate_rule_directive_include, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_directive_include]
+          if apply_rule(:evaluate_rule_directive_include, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_directive_include, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
-        if apply_rule(:evaluate_rule_directive_string, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_directive_string]
+          if apply_rule(:evaluate_rule_directive_string, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_directive_string, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
-        if apply_rule(:evaluate_rule_directive_value, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_directive_value]
+          if apply_rule(:evaluate_rule_directive_value, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_directive_value, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
-        if apply_rule(:evaluate_rule_rule, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_rule]
+          if apply_rule(:evaluate_rule_rule, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_rule, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
-        if apply_rule(:evaluate_rule_footer, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_footer]
+          if apply_rule(:evaluate_rule_footer, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_footer, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
@@ -933,8 +975,14 @@ class Packcr::Parser
         catch(2) do
           catch(4) do
             catch(3) do
-              if !apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0)
-                throw(3)
+              if limits && @position_offset == offset && !limits[:evaluate_rule_EOF]
+                if !apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+                  throw(3)
+                end
+              else
+                if !apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0, offset, offset_loc)
+                  throw(3)
+                end
               end
               throw(4)
             end
@@ -971,7 +1019,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_supported_language
+  def evaluate_rule_supported_language(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1012,8 +1060,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0, offset, offset_loc)
+              throw(4)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1042,7 +1096,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_comment
+  def evaluate_rule_comment(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1092,14 +1146,26 @@ class Packcr::Parser
         pos3 = @position_offset
         p_loc3 = @position_offset_loc
         n3 = answer.thunks.length
-        if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0)
-          throw(2)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_lf]
+          if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(2)
+          end
+        else
+          if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0, offset, offset_loc)
+            throw(2)
+          end
         end
         @position_offset = pos3
         @position_offset_loc = p_loc3
         answer.thunks[n3..-1] = []
-        if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0)
-          throw(2)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_EOF]
+          if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(2)
+          end
+        else
+          if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0, offset, offset_loc)
+            throw(2)
+          end
         end
         @position_offset = pos3
         @position_offset_loc = p_loc3
@@ -1115,7 +1181,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_directive_include
+  def evaluate_rule_directive_include(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1137,11 +1203,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 12)
           @position_offset += 12
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1168,11 +1246,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 7)
           @position_offset += 7
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1199,11 +1289,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 11)
           @position_offset += 11
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(4)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(4)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1230,11 +1332,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 11)
           @position_offset += 11
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(5)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(5)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(5)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(5)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(5)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(5)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1261,11 +1375,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 7)
           @position_offset += 7
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(6)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(6)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(6)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(6)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(6)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(6)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1292,11 +1418,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 9)
           @position_offset += 9
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(7)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(7)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(7)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(7)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(7)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(7)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1323,11 +1461,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 11)
           @position_offset += 11
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(8)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(8)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(8)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(8)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(8)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(8)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1354,11 +1504,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 12)
           @position_offset += 12
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(9)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(9)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(9)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(9)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(9)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(9)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1385,11 +1547,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 7)
           @position_offset += 7
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(10)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(10)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(10)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(10)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(10)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(10)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1418,8 +1592,14 @@ class Packcr::Parser
           @position_offset += 1
           pos4 = @position_offset
           p_loc4 = @position_offset_loc
-          if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
-            throw(11)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(11)
+            end
+          else
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0, offset, offset_loc)
+              throw(11)
+            end
           end
           q4 = @position_offset
           capt4 = answer.capts[0]
@@ -1428,11 +1608,23 @@ class Packcr::Parser
           q_loc4 = @position_offset_loc
           capt4.start_loc = p_loc4
           capt4.end_loc = q_loc4
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(11)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(11)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(11)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(11)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(11)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(11)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1461,7 +1653,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_code_blocks
+  def evaluate_rule_code_blocks(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1475,14 +1667,32 @@ class Packcr::Parser
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_blocks]
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_blocks, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_code_block]
+            if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(2)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1501,8 +1711,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_code_block]
+            if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(3)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1531,7 +1747,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_directive_string
+  def evaluate_rule_directive_string(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1553,11 +1769,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 6)
           @position_offset += 6
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_strings]
+            if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1584,11 +1812,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 6)
           @position_offset += 6
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
-          if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_strings]
+            if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1615,11 +1855,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 7)
           @position_offset += 7
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(4)
+            end
           end
-          if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_strings]
+            if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(4)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1648,8 +1900,14 @@ class Packcr::Parser
           @position_offset += 1
           pos4 = @position_offset
           p_loc4 = @position_offset_loc
-          if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0)
-            throw(5)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(5)
+            end
+          else
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0, offset, offset_loc)
+              throw(5)
+            end
           end
           q4 = @position_offset
           capt4 = answer.capts[0]
@@ -1658,11 +1916,23 @@ class Packcr::Parser
           q_loc4 = @position_offset_loc
           capt4.start_loc = p_loc4
           capt4.end_loc = q_loc4
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(5)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(5)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(5)
+            end
           end
-          if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 1)
-            throw(5)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_quotation_double]
+            if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(5)
+            end
+          else
+            if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(5)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1691,7 +1961,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_directive_value
+  def evaluate_rule_directive_value(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1707,8 +1977,14 @@ class Packcr::Parser
       end
       @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 8)
       @position_offset += 8
-      if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
-        throw(0)
+      if limits && @position_offset == offset && !limits[:evaluate_rule_spaces]
+        if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+          throw(0)
+        end
+      else
+        if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc)
+          throw(0)
+        end
       end
       catch(1) do
         pos3 = @position_offset
@@ -1764,7 +2040,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_lang_strings
+  def evaluate_rule_lang_strings(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1778,14 +2054,32 @@ class Packcr::Parser
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_strings]
+            if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_strings, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_string]
+            if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(2)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1804,8 +2098,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_string]
+            if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_string, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(3)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1834,7 +2134,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_lang_string
+  def evaluate_rule_lang_string(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1848,8 +2148,14 @@ class Packcr::Parser
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_quotation_double]
+            if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1870,8 +2176,14 @@ class Packcr::Parser
         catch(3) do
           pos4 = @position_offset
           p_loc4 = @position_offset_loc
-          if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_supported_language]
+            if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           q4 = @position_offset
           capt4 = answer.capts[0]
@@ -1880,8 +2192,14 @@ class Packcr::Parser
           q_loc4 = @position_offset_loc
           capt4.start_loc = p_loc4
           capt4.end_loc = q_loc4
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           if (
             refill_buffer(2) < 2 ||
@@ -1891,11 +2209,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
           @position_offset += 2
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
-          if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_quotation_double]
+            if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -1924,7 +2254,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_rule
+  def evaluate_rule_rule(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1933,11 +2263,23 @@ class Packcr::Parser
     answer.resize_captures(0)
     answer.values = {}
     catch(0) do
-      if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 0)
-        throw(0)
+      if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
+        if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+          throw(0)
+        end
+      else
+        if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 0, offset, offset_loc)
+          throw(0)
+        end
       end
-      if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-        throw(0)
+      if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+        if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+          throw(0)
+        end
+      else
+        if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+          throw(0)
+        end
       end
       if (
         refill_buffer(2) < 2 ||
@@ -1947,11 +2289,23 @@ class Packcr::Parser
       end
       @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
       @position_offset += 2
-      if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-        throw(0)
+      if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+        if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+          throw(0)
+        end
+      else
+        if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+          throw(0)
+        end
       end
-      if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 1)
-        throw(0)
+      if limits && @position_offset == offset && !limits[:evaluate_rule_expression]
+        if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+          throw(0)
+        end
+      else
+        if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 1, offset, offset_loc)
+          throw(0)
+        end
       end
       answer.thunks.push(
         ThunkLeaf.new(
@@ -1973,7 +2327,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_expression
+  def evaluate_rule_expression(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -1987,11 +2341,23 @@ class Packcr::Parser
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_expression]
+            if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2001,11 +2367,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_sequence]
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(0)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2024,8 +2402,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_sequence]
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(3)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2054,7 +2438,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_sequence
+  def evaluate_rule_sequence(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -2068,11 +2452,23 @@ class Packcr::Parser
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_sequence]
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           if (
             refill_buffer(2) < 2 ||
@@ -2082,11 +2478,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
           @position_offset += 2
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_term]
+            if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(0)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2105,11 +2513,23 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_sequence]
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(3)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2119,11 +2539,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 2)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_code_block]
+            if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 2, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 2, offset, offset_loc)
+              throw(0)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2142,14 +2574,32 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_sequence]
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_sequence, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(4)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(4)
+            end
           end
-          if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_term]
+            if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(4)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2168,8 +2618,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(5) do
-          if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1)
-            throw(5)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_term]
+            if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(5)
+            end
+          else
+            if !apply_rule(:evaluate_rule_term, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(5)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2198,7 +2654,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_term
+  def evaluate_rule_term(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -2220,11 +2676,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_quantity]
+            if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(0)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2251,11 +2719,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_quantity]
+            if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(0)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2274,8 +2754,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_quantity]
+            if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_quantity, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(4)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2304,7 +2790,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_quantity
+  def evaluate_rule_quantity(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -2318,11 +2804,23 @@ class Packcr::Parser
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_primary]
+            if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2349,11 +2847,23 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_primary]
+            if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(3)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2380,11 +2890,23 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(4) do
-          if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_primary]
+            if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(4)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(4)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(4)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2411,8 +2933,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(5) do
-          if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0)
-            throw(5)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_primary]
+            if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(5)
+            end
+          else
+            if !apply_rule(:evaluate_rule_primary, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(5)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2441,7 +2969,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_primary
+  def evaluate_rule_primary(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -2455,8 +2983,14 @@ class Packcr::Parser
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lang_code_block]
+            if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_lang_code_block, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2475,11 +3009,23 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 1)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 1, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 1, offset, offset_loc)
+              throw(3)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2489,11 +3035,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2, offset, offset_loc)
+              throw(0)
+            end
           end
           pos5 = @position_offset
           p_loc5 = @position_offset_loc
@@ -2572,8 +3130,14 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
           @position_offset += 2
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(6)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(6)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(6)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2583,11 +3147,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2, offset, offset_loc)
+              throw(0)
+            end
           end
           pos5 = @position_offset
           p_loc5 = @position_offset_loc
@@ -2658,8 +3234,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(9) do
-          if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2)
-            throw(9)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2, offset, offset_loc, limits: limits)
+              throw(9)
+            end
+          else
+            if !apply_rule(:evaluate_rule_identifier, answer.thunks, answer.values, 2, offset, offset_loc)
+              throw(9)
+            end
           end
           pos5 = @position_offset
           p_loc5 = @position_offset_loc
@@ -2738,14 +3320,32 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 3)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_expression]
+            if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 3, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 3, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2780,14 +3380,32 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 3)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_expression]
+            if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 3, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_expression, answer.thunks, answer.values, 3, offset, offset_loc)
+              throw(0)
+            end
           end
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(0)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(0)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(0)
+            end
           end
           if (
             refill_buffer(1) < 1 ||
@@ -2914,8 +3532,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(17) do
-          if !apply_rule(:evaluate_rule_character_class, answer.thunks, answer.values, 4)
-            throw(17)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_character_class]
+            if !apply_rule(:evaluate_rule_character_class, answer.thunks, answer.values, 4, offset, offset_loc, limits: limits)
+              throw(17)
+            end
+          else
+            if !apply_rule(:evaluate_rule_character_class, answer.thunks, answer.values, 4, offset, offset_loc)
+              throw(17)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2934,8 +3558,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(18) do
-          if !apply_rule(:evaluate_rule_quotation_single, answer.thunks, answer.values, 4)
-            throw(18)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_quotation_single]
+            if !apply_rule(:evaluate_rule_quotation_single, answer.thunks, answer.values, 4, offset, offset_loc, limits: limits)
+              throw(18)
+            end
+          else
+            if !apply_rule(:evaluate_rule_quotation_single, answer.thunks, answer.values, 4, offset, offset_loc)
+              throw(18)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2954,8 +3584,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(19) do
-          if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 4)
-            throw(19)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_quotation_double]
+            if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 4, offset, offset_loc, limits: limits)
+              throw(19)
+            end
+          else
+            if !apply_rule(:evaluate_rule_quotation_double, answer.thunks, answer.values, 4, offset, offset_loc)
+              throw(19)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -2984,7 +3620,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_character_class
+  def evaluate_rule_character_class(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3119,7 +3755,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_lang_code_block
+  def evaluate_rule_lang_code_block(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3133,8 +3769,14 @@ class Packcr::Parser
         p_loc2 = @position_offset_loc
         n2 = answer.thunks.length
         catch(2) do
-          if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_block]
+            if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -3155,8 +3797,14 @@ class Packcr::Parser
         catch(3) do
           pos4 = @position_offset
           p_loc4 = @position_offset_loc
-          if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_supported_language]
+            if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_supported_language, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           q4 = @position_offset
           capt4 = answer.capts[0]
@@ -3165,8 +3813,14 @@ class Packcr::Parser
           q_loc4 = @position_offset_loc
           capt4.start_loc = p_loc4
           capt4.end_loc = q_loc4
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           if (
             refill_buffer(2) < 2 ||
@@ -3176,11 +3830,23 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
           @position_offset += 2
-          if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_opt_spaces_or_comments]
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_opt_spaces_or_comments, answer.thunks, nil, 0, offset, offset_loc)
+              throw(3)
+            end
           end
-          if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_code_block]
+            if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_code_block, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -3209,7 +3875,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_code_block
+  def evaluate_rule_code_block(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3231,8 +3897,14 @@ class Packcr::Parser
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
           @position_offset += 1
-          if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0)
-            throw(2)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_plain_code_block]
+            if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(2)
+            end
+          else
+            if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(2)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -3251,8 +3923,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
         catch(3) do
-          if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0)
-            throw(3)
+          if limits && @position_offset == offset && !limits[:evaluate_rule_plain_code_block]
+            if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0, offset, offset_loc, limits: limits)
+              throw(3)
+            end
+          else
+            if !apply_rule(:evaluate_rule_plain_code_block, answer.thunks, answer.values, 0, offset, offset_loc)
+              throw(3)
+            end
           end
           answer.thunks.push(
             ThunkLeaf.new(
@@ -3281,7 +3959,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_plain_code_block
+  def evaluate_rule_plain_code_block(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3334,8 +4012,14 @@ class Packcr::Parser
         @position_offset_loc = p_loc5
         answer.thunks[n5..-1] = []
       end
-      if !apply_rule(:evaluate_rule_opt_codes, answer.thunks, nil, 0)
-        throw(0)
+      if limits && @position_offset == offset && !limits[:evaluate_rule_opt_codes]
+        if !apply_rule(:evaluate_rule_opt_codes, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+          throw(0)
+        end
+      else
+        if !apply_rule(:evaluate_rule_opt_codes, answer.thunks, nil, 0, offset, offset_loc)
+          throw(0)
+        end
       end
       q3 = @position_offset
       capt3 = answer.capts[0]
@@ -3372,7 +4056,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_opt_codes
+  def evaluate_rule_opt_codes(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3387,8 +4071,14 @@ class Packcr::Parser
       pos2 = @position_offset
       p_loc2 = @position_offset_loc
       n2 = answer.thunks.length
-      if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0)
-        throw(1)
+      if limits && @position_offset == offset && !limits[:evaluate_rule_code]
+        if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+          throw(1)
+        end
+      else
+        if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0, offset, offset_loc)
+          throw(1)
+        end
       end
       i4 = 0
       pos4 = nil
@@ -3441,7 +4131,7 @@ class Packcr::Parser
     return answer
   end
 
-  def evaluate_rule_code
+  def evaluate_rule_code(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3465,8 +4155,14 @@ class Packcr::Parser
             pos3 = @position_offset
             p_loc3 = @position_offset_loc
             n3 = answer.thunks.length
-            if !apply_rule(:evaluate_rule_codechar, answer.thunks, nil, 0)
-              throw(3)
+            if limits && @position_offset == offset && !limits[:evaluate_rule_codechar]
+              if !apply_rule(:evaluate_rule_codechar, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+                throw(3)
+              end
+            else
+              if !apply_rule(:evaluate_rule_codechar, answer.thunks, nil, 0, offset, offset_loc)
+                throw(3)
+              end
             end
             i3 += 1
             if @position_offset != pos3
@@ -3490,14 +4186,26 @@ class Packcr::Parser
         @position_offset = pos2
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
-        if apply_rule(:evaluate_rule_quotation_single, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_quotation_single]
+          if apply_rule(:evaluate_rule_quotation_single, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_quotation_single, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
         answer.thunks[n2..-1] = []
-        if apply_rule(:evaluate_rule_quotation_double, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_quotation_double]
+          if apply_rule(:evaluate_rule_quotation_double, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_quotation_double, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos2
         @position_offset_loc = p_loc2
@@ -3519,8 +4227,14 @@ class Packcr::Parser
             pos4 = @position_offset
             p_loc4 = @position_offset_loc
             n4 = answer.thunks.length
-            if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0)
-              throw(5)
+            if limits && @position_offset == offset && !limits[:evaluate_rule_code]
+              if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+                throw(5)
+              end
+            else
+              if !apply_rule(:evaluate_rule_code, answer.thunks, nil, 0, offset, offset_loc)
+                throw(5)
+              end
             end
             i4 += 1
             if @position_offset != pos4
@@ -3557,7 +4271,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_codechar
+  def evaluate_rule_codechar(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3652,7 +4366,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_quotation_single
+  def evaluate_rule_quotation_single(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3799,7 +4513,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_quotation_double
+  def evaluate_rule_quotation_double(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -3946,7 +4660,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_identifier
+  def evaluate_rule_identifier(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -4020,7 +4734,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_spaces
+  def evaluate_rule_spaces(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -4081,7 +4795,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_opt_spaces_or_comments
+  def evaluate_rule_opt_spaces_or_comments(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -4100,14 +4814,26 @@ class Packcr::Parser
         pos3 = @position_offset
         p_loc3 = @position_offset_loc
         n3 = answer.thunks.length
-        if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0)
-          throw(2)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_comment]
+          if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(2)
+          end
+        else
+          if apply_rule(:evaluate_rule_comment, answer.thunks, nil, 0, offset, offset_loc)
+            throw(2)
+          end
         end
         @position_offset = pos3
         @position_offset_loc = p_loc3
         answer.thunks[n3..-1] = []
-        if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0)
-          throw(2)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_spaces]
+          if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(2)
+          end
+        else
+          if apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc)
+            throw(2)
+          end
         end
         @position_offset = pos3
         @position_offset_loc = p_loc3
@@ -4130,7 +4856,7 @@ class Packcr::Parser
     return answer
   end
 
-  def evaluate_rule_lf
+  def evaluate_rule_lf(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -4174,7 +4900,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_footer
+  def evaluate_rule_footer(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -4194,14 +4920,26 @@ class Packcr::Parser
         pos3 = @position_offset
         p_loc3 = @position_offset_loc
         n3 = answer.thunks.length
-        if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_lf]
+          if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos3
         @position_offset_loc = p_loc3
         answer.thunks[n3..-1] = []
-        if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0)
-          throw(1)
+        if limits && @position_offset == offset && !limits[:evaluate_rule_EOF]
+          if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+            throw(1)
+          end
+        else
+          if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
         end
         @position_offset = pos3
         @position_offset_loc = p_loc3
@@ -4262,7 +5000,7 @@ class Packcr::Parser
     return nil
   end
 
-  def evaluate_rule_EOF
+  def evaluate_rule_EOF(offset, offset_loc, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     answer.pos_loc = @position_offset_loc
@@ -4282,95 +5020,67 @@ class Packcr::Parser
     return nil
   end
 
-  def setup_lr(rule, lr)
-    lr.head ||= LrHead.new(rule)
-    @lrstack.reverse_each do |lrentry|
-      if lrentry.head == lr.head
-        break
-      end
-      lrentry.head = lr.head
-      lr.head.involved_set[lrentry.rule] = true
-    end
-  end
-
-  def grow_lr(rule, memo, head, offset, offset_loc)
-    @heads[offset] = head
+  def grow_lr(rule, offset, offset_loc)
     while true
+      old_offset = @position_offset
       @position_offset = offset
       @position_offset_loc = offset_loc
-      head.involved_set_to_eval_set
-      answer = public_send(rule)
-      if !answer || @position_offset <= memo.offset
+      answer = public_send(rule, offset, offset_loc, limits: {rule => true})
+      if !answer || @position_offset <= old_offset
         break
       end
+      memo = @memos[offset, rule]
       memo.answer = answer
       memo.offset = @position_offset
       memo.offset_loc = @position_offset_loc
     end
-    @heads[offset] = nil
-    @position_offset = memo.offset
-    @position_offset_loc = memo.offset_loc
-    memo.answer
   end
 
-  def lr_answer(rule, memo, offset, offset_loc)
-    head = memo.lr.head
-    if head.rule_name != rule
-      return memo.lr.seed
-    end
-
-    memo.answer = memo.lr.seed
-    if !memo.answer
-      return nil
-    end
-    grow_lr(rule, memo, head, offset, offset_loc)
-  end
-
-  def rule_answer(rule)
+  def rule_answer(rule, offset, offset_loc)
     offset = @position_offset
     offset_loc = @position_offset_loc
     memo = @memos[offset, rule]
-    head = @heads[offset]
 
-    if head
-      if !memo && rule != head.rule_name && !head.involved_set[rule]
-        return nil
-      end
-      if head.eval_set.delete(rule)
-        return public_send(rule)
-      end
-    end
-
-    if memo
-      @position_offset = memo.offset
-      @position_offset_loc = memo.offset_loc
-      if !memo.lr
-        return memo.answer
-      end
-      setup_lr(rule, memo.lr)
-      return memo.lr.seed
-    end
-
-    lr = LrEntry.new
-    lr.rule = rule
-    @lrstack.push(lr)
-    memo = LrMemo.new(lr, offset, offset_loc)
-    @memos[offset, rule] = memo
-    answer = public_send(rule)
-    @lrstack.pop
-    memo.offset = @position_offset
-    memo.offset_loc = @position_offset_loc
-    if !lr.head
+    if !memo
+      memo = LrMemo.new(offset, offset_loc)
+      @memos[offset, rule] = memo
+      answer = public_send(rule, offset, offset_loc)
       memo.answer = answer
+      memo.offset = @position_offset
+      memo.offset_loc = @position_offset_loc
+      if memo.grow
+        grow_lr(rule, offset, offset_loc)
+        memo.grow = false
+        answer = memo.answer
+        @position_offset = memo.offset
+      end
       return answer
+    elsif memo.fail
+      memo.answer = nil
+      memo.grow = true
+      return nil
+    else
+      @position_offset = memo.offset
+      return memo.answer
     end
-
-    lr.seed = answer
-    lr_answer(rule, memo, offset, offset_loc)
   end
 
-  def apply_rule(rule, thunks, values, index)
-    answer = rule_answer(rule)
+  def apply_rule(rule, thunks, values, index, offset, offset_loc, limits: nil)
+    if limits
+      limits = limits.merge(rule => true)
+      answer = public_send(rule, offset, offset_loc, limits: limits)
+      memo = @memos[offset, rule]
+      if !answer || @position_offset <= memo.offset
+        answer = memo.answer
+        @position_offset = memo.offset
+      else
+        memo.answer = answer
+        memo.offset = @position_offset
+      end
+    else
+      answer = rule_answer(rule, offset, offset_loc)
+    end
+
     if !answer
       return false
     end
@@ -4447,20 +5157,20 @@ class Packcr::Parser
     end
   end
 
-  class LrHead
-    attr_accessor :rule_name, :involved_set, :eval_set
+  class LrMemo
+    attr_accessor :grow, :answer, :offset, :fail
+    attr_accessor :offset_loc
 
-    def initialize(rule_name)
-      @rule_name = rule_name
-      @involved_set = {}
-      @eval_set = {}
+    def initialize(offset, offset_loc)
+      @offset = offset
+      @offset_loc = offset_loc
+      @fail = true
+      @grow = false
     end
 
-    def involved_set_to_eval_set
-      @eval_set.clear
-      @involved_set.each do |k, v|
-        @eval_set[k] = true
-      end
+    def answer=(answer)
+      @fail = nil
+      @answer = answer
     end
   end
 
@@ -4522,10 +5232,6 @@ class Packcr::Parser
     end
   end
 
-  class LrEntry
-    attr_accessor :rule, :head, :seed
-  end
-
   class Capture
     attr_accessor :range_start, :range_end
     attr_accessor :start_loc, :end_loc
@@ -4539,22 +5245,6 @@ class Packcr::Parser
 
     def capture_string(buffer)
       @string ||= buffer[@range_start, @range_end - @range_start]
-    end
-  end
-
-  class LrMemo
-    attr_accessor :lr, :answer, :offset
-    attr_accessor :offset_loc
-
-    def initialize(lr, offset, offset_loc)
-      @offset = offset
-      @offset_loc = offset_loc
-      @lr = lr
-    end
-
-    def answer=(answer)
-      @lr = nil
-      @answer = answer
     end
   end
 

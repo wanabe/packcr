@@ -72,7 +72,7 @@ class <%= class_name %>
   def parse
     pos = @buffer_start_position
     <%- if !@root.rules.empty? -%>
-    if apply_rule(:evaluate_rule_<%= @root.rules[0].name %>, @thunk.thunks, nil, 0)
+    if apply_rule(:evaluate_rule_<%= @root.rules[0].name %>, @thunk.thunks, nil, 0, @buffer_start_position<% if @location %>, @buffer_start_position_loc<% end %>)
       @thunk.do_action(self, nil, 0)
     else
       raise SyntaxError, "can't parse"
@@ -124,7 +124,7 @@ class <%= class_name %>
   <%-   end -%>
   <%- end -%>
   <%- @root.rules.each do |rule| -%>
-  def evaluate_rule_<%= rule.name %>
+  def evaluate_rule_<%= rule.name %>(offset<% if @location %>, offset_loc<% end %>, limits: nil)
     answer = ThunkChunk.new
     answer.pos = @position_offset
     <%-   if @location -%>
@@ -135,107 +135,75 @@ class <%= class_name %>
   end
 
   <%- end -%>
-  def setup_lr(rule, lr)
-    lr.head ||= LrHead.new(rule)
-    @lrstack.reverse_each do |lrentry|
-      if lrentry.head == lr.head
-        break
-      end
-      lrentry.head = lr.head
-      lr.head.involved_set[lrentry.rule] = true
-    end
-  end
-
-  def grow_lr(rule, memo, head, offset<% if @location %>, offset_loc<% end %>)
-    @heads[offset] = head
+  def grow_lr(rule, offset<% if @location %>, offset_loc<% end %>)
     while true
+      old_offset = @position_offset
       @position_offset = offset
       <%- if @location -%>
       @position_offset_loc = offset_loc
       <%- end -%>
-      head.involved_set_to_eval_set
-      answer = public_send(rule)
-      if !answer || @position_offset <= memo.offset
+      answer = public_send(rule, offset<% if @location %>, offset_loc<% end %>, limits: {rule => true})
+      if !answer || @position_offset <= old_offset
         break
       end
+      memo = @memos[offset, rule]
       memo.answer = answer
       memo.offset = @position_offset
       <%- if @location -%>
       memo.offset_loc = @position_offset_loc
       <%- end -%>
     end
-    @heads[offset] = nil
-    @position_offset = memo.offset
-    <%- if @location -%>
-    @position_offset_loc = memo.offset_loc
-    <%- end -%>
-    memo.answer
   end
 
-  def lr_answer(rule, memo, offset<% if @location %>, offset_loc<% end %>)
-    head = memo.lr.head
-    if head.rule_name != rule
-      return memo.lr.seed
-    end
-
-    memo.answer = memo.lr.seed
-    if !memo.answer
-      return nil
-    end
-    grow_lr(rule, memo, head, offset<% if @location %>, offset_loc<% end %>)
-  end
-
-  def rule_answer(rule)
+  def rule_answer(rule, offset<% if @location %>, offset_loc<% end %>)
     offset = @position_offset
     <%- if @location -%>
     offset_loc = @position_offset_loc
     <%- end -%>
     memo = @memos[offset, rule]
-    head = @heads[offset]
 
-    if head
-      if !memo && rule != head.rule_name && !head.involved_set[rule]
-        return nil
-      end
-      if head.eval_set.delete(rule)
-        return public_send(rule)
-      end
-    end
-
-    if memo
-      @position_offset = memo.offset
-      <%- if @location -%>
-      @position_offset_loc = memo.offset_loc
-      <%- end -%>
-      if !memo.lr
-        return memo.answer
-      end
-      setup_lr(rule, memo.lr)
-      return memo.lr.seed
-    end
-
-    lr = LrEntry.new
-    lr.rule = rule
-    @lrstack.push(lr)
-    memo = LrMemo.new(lr, offset<% if @location %>, offset_loc<% end %>)
-    @memos[offset, rule] = memo
-    answer = public_send(rule)
-    @lrstack.pop
-    memo.offset = @position_offset
-    <%- if @location -%>
-    memo.offset_loc = @position_offset_loc
-    <%- end -%>
-    if !lr.head
+    if !memo
+      memo = LrMemo.new(offset<% if @location %>, offset_loc<% end %>)
+      @memos[offset, rule] = memo
+      answer = public_send(rule, offset<% if @location %>, offset_loc<% end %>)
       memo.answer = answer
+      memo.offset = @position_offset
+      <%- if @location -%>
+      memo.offset_loc = @position_offset_loc
+      <%- end -%>
+      if memo.grow
+        grow_lr(rule, offset<% if @location %>, offset_loc<% end %>)
+        memo.grow = false
+        answer = memo.answer
+        @position_offset = memo.offset
+      end
       return answer
+    elsif memo.fail
+      memo.answer = nil
+      memo.grow = true
+      return nil
+    else
+      @position_offset = memo.offset
+      return memo.answer
     end
-
-    lr.seed = answer
-    lr_answer(rule, memo, offset<% if @location %>, offset_loc<% end %>)
   end
 
-  def apply_rule(rule, thunks, values, index)
-    answer = rule_answer(rule)
+  def apply_rule(rule, thunks, values, index, offset<% if @location %>, offset_loc<% end %>, limits: nil)
+    if limits
+      limits = limits.merge(rule => true)
+      answer = public_send(rule, offset<% if @location %>, offset_loc<% end %>, limits: limits)
+      memo = @memos[offset, rule]
+      if !answer || @position_offset <= memo.offset
+        answer = memo.answer
+        @position_offset = memo.offset
+      else
+        memo.answer = answer
+        memo.offset = @position_offset
+      end
+    else
+      answer = rule_answer(rule, offset<% if @location %>, offset_loc<% end %>)
+    end
+
     if !answer
       return false
     end
@@ -273,20 +241,24 @@ class <%= class_name %>
     end
   end
 
-  class LrHead
-    attr_accessor :rule_name, :involved_set, :eval_set
+  class LrMemo
+    attr_accessor :grow, :answer, :offset, :fail
+    <%- if @location -%>
+    attr_accessor :offset_loc
+    <%- end -%>
 
-    def initialize(rule_name)
-      @rule_name = rule_name
-      @involved_set = {}
-      @eval_set = {}
+    def initialize(offset<% if @location %>, offset_loc<% end %>)
+      @offset = offset
+      <%- if @location -%>
+      @offset_loc = offset_loc
+      <%- end -%>
+      @fail = true
+      @grow = false
     end
 
-    def involved_set_to_eval_set
-      @eval_set.clear
-      @involved_set.each do |k, v|
-        @eval_set[k] = true
-      end
+    def answer=(answer)
+      @fail = nil
+      @answer = answer
     end
   end
 
@@ -350,10 +322,6 @@ class <%= class_name %>
     end
   end
 
-  class LrEntry
-    attr_accessor :rule, :head, :seed
-  end
-
   class Capture
     attr_accessor :range_start, :range_end
     <%- if @location -%>
@@ -371,26 +339,6 @@ class <%= class_name %>
 
     def capture_string(buffer)
       @string ||= buffer[@range_start, @range_end - @range_start]
-    end
-  end
-
-  class LrMemo
-    attr_accessor :lr, :answer, :offset
-    <%- if @location -%>
-    attr_accessor :offset_loc
-    <%- end -%>
-
-    def initialize(lr, offset<% if @location %>, offset_loc<% end %>)
-      @offset = offset
-      <%- if @location -%>
-      @offset_loc = offset_loc
-      <%- end -%>
-      @lr = lr
-    end
-
-    def answer=(answer)
-      @lr = nil
-      @answer = answer
     end
   end
 
