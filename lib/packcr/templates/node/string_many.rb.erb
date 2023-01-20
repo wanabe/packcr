@@ -1,10 +1,10 @@
 if (
   refill_buffer(<%= n %>) < <%= n %> ||
-  @buffer[@cur, <%= n %>] != <%= value[0, n].dump %>
+  @buffer[@position_offset, <%= n %>] != <%= value[0, n].dump %>
 )
   throw(<%= onfail %>)
 end
 <%- if gen.location -%>
-@cur_loc = @cur_loc.forward(@buffer, @cur, <%= n %>)
+@position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, <%= n %>)
 <%- end -%>
-@cur += <%= n %>
+@position_offset += <%= n %>

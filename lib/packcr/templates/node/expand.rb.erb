@@ -4,13 +4,13 @@ if refill_buffer(n<%= gen.level %>) < n<%= gen.level %>
   throw(<%= onfail %>)
 end
 if n<%= gen.level %> > 0
-  ptr<%= gen.level %> = @buffer[@cur, n<%= gen.level %>]
+  ptr<%= gen.level %> = @buffer[@position_offset, n<%= gen.level %>]
   q<%= gen.level %> = @buffer[capt<%= gen.level %>.range_start, n<%= gen.level %>]
   if ptr<%= gen.level %> != q<%= gen.level %>
     throw(<%= onfail %>)
   end
   <%- if gen.location -%>
-  @cur_loc = @cur_loc.forward(@buffer, @cur, n<%= gen.level %>)
+  @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, n<%= gen.level %>)
   <%- end -%>
-  @cur += n<%= gen.level %>
+  @position_offset += n<%= gen.level %>
 end

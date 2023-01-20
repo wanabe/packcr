@@ -1,7 +1,7 @@
 <%- if min > 0 -%>
-q<%= gen.level %> = @cur
+q<%= gen.level %> = @position_offset
 <%-   if gen.location -%>
-q_loc<%= gen.level %> = @cur_loc
+q_loc<%= gen.level %> = @position_offset_loc
 <%-   end -%>
 m<%= gen.level %> = answer.thunks.length
 <%- end -%>
@@ -13,33 +13,33 @@ p_loc<%= gen.level %> = nil
 n<%= gen.level %> = nil
 <%- l = gen.next_label -%>
 catch(<%= l %>) do
-  pos<%= gen.level %> = @cur
+  pos<%= gen.level %> = @position_offset
   <%- if gen.location -%>
-  p_loc<%= gen.level %> = @cur_loc
+  p_loc<%= gen.level %> = @position_offset_loc
   <%- end -%>
   n<%= gen.level %> = answer.thunks.length
   <%- r = expr.reachability -%>
   <%- %><%= gen.generate_code(expr, l, 2, false) -%>
   i<%= gen.level %> += 1
-  if @cur != pos<%= gen.level %><% if max >= 0 %> || i<%= gen.level %> < <%= max %><% end %>
+  if @position_offset != pos<%= gen.level %><% if max >= 0 %> || i<%= gen.level %> < <%= max %><% end %>
     redo
   end
   pos<%= gen.level %> = nil
 end
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 if pos<%= gen.level %>
-  @cur = pos<%= gen.level %>
+  @position_offset = pos<%= gen.level %>
   <%-   if gen.location -%>
-  @cur_loc = p_loc<%= gen.level %>
+  @position_offset_loc = p_loc<%= gen.level %>
   <%-   end -%>
   answer.thunks[n<%= gen.level %>..-1] = []
 end
 <%- end -%>
 <%- if min > 0 -%>
 if i<%= gen.level %> < <%= min %>
-  @cur = q<%= gen.level %>
+  @position_offset = q<%= gen.level %>
   <%-   if gen.location -%>
-  @cur_loc = q_loc<%= gen.level %>
+  @position_offset_loc = q_loc<%= gen.level %>
   <%-   end -%>
   answer.thunks[m<%= gen.level %>..-1] = []
   throw(<%= onfail %>)

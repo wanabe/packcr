@@ -2,6 +2,6 @@ if refill_buffer(1) < 1
   throw(<%= onfail %>)
 end
 <%- if gen.location -%>
-@cur_loc = @cur_loc.forward(@buffer, @cur, 1)
+@position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
 <%- end -%>
-@cur += 1
+@position_offset += 1

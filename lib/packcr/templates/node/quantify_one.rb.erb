@@ -1,7 +1,7 @@
 <%- l = gen.next_label -%>
-pos<%= gen.level %> = @cur
+pos<%= gen.level %> = @position_offset
 <%- if gen.location -%>
-p_loc<%= gen.level %> = @cur_loc
+p_loc<%= gen.level %> = @position_offset_loc
 <%- end -%>
 n<%= gen.level %> = answer.thunks.length
 <%- r = expr.reachability -%>
@@ -15,9 +15,9 @@ catch(<%= m %>) do
     throw(<%= m %>)
   end
   <%-   if gen.location -%>
-  @cur_loc = p_loc<%= gen.level %>
+  @position_offset_loc = p_loc<%= gen.level %>
   <%-   end -%>
-  @cur = pos<%= gen.level %>
+  @position_offset = pos<%= gen.level %>
   answer.thunks[n<%= gen.level %>..-1] = []
 end
 <%- end -%>

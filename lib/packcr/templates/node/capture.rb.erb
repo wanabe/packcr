@@ -1,14 +1,14 @@
-pos<%= gen.level %> = @cur
+pos<%= gen.level %> = @position_offset
 <%- if gen.location -%>
-p_loc<%= gen.level %> = @cur_loc
+p_loc<%= gen.level %> = @position_offset_loc
 <%- end -%>
 <%- %><%= gen.generate_code(expr, onfail, 0, false) -%>
-q<%= gen.level %> = @cur
+q<%= gen.level %> = @position_offset
 capt<%= gen.level %> = answer.capts[<%= index %>]
 capt<%= gen.level %>.range_start = pos<%= gen.level %>
 capt<%= gen.level %>.range_end = q<%= gen.level %>
 <%- if gen.location -%>
-q_loc<%= gen.level %> = @cur_loc
+q_loc<%= gen.level %> = @position_offset_loc
 capt<%= gen.level %>.start_loc = p_loc<%= gen.level %>
 capt<%= gen.level %>.end_loc = q_loc<%= gen.level %>
 <%- end -%>

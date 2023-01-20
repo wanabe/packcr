@@ -1,8 +1,8 @@
 <%-   m = gen.next_label -%>
 catch(<%= m %>) do
-  pos<%= gen.level %> = @cur
+  pos<%= gen.level %> = @position_offset
   <%- if gen.location -%>
-  p_loc<%= gen.level %> = @cur_loc
+  p_loc<%= gen.level %> = @position_offset_loc
   <%- end -%>
   n<%= gen.level %> = answer.thunks.length
   <%- nodes.each_with_index do |expr, i| -%>
@@ -28,9 +28,9 @@ catch(<%= m %>) do
     <%-   end -%>
   end
   <%- end -%>
-  @cur = pos<%= gen.level %>
+  @position_offset = pos<%= gen.level %>
   <%- if gen.location -%>
-  @cur_loc = p_loc<%= gen.level %>
+  @position_offset_loc = p_loc<%= gen.level %>
   <%- end -%>
   answer.thunks[n<%= gen.level %>..-1] = []
   <%-   if !c -%>

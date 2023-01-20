@@ -2,9 +2,9 @@ answer.thunks.push(
   ThunkLeaf.new(
     :action_<%= gen.rule.name %>_<%= index %>,
     Capture.new(
-      answer.pos, @cur,
+      answer.pos, @position_offset,
       <%- if gen.location -%>
-      answer.pos_loc, @cur_loc,
+      answer.pos_loc, @position_offset_loc,
       <%- end -%>
     ),
     <%- if vars.empty? -%>

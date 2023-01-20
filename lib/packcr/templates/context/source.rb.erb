@@ -13,8 +13,8 @@ class <%= class_name %>
     <%- else -%>
     @buffer = +"".b
     <%- end %>
-    @pos = 0
-    @cur = 0
+    @buffer_start_position = 0
+    @position_offset = 0
     @level = 0
     @lrstack = []
     @thunk = ThunkNode.new([], nil, 0)
@@ -23,8 +23,8 @@ class <%= class_name %>
     @debug = debug
     @global_values = {}
     <%- if @location -%>
-    @pos_loc = Location.new
-    @cur_loc = Location.new
+    @buffer_start_position_loc = Location.new
+    @position_offset_loc = Location.new
     <%- end -%>
     <%- code(:init).each do |code| -%>
     <%- %><%= stream.get_code_block(code, 4, @iname) -%>
@@ -45,32 +45,32 @@ class <%= class_name %>
 
   def refill_buffer(num, mode = nil)
     len = @buffer.length
-    if len >= @cur + num
-      return len - @cur
+    if len >= @position_offset + num
+      return len - @position_offset
     end
-    while len < @cur + num
+    while len < @position_offset + num
       c = getc
       break if !c
       @buffer << c
       len = @buffer.length
     end
-    return len - @cur
+    return len - @position_offset
   end
 
   def commit_buffer
-    @buffer = @buffer[@cur, @buffer.length - @cur]
-    @pos += @cur
+    @buffer = @buffer[@position_offset, @buffer.length - @position_offset]
+    @buffer_start_position += @position_offset
     @heads.clear
     @memos.clear
-    @cur = 0
+    @position_offset = 0
     <%- if @location -%>
-    @pos_loc = @pos_loc + @cur_loc
-    @cur_loc = Location.new
+    @buffer_start_position_loc = @buffer_start_position_loc + @position_offset_loc
+    @position_offset_loc = Location.new
     <%- end -%>
   end
 
   def parse
-    pos = @pos
+    pos = @buffer_start_position
     <%- if !@root.rules.empty? -%>
     if apply_rule(:evaluate_rule_<%= @root.rules[0].name %>, @thunk.thunks, nil, 0)
       @thunk.do_action(self, nil, 0)
@@ -80,7 +80,7 @@ class <%= class_name %>
     commit_buffer
     <%- end -%>
     @thunk.clear
-    refill_buffer(1) >= 1 && pos != @pos
+    refill_buffer(1) >= 1 && pos != @buffer_start_position
   end
 
   def run
@@ -95,22 +95,22 @@ class <%= class_name %>
     <%= ref.var %> = (__pcc_in.value_refs[<%= ref.index %>]  ||= Value.new).value
     <%-   end -%>
     __0 = __pcc_in.capt0.capture_string(@buffer)
-    __0s = @pos + __pcc_in.capt0.range_start
-    __0e = @pos + __pcc_in.capt0.range_end
+    __0s = @buffer_start_position + __pcc_in.capt0.range_start
+    __0e = @buffer_start_position + __pcc_in.capt0.range_end
     <%-   if @location -%>
-    __0sl = @pos_loc + __pcc_in.capt0.start_loc
-    __0el = @pos_loc + __pcc_in.capt0.end_loc
+    __0sl = @buffer_start_position_loc + __pcc_in.capt0.start_loc
+    __0el = @buffer_start_position_loc + __pcc_in.capt0.end_loc
     <%-   end -%>
     <%-   if @capture_in_code -%>
     __0c = __pcc_in.capt0
     <%-   end -%>
     <%-   code.capts.each do |capture| -%>
     __<%= capture.index + 1 %> = __pcc_in.capts[<%= capture.index %>].capture_string(@buffer)
-    __<%= capture.index + 1 %>s = @pos + __pcc_in.capts[<%= capture.index %>].range_start
-    __<%= capture.index + 1 %>e = @pos + __pcc_in.capts[<%= capture.index %>].range_end
+    __<%= capture.index + 1 %>s = @buffer_start_position + __pcc_in.capts[<%= capture.index %>].range_start
+    __<%= capture.index + 1 %>e = @buffer_start_position + __pcc_in.capts[<%= capture.index %>].range_end
     <%-     if @location -%>
-    __<%= capture.index + 1 %>sl = @pos_loc + __pcc_in.capts[<%= capture.index %>].start_loc
-    __<%= capture.index + 1 %>el = @pos_loc + __pcc_in.capts[<%= capture.index %>].end_loc
+    __<%= capture.index + 1 %>sl = @buffer_start_position_loc + __pcc_in.capts[<%= capture.index %>].start_loc
+    __<%= capture.index + 1 %>el = @buffer_start_position_loc + __pcc_in.capts[<%= capture.index %>].end_loc
     <%-     end -%>
     <%-     if @capture_in_code -%>
     __<%= capture.index + 1 %>c = __pcc_in.capts[<%= capture.index %>]
@@ -126,9 +126,9 @@ class <%= class_name %>
   <%- @root.rules.each do |rule| -%>
   def evaluate_rule_<%= rule.name %>
     answer = ThunkChunk.new
-    answer.pos = @cur
+    answer.pos = @position_offset
     <%-   if @location -%>
-    answer.pos_loc = @cur_loc
+    answer.pos_loc = @position_offset_loc
     <%-   end -%>
     <%-   gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb) -%>
     <%-   -%><%= gen.generate_code(rule, 0, 4, false) -%>
@@ -149,25 +149,25 @@ class <%= class_name %>
   def grow_lr(rule, memo, head, pos<% if @location %>, p_loc<% end %>)
     @heads[pos] = head
     while true
-      @cur = pos - @pos
+      @position_offset = pos - @buffer_start_position
       <%- if @location -%>
-      @cur_loc = p_loc - @pos_loc
+      @position_offset_loc = p_loc - @buffer_start_position_loc
       <%- end -%>
       head.involved_set_to_eval_set
       answer = public_send(rule)
-      if !answer || @pos + @cur <= memo.pos
+      if !answer || @buffer_start_position + @position_offset <= memo.pos
         break
       end
       memo.answer = answer
-      memo.pos = @pos + @cur
+      memo.pos = @buffer_start_position + @position_offset
       <%- if @location -%>
-      memo.pos_loc = @pos_loc + @cur_loc
+      memo.pos_loc = @buffer_start_position_loc + @position_offset_loc
       <%- end -%>
     end
     @heads[pos] = nil
-    @cur = memo.pos - @pos
+    @position_offset = memo.pos - @buffer_start_position
     <%- if @location -%>
-    @cur_loc = memo.pos_loc - @pos_loc
+    @position_offset_loc = memo.pos_loc - @buffer_start_position_loc
     <%- end -%>
     memo.answer
   end
@@ -186,9 +186,9 @@ class <%= class_name %>
   end
 
   def rule_answer(rule)
-    pos = @pos + @cur
+    pos = @buffer_start_position + @position_offset
     <%- if @location -%>
-    p_loc = @pos_loc + @cur_loc
+    p_loc = @buffer_start_position_loc + @position_offset_loc
     <%- end -%>
     memo = @memos[pos, rule]
     head = @heads[pos]
@@ -203,9 +203,9 @@ class <%= class_name %>
     end
 
     if memo
-      @cur = memo.pos - @pos
+      @position_offset = memo.pos - @buffer_start_position
       <%- if @location -%>
-      @cur_loc = memo.pos_loc - @pos_loc
+      @position_offset_loc = memo.pos_loc - @buffer_start_position_loc
       <%- end -%>
       if !memo.lr
         return memo.answer
@@ -221,9 +221,9 @@ class <%= class_name %>
     @memos[pos, rule] = memo
     answer = public_send(rule)
     @lrstack.pop
-    memo.pos = @pos + @cur
+    memo.pos = @buffer_start_position + @position_offset
     <%- if @location -%>
-    memo.pos_loc = @pos_loc + @cur_loc
+    memo.pos_loc = @buffer_start_position_loc + @position_offset_loc
     <%- end -%>
     if !lr.head
       memo.answer = answer

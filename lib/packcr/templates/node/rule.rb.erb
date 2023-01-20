@@ -8,16 +8,16 @@ answer.values = {}
 <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%- -%><%= gen.generate_code(expr, 0, 0, false) -%>
 @level -= 1
-debug { warn "#{ "  " * @level}MATCH   <%= name %> #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+debug { warn "#{ "  " * @level}MATCH   <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
 return answer
 <%- else -%>
 catch(0) do
   <%- -%><%= gen.generate_code(expr, 0, 2, false) -%>
   @level -= 1
-  debug { warn "#{ "  " * @level}MATCH   <%= name %> #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+  debug { warn "#{ "  " * @level}MATCH   <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
   return answer
 end
 @level -= 1
-debug { warn "#{ "  " * @level}NOMATCH <%= name %> #{answer.pos} #{@buffer[answer.pos...@cur].inspect}" }
+debug { warn "#{ "  " * @level}NOMATCH <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
 return nil
 <%- end -%>
