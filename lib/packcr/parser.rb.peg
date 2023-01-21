@@ -1,4 +1,4 @@
-%prefix "packcr::parser"
+%prefix "parser"
 
 statement <- comment
            / spaces
@@ -119,7 +119,7 @@ footer <- '%%' (lf / EOF) <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1
     end
 
     def +(other)
-      if other.linenum == 0
+      if other.linenum.zero?
         Location.new(@charnum + other.charnum, @linenum + other.linenum)
       else
         Location.new(           other.charnum, @linenum + other.linenum)
@@ -127,12 +127,10 @@ footer <- '%%' (lf / EOF) <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1
     end
 
     def -(other)
-      if other.linenum == self.linenum
-        Location.new(@charnum - other.charnum, @linenum - other.linenum)
-      elsif other.charnum == 0
+      if other.linenum == linenum || other.charnum.zero?
         Location.new(@charnum - other.charnum, @linenum - other.linenum)
       else
-        raise "unexpected location #{self.inspect} - #{other.inspect}"
+        raise "unexpected location #{inspect} - #{other.inspect}"
       end
     end
 
@@ -163,10 +161,15 @@ footer <- '%%' (lf / EOF) <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1
   @ascii = false
   @lang = :rb
 }
+
+%source {
+  class Packcr
+}
 %%
 
-class Packcr::Parser
-  def getc
-    @ifile.getc
+  class Parser
+    def getc
+      @ifile.getc
+    end
   end
 end

@@ -10,7 +10,7 @@ class Packcr
       end
 
       def reachability
-        return Packcr::CODE_REACH__BOTH
+        Packcr::CODE_REACH__BOTH
       end
 
       def to_h

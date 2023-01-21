@@ -11,13 +11,13 @@ class Packcr
 
     def write(s, rewrite_line_directive: false)
       if rewrite_line_directive && @line_directive_tag && @line.respond_to?(:+)
-        s.gsub!(@line_directive_tag) { (@line + $`.count("\n") + 1).to_s }
+        s.gsub!(@line_directive_tag) { (@line + ::Regexp.last_match.pre_match.count("\n") + 1).to_s }
         @line_directive_tag = nil
       end
       @stream << s
-      if @line.respond_to?(:+)
-        @line += s.count("\n")
-      end
+      return unless @line.respond_to?(:+)
+
+      @line += s.count("\n")
     end
 
     def write_text(s)
@@ -26,6 +26,7 @@ class Packcr
 
     def write_line_directive(fname, lineno)
       return unless @line
+
       if lineno.respond_to?(:+)
         write("#line #{lineno + 1} \"")
       else
@@ -47,15 +48,15 @@ class Packcr
       lineno = code.line
 
       ptr.sub!(/\A\n+/) do
-        lineno += $&.length
+        lineno += ::Regexp.last_match(0).length
         ""
       end
       ptr.sub!(/[ \v\f\t\r\n]*\z/, "")
 
       min_indent_spaces = nil
       ptr.gsub!(/^([ \v\f\t]*)([^ \v\f\t\r\n])/) do
-        spaces = $1
-        char = $2
+        spaces = ::Regexp.last_match(1)
+        char = ::Regexp.last_match(2)
 
         next char if char == "#"
 
@@ -71,7 +72,7 @@ class Packcr
       if min_indent_spaces
         indent_spaces = " " * indent
         ptr.gsub!(/^#{min_indent_spaces}( *[^\n#])/) do
-          "#{indent_spaces}#{$1}"
+          "#{indent_spaces}#{::Regexp.last_match(1)}"
         end
       end
 
@@ -79,7 +80,7 @@ class Packcr
 
       write_line_directive(fname, lineno)
       ptr.scan(/^(.+?)[ \v\f\t\r]*$|^\r?\n/) do
-        write $1 if $1
+        write ::Regexp.last_match(1) if ::Regexp.last_match(1)
         write "\n"
       end
       write_output_line_directive
@@ -87,11 +88,15 @@ class Packcr
 
     def get_code_block(code, indent, fname)
       buf = +""
-      line, stream, @stream, @line = @line, @stream, buf, @line && :uuid
+      line = @line
+      stream = @stream
+      @stream = buf
+      @line &&= :uuid
       write_code_block(code, indent, fname)
-      return buf
+      buf
     ensure
-      @line, @stream = line, stream
+      @line = line
+      @stream = stream
     end
   end
 end

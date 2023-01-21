@@ -1,15 +1,4 @@
 class Packcr
-end
-
-require "packcr/util"
-require "packcr/code_block"
-require "packcr/stream"
-require "packcr/generator"
-require "packcr/node"
-require "packcr/context"
-require "packcr/version"
-
-class Packcr
   CODE_REACH__BOTH = 0
   CODE_REACH__ALWAYS_SUCCEED = 1
   CODE_REACH__ALWAYS_FAIL = -1
@@ -30,3 +19,11 @@ class Packcr
     end
   end
 end
+
+require "packcr/util"
+require "packcr/code_block"
+require "packcr/stream"
+require "packcr/generator"
+require "packcr/node"
+require "packcr/context"
+require "packcr/version"

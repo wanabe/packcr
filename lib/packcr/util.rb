@@ -5,10 +5,10 @@ class Packcr
     def unescape_string(str, is_charclass)
       if is_charclass
         str.gsub!("\\" * 2) { "\\" * 4 }
-        str.gsub!("\"" ) { "\\\"" }
+        str.gsub!("\"") { "\\\"" }
       end
       str.gsub!(/\\(.)/) do
-        c = $1
+        c = ::Regexp.last_match(1)
         case c
         when "0"
           "\\x00"
@@ -19,7 +19,7 @@ class Packcr
         end
       end
       str.gsub!(/[^\x00-\x7f]/) do
-        "\\x%02x" % $&.ord
+        format("\\x%02x", ::Regexp.last_match(0).ord)
       end
       str.replace "\"#{str}\"".undump
     end
@@ -31,19 +31,20 @@ class Packcr
     def escape_string(str)
       str = str.b
       str.gsub(/(\0+)|(\e+)|("+)|('+)|(\\+)|((?:(?![\0\e"'\\])[ -~])+)|([\x01-\x1a\x1c-\x1f\x7f-\xff]+)/n) do
-        n = $&.size
-        next "\\0"   * n if $1
-        next "\\x1b" * n if $2
-        next "\\\""  * n if $3
-        next "\\\'"  * n if $4
-        next "\\\\"  * n if $5
-        next $6 if $6
-        $7.dump[1..-2].downcase
+        n = ::Regexp.last_match(0).size
+        next "\\0"   * n if ::Regexp.last_match(1)
+        next "\\x1b" * n if ::Regexp.last_match(2)
+        next "\\\""  * n if ::Regexp.last_match(3)
+        next "\\'" * n if ::Regexp.last_match(4)
+        next "\\\\" * n if ::Regexp.last_match(5)
+        next ::Regexp.last_match(6) if ::Regexp.last_match(6)
+
+        ::Regexp.last_match(7).dump[1..-2].downcase
       end
     end
 
     def dump_integer_value(value)
-      if value == nil
+      if value.nil?
         $stdout.print "void"
       else
         $stdout.print value
@@ -62,8 +63,8 @@ class Packcr
       offset = 0
       spaces.tr!("\v\f", " ")
       spaces.gsub!(/\t+/) do
-        chars = $`.length
-        o = 8 * $&.length - (offset + chars) % 8
+        chars = ::Regexp.last_match.pre_match.length
+        o = (8 * ::Regexp.last_match(0).length) - ((offset + chars) % 8)
         offset = (7 - chars) % 8
         " " * o
       end
@@ -80,7 +81,7 @@ class Packcr
         indent -= 4
       end
       result.gsub!(/^(?!$)/, " " * indent)
-      result.gsub!(/^( *?) {0,4}<<<</) { $1 }
+      result.gsub!(/^( *?) {0,4}<<<</) { ::Regexp.last_match(1) }
       result
     end
   end

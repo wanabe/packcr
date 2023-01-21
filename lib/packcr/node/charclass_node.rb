@@ -18,35 +18,29 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
-        if gen.ascii
-          return generate_ascii_code(gen, onfail, indent, bare)
-        else
-          return generate_utf8_charclass_code(gen, onfail, indent, bare)
-        end
+        return generate_ascii_code(gen, onfail, indent, bare) if gen.ascii
+
+        generate_utf8_charclass_code(gen, onfail, indent, bare)
       end
 
       def generate_reverse_code(gen, onsuccess, indent, bare, oncut: nil)
-        if gen.ascii
-          raise "unexpected"
-        else
-          return generate_utf8_charclass_reverse_code(gen, onsuccess, indent, bare)
-        end
+        raise "unexpected" if gen.ascii
+
+        generate_utf8_charclass_reverse_code(gen, onsuccess, indent, bare)
       end
 
       def reachability
-        charclass = self.value
+        charclass = value
         n = charclass&.length || 0
-        if charclass.nil? || n > 0
-          return Packcr::CODE_REACH__BOTH
-        else
-          return Packcr::CODE_REACH__ALWAYS_FAIL
-        end
+        return Packcr::CODE_REACH__BOTH if charclass.nil? || n > 0
+
+        Packcr::CODE_REACH__ALWAYS_FAIL
       end
 
       private
 
       def generate_utf8_charclass_code(gen, onfail, indent, bare)
-        charclass = self.value
+        charclass = value
         if charclass && charclass.encoding != Encoding::UTF_8
           charclass = charclass.dup.force_encoding(Encoding::UTF_8)
         end
@@ -59,18 +53,18 @@ class Packcr
       end
 
       def generate_utf8_charclass_reverse_code(gen, onsuccess, indent, bare)
-        charclass = self.value
+        charclass = value
         if charclass && charclass.encoding != Encoding::UTF_8
           charclass = charclass.dup.force_encoding(Encoding::UTF_8)
         end
         n = charclass&.length || 0
-        if charclass.nil? || n > 0
-          gen.write Packcr.template("node/charclass_utf8_reverse.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
-        end
+        return unless charclass.nil? || n > 0
+
+        gen.write Packcr.template("node/charclass_utf8_reverse.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
       end
 
       def generate_ascii_code(gen, onfail, indent, bare)
-        charclass = self.value
+        charclass = value
         if charclass
           n = charclass.length
           a = charclass[0] == "^"

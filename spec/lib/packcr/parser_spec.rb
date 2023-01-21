@@ -3,25 +3,25 @@ require "rspec-parameterized"
 
 require "packcr"
 
-RSpec.describe Packcr::Parser do
-  class DummyContext
-    attr_reader :lang, :root
+class DummyContext
+  attr_reader :lang, :root
 
-    def initialize(lang)
-      @lang = lang
-      @codes = {}
-      @root = Packcr::Node::RootNode.new
-    end
-
-    def code(name)
-      @codes[name] ||= []
-    end
-
-    def codes
-      @codes.transform_values { |codes| codes.map(&:text) }
-    end
+  def initialize(lang)
+    @lang = lang
+    @codes = {}
+    @root = Packcr::Node::RootNode.new
   end
 
+  def code(name)
+    @codes[name] ||= []
+  end
+
+  def codes
+    @codes.transform_values { |codes| codes.map(&:text) }
+  end
+end
+
+RSpec.describe Packcr::Parser do
   describe "#parse" do
     subject { parser.parse }
 
@@ -59,16 +59,16 @@ RSpec.describe Packcr::Parser do
     context "directive_include" do
       where(:peg, :codes) do
         [
-          ["%earlysource {}", esource: [""]],
-          ["%earlycommon { }", esource: [" "], eheader: [" "]],
-          ["%source {  test();  }", source: ["  test();  "]],
+          ["%earlysource {}", { esource: [""] }],
+          ["%earlycommon { }", { esource: [" "], eheader: [" "] }],
+          ["%source {  test();  }", { source: ["  test();  "] }],
           ["%source rb -> { other language code is just ignore }", {}],
-          ["%lateheader rb->{} c->{\n if () {\n} \n}", lheader: ["\n if () {\n} \n"]],
-          ['%latesource { "}}\\"}" }', lsource: [' "}}\\"}" ']],
-          ["%header {1}\n rb->{2} {3}", header: ["1", "3"]],
-          ["%common { $$ = 1; }", source: [" __ = 1; "], header: [" __ = 1; "]],
-          ["%location ${ $$ = 2; }", location: [" $$ = 2; "]],
-          ["%initialize {}", init: [""]],
+          ["%lateheader rb->{} c->{\n if () {\n} \n}", { lheader: ["\n if () {\n} \n"] }],
+          ['%latesource { "}}\\"}" }', { lsource: [' "}}\\"}" '] }],
+          ["%header {1}\n rb->{2} {3}", { header: %w[1 3] }],
+          ["%common { $$ = 1; }", { source: [" __ = 1; "], header: [" __ = 1; "] }],
+          ["%location ${ $$ = 2; }", { location: [" $$ = 2; "] }],
+          ["%initialize {}", { init: [""] }],
         ]
       end
 
@@ -98,7 +98,7 @@ RSpec.describe Packcr::Parser do
         [
           ['%value ""', :value_type=, ""],
           ['%auxil "ab\\"c"', :auxil_type=, 'ab\\"c'],
-          ['%prefix rb -> "abc" c -> "def"', :prefix=, 'def'],
+          ['%prefix rb -> "abc" c -> "def"', :prefix=, "def"],
           ['%prefix rb -> "ignore"', nil, nil],
         ]
       end
@@ -145,9 +145,9 @@ RSpec.describe Packcr::Parser do
     context "footer" do
       where(:peg, :codes) do
         [
-          ["%%", lsource: [""]],
-          ["%%\n", lsource: [""]],
-          ["%%\n\nabc", lsource: ["\nabc"]],
+          ["%%", { lsource: [""] }],
+          ["%%\n", { lsource: [""] }],
+          ["%%\n\nabc", { lsource: ["\nabc"] }],
         ]
       end
 
@@ -164,8 +164,8 @@ RSpec.describe Packcr::Parser do
     context "rule" do
       where(:peg, :name, :expr) do
         [
-          ["a <- b", "a", type: :reference, name: "b"],
-          ["foo <- 'bar'", "foo", type: :string, value: "bar"],
+          ["a <- b", "a", { type: :reference, name: "b" }],
+          ["foo <- 'bar'", "foo", { type: :string, value: "bar" }],
         ]
       end
 
@@ -174,9 +174,11 @@ RSpec.describe Packcr::Parser do
           subject
           expect(debug_messages).to match(/^ *MATCH *rule 0 #{Regexp.escape(peg.inspect)}/)
           expect(debug_messages).to match(/^MATCH *statement 0 .*\n\z/)
-          expect(ctx.root.rules.map(&:to_h)).to match([
-            hash_including(expr: hash_including(expr))
-          ])
+          expect(ctx.root.rules.map(&:to_h)).to match(
+            [
+              hash_including(expr: hash_including(expr)),
+            ],
+          )
         end
       end
     end

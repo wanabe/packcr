@@ -34,15 +34,15 @@ class Packcr
       @lang = lang.to_sym
       case @lang
       when :c
-        @hname = path + ".h"
+        @hname = "#{path}.h"
         @patterns = {
-          source: path + ".c",
-          header: @hname
+          source: "#{path}.c",
+          header: @hname,
         }
         @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
       when :rb
         @patterns = {
-          source: path + ".rb"
+          source: "#{path}.rb",
         }
       else
         raise "unexpected lang: #{@lang}"
@@ -57,9 +57,9 @@ class Packcr
       @codes = {}
       @root = Node::RootNode.new
 
-      if block_given?
-        yield(self)
-      end
+      return unless block_given?
+
+      yield(self)
     end
 
     def code(name)
@@ -67,7 +67,7 @@ class Packcr
     end
 
     def inspect
-      "#<#{self.class}:0x%016x>" % object_id
+      format("#<%s:0x%016x>", self.class, object_id)
     end
 
     def error(line, col, message)
@@ -97,7 +97,7 @@ class Packcr
     end
 
     def class_name
-      prefix.gsub(/(?:_|^|(\W))([a-z])/) { "#{$1}#{$2}".upcase }
+      prefix.gsub(/(?:_|^|(\W))([a-z])/) { "#{::Regexp.last_match(1)}#{::Regexp.last_match(2)}".upcase }
     end
 
     def auxil_def
@@ -148,17 +148,17 @@ class Packcr
         stream = Packcr::Stream.new(result, ofile, @lines ? 0 : nil)
         stream.write Packcr.template("context/#{template}.#{@lang}.erb", binding), rewrite_line_directive: true
 
-        if !@errnum.zero?
-          results.each do |_, result|
-            result.close
-          end
-          return false
+        next if @errnum.zero?
+
+        results.each do |_, r|
+          r.close
         end
+        return false
       end
 
       results.each do |(name, result)|
         result.rewind
-        open(name, "wt") do |f|
+        File.open(name, "wt") do |f|
           IO.copy_stream(result, f)
         end
       end

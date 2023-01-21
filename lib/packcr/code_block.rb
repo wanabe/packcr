@@ -1,4 +1,3 @@
-
 class Packcr
   class CodeBlock
     attr_reader :text, :line

@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.summary    = "Parser generator for C or Ruby"
   s.authors    = ["wanabe"]
   s.licenses   = ["MIT"]
+  s.required_ruby_version = ">= 2.7.0"
 
   s.bindir      = "exe"
   s.files       = Dir.glob("lib/**/*.rb") + Dir.glob("lib/**/*.erb") + Dir.glob("exe/*")
@@ -18,4 +19,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rake", "~> 13.0"
   s.add_development_dependency "rspec", "~> 3.12"
   s.add_development_dependency "rspec-parameterized", "~> 1.0"
+  s.add_development_dependency "rubocop", "~> 1.43.0"
+  s.metadata["rubygems_mfa_required"] = "true"
 end

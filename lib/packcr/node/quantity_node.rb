@@ -36,15 +36,15 @@ class Packcr
           if expr.reachability == Packcr::CODE_REACH__ALWAYS_FAIL
             return Packcr::CODE_REACH__ALWAYS_FAIL
           end
-          return Packcr::CODE_REACH__BOTH
+
+          Packcr::CODE_REACH__BOTH
         elsif max == 1
-          if min > 0
-            return expr.reachability
-          else
-            return Packcr::CODE_REACH__ALWAYS_SUCCEED
-          end
+          return expr.reachability if min > 0
+
+          Packcr::CODE_REACH__ALWAYS_SUCCEED
+
         else
-          return Packcr::CODE_REACH__ALWAYS_SUCCEED
+          Packcr::CODE_REACH__ALWAYS_SUCCEED
         end
       end
 

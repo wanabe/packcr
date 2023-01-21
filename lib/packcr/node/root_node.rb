@@ -38,6 +38,7 @@ class Packcr
       def rule(name)
         rule = @rulehash[name]
         return rule if rule
+
         case name
         when "EOF"
           expr = Packcr::Node::EofNode.new

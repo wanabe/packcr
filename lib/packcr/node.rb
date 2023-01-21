@@ -20,11 +20,9 @@ class Packcr
       end
     end
 
-    def link_references(ctx)
-    end
+    def link_references(ctx); end
 
-    def setup_rule(rule)
-    end
+    def setup_rule(rule); end
 
     def setup(ctx, rule)
       setup_rule(rule)
@@ -39,7 +37,7 @@ class Packcr
       []
     end
 
-    def reversible?(gen)
+    def reversible?(_gen)
       false
     end
 

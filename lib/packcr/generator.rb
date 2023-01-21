@@ -16,7 +16,8 @@ class Packcr
     end
 
     def generate_code(node, onescape, indent, bare, reverse: false, oncut: nil)
-      @stream, stream = +"", @stream
+      stream = @stream
+      @stream = +""
       @level += 1
       begin
         if reverse

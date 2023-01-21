@@ -37,9 +37,10 @@ class Packcr
 
       def verify_rule_reference(ctx)
         return if top
-        if ref == 0
-          ctx.error line + 1, col + 1, "Never used rule '#{name}'"
-        end
+
+        return unless ref == 0
+
+        ctx.error line + 1, col + 1, "Never used rule '#{name}'"
       end
 
       def add_ref

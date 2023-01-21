@@ -34,10 +34,12 @@ class Packcr
 
       def setup_rule(rule)
         return unless var
+
         i = rule.vars.index do |ref|
           unless ref.is_a?(Packcr::Node::ReferenceNode)
             raise "Unexpected node type: #{ref.class}"
           end
+
           var == ref.var
         end
         if !i
@@ -54,6 +56,7 @@ class Packcr
           unless var.is_a?(Packcr::Node::ReferenceNode)
             raise "unexpected var: #{var.class}"
           end
+
           index == var.index
         end
         vars.push(self) if !found
@@ -61,14 +64,15 @@ class Packcr
 
       def link_references(ctx)
         rule = ctx.root.rule(name)
-        if !rule
-          ctx.error line + 1, col + 1, "No definition of rule '#{name}'"
-        else
+        if rule
           unless rule.is_a?(Packcr::Node::RuleNode)
             raise "unexpected node type #{rule.class}"
           end
+
           rule.add_ref
           self.rule = rule
+        else
+          ctx.error line + 1, col + 1, "No definition of rule '#{name}'"
         end
       end
 

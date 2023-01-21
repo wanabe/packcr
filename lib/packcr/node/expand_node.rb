@@ -20,7 +20,7 @@ class Packcr
       end
 
       def reachability
-        return Packcr::CODE_REACH__BOTH
+        Packcr::CODE_REACH__BOTH
       end
 
       def verify_captures(ctx, capts)
@@ -28,11 +28,12 @@ class Packcr
           unless capt.is_a?(Packcr::Node::CaptureNode)
             raise "unexpected capture: #{capt.class}"
           end
+
           index == capt.index
         end
-        if !found && index != nil
-          ctx.error line + 1, col + 1, "Capture #{index + 1} not available at this position"
-        end
+        return if found || index.nil?
+
+        ctx.error line + 1, col + 1, "Capture #{index + 1} not available at this position"
       end
 
       def to_h

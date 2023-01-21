@@ -1,0 +1,96 @@
+AllCops:
+  TargetRubyVersion: 2.7
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - bin/bench
+    - tmp/**/*
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+Layout/MultilineMethodCallBraceLayout:
+  EnforcedStyle: new_line
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/LineLength:
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/MethodLength:
+  Enabled: false
+Metrics/PerceivedComplexity:
+  Enabled: false
+Style/CombinableLoops:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Enabled: false
+Metrics/AbcSize:
+  Enabled: false
+Style/Documentation:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Style/OperatorMethodCall:
+  Enabled: false
+Style/ConditionalAssignment:
+  Enabled: false
+Style/RedundantInterpolation:
+  Enabled: false
+Style/IfUnlessModifier:
+  Enabled: false
+Style/Semicolon:
+  Enabled: false
+Style/FrozenStringLiteralComment:
+  Enabled: false
+Style/NegatedIf:
+  Enabled: false
+Naming/MethodParameterName:
+  Enabled: false
+Naming/VariableNumber:
+  Enabled: false
+Lint/MissingSuper:
+  Enabled: false
+Lint/DuplicateMethods:
+  Enabled: false
+Metrics/ParameterLists:
+  Enabled: false
+Metrics/BlockNesting:
+  Enabled: false
+Layout/SpaceInsideParens:
+  Enabled: false
+Style/InfiniteLoop:
+  Enabled: false
+Naming/MethodName:
+  Enabled: false
+Style/SlicingWithRange:
+  Enabled: false
+Style/NumericPredicate:
+  Enabled: false
+Style/OptionalBooleanParameter:
+  Enabled: false
+Style/DoubleNegation:
+  Enabled: false
+Naming/HeredocDelimiterNaming:
+  Enabled: false
+Style/FormatStringToken:
+  Enabled: false
+Lint/UnusedMethodArgument:
+  Enabled: false
+
+Lint/UselessAssignment:
+  Exclude:
+    - lib/packcr/parser.rb
+Lint/UnderscorePrefixedVariableName:
+  Exclude:
+    - lib/packcr/parser.rb

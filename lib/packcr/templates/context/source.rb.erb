@@ -155,7 +155,7 @@ class <%= class_name %>
     end
   end
 
-  def rule_answer(rule, offset<% if @location %>, offset_loc<% end %>)
+  def rule_answer(rule)
     offset = @position_offset
     <%- if @location -%>
     offset_loc = @position_offset_loc
@@ -201,7 +201,7 @@ class <%= class_name %>
         memo.offset = @position_offset
       end
     else
-      answer = rule_answer(rule, offset<% if @location %>, offset_loc<% end %>)
+      answer = rule_answer(rule)
     end
 
     if !answer
@@ -283,10 +283,7 @@ class <%= class_name %>
     end
   end
 
-  class Thunk
-  end
-
-  class ThunkLeaf < Thunk
+  class ThunkLeaf
     attr_accessor :capt0, :capts, :value_refs, :action
 
     def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})
@@ -301,7 +298,7 @@ class <%= class_name %>
     end
   end
 
-  class ThunkNode < Thunk
+  class ThunkNode
     attr_accessor :thunks, :values, :index
 
     def initialize(thunks, values, index)
@@ -338,7 +335,7 @@ class <%= class_name %>
     end
 
     def capture_string(buffer)
-      @string ||= buffer[@range_start, @range_end - @range_start]
+      @capture_string ||= buffer[@range_start, @range_end - @range_start]
     end
   end
 
