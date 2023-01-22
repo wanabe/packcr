@@ -1,3 +1,9 @@
+static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= name %>(pcc_context_t *ctx) {
+    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
+    chunk->pos = ctx->cur;
+<%-   if gen.location -%>
+    chunk->pos_loc = ctx->cur_loc;
+<%-   end -%>
     PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
     ctx->level++;
     pcc_value_table__resize(ctx->auxil, &chunk->values, <%= vars.length %>);
@@ -17,3 +23,4 @@ L0000:;
     pcc_thunk_chunk__destroy(ctx, chunk);
     return NULL;
     <%- end -%>
+}

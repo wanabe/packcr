@@ -211,13 +211,8 @@ class Packcr
         erbout << "\n".freeze
 
         @root.rules.each do |rule|
-          erbout << "static pcc_thunk_chunk_t *pcc_evaluate_rule_#{rule.name}(pcc_context_t *ctx) {\n    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);\n    chunk->pos = ctx->cur;\n".freeze
-
-          if @location
-            erbout << "    chunk->pos_loc = ctx->cur_loc;\n".freeze
-          end
           gen = ::Packcr::Generator.new(rule, @ascii, @location)
-          erbout << "#{gen.generate_code(rule, 0, 0, false)}}\n\n".freeze
+          erbout << "#{gen.generate_code(rule, 0, 0, false)}\n".freeze
         end
         erbout << "#{prefix}_context_t *#{prefix}_create(#{auxil_def}auxil) {\n    return pcc_context__create(auxil);\n}\n\nint #{prefix}_parse(#{prefix}_context_t *ctx, #{value_def}*ret) {\n    size_t pos = ctx->pos;\n".freeze
 
@@ -319,18 +314,9 @@ class Packcr
           end
         end
         @root.rules.each do |rule|
-          erbout << "  def evaluate_rule_#{rule.name}(offset".freeze
-          if @location
-            erbout << ", offset_loc".freeze
-          end
-          erbout << ", limits: nil)\n    answer = ThunkChunk.new\n    answer.pos = @position_offset\n".freeze
-
-          if @location
-            erbout << "    answer.pos_loc = @position_offset_loc\n".freeze
-          end
           gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb)
 
-          erbout << "#{gen.generate_code(rule, 0, 4, false)}  end\n\n".freeze
+          erbout << "#{gen.generate_code(rule, 0, 2, false)}\n".freeze
         end
         erbout << "  def grow_lr(rule, offset".freeze
         if @location

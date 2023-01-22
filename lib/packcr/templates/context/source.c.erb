@@ -1253,15 +1253,8 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx)
 <%- end -%>
 
 <%- @root.rules.each do |rule| -%>
-static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx) {
-    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
-    chunk->pos = ctx->cur;
-<%-   if @location -%>
-    chunk->pos_loc = ctx->cur_loc;
-<%-   end -%>
 <%-   gen = ::Packcr::Generator.new(rule, @ascii, @location) -%>
 <%=   gen.generate_code(rule, 0, 0, false) -%>
-}
 
 <%- end -%>
 <%= prefix %>_context_t *<%= prefix %>_create(<%= auxil_def %>auxil) {

@@ -121,15 +121,8 @@ class <%= class_name %>
   <%-   end -%>
   <%- end -%>
   <%- @root.rules.each do |rule| -%>
-  def evaluate_rule_<%= rule.name %>(offset<% if @location %>, offset_loc<% end %>, limits: nil)
-    answer = ThunkChunk.new
-    answer.pos = @position_offset
-    <%-   if @location -%>
-    answer.pos_loc = @position_offset_loc
-    <%-   end -%>
-    <%-   gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb) -%>
-    <%-   -%><%= gen.generate_code(rule, 0, 4, false) -%>
-  end
+  <%-   gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb) -%>
+  <%-   -%><%= gen.generate_code(rule, 0, 2, false) -%>
 
   <%- end -%>
   def grow_lr(rule, offset<% if @location %>, offset_loc<% end %>)
