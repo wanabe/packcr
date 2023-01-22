@@ -2,8 +2,8 @@
     <%- l = gen.next_label -%>
     <%- m = gen.next_label -%>
     <%- -%><%= gen.generate_code(expr, l, 4, true) -%>
-    goto L<%= "%04d" % m %>;
-L<%= "%04d" % l %>:;
+    goto L<%= format("%04d", m) %>;
+L<%= format("%04d", l) %>:;
     {
         pcc_value_t null;
         pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_<%= gen.rule.name %>_<%= index %>, <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
@@ -23,6 +23,6 @@ L<%= "%04d" % l %>:;
         thunk->data.leaf.action(ctx, thunk, &null);
         pcc_thunk__destroy(ctx->auxil, thunk);
     }
-    goto L<%= "%04d" % onfail %>;
-L<%= "%04d" % m %>:;
+    goto L<%= format("%04d", onfail) %>;
+L<%= format("%04d", m) %>:;
 }

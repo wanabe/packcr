@@ -96,3 +96,9 @@ file "lib/packcr/generated/node/eof_node.rb" => Dir.glob("lib/packcr/templates/n
     "" => "(gen, onfail, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/error_node.rb" => Dir.glob("lib/packcr/templates/node/error*.erb") do |t|
+  generate_code(t, %w[Packcr Node ErrorNode], "error", "gen.lang",
+    "" => "(gen, onfail, indent, bare, oncut)",
+  )
+end
