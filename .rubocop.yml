@@ -6,6 +6,10 @@ AllCops:
     - bin/bench
     - tmp/**/*
 
+Security/Eval:
+  Exclude:
+    - lib/tasks/bench.rake
+
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 Style/StringLiteralsInInterpolation:
