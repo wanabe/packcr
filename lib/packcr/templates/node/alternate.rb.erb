@@ -8,7 +8,6 @@ catch(<%= m %>) do
   <%- nodes.each_with_index do |expr, i| -%>
   <%-   c = i + 1 < nodes.length -%>
   <%- if expr.reversible?(gen) -%>
-  <%-   r = expr.reachability -%>
   <%-   %><%= gen.generate_code(expr, m, 2, false, reverse: true, oncut: onfail) -%>
   <%- else -%>
   <%-   l = gen.next_label -%>
