@@ -90,3 +90,9 @@ file "lib/packcr/generated/node/charclass_node.rb" => Dir.glob("lib/packcr/templ
     "_utf8_reverse" => "(gen, onsuccess, indent, bare, charclass, n)",
   )
 end
+
+file "lib/packcr/generated/node/eof_node.rb" => Dir.glob("lib/packcr/templates/node/eof*.erb") do |t|
+  generate_code(t, %w[Packcr Node EofNode], "eof", "gen.lang",
+    "" => "(gen, onfail, indent, bare, oncut)",
+  )
+end
