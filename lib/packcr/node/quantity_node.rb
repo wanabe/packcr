@@ -18,12 +18,12 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         if max > 1 || max < 0
-          gen.write Packcr.template("node/quantify_many.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
+          gen.write Packcr.template("node/quantity_many.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
         elsif max == 1
           if min > 0
             gen.write gen.generate_code(expr, onfail, indent, bare)
           else
-            gen.write Packcr.template("node/quantify_one.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
+            gen.write Packcr.template("node/quantity_one.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
           end
         end
       end
