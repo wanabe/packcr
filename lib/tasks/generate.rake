@@ -61,3 +61,9 @@ file "lib/packcr/generated/context.rb" => Dir.glob("lib/packcr/templates/context
     "header" => "(lang, stream)",
   )
 end
+
+file "lib/packcr/generated/node/action_node.rb" => Dir.glob("lib/packcr/templates/node/action*.erb") do |t|
+  generate_code(t, %w[Packcr Node ActionNode], "action", "gen.lang",
+    "" => "(gen, onfail, indent, bare, oncut)",
+  )
+end
