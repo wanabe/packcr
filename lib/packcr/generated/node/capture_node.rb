@@ -1,0 +1,39 @@
+class Packcr
+  class Node
+    class CaptureNode
+      def get_code(gen, onfail, indent, bare, oncut)
+        case gen.lang
+        when :c
+          erbout = +""
+          erbout << "{\n    const size_t p = ctx->cur;\n    size_t q;\n".freeze
+
+          if gen.location
+            erbout << "    pcc_location_t p_loc = ctx->cur_loc;\n    pcc_location_t q_loc;\n".freeze
+          end
+          erbout << "#{gen.generate_code(expr, onfail, 4, false)}    q = ctx->cur;\n    chunk->capts.buf[#{index}].range.start = p;\n    chunk->capts.buf[#{index}].range.end = q;\n".freeze
+
+          if gen.location
+            erbout << "    q_loc = ctx->cur_loc;\n    *chunk->capts.buf[#{index}].range.start_loc_ptr = p_loc;\n    *chunk->capts.buf[#{index}].range.end_loc_ptr = q_loc;\n".freeze
+          end
+          erbout << "}\n".freeze
+
+          erbout
+        when :rb
+          erbout = +""
+          erbout << "pos#{gen.level} = @position_offset\n".freeze
+
+          if gen.location
+            erbout << "p_loc#{gen.level} = @position_offset_loc\n".freeze
+          end
+
+          erbout << "#{gen.generate_code(expr, onfail, 0, false)}q#{gen.level} = @position_offset\ncapt#{gen.level} = answer.capts[#{index}]\ncapt#{gen.level}.range_start = pos#{gen.level}\ncapt#{gen.level}.range_end = q#{gen.level}\n".freeze
+
+          if gen.location
+            erbout << "q_loc#{gen.level} = @position_offset_loc\ncapt#{gen.level}.start_loc = p_loc#{gen.level}\ncapt#{gen.level}.end_loc = q_loc#{gen.level}\n".freeze
+          end
+          erbout
+        end
+      end
+    end
+  end
+end

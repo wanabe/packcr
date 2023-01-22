@@ -73,3 +73,9 @@ file "lib/packcr/generated/node/alternate_node.rb" => Dir.glob("lib/packcr/templ
     "" => "(gen, onfail, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/capture_node.rb" => Dir.glob("lib/packcr/templates/node/capture*.erb") do |t|
+  generate_code(t, %w[Packcr Node CaptureNode], "capture", "gen.lang",
+    "" => "(gen, onfail, indent, bare, oncut)",
+  )
+end
