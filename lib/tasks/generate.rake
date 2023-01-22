@@ -129,3 +129,9 @@ file "lib/packcr/generated/node/reference_node.rb" => Dir.glob("lib/packcr/templ
     "_reverse" => "(gen, onsuccess, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/rule_node.rb" => Dir.glob("lib/packcr/templates/node/rule*.erb") do |t|
+  generate_code(t, %w[Packcr Node RuleNode], "rule", "gen.lang",
+    "" => "(gen, onfail, indent, bare, oncut)",
+  )
+end

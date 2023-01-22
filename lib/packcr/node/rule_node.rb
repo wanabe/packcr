@@ -22,7 +22,7 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
-        gen.write Packcr.template("node/rule.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
+        gen.write Packcr.format_code(get_code(gen, onfail, indent, bare, oncut), indent: indent, unwrap: bare)
       end
 
       def reachability
@@ -64,3 +64,5 @@ class Packcr
     end
   end
 end
+
+require "packcr/generated/node/rule_node"
