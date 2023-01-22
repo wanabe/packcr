@@ -36,13 +36,13 @@ class Packcr
       when :c
         @hname = "#{path}.h"
         @patterns = {
-          source: "#{path}.c",
-          header: @hname,
+          get_source_code: "#{path}.c",
+          get_header_code: @hname,
         }
         @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
       when :rb
         @patterns = {
-          source: "#{path}.rb",
+          get_source_code: "#{path}.rb",
         }
       else
         raise "unexpected lang: #{@lang}"
@@ -141,12 +141,12 @@ class Packcr
     def generate
       results = []
 
-      @patterns.each do |template, ofile|
+      @patterns.each do |meth, ofile|
         result = Tempfile.new
         result.unlink
         results << [ofile, result]
         stream = Packcr::Stream.new(result, ofile, @lines ? 0 : nil)
-        stream.write Packcr.template("context/#{template}.#{@lang}.erb", binding), rewrite_line_directive: true
+        stream.write Packcr.format_code(public_send(meth, @lang, stream)), rewrite_line_directive: true
 
         next if @errnum.zero?
 
@@ -166,3 +166,5 @@ class Packcr
     end
   end
 end
+
+require "packcr/generated/context"

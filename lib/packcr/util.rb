@@ -76,6 +76,10 @@ class Packcr
       erb = ERB.new(File.read(template_path), trim_mode: "%-")
       erb.filename = template_path
       result = erb.result(b)
+      format_code(result, indent: indent, unwrap: unwrap)
+    end
+
+    def format_code(result, indent: 0, unwrap: false)
       if unwrap
         result.gsub!(/\A\{|\}\z/, "")
         indent -= 4
