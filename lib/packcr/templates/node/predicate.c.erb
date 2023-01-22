@@ -14,17 +14,17 @@
 <%-   end -%>
 <%- end -%>
 <%- if r == Packcr::CODE_REACH__BOTH -%>
-    goto L<%= "%04d" % m %>;
+    goto L<%= format("%04d", m) %>;
 <%- end -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-L<%= "%04d" % l %>:;
+L<%= format("%04d", l) %>:;
     ctx->cur = p;
 <%-   if gen.location -%>
     ctx->cur_loc = p_loc;
 <%-   end -%>
-    goto L<%= "%04d" % onfail %>;
+    goto L<%= format("%04d", onfail) %>;
 <%- end -%>
 <%- if r == Packcr::CODE_REACH__BOTH -%>
-L<%= "%04d" % m %>:;
+L<%= format("%04d", m) %>:;
 <%- end -%>
 }

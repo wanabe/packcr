@@ -17,9 +17,9 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         if neg
-          gen.write Packcr.template("node/predicate_neg.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
+          gen.write Packcr.format_code(get_neg_code(gen, onfail, indent, bare, oncut), indent: indent, unwrap: bare)
         else
-          gen.write Packcr.template("node/predicate.#{gen.lang}.erb", binding, indent: indent, unwrap: bare)
+          gen.write Packcr.format_code(get_code(gen, onfail, indent, bare, oncut), indent: indent, unwrap: bare)
         end
       end
 
@@ -45,3 +45,5 @@ class Packcr
     end
   end
 end
+
+require "packcr/generated/node/predicate_node"

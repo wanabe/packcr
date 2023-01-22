@@ -108,3 +108,10 @@ file "lib/packcr/generated/node/expand_node.rb" => Dir.glob("lib/packcr/template
     "" => "(gen, onfail, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/predicate_node.rb" => Dir.glob("lib/packcr/templates/node/predicate*.erb") do |t|
+  generate_code(t, %w[Packcr Node PredicateNode], "predicate", "gen.lang",
+    "" => "(gen, onfail, indent, bare, oncut)",
+    "_neg" => "(gen, onfail, indent, bare, oncut)",
+  )
+end
