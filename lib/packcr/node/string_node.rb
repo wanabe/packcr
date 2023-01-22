@@ -22,9 +22,9 @@ class Packcr
         return unless n > 0
 
         if n > 1
-          gen.write Packcr.template("node/string_many.#{gen.lang}.erb", binding, indent: indent)
+          gen.write Packcr.format_code(get_many_code(gen, onfail, indent, bare, oncut, n), indent: indent)
         else
-          gen.write Packcr.template("node/string_one.#{gen.lang}.erb", binding, indent: indent)
+          gen.write Packcr.format_code(get_one_code(gen, onfail, indent, bare, oncut, n), indent: indent)
         end
       end
 
@@ -46,3 +46,5 @@ class Packcr
     end
   end
 end
+
+require "packcr/generated/node/string_node"

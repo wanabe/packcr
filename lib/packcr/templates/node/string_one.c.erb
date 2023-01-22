@@ -1,7 +1,7 @@
 if (
     pcc_refill_buffer(ctx, 1) < 1 ||
     ctx->buffer.buf[ctx->cur] != '<%= Packcr.escape_character(value[0]) %>'
-) goto L<%= "%04d" % onfail %>;
+) goto L<%= format("%04d", onfail) %>;
 <%- if gen.location -%>
     pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, 1);
 <%- end -%>

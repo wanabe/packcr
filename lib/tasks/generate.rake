@@ -141,3 +141,10 @@ file "lib/packcr/generated/node/sequence_node.rb" => Dir.glob("lib/packcr/templa
     "" => "(gen, onfail, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/string_node.rb" => Dir.glob("lib/packcr/templates/node/string*.erb") do |t|
+  generate_code(t, %w[Packcr Node StringNode], "string", "gen.lang",
+    "_many" => "(gen, onfail, indent, bare, oncut, n)",
+    "_one" => "(gen, onfail, indent, bare, oncut, n)",
+  )
+end
