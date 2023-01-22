@@ -8,9 +8,7 @@ class Packcr
       @buffer_start_position = 0
       @position_offset = 0
       @level = 0
-      @lrstack = []
       @thunk = ThunkNode.new([], nil, 0)
-      @heads = {}
       @memos = LrMemoTable.new
       @debug = debug
       @global_values = {}
@@ -50,7 +48,6 @@ class Packcr
     def commit_buffer
       @buffer = @buffer[@position_offset, @buffer.length - @position_offset]
       @buffer_start_position += @position_offset
-      @heads.clear
       @memos.clear
       @position_offset = 0
       @buffer_start_position_loc += @position_offset_loc

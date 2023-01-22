@@ -257,7 +257,7 @@ class Packcr
         else
           erbout << "    @buffer = +\"\".b\n".freeze
         end
-        erbout << "\n    @buffer_start_position = 0\n    @position_offset = 0\n    @level = 0\n    @lrstack = []\n    @thunk = ThunkNode.new([], nil, 0)\n    @heads = {}\n    @memos = LrMemoTable.new\n    @debug = debug\n    @global_values = {}\n".freeze
+        erbout << "\n    @buffer_start_position = 0\n    @position_offset = 0\n    @level = 0\n    @thunk = ThunkNode.new([], nil, 0)\n    @memos = LrMemoTable.new\n    @debug = debug\n    @global_values = {}\n".freeze
 
         if @location
           erbout << "    @buffer_start_position_loc = Location.new\n    @position_offset_loc = Location.new\n".freeze
@@ -273,7 +273,7 @@ class Packcr
         else
           erbout << "    $stdin.getc&.b\n".freeze
         end
-        erbout << "  end\n\n  def refill_buffer(num, mode = nil)\n    len = @buffer.length\n    if len >= @position_offset + num\n      return len - @position_offset\n    end\n    while len < @position_offset + num\n      c = getc\n      break if !c\n      @buffer << c\n      len = @buffer.length\n    end\n    return len - @position_offset\n  end\n\n  def commit_buffer\n    @buffer = @buffer[@position_offset, @buffer.length - @position_offset]\n    @buffer_start_position += @position_offset\n    @heads.clear\n    @memos.clear\n    @position_offset = 0\n".freeze
+        erbout << "  end\n\n  def refill_buffer(num, mode = nil)\n    len = @buffer.length\n    if len >= @position_offset + num\n      return len - @position_offset\n    end\n    while len < @position_offset + num\n      c = getc\n      break if !c\n      @buffer << c\n      len = @buffer.length\n    end\n    return len - @position_offset\n  end\n\n  def commit_buffer\n    @buffer = @buffer[@position_offset, @buffer.length - @position_offset]\n    @buffer_start_position += @position_offset\n    @memos.clear\n    @position_offset = 0\n".freeze
 
         if @location
           erbout << "    @buffer_start_position_loc = @buffer_start_position_loc + @position_offset_loc\n    @position_offset_loc = Location.new\n".freeze
