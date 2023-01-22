@@ -79,3 +79,14 @@ file "lib/packcr/generated/node/capture_node.rb" => Dir.glob("lib/packcr/templat
     "" => "(gen, onfail, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/charclass_node.rb" => Dir.glob("lib/packcr/templates/node/charclass*.erb") do |t|
+  generate_code(t, %w[Packcr Node CharclassNode], "charclass", "gen.lang",
+    "" => "(gen, onfail, indent, bare, charclass, n, a)",
+    "_one" => "(gen, onfail, indent, bare, charclass, n, a)",
+    "_any" => "(gen, onfail, indent, bare, charclass)",
+    "_fail" => "(gen, onfail, indent, bare)",
+    "_utf8" => "(gen, onfail, indent, bare, charclass, n)",
+    "_utf8_reverse" => "(gen, onsuccess, indent, bare, charclass, n)",
+  )
+end
