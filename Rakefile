@@ -1,17 +1,11 @@
 require "bundler/setup"
-require "bundler"
-require "packcr"
+require "rspec/core/rake_task"
+require "erb"
+require "ripper"
 
-task default: :test
-
-namespace :update do
-  task :parser do
-    Packcr.new("lib/packcr/parser.rb.peg").run
-  end
+Dir["#{__dir__}/lib/tasks/**/*.rake"].sort.each do |path|
+  load path
 end
 
-task :test do
-  Dir.glob("test/**/*.rb") do |path|
-    load path
-  end
-end
+task default: :spec
+RSpec::Core::RakeTask.new(:spec)
