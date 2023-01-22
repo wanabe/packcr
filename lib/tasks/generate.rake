@@ -122,3 +122,10 @@ file "lib/packcr/generated/node/quantity_node.rb" => Dir.glob("lib/packcr/templa
     "_one" => "(gen, onfail, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/reference_node.rb" => Dir.glob("lib/packcr/templates/node/reference*.erb") do |t|
+  generate_code(t, %w[Packcr Node ReferenceNode], "reference", "gen.lang",
+    "" => "(gen, onfail, indent, bare, oncut)",
+    "_reverse" => "(gen, onsuccess, indent, bare, oncut)",
+  )
+end

@@ -1,5 +1,5 @@
 <%- if index != nil -%>
-if (!pcc_apply_rule(ctx, pcc_evaluate_rule_<%= name %>, &chunk->thunks, &(chunk->values.buf[<%= index %>]))) goto L<%= "%04d" % onfail %>;
+if (!pcc_apply_rule(ctx, pcc_evaluate_rule_<%= name %>, &chunk->thunks, &(chunk->values.buf[<%= index %>]))) goto L<%= format("%04d", onfail) %>;
 <%- else -%>
-if (!pcc_apply_rule(ctx, pcc_evaluate_rule_<%= name %>, &chunk->thunks, NULL)) goto L<%= "%04d" % onfail %>;
+if (!pcc_apply_rule(ctx, pcc_evaluate_rule_<%= name %>, &chunk->thunks, NULL)) goto L<%= format("%04d", onfail) %>;
 <%- end -%>
