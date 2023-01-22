@@ -102,3 +102,9 @@ file "lib/packcr/generated/node/error_node.rb" => Dir.glob("lib/packcr/templates
     "" => "(gen, onfail, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/expand_node.rb" => Dir.glob("lib/packcr/templates/node/expand*.erb") do |t|
+  generate_code(t, %w[Packcr Node ExpandNode], "expand", "gen.lang",
+    "" => "(gen, onfail, indent, bare, oncut)",
+  )
+end
