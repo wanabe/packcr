@@ -54,7 +54,7 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
-        gen.write Packcr.template("node/sequence.#{gen.lang}.erb", binding, indent: indent)
+        gen.write Packcr.format_code(get_code(gen, onfail, indent, bare, oncut), indent: indent)
       end
 
       def reachability
@@ -79,3 +79,5 @@ class Packcr
     end
   end
 end
+
+require "packcr/generated/node/sequence_node"
