@@ -115,3 +115,10 @@ file "lib/packcr/generated/node/predicate_node.rb" => Dir.glob("lib/packcr/templ
     "_neg" => "(gen, onfail, indent, bare, oncut)",
   )
 end
+
+file "lib/packcr/generated/node/quantity_node.rb" => Dir.glob("lib/packcr/templates/node/quantity*.erb") do |t|
+  generate_code(t, %w[Packcr Node QuantityNode], "quantity", "gen.lang",
+    "_many" => "(gen, onfail, indent, bare, oncut)",
+    "_one" => "(gen, onfail, indent, bare, oncut)",
+  )
+end
