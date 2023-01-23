@@ -2,20 +2,20 @@
 <%- if !a && charclass =~ /\A[^\\]-.\z/ -%>
     char c;
     if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= format("%04d", onfail) %>;
-    c = ctx->buffer.buf[ctx->cur];
+    c = ctx->buffer.buf[ctx->position_offset];
 <%- if a -%>
     if (c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>') goto L<%= format("%04d", onfail) %>;
 <%- else -%>
     if (!(c >= '<%= Packcr.escape_character(charclass[0]) %>' && c <= '<%= Packcr.escape_character(charclass[2]) %>')) goto L<%= format("%04d", onfail) %>;
 <%- end -%>
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, 1);
+    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);
 <%- end -%>
-    ctx->cur++;
+    ctx->position_offset++;
 <%- else -%>
     char c;
     if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= format("%04d", onfail) %>;
-    c = ctx->buffer.buf[ctx->cur];
+    c = ctx->buffer.buf[ctx->position_offset];
 <%- if a -%>
     if (
 <%- else -%>
@@ -40,8 +40,8 @@
     )) goto L<%= format("%04d", onfail) %>;
 <%- end -%>
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, 1);
+    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);
 <%- end -%>
-    ctx->cur++;
+    ctx->position_offset++;
 <%- end -%>
 }

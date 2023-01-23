@@ -14,10 +14,10 @@ L<%= format("%04d", l) %>:;
         thunk->data.leaf.capts.buf[<%= capt.index %>] = &(chunk->capts.buf[<%= capt.index %>]);
 <%- end -%>
         thunk->data.leaf.capt0.range.start = chunk->pos;
-        thunk->data.leaf.capt0.range.end = ctx->cur;
+        thunk->data.leaf.capt0.range.end = ctx->position_offset;
 <%- if gen.location -%>
         thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
-        thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;
+        thunk->data.leaf.capt0.range.end_loc = ctx->position_offset_loc;
 <%- end -%>
         memset(&null, 0, sizeof(pcc_value_t)); /* in case */
         thunk->data.leaf.action(ctx, thunk, &null);

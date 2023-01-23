@@ -2,15 +2,15 @@
 <%- m = gen.next_label -%>
 <%- r = expr.reachability -%>
 {
-    const size_t p = ctx->cur;
+    const size_t p = ctx->position_offset;
 <%- if gen.location -%>
-    const pcc_location_t p_loc = ctx->cur_loc;
+    const pcc_location_t p_loc = ctx->position_offset_loc;
 <%- end -%>
 <%= gen.generate_code(expr, l, 4, false) -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
-    ctx->cur = p;
+    ctx->position_offset = p;
 <%-   if gen.location -%>
-    ctx->cur_loc = p_loc;
+    ctx->position_offset_loc = p_loc;
 <%-   end -%>
 <%- end -%>
 <%- if r == Packcr::CODE_REACH__BOTH -%>
@@ -18,9 +18,9 @@
 <%- end -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 L<%= format("%04d", l) %>:;
-    ctx->cur = p;
+    ctx->position_offset = p;
 <%-   if gen.location -%>
-    ctx->cur_loc = p_loc;
+    ctx->position_offset_loc = p_loc;
 <%-   end -%>
     goto L<%= format("%04d", onfail) %>;
 <%- end -%>

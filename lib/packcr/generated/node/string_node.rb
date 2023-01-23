@@ -8,14 +8,14 @@ class Packcr
           erbout << "if (\n    pcc_refill_buffer(ctx, #{n}) < #{n} ||\n".freeze
 
           (n - 1).times do |i|
-            erbout << "    (ctx->buffer.buf + ctx->cur)[#{i}] != '#{Packcr.escape_character(value[i])}' ||\n".freeze
+            erbout << "    (ctx->buffer.buf + ctx->position_offset)[#{i}] != '#{Packcr.escape_character(value[i])}' ||\n".freeze
           end
-          erbout << "    (ctx->buffer.buf + ctx->cur)[#{n - 1}] != '#{Packcr.escape_character(value[n - 1])}'\n) goto L#{format("%04d", onfail)};\n".freeze
+          erbout << "    (ctx->buffer.buf + ctx->position_offset)[#{n - 1}] != '#{Packcr.escape_character(value[n - 1])}'\n) goto L#{format("%04d", onfail)};\n".freeze
 
           if gen.location
-            erbout << "pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, n);\n".freeze
+            erbout << "pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);\n".freeze
           end
-          erbout << "ctx->cur += #{n};\n".freeze
+          erbout << "ctx->position_offset += #{n};\n".freeze
 
           erbout
         when :rb
@@ -35,12 +35,12 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "if (\n    pcc_refill_buffer(ctx, 1) < 1 ||\n    ctx->buffer.buf[ctx->cur] != '#{Packcr.escape_character(value[0])}'\n) goto L#{format("%04d", onfail)};\n".freeze
+          erbout << "if (\n    pcc_refill_buffer(ctx, 1) < 1 ||\n    ctx->buffer.buf[ctx->position_offset] != '#{Packcr.escape_character(value[0])}'\n) goto L#{format("%04d", onfail)};\n".freeze
 
           if gen.location
-            erbout << "    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, 1);\n".freeze
+            erbout << "    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);\n".freeze
           end
-          erbout << "ctx->cur++;\n".freeze
+          erbout << "ctx->position_offset++;\n".freeze
 
           erbout
         when :rb

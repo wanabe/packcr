@@ -269,11 +269,11 @@ typedef struct pcc_memory_recycler_tag {
 } pcc_memory_recycler_t;
 
 struct <%= prefix %>_context_tag {
-    size_t pos; /* the position in the input of the first character currently buffered */
-    size_t cur; /* the current parsing position in the character buffer */
+    size_t buffer_start_position; /* the position in the input of the first character currently buffered */
+    size_t position_offset; /* the current parsing position in the character buffer */
     <%- if @location -%>
-    pcc_location_t pos_loc;
-    pcc_location_t cur_loc;
+    pcc_location_t buffer_start_position_loc;
+    pcc_location_t position_offset_loc;
     <%- end -%>
     size_t level;
     pcc_char_array_t buffer;
@@ -937,11 +937,11 @@ static void pcc_lr_stack__term(pcc_auxil_t auxil, pcc_lr_stack_t *stack) {
 
 static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
     pcc_context_t *const ctx = (pcc_context_t *)PCC_MALLOC(auxil, sizeof(pcc_context_t));
-    ctx->pos = 0;
-    ctx->cur = 0;
+    ctx->buffer_start_position = 0;
+    ctx->position_offset = 0;
 <%- if @location -%>
-    pcc_location_init(&ctx->pos_loc);
-    pcc_location_init(&ctx->cur_loc);
+    pcc_location_init(&ctx->buffer_start_position_loc);
+    pcc_location_init(&ctx->position_offset_loc);
 <%- end -%>
     ctx->level = 0;
     pcc_char_array__init(auxil, &ctx->buffer);
@@ -968,25 +968,25 @@ static void pcc_context__destroy(pcc_context_t *ctx) {
 }
 
 static size_t pcc_refill_buffer(pcc_context_t *ctx, size_t num) {
-    if (ctx->buffer.len >= ctx->cur + num) return ctx->buffer.len - ctx->cur;
-    while (ctx->buffer.len < ctx->cur + num) {
+    if (ctx->buffer.len >= ctx->position_offset + num) return ctx->buffer.len - ctx->position_offset;
+    while (ctx->buffer.len < ctx->position_offset + num) {
         const int c = PCC_GETCHAR(ctx->auxil);
         if (c < 0) break;
         pcc_char_array__add(ctx->auxil, &ctx->buffer, (char)c);
     }
-    return ctx->buffer.len - ctx->cur;
+    return ctx->buffer.len - ctx->position_offset;
 }
 
 MARK_FUNC_AS_USED
 static void pcc_commit_buffer(pcc_context_t *ctx) {
-    memmove(ctx->buffer.buf, ctx->buffer.buf + ctx->cur, ctx->buffer.len - ctx->cur);
-    ctx->buffer.len -= ctx->cur;
-    ctx->pos += ctx->cur;
-    pcc_lr_table__shift(ctx, &ctx->lrtable, ctx->cur);
-    ctx->cur = 0;
+    memmove(ctx->buffer.buf, ctx->buffer.buf + ctx->position_offset, ctx->buffer.len - ctx->position_offset);
+    ctx->buffer.len -= ctx->position_offset;
+    ctx->buffer_start_position += ctx->position_offset;
+    pcc_lr_table__shift(ctx, &ctx->lrtable, ctx->position_offset);
+    ctx->position_offset = 0;
 <%- if @location -%>
-    ctx->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
-    pcc_location_init(&ctx->cur_loc);
+    ctx->buffer_start_position_loc = pcc_location_add(ctx->buffer_start_position_loc, ctx->position_offset_loc);
+    pcc_location_init(&ctx->position_offset_loc);
 <%- end -%>
 }
 
@@ -1003,7 +1003,7 @@ static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with chec
     int c, u;
     size_t n;
     if (pcc_refill_buffer(ctx, 1) < 1) return 0;
-    c = (int)(unsigned char)ctx->buffer.buf[ctx->cur];
+    c = (int)(unsigned char)ctx->buffer.buf[ctx->position_offset];
     n = (c < 0x80) ? 1 :
         ((c & 0xe0) == 0xc0) ? 2 :
         ((c & 0xf0) == 0xe0) ? 3 :
@@ -1016,30 +1016,30 @@ static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with chec
         break;
     case 2:
         u = c & 0x1f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 1];
+        c = (int)(unsigned char)ctx->buffer.buf[ctx->position_offset + 1];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
         if (u < 0x80) return 0;
         break;
     case 3:
         u = c & 0x0f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 1];
+        c = (int)(unsigned char)ctx->buffer.buf[ctx->position_offset + 1];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 2];
+        c = (int)(unsigned char)ctx->buffer.buf[ctx->position_offset + 2];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
         if (u < 0x800) return 0;
         break;
     case 4:
         u = c & 0x07;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 1];
+        c = (int)(unsigned char)ctx->buffer.buf[ctx->position_offset + 1];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 2];
+        c = (int)(unsigned char)ctx->buffer.buf[ctx->position_offset + 2];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
-        c = (int)(unsigned char)ctx->buffer.buf[ctx->cur + 3];
+        c = (int)(unsigned char)ctx->buffer.buf[ctx->position_offset + 3];
         if ((c & 0xc0) != 0x80) return 0;
         u <<= 6; u |= c & 0x3f;
         if (u < 0x10000 || u > 0x10ffff) return 0;
@@ -1056,9 +1056,9 @@ MARK_FUNC_AS_USED
 static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_array_t *thunks, pcc_value_t *value) {
     static pcc_value_t null;
     pcc_thunk_chunk_t *c = NULL;
-    const size_t p = ctx->pos + ctx->cur;
+    const size_t p = ctx->buffer_start_position + ctx->position_offset;
 <%- if @location -%>
-    const pcc_location_t p_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+    const pcc_location_t p_loc = pcc_location_add(ctx->buffer_start_position_loc, ctx->position_offset_loc);
 <%- end -%>
     pcc_bool_t b = PCC_TRUE;
     pcc_lr_answer_t *a = pcc_lr_table__get_answer(ctx, &ctx->lrtable, p, rule);
@@ -1071,16 +1071,16 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
         else if (pcc_rule_set__remove(ctx->auxil, &h->eval, rule)) {
             b = PCC_FALSE;
             c = rule(ctx);
-            a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, ctx->pos + ctx->cur<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
+            a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, ctx->buffer_start_position + ctx->position_offset<% if @location %>, pcc_location_add(ctx->buffer_start_position_loc, ctx->position_offset_loc)<% end %>);
             a->data.chunk = c;
             pcc_lr_table__hold_answer(ctx, &ctx->lrtable, p, a);
         }
     }
     if (b) {
         if (a != NULL) {
-            ctx->cur = a->pos - ctx->pos;
+            ctx->position_offset = a->pos - ctx->buffer_start_position;
 <%- if @location -%>
-            ctx->cur_loc = pcc_location_sub(a->pos_loc, ctx->pos_loc);
+            ctx->position_offset_loc = pcc_location_sub(a->pos_loc, ctx->buffer_start_position_loc);
 <%- end -%>
             switch (a->type) {
             case PCC_LR_ANSWER_LR:
@@ -1114,9 +1114,9 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
             pcc_lr_table__set_answer(ctx, &ctx->lrtable, p, rule, a);
             c = rule(ctx);
             pcc_lr_stack__pop(ctx->auxil, &ctx->lrstack);
-            a->pos = ctx->pos + ctx->cur;
+            a->pos = ctx->buffer_start_position + ctx->position_offset;
 <%- if @location -%>
-            a->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+            a->pos_loc = pcc_location_add(ctx->buffer_start_position_loc, ctx->position_offset_loc);
 <%- end -%>
             if (e->head == NULL) {
                 pcc_lr_answer__set_chunk(ctx, a, c);
@@ -1126,7 +1126,7 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
                 h = a->data.lr->head;
                 if (h->rule != rule) {
                     c = a->data.lr->seed;
-                    a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, ctx->pos + ctx->cur<% if @location %>, pcc_location_add(ctx->pos_loc, ctx->cur_loc)<% end %>);
+                    a = pcc_lr_answer__create(ctx, PCC_LR_ANSWER_CHUNK, ctx->buffer_start_position + ctx->position_offset<% if @location %>, pcc_location_add(ctx->buffer_start_position_loc, ctx->position_offset_loc)<% end %>);
                     a->data.chunk = c;
                     pcc_lr_table__hold_answer(ctx, &ctx->lrtable, p, a);
                 }
@@ -1138,24 +1138,24 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
                     else {
                         pcc_lr_table__set_head(ctx, &ctx->lrtable, p, h);
                         for (;;) {
-                            ctx->cur = p - ctx->pos;
+                            ctx->position_offset = p - ctx->buffer_start_position;
 <%- if @location -%>
-                            ctx->cur_loc = pcc_location_sub(p_loc, ctx->pos_loc);
+                            ctx->position_offset_loc = pcc_location_sub(p_loc, ctx->buffer_start_position_loc);
 <%- end -%>
                             pcc_rule_set__copy(ctx->auxil, &h->eval, &h->invol);
                             c = rule(ctx);
-                            if (c == NULL || ctx->pos + ctx->cur <= a->pos) break;
+                            if (c == NULL || ctx->buffer_start_position + ctx->position_offset <= a->pos) break;
                             pcc_lr_answer__set_chunk(ctx, a, c);
-                            a->pos = ctx->pos + ctx->cur;
+                            a->pos = ctx->buffer_start_position + ctx->position_offset;
 <%- if @location -%>
-                            a->pos_loc = pcc_location_add(ctx->pos_loc, ctx->cur_loc);
+                            a->pos_loc = pcc_location_add(ctx->buffer_start_position_loc, ctx->position_offset_loc);
 <%- end -%>
                         }
                         pcc_thunk_chunk__destroy(ctx, c);
                         pcc_lr_table__set_head(ctx, &ctx->lrtable, p, NULL);
-                        ctx->cur = a->pos - ctx->pos;
+                        ctx->position_offset = a->pos - ctx->buffer_start_position;
 <%- if @location -%>
-                        ctx->cur_loc = pcc_location_sub(a->pos_loc, ctx->pos_loc);
+                        ctx->position_offset_loc = pcc_location_sub(a->pos_loc, ctx->buffer_start_position_loc);
 <%- end -%>
                         c = a->data.chunk;
                     }
@@ -1197,22 +1197,22 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_
 #define <%= ref.var %> (*__pcc_in->data.leaf.values.buf[<%= ref.index %>])
 <%      end -%>
 #define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
-#define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))
-#define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))
+#define _0s ((const size_t)(__pcc_ctx->buffer_start_position + __pcc_in->data.leaf.capt0.range.start))
+#define _0e ((const size_t)(__pcc_ctx->buffer_start_position + __pcc_in->data.leaf.capt0.range.end))
 <%-     if @location -%>
-#define _0sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capt0.range.start_loc)))
-#define _0el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capt0.range.end_loc)))
+#define _0sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->buffer_start_position_loc, __pcc_in->data.leaf.capt0.range.start_loc)))
+#define _0el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->buffer_start_position_loc, __pcc_in->data.leaf.capt0.range.end_loc)))
 <%-     end -%>
 <%-     if @capture_in_code -%>
 #define _0c __pcc_in->data.leaf.capt0
 <%-     end -%>
 <%      code.capts.each do |capture| -%>
 #define _<%= capture.index + 1 %> pcc_get_capture_string(__pcc_ctx, __pcc_in->data.leaf.capts.buf[<%= capture.index %>])
-#define _<%= capture.index + 1 %>s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
-#define _<%= capture.index + 1 %>e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
+#define _<%= capture.index + 1 %>s ((const size_t)(__pcc_ctx->buffer_start_position + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
+#define _<%= capture.index + 1 %>e ((const size_t)(__pcc_ctx->buffer_start_position + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
 <%-       if @location -%>
-#define _<%= capture.index + 1 %>sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start_loc)))
-#define _<%= capture.index + 1 %>el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end_loc)))
+#define _<%= capture.index + 1 %>sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->buffer_start_position_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start_loc)))
+#define _<%= capture.index + 1 %>el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->buffer_start_position_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end_loc)))
 <%-       end -%>
 <%-       if @capture_in_code -%>
 #define _<%= capture.index + 1 %>c (*__pcc_in->data.leaf.capts.buf[<%= capture.index %>])
@@ -1254,7 +1254,7 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx)
 }
 
 int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
-    size_t pos = ctx->pos;
+    size_t pos = ctx->buffer_start_position;
 <%- if !@root.rules.empty? -%>
     if (pcc_apply_rule(ctx, pcc_evaluate_rule_<%= @root.rules[0].name %>, &ctx->thunks, ret))
         pcc_do_action(ctx, &ctx->thunks, ret);
@@ -1263,7 +1263,7 @@ int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
     pcc_commit_buffer(ctx);
 <%- end -%>
     pcc_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);
-    return pos != ctx->pos && pcc_refill_buffer(ctx, 1) >= 1;
+    return pos != ctx->buffer_start_position && pcc_refill_buffer(ctx, 1) >= 1;
 }
 
 void <%= prefix %>_destroy(<%= prefix %>_context_t *ctx) {

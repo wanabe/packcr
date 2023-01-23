@@ -5,12 +5,12 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "{\n    const size_t n = chunk->capts.buf[#{index}].range.end - chunk->capts.buf[#{index}].range.start;\n    if (pcc_refill_buffer(ctx, n) < n) goto L#{format("%04d", onfail)};\n    if (n > 0) {\n        const char *const p = ctx->buffer.buf + ctx->cur;\n        const char *const q = ctx->buffer.buf + chunk->capts.buf[#{index}].range.start;\n        size_t i;\n        for (i = 0; i < n; i++) {\n            if (p[i] != q[i]) goto L#{format("%04d", onfail)};\n        }\n".freeze
+          erbout << "{\n    const size_t n = chunk->capts.buf[#{index}].range.end - chunk->capts.buf[#{index}].range.start;\n    if (pcc_refill_buffer(ctx, n) < n) goto L#{format("%04d", onfail)};\n    if (n > 0) {\n        const char *const p = ctx->buffer.buf + ctx->position_offset;\n        const char *const q = ctx->buffer.buf + chunk->capts.buf[#{index}].range.start;\n        size_t i;\n        for (i = 0; i < n; i++) {\n            if (p[i] != q[i]) goto L#{format("%04d", onfail)};\n        }\n".freeze
 
           if gen.location
-            erbout << "        pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, n);\n".freeze
+            erbout << "        pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);\n".freeze
           end
-          erbout << "        ctx->cur += n;\n    }\n}\n".freeze
+          erbout << "        ctx->position_offset += n;\n    }\n}\n".freeze
 
           erbout
         when :rb

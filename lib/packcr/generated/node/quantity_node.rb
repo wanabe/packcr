@@ -8,10 +8,10 @@ class Packcr
           erbout << "{\n".freeze
 
           if min > 0
-            erbout << "    const size_t p0 = ctx->cur;\n".freeze
+            erbout << "    const size_t p0 = ctx->position_offset;\n".freeze
 
             if gen.location
-              erbout << "    const pcc_location_t p0_loc = ctx->cur_loc;\n".freeze
+              erbout << "    const pcc_location_t p0_loc = ctx->position_offset_loc;\n".freeze
             end
             erbout << "    const size_t n0 = chunk->thunks.len;\n".freeze
           end
@@ -23,32 +23,32 @@ class Packcr
           else
             erbout << "    for (i = 0; i < #{max}; i++) {\n".freeze
           end
-          erbout << "        const size_t p = ctx->cur;\n".freeze
+          erbout << "        const size_t p = ctx->position_offset;\n".freeze
 
           if gen.location
-            erbout << "        const pcc_location_t p_loc = ctx->cur_loc;\n".freeze
+            erbout << "        const pcc_location_t p_loc = ctx->position_offset_loc;\n".freeze
           end
           erbout << "        const size_t n = chunk->thunks.len;\n".freeze
 
           l = gen.next_label
           r = expr.reachability
-          erbout << "#{gen.generate_code(expr, l, 8, false)}        if (ctx->cur == p) break;\n".freeze
+          erbout << "#{gen.generate_code(expr, l, 8, false)}        if (ctx->position_offset == p) break;\n".freeze
 
           if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
-            erbout << "        continue;\n    L#{format("%04d", l)}:;\n        ctx->cur = p;\n".freeze
+            erbout << "        continue;\n    L#{format("%04d", l)}:;\n        ctx->position_offset = p;\n".freeze
 
             if gen.location
-              erbout << "        ctx->cur_loc = p_loc;\n".freeze
+              erbout << "        ctx->position_offset_loc = p_loc;\n".freeze
             end
             erbout << "        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n        break;\n".freeze
           end
           erbout << "    }\n".freeze
 
           if min > 0
-            erbout << "    if (i < #{min}) {\n        ctx->cur = p0;\n".freeze
+            erbout << "    if (i < #{min}) {\n        ctx->position_offset = p0;\n".freeze
 
             if gen.location
-              erbout << "        ctx->cur_loc = p0_loc;\n".freeze
+              erbout << "        ctx->position_offset_loc = p0_loc;\n".freeze
             end
             erbout << "        pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n0);\n        goto L#{format("%04d", onfail)};\n    }\n".freeze
           end
@@ -115,10 +115,10 @@ class Packcr
           erbout << "{\n".freeze
 
           l = gen.next_label
-          erbout << "    const size_t p = ctx->cur;\n".freeze
+          erbout << "    const size_t p = ctx->position_offset;\n".freeze
 
           if gen.location
-            erbout << "    const pcc_location_t p_loc = ctx->cur_loc;\n".freeze
+            erbout << "    const pcc_location_t p_loc = ctx->position_offset_loc;\n".freeze
           end
           erbout << "    const size_t n = chunk->thunks.len;\n".freeze
 
@@ -129,9 +129,9 @@ class Packcr
             erbout << "    goto L#{format("%04d", m)};\nL#{format("%04d", l)}:;\n".freeze
 
             if gen.location
-              erbout << "    ctx->cur_loc = p_loc;\n".freeze
+              erbout << "    ctx->position_offset_loc = p_loc;\n".freeze
             end
-            erbout << "    ctx->cur = p;\n    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\nL#{format("%04d", m)}:;\n".freeze
+            erbout << "    ctx->position_offset = p;\n    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\nL#{format("%04d", m)}:;\n".freeze
           end
           erbout << "}\n".freeze
 

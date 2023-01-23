@@ -5,15 +5,15 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "{\n    const size_t p = ctx->cur;\n    size_t q;\n".freeze
+          erbout << "{\n    const size_t p = ctx->position_offset;\n    size_t q;\n".freeze
 
           if gen.location
-            erbout << "    pcc_location_t p_loc = ctx->cur_loc;\n    pcc_location_t q_loc;\n".freeze
+            erbout << "    pcc_location_t p_loc = ctx->position_offset_loc;\n    pcc_location_t q_loc;\n".freeze
           end
-          erbout << "#{gen.generate_code(expr, onfail, 4, false)}    q = ctx->cur;\n    chunk->capts.buf[#{index}].range.start = p;\n    chunk->capts.buf[#{index}].range.end = q;\n".freeze
+          erbout << "#{gen.generate_code(expr, onfail, 4, false)}    q = ctx->position_offset;\n    chunk->capts.buf[#{index}].range.start = p;\n    chunk->capts.buf[#{index}].range.end = q;\n".freeze
 
           if gen.location
-            erbout << "    q_loc = ctx->cur_loc;\n    chunk->capts.buf[#{index}].range.start_loc = p_loc;\n    chunk->capts.buf[#{index}].range.end_loc = q_loc;\n".freeze
+            erbout << "    q_loc = ctx->position_offset_loc;\n    chunk->capts.buf[#{index}].range.start_loc = p_loc;\n    chunk->capts.buf[#{index}].range.end_loc = q_loc;\n".freeze
           end
           erbout << "}\n".freeze
 

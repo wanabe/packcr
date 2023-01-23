@@ -6,10 +6,10 @@ class Packcr
         when :c
           erbout = +""
           m = gen.next_label
-          erbout << "{\n    const size_t p = ctx->cur;\n".freeze
+          erbout << "{\n    const size_t p = ctx->position_offset;\n".freeze
 
           if gen.location
-            erbout << "    const pcc_location_t p_loc = ctx->cur_loc;\n".freeze
+            erbout << "    const pcc_location_t p_loc = ctx->position_offset_loc;\n".freeze
           end
           erbout << "    const size_t n = chunk->thunks.len;\n".freeze
 
@@ -28,10 +28,10 @@ class Packcr
             when Packcr::CODE_REACH__BOTH
               erbout << "    goto L#{format("%04d", m)};\n".freeze
             end
-            erbout << "L#{format("%04d", l)}:;\n    ctx->cur = p;\n".freeze
+            erbout << "L#{format("%04d", l)}:;\n    ctx->position_offset = p;\n".freeze
 
             if gen.location
-              erbout << "    ctx->cur_loc = p_loc;\n".freeze
+              erbout << "    ctx->position_offset_loc = p_loc;\n".freeze
             end
             erbout << "    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n".freeze
 

@@ -43,7 +43,7 @@
 <%-   end -%>
 <%- end -%>
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->cur_loc, ctx->buffer.buf + ctx->cur, n);
+    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);
 <%- end -%>
-    ctx->cur += n;
+    ctx->position_offset += n;
 }

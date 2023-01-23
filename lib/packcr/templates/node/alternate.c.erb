@@ -1,8 +1,8 @@
 <%-   m = gen.next_label -%>
 {
-    const size_t p = ctx->cur;
+    const size_t p = ctx->position_offset;
 <%- if gen.location -%>
-    const pcc_location_t p_loc = ctx->cur_loc;
+    const pcc_location_t p_loc = ctx->position_offset_loc;
 <%- end -%>
     const size_t n = chunk->thunks.len;
 <%- nodes.each_with_index do |expr, i| -%>
@@ -21,9 +21,9 @@
 <%-     end -%>
 <%-   end -%>
 L<%= format("%04d", l) %>:;
-    ctx->cur = p;
+    ctx->position_offset = p;
 <%- if gen.location -%>
-    ctx->cur_loc = p_loc;
+    ctx->position_offset_loc = p_loc;
 <%- end -%>
     pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
 <%-   if !c -%>

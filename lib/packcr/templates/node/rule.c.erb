@@ -1,8 +1,8 @@
 static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= name %>(pcc_context_t *ctx) {
     pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
-    chunk->pos = ctx->cur;
+    chunk->pos = ctx->position_offset;
 <%-   if gen.location -%>
-    chunk->pos_loc = ctx->cur_loc;
+    chunk->pos_loc = ctx->position_offset_loc;
 <%-   end -%>
     PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
     ctx->level++;
@@ -14,12 +14,12 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= name %>(pcc_context_t *ctx) {
     <%- r = expr.reachability -%>
     <%- -%><%= gen.generate_code(expr, 0, 4, false) -%>
     ctx->level--;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));
     return chunk;
     <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 L0000:;
     ctx->level--;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
+    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));
     pcc_thunk_chunk__destroy(ctx, chunk);
     return NULL;
     <%- end -%>
