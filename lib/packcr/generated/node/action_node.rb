@@ -16,7 +16,7 @@ class Packcr
           erbout << "    thunk->data.leaf.capt0.range.start = chunk->pos;\n    thunk->data.leaf.capt0.range.end = ctx->cur;\n".freeze
 
           if gen.location
-            erbout << "    thunk->data.leaf.capt0.range.start_loc_ptr = &chunk->pos_loc;\n    thunk->data.leaf.capt0.range.end_loc_ptr = &ctx->cur_loc;\n".freeze
+            erbout << "    thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;\n    thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;\n".freeze
           end
           erbout << "    pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n}\n".freeze
 

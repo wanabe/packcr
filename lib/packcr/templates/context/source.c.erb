@@ -81,8 +81,8 @@ typedef struct pcc_range_tag {
     size_t start;
     size_t end;
 <%- if @location -%>
-    pcc_location_t *start_loc_ptr;
-    pcc_location_t *end_loc_ptr;
+    pcc_location_t start_loc;
+    pcc_location_t end_loc;
 <%- end -%>
 } pcc_range_t;
 
@@ -424,12 +424,6 @@ MARK_FUNC_AS_USED
 static void pcc_capture_table__resize(pcc_auxil_t auxil, pcc_capture_table_t *table, size_t len) {
     size_t i;
     for (i = len; i < table->len; i++) PCC_FREE(auxil, table->buf[i].string);
-<%- if @location -%>
-    for (i = len; i < table->len; i++) {
-        PCC_FREE(auxil, table->buf[i].range.start_loc_ptr);
-        PCC_FREE(auxil, table->buf[i].range.end_loc_ptr);
-    }
-<%- end -%>
     if (table->max < len) {
         size_t m = table->max;
         if (m == 0) m = PCC_ARRAY_MIN_SIZE;
@@ -442,10 +436,8 @@ static void pcc_capture_table__resize(pcc_auxil_t auxil, pcc_capture_table_t *ta
         table->buf[i].range.start = 0;
         table->buf[i].range.end = 0;
 <%- if @location -%>
-        table->buf[i].range.start_loc_ptr = (pcc_location_t *)PCC_MALLOC(auxil, sizeof(pcc_location_t));
-        table->buf[i].range.end_loc_ptr = (pcc_location_t *)PCC_MALLOC(auxil, sizeof(pcc_location_t));
-        pcc_location_init(table->buf[i].range.start_loc_ptr);
-        pcc_location_init(table->buf[i].range.end_loc_ptr);
+        pcc_location_init(&table->buf[i].range.start_loc);
+        pcc_location_init(&table->buf[i].range.end_loc);
 <%- end -%>
         table->buf[i].string = NULL;
     }
@@ -456,10 +448,6 @@ static void pcc_capture_table__term(pcc_auxil_t auxil, pcc_capture_table_t *tabl
     while (table->len > 0) {
         table->len--;
         PCC_FREE(auxil, table->buf[table->len].string);
-<%- if @location -%>
-        PCC_FREE(auxil, table->buf[table->len].range.start_loc_ptr);
-        PCC_FREE(auxil, table->buf[table->len].range.end_loc_ptr);
-<%- end -%>
     }
     PCC_FREE(auxil, table->buf);
 }
@@ -498,6 +486,10 @@ static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t actio
     pcc_capture_const_table__resize(auxil, &thunk->data.leaf.capts, captc);
     thunk->data.leaf.capt0.range.start = 0;
     thunk->data.leaf.capt0.range.end = 0;
+<%- if @location -%>
+    pcc_location_init(&thunk->data.leaf.capt0.range.start_loc);
+    pcc_location_init(&thunk->data.leaf.capt0.range.end_loc);
+<%- end -%>
     thunk->data.leaf.capt0.string = NULL;
     thunk->data.leaf.action = action;
     return thunk;
@@ -1208,8 +1200,8 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_
 #define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))
 #define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))
 <%-     if @location -%>
-#define _0sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, *__pcc_in->data.leaf.capt0.range.start_loc_ptr)))
-#define _0el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, *__pcc_in->data.leaf.capt0.range.end_loc_ptr)))
+#define _0sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capt0.range.start_loc)))
+#define _0el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capt0.range.end_loc)))
 <%-     end -%>
 <%-     if @capture_in_code -%>
 #define _0c __pcc_in->data.leaf.capt0
@@ -1219,8 +1211,8 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_
 #define _<%= capture.index + 1 %>s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
 #define _<%= capture.index + 1 %>e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
 <%-       if @location -%>
-#define _<%= capture.index + 1 %>sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, *__pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start_loc_ptr)))
-#define _<%= capture.index + 1 %>el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, *__pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end_loc_ptr)))
+#define _<%= capture.index + 1 %>sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start_loc)))
+#define _<%= capture.index + 1 %>el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->pos_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end_loc)))
 <%-       end -%>
 <%-       if @capture_in_code -%>
 #define _<%= capture.index + 1 %>c (*__pcc_in->data.leaf.capts.buf[<%= capture.index %>])

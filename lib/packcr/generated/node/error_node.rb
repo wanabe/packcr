@@ -21,7 +21,7 @@ class Packcr
           erbout << "        thunk->data.leaf.capt0.range.start = chunk->pos;\n        thunk->data.leaf.capt0.range.end = ctx->cur;\n".freeze
 
           if gen.location
-            erbout << "        thunk->data.leaf.capt0.range.start_loc_ptr = &chunk->pos_loc;\n        thunk->data.leaf.capt0.range.end_loc_ptr = &ctx->cur_loc;\n".freeze
+            erbout << "        thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;\n        thunk->data.leaf.capt0.range.end_loc = ctx->cur_loc;\n".freeze
           end
           erbout << "        memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n        thunk->data.leaf.action(ctx, thunk, &null);\n        pcc_thunk__destroy(ctx->auxil, thunk);\n    }\n    goto L#{format("%04d", onfail)};\nL#{format("%04d", m)}:;\n}\n".freeze
 

@@ -13,7 +13,7 @@ class Packcr
           erbout << "#{gen.generate_code(expr, onfail, 4, false)}    q = ctx->cur;\n    chunk->capts.buf[#{index}].range.start = p;\n    chunk->capts.buf[#{index}].range.end = q;\n".freeze
 
           if gen.location
-            erbout << "    q_loc = ctx->cur_loc;\n    *chunk->capts.buf[#{index}].range.start_loc_ptr = p_loc;\n    *chunk->capts.buf[#{index}].range.end_loc_ptr = q_loc;\n".freeze
+            erbout << "    q_loc = ctx->cur_loc;\n    chunk->capts.buf[#{index}].range.start_loc = p_loc;\n    chunk->capts.buf[#{index}].range.end_loc = q_loc;\n".freeze
           end
           erbout << "}\n".freeze
 

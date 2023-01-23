@@ -11,7 +11,7 @@
     chunk->capts.buf[<%= index %>].range.end = q;
 <%- if gen.location -%>
     q_loc = ctx->cur_loc;
-    *chunk->capts.buf[<%= index %>].range.start_loc_ptr = p_loc;
-    *chunk->capts.buf[<%= index %>].range.end_loc_ptr = q_loc;
+    chunk->capts.buf[<%= index %>].range.start_loc = p_loc;
+    chunk->capts.buf[<%= index %>].range.end_loc = q_loc;
 <%- end -%>
 }
