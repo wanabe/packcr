@@ -47,14 +47,14 @@ end
 
 file "tmp/bench.rb" do |t|
   n = ENV["TIMES"]&.to_i || 5
-  open(t.name, "w") do |ofile|
+  File.open(t.name, "w") do |ofile|
     ofile.print <<~EOS
       require "bundler/setup"
       require "packcr"
     EOS
     ofile.puts File.read(__FILE__)[/^class Bench.*?^end/m]
     ofile.print <<~EOS
-      bench = Bench.new("parser.run", w: 5.0, b: "parser = Packcr.new(\\\"tmp/ast-tinyc.peg\\\")")
+      bench = Bench.new("parser.run", w: 5.0, b: "parser = Packcr.new(\\"tmp/ast-tinyc.peg\\")")
       #{n}.times do
         print ENV["PREFIX"], " " if ENV["PREFIX"]
         puts bench.ips
@@ -79,11 +79,11 @@ task bench_commits: ["tmp/ast-tinyc.peg", "tmp/bench.rb"] do
   current = `git branch --show-current`.chomp
   current = `git rev-parse HEAD`.chomp if current.empty?
   begin
-    commits = `git log --reverse --format=%h #{ENV["COMMIT_RANGE"]}`.split("\n")
+    commits = `git log --reverse --format=%h #{ENV.fetch("COMMIT_RANGE", nil)}`.split("\n")
     r, w = IO.pipe
-    open("tmp/bench.log", "w") do |ofile|
+    File.open("tmp/bench.log", "w") do |ofile|
       th = Thread.new do
-        while !r.eof?
+        until r.eof?
           line = r.gets
           warn line
           ofile.puts line
