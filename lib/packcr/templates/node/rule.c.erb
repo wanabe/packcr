@@ -1,4 +1,4 @@
-static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= name %>(pcc_context_t *ctx) {
+static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= name %>(pcc_context_t *ctx, size_t offset<% if gen.location %>, pcc_location_t offset_loc<% end %>, pcc_rule_set_t *limits) {
     pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
     chunk->pos = ctx->position_offset;
 <%-   if gen.location -%>

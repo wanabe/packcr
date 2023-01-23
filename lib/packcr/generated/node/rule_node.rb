@@ -5,7 +5,11 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "static pcc_thunk_chunk_t *pcc_evaluate_rule_#{name}(pcc_context_t *ctx) {\n    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);\n    chunk->pos = ctx->position_offset;\n".freeze
+          erbout << "static pcc_thunk_chunk_t *pcc_evaluate_rule_#{name}(pcc_context_t *ctx, size_t offset".freeze
+          if gen.location
+            erbout << ", pcc_location_t offset_loc".freeze
+          end
+          erbout << ", pcc_rule_set_t *limits) {\n    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);\n    chunk->pos = ctx->position_offset;\n".freeze
 
           if gen.location
             erbout << "    chunk->pos_loc = ctx->position_offset_loc;\n".freeze

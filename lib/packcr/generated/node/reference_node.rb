@@ -6,11 +6,15 @@ class Packcr
         when :c
           erbout = +""
           if index.nil?
-            erbout << "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{name}, &chunk->thunks, NULL)) goto L#{format("%04d", onfail)};\n".freeze
+            erbout << "{\n    pcc_rule_set_t *l = NULL;\n    if (limits && ctx->position_offset == offset && pcc_rule_set__index(ctx->auxil, limits, pcc_evaluate_rule_#{name}) == PCC_VOID_VALUE) {\n        l = limits;\n    }\n    if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{name}, &chunk->thunks, NULL, offset".freeze
           else
-            erbout << "if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{name}, &chunk->thunks, &(chunk->values.buf[#{index}]))) goto L#{format("%04d", onfail)};\n".freeze
+            erbout << "{\n    pcc_rule_set_t *l = NULL;\n    if (limits && ctx->position_offset == offset && pcc_rule_set__index(ctx->auxil, limits, pcc_evaluate_rule_#{name}) == PCC_VOID_VALUE) {\n        l = limits;\n    }\n    if (!pcc_apply_rule(ctx, pcc_evaluate_rule_#{name}, &chunk->thunks, &(chunk->values.buf[#{index}]), offset".freeze
 
           end
+          if gen.location
+            erbout << ", offset_loc".freeze
+          end
+          erbout << ", l)) goto L#{format("%04d", onfail)};\n}\n".freeze
           erbout
         when :rb
           erbout = +""
