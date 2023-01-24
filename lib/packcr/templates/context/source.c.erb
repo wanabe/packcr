@@ -205,13 +205,8 @@ typedef struct pcc_lr_memo_map_tag {
     size_t len;
 } pcc_lr_memo_map_t;
 
-typedef struct pcc_lr_table_entry_tag {
-    pcc_lr_memo_map_t memos;
-    pcc_lr_answer_t *hold_a;
-} pcc_lr_table_entry_t;
-
 typedef struct pcc_lr_table_tag {
-    pcc_lr_table_entry_t **buf;
+    pcc_lr_memo_map_t **buf;
     size_t max;
     size_t len;
     size_t ofs;
@@ -699,18 +694,16 @@ static void pcc_lr_memo_map__term(pcc_context_t *ctx, pcc_lr_memo_map_t *map) {
     PCC_FREE(ctx->auxil, map->buf);
 }
 
-static pcc_lr_table_entry_t *pcc_lr_table_entry__create(pcc_context_t *ctx) {
-    pcc_lr_table_entry_t *const entry = (pcc_lr_table_entry_t *)PCC_MALLOC(ctx->auxil, sizeof(pcc_lr_table_entry_t));
-    pcc_lr_memo_map__init(ctx->auxil, &entry->memos);
-    entry->hold_a = NULL;
-    return entry;
+static pcc_lr_memo_map_t *pcc_lr_memo_map__create(pcc_context_t *ctx) {
+    pcc_lr_memo_map_t *const memo = (pcc_lr_memo_map_t *)PCC_MALLOC(ctx->auxil, sizeof(pcc_lr_memo_map_t));
+    pcc_lr_memo_map__init(ctx->auxil, memo);
+    return memo;
 }
 
-static void pcc_lr_table_entry__destroy(pcc_context_t *ctx, pcc_lr_table_entry_t *entry) {
-    if (entry == NULL) return;
-    pcc_lr_answer__destroy(ctx, entry->hold_a);
-    pcc_lr_memo_map__term(ctx, &entry->memos);
-    PCC_FREE(ctx->auxil, entry);
+static void pcc_lr_memo_map__destroy(pcc_context_t *ctx, pcc_lr_memo_map_t *memo) {
+    if (memo == NULL) return;
+    pcc_lr_memo_map__term(ctx, memo);
+    PCC_FREE(ctx->auxil, memo);
 }
 
 static void pcc_lr_table__init(pcc_auxil_t auxil, pcc_lr_table_t *table) {
@@ -722,13 +715,13 @@ static void pcc_lr_table__init(pcc_auxil_t auxil, pcc_lr_table_t *table) {
 
 static void pcc_lr_table__resize(pcc_context_t *ctx, pcc_lr_table_t *table, size_t len) {
     size_t i;
-    for (i = len; i < table->len; i++) pcc_lr_table_entry__destroy(ctx, table->buf[i]);
+    for (i = len; i < table->len; i++) pcc_lr_memo_map__destroy(ctx, table->buf[i]);
     if (table->max < len) {
         size_t m = table->max;
         if (m == 0) m = PCC_ARRAY_MIN_SIZE;
         while (m < len && m != 0) m <<= 1;
         if (m == 0) m = len;
-        table->buf = (pcc_lr_table_entry_t **)PCC_REALLOC(ctx->auxil, table->buf, sizeof(pcc_lr_table_entry_t *) * m);
+        table->buf = (pcc_lr_memo_map_t **)PCC_REALLOC(ctx->auxil, table->buf, sizeof(pcc_lr_memo_map_t *) * m);
         table->max = m;
     }
     for (i = table->len; i < len; i++) table->buf[i] = NULL;
@@ -738,22 +731,22 @@ static void pcc_lr_table__resize(pcc_context_t *ctx, pcc_lr_table_t *table, size
 static void pcc_lr_table__set_answer(pcc_context_t *ctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule, pcc_lr_answer_t *answer) {
     index += table->ofs;
     if (index >= table->len) pcc_lr_table__resize(ctx, table, index + 1);
-    if (table->buf[index] == NULL) table->buf[index] = pcc_lr_table_entry__create(ctx);
-    pcc_lr_memo_map__put(ctx, &table->buf[index]->memos, rule, answer);
+    if (table->buf[index] == NULL) table->buf[index] = pcc_lr_memo_map__create(ctx);
+    pcc_lr_memo_map__put(ctx, table->buf[index], rule, answer);
 }
 
 static pcc_lr_answer_t *pcc_lr_table__get_answer(pcc_context_t *ctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule) {
     index += table->ofs;
     if (index >= table->len || table->buf[index] == NULL) return NULL;
-    return pcc_lr_memo_map__get(ctx, &table->buf[index]->memos, rule);
+    return pcc_lr_memo_map__get(ctx, table->buf[index], rule);
 }
 
 static void pcc_lr_table__shift(pcc_context_t *ctx, pcc_lr_table_t *table, size_t count) {
     size_t i;
     if (count > table->len - table->ofs) count = table->len - table->ofs;
-    for (i = 0; i < count; i++) pcc_lr_table_entry__destroy(ctx, table->buf[table->ofs++]);
+    for (i = 0; i < count; i++) pcc_lr_memo_map__destroy(ctx, table->buf[table->ofs++]);
     if (table->ofs > (table->max >> 1)) {
-        memmove(table->buf, table->buf + table->ofs, sizeof(pcc_lr_table_entry_t *) * (table->len - table->ofs));
+        memmove(table->buf, table->buf + table->ofs, sizeof(pcc_lr_memo_map_t *) * (table->len - table->ofs));
         table->len -= table->ofs;
         table->ofs = 0;
     }
@@ -762,7 +755,7 @@ static void pcc_lr_table__shift(pcc_context_t *ctx, pcc_lr_table_t *table, size_
 static void pcc_lr_table__term(pcc_context_t *ctx, pcc_lr_table_t *table) {
     while (table->len > table->ofs) {
         table->len--;
-        pcc_lr_table_entry__destroy(ctx, table->buf[table->len]);
+        pcc_lr_memo_map__destroy(ctx, table->buf[table->len]);
     }
     PCC_FREE(ctx->auxil, table->buf);
 }
