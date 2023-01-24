@@ -1,8 +1,0 @@
-S <- A 'b' / 'b'
-A <- A 'a' / S 'a'
-
-%%
-require "stringio"
-$stdin = StringIO.new("baab")
-Pcc.new.run
-puts "parsed"

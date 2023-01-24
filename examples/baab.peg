@@ -1,0 +1,33 @@
+S <- A 'b' { printf("S0 %s\n", $0); } / 'b' { printf("S1 %s\n", $0); }
+A <- A 'a' { printf("A0 %s\n", $0); } / S 'a' { printf("A1 %s\n", $0); }
+
+%source c-> {
+  #define PCC_GETCHAR(auxil) pcc_getchar()
+  int pcc_getchar() {
+      static char str[] = "baab";
+      static int i = 0;
+      char c = str[i];
+      if (c == 0) {
+          return EOF;
+      }
+      i++;
+      return (int)c;
+  }
+}
+
+%latesource
+  c -> {
+    int main() {
+        pcc_context_t *ctx = pcc_create(NULL);
+        while (pcc_parse(ctx, NULL));
+        pcc_destroy(ctx);
+        printf("parsed\n");
+        return 0;
+    }
+  }
+  rb -> ${
+    require "stringio"
+    $stdin = StringIO.new("baab")
+    Pcc.new.run
+    puts "parsed"
+  }
