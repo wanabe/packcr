@@ -171,14 +171,14 @@ typedef struct pcc_thunk_chunk_tag {
 <%- end -%>
 } pcc_thunk_chunk_t;
 
-typedef struct pcc_lr_answer_tag pcc_lr_answer_t;
+typedef struct pcc_lr_memo_tag pcc_lr_memo_t;
 
-struct pcc_lr_answer_tag {
+struct pcc_lr_memo_tag {
     size_t offset;
 <%- if @location -%>
     pcc_location_t offset_loc;
 <%- end -%>
-    pcc_lr_answer_t *hold;
+    pcc_lr_memo_t *hold;
     pcc_thunk_chunk_t *chunk;
     pcc_bool_t fail;
     pcc_bool_t grow;
@@ -194,13 +194,13 @@ typedef struct pcc_rule_set_tag {
     size_t len;
 } pcc_rule_set_t;
 
-typedef struct pcc_lr_memo_tag {
+typedef struct pcc_lr_memo_map_entry_tag {
     pcc_rule_t rule;
-    pcc_lr_answer_t *answer;
-} pcc_lr_memo_t;
+    pcc_lr_memo_t *memo;
+} pcc_lr_memo_map_entry_t;
 
 typedef struct pcc_lr_memo_map_tag {
-    pcc_lr_memo_t *buf;
+    pcc_lr_memo_map_entry_t *buf;
     size_t max;
     size_t len;
 } pcc_lr_memo_map_t;
@@ -244,7 +244,7 @@ struct <%= prefix %>_context_tag {
     pcc_thunk_array_t thunks;
     pcc_auxil_t auxil;
     pcc_memory_recycler_t thunk_chunk_recycler;
-    pcc_memory_recycler_t lr_answer_recycler;
+    pcc_memory_recycler_t lr_memo_recycler;
 };
 
 #ifndef PCC_ERROR
@@ -612,36 +612,36 @@ static void pcc_rule_set__term(pcc_auxil_t auxil, pcc_rule_set_t *set) {
     PCC_FREE(auxil, set->buf);
 }
 
-static pcc_lr_answer_t *pcc_lr_answer__create(pcc_context_t *ctx, size_t offset<% if @location %>, pcc_location_t offset_loc<% end %>) {
-    pcc_lr_answer_t *answer = (pcc_lr_answer_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->lr_answer_recycler);
-    answer->offset = offset;
+static pcc_lr_memo_t *pcc_lr_memo__create(pcc_context_t *ctx, size_t offset<% if @location %>, pcc_location_t offset_loc<% end %>) {
+    pcc_lr_memo_t *memo = (pcc_lr_memo_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->lr_memo_recycler);
+    memo->offset = offset;
 <%- if @location -%>
-    answer->offset_loc = offset_loc;
+    memo->offset_loc = offset_loc;
 <%- end -%>
-    answer->chunk = NULL;
-    answer->fail = PCC_TRUE;
-    answer->grow = PCC_FALSE;
-    answer->hold = NULL;
-    return answer;
+    memo->chunk = NULL;
+    memo->fail = PCC_TRUE;
+    memo->grow = PCC_FALSE;
+    memo->hold = NULL;
+    return memo;
 }
 
-static void pcc_lr_answer__set_chunk(pcc_context_t *ctx, pcc_lr_answer_t *answer, pcc_thunk_chunk_t *chunk) {
-    if (answer->chunk) {
-        pcc_lr_answer_t *const a = pcc_lr_answer__create(ctx, answer->offset<% if @location %>, answer->offset_loc<% end %>);
-        a->chunk = answer->chunk;
-        a->hold = answer->hold;
-        answer->hold = a;
+static void pcc_lr_memo__set_chunk(pcc_context_t *ctx, pcc_lr_memo_t *memo, pcc_thunk_chunk_t *chunk) {
+    if (memo->chunk) {
+        pcc_lr_memo_t *const a = pcc_lr_memo__create(ctx, memo->offset<% if @location %>, memo->offset_loc<% end %>);
+        a->chunk = memo->chunk;
+        a->hold = memo->hold;
+        memo->hold = a;
     }
-    answer->chunk = chunk;
-    answer->fail = PCC_FALSE;
+    memo->chunk = chunk;
+    memo->fail = PCC_FALSE;
 }
 
-static void pcc_lr_answer__destroy(pcc_context_t *ctx, pcc_lr_answer_t *answer) {
-    while (answer != NULL) {
-        pcc_lr_answer_t *const a = answer->hold;
-        pcc_thunk_chunk__destroy(ctx, answer->chunk);
-        pcc_memory_recycler__recycle(ctx->auxil, &ctx->lr_answer_recycler, answer);
-        answer = a;
+static void pcc_lr_memo__destroy(pcc_context_t *ctx, pcc_lr_memo_t *memo) {
+    while (memo != NULL) {
+        pcc_lr_memo_t *const a = memo->hold;
+        pcc_thunk_chunk__destroy(ctx, memo->chunk);
+        pcc_memory_recycler__recycle(ctx->auxil, &ctx->lr_memo_recycler, memo);
+        memo = a;
     }
 }
 
@@ -659,11 +659,11 @@ static size_t pcc_lr_memo_map__index(pcc_context_t *ctx, pcc_lr_memo_map_t *map,
     return PCC_VOID_VALUE;
 }
 
-static void pcc_lr_memo_map__put(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc_rule_t rule, pcc_lr_answer_t *answer) {
+static void pcc_lr_memo_map__put(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc_rule_t rule, pcc_lr_memo_t *memo) {
     const size_t i = pcc_lr_memo_map__index(ctx, map, rule);
     if (i != PCC_VOID_VALUE) {
-        pcc_lr_answer__destroy(ctx, map->buf[i].answer);
-        map->buf[i].answer = answer;
+        pcc_lr_memo__destroy(ctx, map->buf[i].memo);
+        map->buf[i].memo = memo;
     }
     else {
         if (map->max <= map->len) {
@@ -672,24 +672,24 @@ static void pcc_lr_memo_map__put(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc
             if (m == 0) m = PCC_ARRAY_MIN_SIZE;
             while (m < n && m != 0) m <<= 1;
             if (m == 0) m = n;
-            map->buf = (pcc_lr_memo_t *)PCC_REALLOC(ctx->auxil, map->buf, sizeof(pcc_lr_memo_t) * m);
+            map->buf = (pcc_lr_memo_map_entry_t *)PCC_REALLOC(ctx->auxil, map->buf, sizeof(pcc_lr_memo_map_entry_t) * m);
             map->max = m;
         }
         map->buf[map->len].rule = rule;
-        map->buf[map->len].answer = answer;
+        map->buf[map->len].memo = memo;
         map->len++;
     }
 }
 
-static pcc_lr_answer_t *pcc_lr_memo_map__get(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc_rule_t rule) {
+static pcc_lr_memo_t *pcc_lr_memo_map__get(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc_rule_t rule) {
     const size_t i = pcc_lr_memo_map__index(ctx, map, rule);
-    return (i != PCC_VOID_VALUE) ? map->buf[i].answer : NULL;
+    return (i != PCC_VOID_VALUE) ? map->buf[i].memo : NULL;
 }
 
 static void pcc_lr_memo_map__term(pcc_context_t *ctx, pcc_lr_memo_map_t *map) {
     while (map->len > 0) {
         map->len--;
-        pcc_lr_answer__destroy(ctx, map->buf[map->len].answer);
+        pcc_lr_memo__destroy(ctx, map->buf[map->len].memo);
     }
     PCC_FREE(ctx->auxil, map->buf);
 }
@@ -728,14 +728,14 @@ static void pcc_lr_table__resize(pcc_context_t *ctx, pcc_lr_table_t *table, size
     table->len = len;
 }
 
-static void pcc_lr_table__set_answer(pcc_context_t *ctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule, pcc_lr_answer_t *answer) {
+static void pcc_lr_table__set_memo(pcc_context_t *ctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule, pcc_lr_memo_t *memo) {
     index += table->ofs;
     if (index >= table->len) pcc_lr_table__resize(ctx, table, index + 1);
     if (table->buf[index] == NULL) table->buf[index] = pcc_lr_memo_map__create(ctx);
-    pcc_lr_memo_map__put(ctx, table->buf[index], rule, answer);
+    pcc_lr_memo_map__put(ctx, table->buf[index], rule, memo);
 }
 
-static pcc_lr_answer_t *pcc_lr_table__get_answer(pcc_context_t *ctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule) {
+static pcc_lr_memo_t *pcc_lr_table__get_memo(pcc_context_t *ctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule) {
     index += table->ofs;
     if (index >= table->len || table->buf[index] == NULL) return NULL;
     return pcc_lr_memo_map__get(ctx, table->buf[index], rule);
@@ -773,7 +773,7 @@ static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
     pcc_lr_table__init(auxil, &ctx->lrtable);
     pcc_thunk_array__init(auxil, &ctx->thunks);
     pcc_memory_recycler__init(auxil, &ctx->thunk_chunk_recycler, sizeof(pcc_thunk_chunk_t));
-    pcc_memory_recycler__init(auxil, &ctx->lr_answer_recycler, sizeof(pcc_lr_answer_t));
+    pcc_memory_recycler__init(auxil, &ctx->lr_memo_recycler, sizeof(pcc_lr_memo_t));
     ctx->auxil = auxil;
     return ctx;
 }
@@ -784,7 +784,7 @@ static void pcc_context__destroy(pcc_context_t *ctx) {
     pcc_lr_table__term(ctx, &ctx->lrtable);
     pcc_char_array__term(ctx->auxil, &ctx->buffer);
     pcc_memory_recycler__term(ctx->auxil, &ctx->thunk_chunk_recycler);
-    pcc_memory_recycler__term(ctx->auxil, &ctx->lr_answer_recycler);
+    pcc_memory_recycler__term(ctx->auxil, &ctx->lr_memo_recycler);
     PCC_FREE(ctx->auxil, ctx);
 }
 
@@ -877,7 +877,7 @@ static void pcc_grow_lr(pcc_context_t *ctx, pcc_rule_t rule, size_t offset<% if 
     while(1) {
         const size_t old_offset = ctx->position_offset;
         pcc_thunk_chunk_t *chunk;
-        pcc_lr_answer_t *answer;
+        pcc_lr_memo_t *memo;
         pcc_rule_set_t limits;
         ctx->position_offset = offset;
 <%- if @location -%>
@@ -893,29 +893,29 @@ static void pcc_grow_lr(pcc_context_t *ctx, pcc_rule_t rule, size_t offset<% if 
             pcc_thunk_chunk__destroy(ctx, chunk);
             break;
         }
-        answer = pcc_lr_table__get_answer(ctx, &ctx->lrtable, offset, rule);
-        pcc_lr_answer__set_chunk(ctx, answer, chunk);
-        answer->offset = ctx->position_offset;
+        memo = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
+        pcc_lr_memo__set_chunk(ctx, memo, chunk);
+        memo->offset = ctx->position_offset;
         <%- if @location -%>
-        answer->offset_loc = ctx->position_offset_loc;
+        memo->offset_loc = ctx->position_offset_loc;
         <%- end -%>
     }
 }
 
 MARK_FUNC_AS_USED
-static pcc_thunk_chunk_t *pcc_get_rule_answer(pcc_context_t *ctx, pcc_rule_t rule) {
+static pcc_thunk_chunk_t *pcc_get_rule_thunk_chunk(pcc_context_t *ctx, pcc_rule_t rule) {
     pcc_thunk_chunk_t *c = NULL;
     size_t offset = ctx->position_offset;
 <%- if @location -%>
     pcc_location_t offset_loc = ctx->position_offset_loc;
 <%- end -%>
-    pcc_lr_answer_t *a = pcc_lr_table__get_answer(ctx, &ctx->lrtable, offset, rule);
+    pcc_lr_memo_t *a = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
 
     if (a == NULL) {
-        a = pcc_lr_answer__create(ctx, offset<% if @location %>, offset_loc<% end %>);
-        pcc_lr_table__set_answer(ctx, &ctx->lrtable, offset, rule, a);
+        a = pcc_lr_memo__create(ctx, offset<% if @location %>, offset_loc<% end %>);
+        pcc_lr_table__set_memo(ctx, &ctx->lrtable, offset, rule, a);
         c = rule(ctx, offset<% if @location %>, offset_loc<% end %>, NULL);
-        pcc_lr_answer__set_chunk(ctx, a, c);
+        pcc_lr_memo__set_chunk(ctx, a, c);
         a->offset = ctx->position_offset;
 <%- if @location -%>
         a->offset_loc = ctx->position_offset_loc;
@@ -928,7 +928,7 @@ static pcc_thunk_chunk_t *pcc_get_rule_answer(pcc_context_t *ctx, pcc_rule_t rul
         }
         return c;
     } else if (a->fail) {
-        pcc_lr_answer__set_chunk(ctx, a, NULL);
+        pcc_lr_memo__set_chunk(ctx, a, NULL);
         a->grow = PCC_TRUE;
         return NULL;
     }
@@ -941,19 +941,19 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
     static pcc_value_t null;
     pcc_thunk_chunk_t *c;
     if (limits != NULL) {
-        pcc_lr_answer_t *a;
+        pcc_lr_memo_t *a;
         pcc_rule_set__add(ctx->auxil, limits, rule);
         c = rule(ctx, offset<% if @location %>, offset_loc<% end %>, limits);
-        a = pcc_lr_table__get_answer(ctx, &ctx->lrtable, offset, rule);
+        a = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
         if (a == NULL || ctx->position_offset <= a->offset) {
             c = a->chunk;
             ctx->position_offset = a->offset;
         } else {
-            pcc_lr_answer__set_chunk(ctx, a, c);
+            pcc_lr_memo__set_chunk(ctx, a, c);
             a->offset = ctx->position_offset;
         }
     } else {
-        c = pcc_get_rule_answer(ctx, rule);
+        c = pcc_get_rule_thunk_chunk(ctx, rule);
     }
     if (c == NULL) return PCC_FALSE;
     if (value == NULL) value = &null;
