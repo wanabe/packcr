@@ -7,3 +7,7 @@ Gemfile.lock
 /tmp/
 /packcc/examples/calc.c
 /packcc/examples/calc.h
+/examples/**/*.c
+/examples/**/*.h
+/examples/**/*.rb
+/examples/**/Makefile
