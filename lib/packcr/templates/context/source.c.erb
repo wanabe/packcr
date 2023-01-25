@@ -627,10 +627,10 @@ static pcc_lr_memo_t *pcc_lr_memo__create(pcc_context_t *ctx, size_t offset<% if
 
 static void pcc_lr_memo__set_chunk(pcc_context_t *ctx, pcc_lr_memo_t *memo, pcc_thunk_chunk_t *chunk) {
     if (memo->chunk) {
-        pcc_lr_memo_t *const a = pcc_lr_memo__create(ctx, memo->offset<% if @location %>, memo->offset_loc<% end %>);
-        a->chunk = memo->chunk;
-        a->hold = memo->hold;
-        memo->hold = a;
+        pcc_lr_memo_t *const new_hold_memo = pcc_lr_memo__create(ctx, memo->offset<% if @location %>, memo->offset_loc<% end %>);
+        new_hold_memo->chunk = memo->chunk;
+        new_hold_memo->hold = memo->hold;
+        memo->hold = new_hold_memo;
     }
     memo->chunk = chunk;
     memo->fail = PCC_FALSE;
@@ -638,10 +638,10 @@ static void pcc_lr_memo__set_chunk(pcc_context_t *ctx, pcc_lr_memo_t *memo, pcc_
 
 static void pcc_lr_memo__destroy(pcc_context_t *ctx, pcc_lr_memo_t *memo) {
     while (memo != NULL) {
-        pcc_lr_memo_t *const a = memo->hold;
+        pcc_lr_memo_t *const hold_memo = memo->hold;
         pcc_thunk_chunk__destroy(ctx, memo->chunk);
         pcc_memory_recycler__recycle(ctx->auxil, &ctx->lr_memo_recycler, memo);
-        memo = a;
+        memo = hold_memo;
     }
 }
 
@@ -909,31 +909,31 @@ static pcc_thunk_chunk_t *pcc_get_rule_thunk_chunk(pcc_context_t *ctx, pcc_rule_
 <%- if @location -%>
     pcc_location_t offset_loc = ctx->position_offset_loc;
 <%- end -%>
-    pcc_lr_memo_t *a = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
+    pcc_lr_memo_t *memo = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
 
-    if (a == NULL) {
-        a = pcc_lr_memo__create(ctx, offset<% if @location %>, offset_loc<% end %>);
-        pcc_lr_table__set_memo(ctx, &ctx->lrtable, offset, rule, a);
+    if (memo == NULL) {
+        memo = pcc_lr_memo__create(ctx, offset<% if @location %>, offset_loc<% end %>);
+        pcc_lr_table__set_memo(ctx, &ctx->lrtable, offset, rule, memo);
         c = rule(ctx, offset<% if @location %>, offset_loc<% end %>, NULL);
-        pcc_lr_memo__set_chunk(ctx, a, c);
-        a->offset = ctx->position_offset;
+        pcc_lr_memo__set_chunk(ctx, memo, c);
+        memo->offset = ctx->position_offset;
 <%- if @location -%>
-        a->offset_loc = ctx->position_offset_loc;
+        memo->offset_loc = ctx->position_offset_loc;
 <%- end -%>
-        if (a->grow) {
+        if (memo->grow) {
             pcc_grow_lr(ctx, rule, offset<% if @location %>, offset_loc<% end %>);
-            a->grow = PCC_FALSE;
-            ctx->position_offset = a->offset;
-            return a->chunk;
+            memo->grow = PCC_FALSE;
+            ctx->position_offset = memo->offset;
+            return memo->chunk;
         }
         return c;
-    } else if (a->fail) {
-        pcc_lr_memo__set_chunk(ctx, a, NULL);
-        a->grow = PCC_TRUE;
+    } else if (memo->fail) {
+        pcc_lr_memo__set_chunk(ctx, memo, NULL);
+        memo->grow = PCC_TRUE;
         return NULL;
     }
-    ctx->position_offset = a->offset;
-    return a->chunk;
+    ctx->position_offset = memo->offset;
+    return memo->chunk;
 }
 
 MARK_FUNC_AS_USED
@@ -941,16 +941,16 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
     static pcc_value_t null;
     pcc_thunk_chunk_t *c;
     if (limits != NULL) {
-        pcc_lr_memo_t *a;
+        pcc_lr_memo_t *memo;
         pcc_rule_set__add(ctx->auxil, limits, rule);
         c = rule(ctx, offset<% if @location %>, offset_loc<% end %>, limits);
-        a = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
-        if (a == NULL || ctx->position_offset <= a->offset) {
-            c = a->chunk;
-            ctx->position_offset = a->offset;
+        memo = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
+        if (memo == NULL || ctx->position_offset <= memo->offset) {
+            c = memo->chunk;
+            ctx->position_offset = memo->offset;
         } else {
-            pcc_lr_memo__set_chunk(ctx, a, c);
-            a->offset = ctx->position_offset;
+            pcc_lr_memo__set_chunk(ctx, memo, c);
+            memo->offset = ctx->position_offset;
         }
     } else {
         c = pcc_get_rule_thunk_chunk(ctx, rule);
