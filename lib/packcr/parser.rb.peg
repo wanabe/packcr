@@ -162,7 +162,7 @@ footer <- '%%' (lf / EOF) <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1
   @lang = :rb
 }
 
-%source {
+%earlysource {
   class Packcr
 }
 %%
