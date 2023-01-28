@@ -4690,6 +4690,7 @@ class Packcr
           memo.grow = false
           answer = memo.answer
           @position_offset = memo.offset
+          @position_offset_loc = memo.offset_loc
         end
         answer
       elsif memo.fail
@@ -4698,6 +4699,7 @@ class Packcr
         nil
       else
         @position_offset = memo.offset
+        @position_offset_loc = memo.offset_loc
         memo.answer
       end
     end
@@ -4710,9 +4712,11 @@ class Packcr
         if !answer || @position_offset <= memo.offset
           answer = memo.answer
           @position_offset = memo.offset
+          @position_offset_loc = memo.offset_loc
         else
           memo.answer = answer
           memo.offset = @position_offset
+          memo.offset_loc = @position_offset_loc
         end
       else
         answer = rule_answer(rule)

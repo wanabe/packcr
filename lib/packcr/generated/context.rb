@@ -161,7 +161,17 @@ class Packcr
         if @location
           erbout << ", offset_loc".freeze
         end
-        erbout << ");\n            memo->grow = PCC_FALSE;\n            ctx->position_offset = memo->offset;\n            return memo->chunk;\n        }\n        return c;\n    } else if (memo->fail) {\n        pcc_lr_memo__set_chunk(ctx, memo, NULL);\n        memo->grow = PCC_TRUE;\n        return NULL;\n    }\n    ctx->position_offset = memo->offset;\n    return memo->chunk;\n}\n\nMARK_FUNC_AS_USED\nstatic pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_array_t *thunks, pcc_value_t *value, size_t offset".freeze
+        erbout << ");\n            memo->grow = PCC_FALSE;\n            ctx->position_offset = memo->offset;\n".freeze
+
+        if @location
+          erbout << "            ctx->position_offset_loc = memo->offset_loc;\n".freeze
+        end
+        erbout << "            return memo->chunk;\n        }\n        return c;\n    } else if (memo->fail) {\n        pcc_lr_memo__set_chunk(ctx, memo, NULL);\n        memo->grow = PCC_TRUE;\n        return NULL;\n    }\n    ctx->position_offset = memo->offset;\n".freeze
+
+        if @location
+          erbout << "    ctx->position_offset_loc = memo->offset_loc;\n".freeze
+        end
+        erbout << "    return memo->chunk;\n}\n\nMARK_FUNC_AS_USED\nstatic pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_array_t *thunks, pcc_value_t *value, size_t offset".freeze
 
         if @location
           erbout << ", pcc_location_t offset_loc".freeze
@@ -171,7 +181,17 @@ class Packcr
         if @location
           erbout << ", offset_loc".freeze
         end
-        erbout << ", limits);\n        memo = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);\n        if (memo == NULL || ctx->position_offset <= memo->offset) {\n            c = memo->chunk;\n            ctx->position_offset = memo->offset;\n        } else {\n            pcc_lr_memo__set_chunk(ctx, memo, c);\n            memo->offset = ctx->position_offset;\n        }\n    } else {\n        c = pcc_get_rule_thunk_chunk(ctx, rule);\n    }\n    if (c == NULL) return PCC_FALSE;\n    if (value == NULL) value = &null;\n    memset(value, 0, sizeof(pcc_value_t)); /* in case */\n    pcc_thunk_array__add(ctx->auxil, thunks, pcc_thunk__create_node(ctx->auxil, &c->thunks, value));\n    return PCC_TRUE;\n}\n\nMARK_FUNC_AS_USED\nstatic void pcc_do_action(pcc_context_t *ctx, const pcc_thunk_array_t *thunks, pcc_value_t *value) {\n    size_t i;\n    for (i = 0; i < thunks->len; i++) {\n        pcc_thunk_t *const thunk = thunks->buf[i];\n        switch (thunk->type) {\n        case PCC_THUNK_LEAF:\n            thunk->data.leaf.action(ctx, thunk, value);\n            break;\n        case PCC_THUNK_NODE:\n            pcc_do_action(ctx, thunk->data.node.thunks, thunk->data.node.value);\n            break;\n        default: /* unknown */\n            break;\n        }\n    }\n}\n\n".freeze
+        erbout << ", limits);\n        memo = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);\n        if (memo == NULL || ctx->position_offset <= memo->offset) {\n            c = memo->chunk;\n            ctx->position_offset = memo->offset;\n".freeze
+
+        if @location
+          erbout << "            ctx->position_offset_loc = memo->offset_loc;\n".freeze
+        end
+        erbout << "        } else {\n            pcc_lr_memo__set_chunk(ctx, memo, c);\n            memo->offset = ctx->position_offset;\n".freeze
+
+        if @location
+          erbout << "            memo->offset_loc = ctx->position_offset_loc;\n".freeze
+        end
+        erbout << "        }\n    } else {\n        c = pcc_get_rule_thunk_chunk(ctx, rule);\n    }\n    if (c == NULL) return PCC_FALSE;\n    if (value == NULL) value = &null;\n    memset(value, 0, sizeof(pcc_value_t)); /* in case */\n    pcc_thunk_array__add(ctx->auxil, thunks, pcc_thunk__create_node(ctx->auxil, &c->thunks, value));\n    return PCC_TRUE;\n}\n\nMARK_FUNC_AS_USED\nstatic void pcc_do_action(pcc_context_t *ctx, const pcc_thunk_array_t *thunks, pcc_value_t *value) {\n    size_t i;\n    for (i = 0; i < thunks->len; i++) {\n        pcc_thunk_t *const thunk = thunks->buf[i];\n        switch (thunk->type) {\n        case PCC_THUNK_LEAF:\n            thunk->data.leaf.action(ctx, thunk, value);\n            break;\n        case PCC_THUNK_NODE:\n            pcc_do_action(ctx, thunk->data.node.thunks, thunk->data.node.value);\n            break;\n        default: /* unknown */\n            break;\n        }\n    }\n}\n\n".freeze
 
         @root.rules.each do |rule|
           rule.codes.each do |code|
@@ -377,7 +397,17 @@ class Packcr
         if @location
           erbout << ", offset_loc".freeze
         end
-        erbout << ")\n        memo.grow = false\n        answer = memo.answer\n        @position_offset = memo.offset\n      end\n      return answer\n    elsif memo.fail\n      memo.answer = nil\n      memo.grow = true\n      return nil\n    else\n      @position_offset = memo.offset\n      return memo.answer\n    end\n  end\n\n  def apply_rule(rule, thunks, values, index, offset".freeze
+        erbout << ")\n        memo.grow = false\n        answer = memo.answer\n        @position_offset = memo.offset\n".freeze
+
+        if @location
+          erbout << "        @position_offset_loc = memo.offset_loc\n".freeze
+        end
+        erbout << "      end\n      return answer\n    elsif memo.fail\n      memo.answer = nil\n      memo.grow = true\n      return nil\n    else\n      @position_offset = memo.offset\n".freeze
+
+        if @location
+          erbout << "      @position_offset_loc = memo.offset_loc\n".freeze
+        end
+        erbout << "      return memo.answer\n    end\n  end\n\n  def apply_rule(rule, thunks, values, index, offset".freeze
         if @location
           erbout << ", offset_loc".freeze
         end
@@ -386,7 +416,17 @@ class Packcr
         if @location
           erbout << ", offset_loc".freeze
         end
-        erbout << ", limits: limits)\n      memo = @memos[offset, rule]\n      if !answer || @position_offset <= memo.offset\n        answer = memo.answer\n        @position_offset = memo.offset\n      else\n        memo.answer = answer\n        memo.offset = @position_offset\n      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n\n".freeze
+        erbout << ", limits: limits)\n      memo = @memos[offset, rule]\n      if !answer || @position_offset <= memo.offset\n        answer = memo.answer\n        @position_offset = memo.offset\n".freeze
+
+        if @location
+          erbout << "        @position_offset_loc = memo.offset_loc\n".freeze
+        end
+        erbout << "      else\n        memo.answer = answer\n        memo.offset = @position_offset\n".freeze
+
+        if @location
+          erbout << "        memo.offset_loc = @position_offset_loc\n".freeze
+        end
+        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n\n".freeze
 
         code(:location).each do |code|
           erbout << "#{stream.get_code_block(code, 2, @iname)}\n".freeze

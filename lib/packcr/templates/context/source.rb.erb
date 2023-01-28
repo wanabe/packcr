@@ -166,6 +166,9 @@ class <%= class_name %>
         memo.grow = false
         answer = memo.answer
         @position_offset = memo.offset
+        <%- if @location -%>
+        @position_offset_loc = memo.offset_loc
+        <%- end -%>
       end
       return answer
     elsif memo.fail
@@ -174,6 +177,9 @@ class <%= class_name %>
       return nil
     else
       @position_offset = memo.offset
+      <%- if @location -%>
+      @position_offset_loc = memo.offset_loc
+      <%- end -%>
       return memo.answer
     end
   end
@@ -186,9 +192,15 @@ class <%= class_name %>
       if !answer || @position_offset <= memo.offset
         answer = memo.answer
         @position_offset = memo.offset
+        <%- if @location -%>
+        @position_offset_loc = memo.offset_loc
+        <%- end -%>
       else
         memo.answer = answer
         memo.offset = @position_offset
+        <%- if @location -%>
+        memo.offset_loc = @position_offset_loc
+        <%- end -%>
       end
     else
       answer = rule_answer(rule)

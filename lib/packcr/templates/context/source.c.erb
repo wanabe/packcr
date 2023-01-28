@@ -924,6 +924,9 @@ static pcc_thunk_chunk_t *pcc_get_rule_thunk_chunk(pcc_context_t *ctx, pcc_rule_
             pcc_grow_lr(ctx, rule, offset<% if @location %>, offset_loc<% end %>);
             memo->grow = PCC_FALSE;
             ctx->position_offset = memo->offset;
+<%- if @location -%>
+            ctx->position_offset_loc = memo->offset_loc;
+<%- end -%>
             return memo->chunk;
         }
         return c;
@@ -933,6 +936,9 @@ static pcc_thunk_chunk_t *pcc_get_rule_thunk_chunk(pcc_context_t *ctx, pcc_rule_
         return NULL;
     }
     ctx->position_offset = memo->offset;
+<%- if @location -%>
+    ctx->position_offset_loc = memo->offset_loc;
+<%- end -%>
     return memo->chunk;
 }
 
@@ -948,9 +954,15 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
         if (memo == NULL || ctx->position_offset <= memo->offset) {
             c = memo->chunk;
             ctx->position_offset = memo->offset;
+            <%- if @location -%>
+            ctx->position_offset_loc = memo->offset_loc;
+            <%- end -%>
         } else {
             pcc_lr_memo__set_chunk(ctx, memo, c);
             memo->offset = ctx->position_offset;
+            <%- if @location -%>
+            memo->offset_loc = ctx->position_offset_loc;
+            <%- end -%>
         }
     } else {
         c = pcc_get_rule_thunk_chunk(ctx, rule);
