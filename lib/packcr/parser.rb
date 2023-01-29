@@ -463,7 +463,7 @@ class Packcr
       __0e = @buffer_start_position + __pcc_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __pcc_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __pcc_in.capt0.end_loc
-      ____ = seq.seq(expr)
+      ____ = seq&.seq(expr) || expr
 
       __pcc_vars[__pcc_index].value = ____ if __pcc_vars
     end
