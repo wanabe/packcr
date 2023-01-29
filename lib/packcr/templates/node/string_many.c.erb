@@ -6,6 +6,6 @@ if (
     (ctx->buffer.buf + ctx->position_offset)[<%= n - 1 %>] != '<%= Packcr.escape_character(value[n - 1]) %>'
 ) goto L<%= format("%04d", onfail) %>;
 <%- if gen.location -%>
-pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);
+pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, <%= n %>);
 <%- end -%>
 ctx->position_offset += <%= n %>;

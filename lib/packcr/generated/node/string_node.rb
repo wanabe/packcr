@@ -13,7 +13,7 @@ class Packcr
           erbout << "    (ctx->buffer.buf + ctx->position_offset)[#{n - 1}] != '#{Packcr.escape_character(value[n - 1])}'\n) goto L#{format("%04d", onfail)};\n".freeze
 
           if gen.location
-            erbout << "pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);\n".freeze
+            erbout << "pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, #{n});\n".freeze
           end
           erbout << "ctx->position_offset += #{n};\n".freeze
 
