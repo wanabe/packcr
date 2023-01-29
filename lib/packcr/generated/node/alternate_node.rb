@@ -9,7 +9,7 @@ class Packcr
           erbout << "{\n    const size_t p = ctx->position_offset;\n".freeze
 
           if gen.location
-            erbout << "    const pcc_location_t p_loc = ctx->position_offset_loc;\n".freeze
+            erbout << "    const packcr_location_t p_loc = ctx->position_offset_loc;\n".freeze
           end
           erbout << "    const size_t n = chunk->thunks.len;\n".freeze
 
@@ -33,7 +33,7 @@ class Packcr
             if gen.location
               erbout << "    ctx->position_offset_loc = p_loc;\n".freeze
             end
-            erbout << "    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n".freeze
+            erbout << "    packcr_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\n".freeze
 
             next if c
 

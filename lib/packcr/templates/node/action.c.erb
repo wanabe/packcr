@@ -1,5 +1,5 @@
 {
-    pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_<%= gen.rule.name %>_<%= index %>, <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
+    packcr_thunk_t *const thunk = packcr_thunk__create_leaf(ctx->auxil, packcr_action_<%= gen.rule.name %>_<%= index %>, <%= gen.rule.vars.length %>, <%= gen.rule.capts.length %>);
 <%- vars.each do |var| -%>
     thunk->data.leaf.values.buf[<%= var.index %>] = &(chunk->values.buf[<%= var.index %>]);
 <%- end -%>
@@ -12,5 +12,5 @@
     thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;
     thunk->data.leaf.capt0.range.end_loc = ctx->position_offset_loc;
 <%- end -%>
-    pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);
+    packcr_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);
 }

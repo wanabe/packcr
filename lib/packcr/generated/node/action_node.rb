@@ -5,7 +5,7 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "{\n    pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{gen.rule.name}_#{index}, #{gen.rule.vars.length}, #{gen.rule.capts.length});\n".freeze
+          erbout << "{\n    packcr_thunk_t *const thunk = packcr_thunk__create_leaf(ctx->auxil, packcr_action_#{gen.rule.name}_#{index}, #{gen.rule.vars.length}, #{gen.rule.capts.length});\n".freeze
 
           vars.each do |var|
             erbout << "    thunk->data.leaf.values.buf[#{var.index}] = &(chunk->values.buf[#{var.index}]);\n".freeze
@@ -18,7 +18,7 @@ class Packcr
           if gen.location
             erbout << "    thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;\n    thunk->data.leaf.capt0.range.end_loc = ctx->position_offset_loc;\n".freeze
           end
-          erbout << "    pcc_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n}\n".freeze
+          erbout << "    packcr_thunk_array__add(ctx->auxil, &chunk->thunks, thunk);\n}\n".freeze
 
           erbout
         when :rb

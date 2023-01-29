@@ -8,7 +8,7 @@ class Packcr
           erbout << "{\n    const size_t p = ctx->position_offset;\n    size_t q;\n".freeze
 
           if gen.location
-            erbout << "    pcc_location_t p_loc = ctx->position_offset_loc;\n    pcc_location_t q_loc;\n".freeze
+            erbout << "    packcr_location_t p_loc = ctx->position_offset_loc;\n    packcr_location_t q_loc;\n".freeze
           end
           erbout << "#{gen.generate_code(expr, onfail, 4, false)}    q = ctx->position_offset;\n    chunk->capts.buf[#{index}].range.start = p;\n    chunk->capts.buf[#{index}].range.end = q;\n".freeze
 

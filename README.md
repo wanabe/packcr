@@ -52,12 +52,12 @@ It defines your own location structure.
 It should have some definitions for C:
 
 - struct
-    - `pcc_location_t`
+    - `packcr_location_t`
 - function
-    - `void pcc_location_init(pcc_location_t *lp)`
-    - `void pcc_location_forward(pcc_location_t *lp, char *buf, size_t n)`
-    - `pcc_location_t pcc_location_add(pcc_location_t l1, pcc_location_t l2)`
-    - `pcc_location_t pcc_location_sub(pcc_location_t l1, pcc_location_t l2)`
+    - `void packcr_location_init(packcr_location_t *lp)`
+    - `void packcr_location_forward(packcr_location_t *lp, char *buf, size_t n)`
+    - `packcr_location_t packcr_location_add(packcr_location_t l1, packcr_location_t l2)`
+    - `packcr_location_t packcr_location_sub(packcr_location_t l1, packcr_location_t l2)`
     - (The functions can be `static` and/or `inline`)
 
 Or it should have some definitions for ruby:

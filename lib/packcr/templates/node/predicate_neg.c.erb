@@ -3,7 +3,7 @@
 {
     const size_t p = ctx->position_offset;
 <%- if gen.location -%>
-    const pcc_location_t p_loc = ctx->position_offset_loc;
+    const packcr_location_t p_loc = ctx->position_offset_loc;
 <%- end -%>
 <%= gen.generate_code(expr, l, 4, false) -%>
 <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>

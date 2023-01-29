@@ -91,36 +91,36 @@ class <%= class_name %>
 
   <%- @root.rules.each do |rule| -%>
   <%-   rule.codes.each do |code| -%>
-  def action_<%= rule.name %>_<%= code.index %>(__pcc_in, __pcc_vars, __pcc_index)
-    ____ = (__pcc_vars[__pcc_index] ||= Value.new).value if __pcc_vars
+  def action_<%= rule.name %>_<%= code.index %>(__packcr_in, __packcr_vars, __packcr_index)
+    ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
     <%-   code.vars.each do |ref| -%>
-    <%= ref.var %> = (__pcc_in.value_refs[<%= ref.index %>]  ||= Value.new).value
+    <%= ref.var %> = (__packcr_in.value_refs[<%= ref.index %>]  ||= Value.new).value
     <%-   end -%>
-    __0 = __pcc_in.capt0.capture_string(@buffer)
-    __0s = @buffer_start_position + __pcc_in.capt0.range_start
-    __0e = @buffer_start_position + __pcc_in.capt0.range_end
+    __0 = __packcr_in.capt0.capture_string(@buffer)
+    __0s = @buffer_start_position + __packcr_in.capt0.range_start
+    __0e = @buffer_start_position + __packcr_in.capt0.range_end
     <%-   if @location -%>
-    __0sl = @buffer_start_position_loc + __pcc_in.capt0.start_loc
-    __0el = @buffer_start_position_loc + __pcc_in.capt0.end_loc
+    __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
+    __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
     <%-   end -%>
     <%-   if @capture_in_code -%>
-    __0c = __pcc_in.capt0
+    __0c = __packcr_in.capt0
     <%-   end -%>
     <%-   code.capts.each do |capture| -%>
-    __<%= capture.index + 1 %> = __pcc_in.capts[<%= capture.index %>].capture_string(@buffer)
-    __<%= capture.index + 1 %>s = @buffer_start_position + __pcc_in.capts[<%= capture.index %>].range_start
-    __<%= capture.index + 1 %>e = @buffer_start_position + __pcc_in.capts[<%= capture.index %>].range_end
+    __<%= capture.index + 1 %> = __packcr_in.capts[<%= capture.index %>].capture_string(@buffer)
+    __<%= capture.index + 1 %>s = @buffer_start_position + __packcr_in.capts[<%= capture.index %>].range_start
+    __<%= capture.index + 1 %>e = @buffer_start_position + __packcr_in.capts[<%= capture.index %>].range_end
     <%-     if @location -%>
-    __<%= capture.index + 1 %>sl = @buffer_start_position_loc + __pcc_in.capts[<%= capture.index %>].start_loc
-    __<%= capture.index + 1 %>el = @buffer_start_position_loc + __pcc_in.capts[<%= capture.index %>].end_loc
+    __<%= capture.index + 1 %>sl = @buffer_start_position_loc + __packcr_in.capts[<%= capture.index %>].start_loc
+    __<%= capture.index + 1 %>el = @buffer_start_position_loc + __packcr_in.capts[<%= capture.index %>].end_loc
     <%-     end -%>
     <%-     if @capture_in_code -%>
-    __<%= capture.index + 1 %>c = __pcc_in.capts[<%= capture.index %>]
+    __<%= capture.index + 1 %>c = __packcr_in.capts[<%= capture.index %>]
     <%-     end -%>
     <%-   end -%>
     <%- %><%=   stream.get_code_block(code.code, 4, @iname) -%>
 
-    __pcc_vars[__pcc_index].value = ____ if __pcc_vars
+    __packcr_vars[__packcr_index].value = ____ if __packcr_vars
   end
 
   <%-   end -%>

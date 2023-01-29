@@ -11,7 +11,7 @@ class Packcr
           erbout << "{\n    const size_t p = ctx->position_offset;\n".freeze
 
           if gen.location
-            erbout << "    const pcc_location_t p_loc = ctx->position_offset_loc;\n".freeze
+            erbout << "    const packcr_location_t p_loc = ctx->position_offset_loc;\n".freeze
           end
           erbout << "#{gen.generate_code(expr, l, 4, false)}".freeze
           if r != Packcr::CODE_REACH__ALWAYS_FAIL
@@ -84,7 +84,7 @@ class Packcr
           erbout << "{\n    const size_t p = ctx->position_offset;\n".freeze
 
           if gen.location
-            erbout << "    const pcc_location_t p_loc = ctx->position_offset_loc;\n".freeze
+            erbout << "    const packcr_location_t p_loc = ctx->position_offset_loc;\n".freeze
           end
           erbout << "#{gen.generate_code(expr, l, 4, false)}".freeze
           if r != Packcr::CODE_REACH__ALWAYS_FAIL

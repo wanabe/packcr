@@ -22,11 +22,11 @@
 }
 
 %source {
-#define PCC_ERROR(auxil) system__handle_syntax_error(auxil, SYNTAX_ERROR_UNKNOWN, range__void()) /* <-- caused by incompleteness of the grammar */
-#define PCC_GETCHAR(auxil) system__read_source_file(auxil)
-#define PCC_MALLOC(auxil, size) system__allocate_memory(auxil, size)
-#define PCC_REALLOC(auxil, ptr, size) system__reallocate_memory(auxil, ptr, size)
-#define PCC_FREE(auxil, ptr) system__deallocate_memory(auxil, ptr)
+#define PACKCR_ERROR(auxil) system__handle_syntax_error(auxil, SYNTAX_ERROR_UNKNOWN, range__void()) /* <-- caused by incompleteness of the grammar */
+#define PACKCR_GETCHAR(auxil) system__read_source_file(auxil)
+#define PACKCR_MALLOC(auxil, size) system__allocate_memory(auxil, size)
+#define PACKCR_REALLOC(auxil, ptr, size) system__reallocate_memory(auxil, ptr, size)
+#define PACKCR_FREE(auxil, ptr) system__deallocate_memory(auxil, ptr)
 }
 
 program

@@ -6,8 +6,8 @@
 <%- if !code(:eheader).empty? -%>
 
 <%- end -%>
-#ifndef PCC_INCLUDED_<%= @hid %>
-#define PCC_INCLUDED_<%= @hid %>
+#ifndef PACKCR_INCLUDED_<%= @hid %>
+#define PACKCR_INCLUDED_<%= @hid %>
 
 <%- code(:header).each do |code| -%>
 <%=   stream.get_code_block(code, 0, @iname) -%>
@@ -26,4 +26,4 @@ void <%= prefix %>_destroy(<%= prefix %>_context_t *ctx);
 }
 #endif
 
-#endif /* !PCC_INCLUDED_<%= @hid %> */
+#endif /* !PACKCR_INCLUDED_<%= @hid %> */

@@ -5,7 +5,7 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "{\n    char c;\n    if (pcc_refill_buffer(ctx, 1) < 1) goto L#{format("%04d", onfail)};\n    c = ctx->buffer.buf[ctx->position_offset];\n".freeze
+          erbout << "{\n    char c;\n    if (packcr_refill_buffer(ctx, 1) < 1) goto L#{format("%04d", onfail)};\n    c = ctx->buffer.buf[ctx->position_offset];\n".freeze
           if !a && charclass =~ /\A[^\\]-.\z/
 
             if a
@@ -45,7 +45,7 @@ class Packcr
             end
           end
           if gen.location
-            erbout << "    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);\n".freeze
+            erbout << "    packcr_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);\n".freeze
           end
           erbout << "    ctx->position_offset++;\n}\n".freeze
 
@@ -99,10 +99,10 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "if (pcc_refill_buffer(ctx, 1) < 1) goto L#{format("%04d", onfail)};\n".freeze
+          erbout << "if (packcr_refill_buffer(ctx, 1) < 1) goto L#{format("%04d", onfail)};\n".freeze
 
           if gen.location
-            erbout << "pcc_location_forward(&ctx->position_offset, ctx->buffer.buf + ctx->position_offset, 1);\n".freeze
+            erbout << "packcr_location_forward(&ctx->position_offset, ctx->buffer.buf + ctx->position_offset, 1);\n".freeze
           end
           erbout << "ctx->position_offset++;\n".freeze
 
@@ -140,14 +140,14 @@ class Packcr
         when :c
           erbout = +""
           if a
-            erbout << "if (\n    pcc_refill_buffer(ctx, 1) < 1 ||\n    ctx->buffer.buf[ctx->position_offset] == '#{Packcr.escape_character(charclass[i])}'\n) goto L#{format("%04d", onfail)};\n".freeze
+            erbout << "if (\n    packcr_refill_buffer(ctx, 1) < 1 ||\n    ctx->buffer.buf[ctx->position_offset] == '#{Packcr.escape_character(charclass[i])}'\n) goto L#{format("%04d", onfail)};\n".freeze
 
           else
-            erbout << "if (\n    pcc_refill_buffer(ctx, 1) < 1 ||\n    ctx->buffer.buf[ctx->position_offset] != '#{Packcr.escape_character(charclass[0])}'\n) goto L#{format("%04d", onfail)};\n".freeze
+            erbout << "if (\n    packcr_refill_buffer(ctx, 1) < 1 ||\n    ctx->buffer.buf[ctx->position_offset] != '#{Packcr.escape_character(charclass[0])}'\n) goto L#{format("%04d", onfail)};\n".freeze
 
           end
           if gen.location
-            erbout << "    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);\n".freeze
+            erbout << "    packcr_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);\n".freeze
           end
           erbout << "ctx->position_offset++;\n".freeze
           erbout
@@ -174,7 +174,7 @@ class Packcr
           erbout = +""
           a = charclass && charclass[0] == "^"
           i = a ? 1 : 0
-          erbout << "{\n    int u;\n    const size_t n = pcc_get_char_as_utf32(ctx, &u);\n    if (n == 0) goto L#{format("%04d", onfail)};\n".freeze
+          erbout << "{\n    int u;\n    const size_t n = packcr_get_char_as_utf32(ctx, &u);\n    if (n == 0) goto L#{format("%04d", onfail)};\n".freeze
 
           if charclass && !(a && n == 1) # not '.' or '[^]'
             u0 = 0
@@ -227,7 +227,7 @@ class Packcr
             end
           end
           if gen.location
-            erbout << "    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);\n".freeze
+            erbout << "    packcr_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);\n".freeze
           end
           erbout << "    ctx->position_offset += n;\n}\n".freeze
 

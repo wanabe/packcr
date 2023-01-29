@@ -2,8 +2,8 @@ S <- A 'b' { printf("S0 %s\n", $0); } / 'b' { printf("S1 %s\n", $0); }
 A <- A 'a' { printf("A0 %s\n", $0); } / S 'a' { printf("A1 %s\n", $0); }
 
 %source c-> {
-  #define PCC_GETCHAR(auxil) pcc_getchar()
-  int pcc_getchar() {
+  #define PACKCR_GETCHAR(auxil) packcr_getchar()
+  int packcr_getchar() {
       static char str[] = "baab";
       static int i = 0;
       char c = str[i];
@@ -18,9 +18,9 @@ A <- A 'a' { printf("A0 %s\n", $0); } / S 'a' { printf("A1 %s\n", $0); }
 %latesource
   c -> {
     int main() {
-        pcc_context_t *ctx = pcc_create(NULL);
-        while (pcc_parse(ctx, NULL));
-        pcc_destroy(ctx);
+        packcr_context_t *ctx = packcr_create(NULL);
+        while (packcr_parse(ctx, NULL));
+        packcr_destroy(ctx);
         printf("parsed\n");
         return 0;
     }
@@ -28,6 +28,6 @@ A <- A 'a' { printf("A0 %s\n", $0); } / S 'a' { printf("A1 %s\n", $0); }
   rb -> ${
     require "stringio"
     $stdin = StringIO.new("baab")
-    Pcc.new.run
+    Packcr.new.run
     puts "parsed"
   }

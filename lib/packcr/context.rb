@@ -84,7 +84,7 @@ class Packcr
     end
 
     def prefix
-      @prefix || "pcc"
+      @prefix || "packcr"
     end
 
     def pass_value_code(var)

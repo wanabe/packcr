@@ -1,11 +1,11 @@
 if (
-    pcc_refill_buffer(ctx, <%= n %>) < <%= n %> ||
+    packcr_refill_buffer(ctx, <%= n %>) < <%= n %> ||
 <%- (n - 1).times do |i| -%>
     (ctx->buffer.buf + ctx->position_offset)[<%= i %>] != '<%= Packcr.escape_character(value[i]) %>' ||
 <%- end -%>
     (ctx->buffer.buf + ctx->position_offset)[<%= n - 1 %>] != '<%= Packcr.escape_character(value[n - 1]) %>'
 ) goto L<%= format("%04d", onfail) %>;
 <%- if gen.location -%>
-pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, <%= n %>);
+packcr_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, <%= n %>);
 <%- end -%>
 ctx->position_offset += <%= n %>;

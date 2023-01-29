@@ -1,26 +1,26 @@
-static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= name %>(pcc_context_t *ctx, size_t offset<% if gen.location %>, pcc_location_t offset_loc<% end %>, pcc_rule_set_t *limits) {
-    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);
+static packcr_thunk_chunk_t *packcr_evaluate_rule_<%= name %>(packcr_context_t *ctx, size_t offset<% if gen.location %>, packcr_location_t offset_loc<% end %>, packcr_rule_set_t *limits) {
+    packcr_thunk_chunk_t *const chunk = packcr_thunk_chunk__create(ctx);
     chunk->pos = ctx->position_offset;
 <%-   if gen.location -%>
     chunk->pos_loc = ctx->position_offset_loc;
 <%-   end -%>
-    PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
+    PACKCR_DEBUG(ctx->auxil, PACKCR_DBG_EVALUATE, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));
     ctx->level++;
-    pcc_value_table__resize(ctx->auxil, &chunk->values, <%= vars.length %>);
-    pcc_capture_table__resize(ctx->auxil, &chunk->capts, <%= capts.length %>);
+    packcr_value_table__resize(ctx->auxil, &chunk->values, <%= vars.length %>);
+    packcr_capture_table__resize(ctx->auxil, &chunk->capts, <%= capts.length %>);
     <%- if vars.length > 0 -%>
-    pcc_value_table__clear(ctx->auxil, &chunk->values);
+    packcr_value_table__clear(ctx->auxil, &chunk->values);
     <%- end -%>
     <%- r = expr.reachability -%>
     <%- -%><%= gen.generate_code(expr, 0, 4, false) -%>
     ctx->level--;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));
+    PACKCR_DEBUG(ctx->auxil, PACKCR_DBG_MATCH, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));
     return chunk;
     <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 L0000:;
     ctx->level--;
-    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));
-    pcc_thunk_chunk__destroy(ctx, chunk);
+    PACKCR_DEBUG(ctx->auxil, PACKCR_DBG_NOMATCH, "<%= name %>", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));
+    packcr_thunk_chunk__destroy(ctx, chunk);
     return NULL;
     <%- end -%>
 }

@@ -2,8 +2,8 @@
     const size_t p = ctx->position_offset;
     size_t q;
 <%- if gen.location -%>
-    pcc_location_t p_loc = ctx->position_offset_loc;
-    pcc_location_t q_loc;
+    packcr_location_t p_loc = ctx->position_offset_loc;
+    packcr_location_t q_loc;
 <%- end -%>
 <%= gen.generate_code(expr, onfail, 4, false) -%>
     q = ctx->position_offset;

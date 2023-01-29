@@ -1,17 +1,17 @@
 <%- if index != nil -%>
 {
-    pcc_rule_set_t *l = NULL;
-    if (limits && ctx->position_offset == offset && pcc_rule_set__index(ctx->auxil, limits, pcc_evaluate_rule_<%= name %>) == PCC_VOID_VALUE) {
+    packcr_rule_set_t *l = NULL;
+    if (limits && ctx->position_offset == offset && packcr_rule_set__index(ctx->auxil, limits, packcr_evaluate_rule_<%= name %>) == PACKCR_VOID_VALUE) {
         l = limits;
     }
-    if (!pcc_apply_rule(ctx, pcc_evaluate_rule_<%= name %>, &chunk->thunks, &(chunk->values.buf[<%= index %>]), offset<% if gen.location %>, offset_loc<% end %>, l)) goto L<%= format("%04d", onfail) %>;
+    if (!packcr_apply_rule(ctx, packcr_evaluate_rule_<%= name %>, &chunk->thunks, &(chunk->values.buf[<%= index %>]), offset<% if gen.location %>, offset_loc<% end %>, l)) goto L<%= format("%04d", onfail) %>;
 }
 <%- else -%>
 {
-    pcc_rule_set_t *l = NULL;
-    if (limits && ctx->position_offset == offset && pcc_rule_set__index(ctx->auxil, limits, pcc_evaluate_rule_<%= name %>) == PCC_VOID_VALUE) {
+    packcr_rule_set_t *l = NULL;
+    if (limits && ctx->position_offset == offset && packcr_rule_set__index(ctx->auxil, limits, packcr_evaluate_rule_<%= name %>) == PACKCR_VOID_VALUE) {
         l = limits;
     }
-    if (!pcc_apply_rule(ctx, pcc_evaluate_rule_<%= name %>, &chunk->thunks, NULL, offset<% if gen.location %>, offset_loc<% end %>, l)) goto L<%= format("%04d", onfail) %>;
+    if (!packcr_apply_rule(ctx, packcr_evaluate_rule_<%= name %>, &chunk->thunks, NULL, offset<% if gen.location %>, offset_loc<% end %>, l)) goto L<%= format("%04d", onfail) %>;
 }
 <%- end -%>

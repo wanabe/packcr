@@ -2,7 +2,7 @@
 <%- i = a ? 1 : 0 -%>
 {
     int u;
-    const size_t n = pcc_get_char_as_utf32(ctx, &u);
+    const size_t n = packcr_get_char_as_utf32(ctx, &u);
     if (n == 0) goto L<%= format("%04d", onfail) %>;
 <%- if charclass && !(a && n == 1) # not '.' or '[^]' -%>
 <%-   u0 = 0 -%>
@@ -43,7 +43,7 @@
 <%-   end -%>
 <%- end -%>
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);
+    packcr_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, n);
 <%- end -%>
     ctx->position_offset += n;
 }

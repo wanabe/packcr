@@ -1,19 +1,19 @@
 <%- if a -%>
 if (
-    pcc_refill_buffer(ctx, 1) < 1 ||
+    packcr_refill_buffer(ctx, 1) < 1 ||
     ctx->buffer.buf[ctx->position_offset] == '<%= Packcr.escape_character(charclass[i]) %>'
 ) goto L<%= format("%04d", onfail) %>;
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);
+    packcr_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);
 <%- end -%>
 ctx->position_offset++;
 <%- else -%>
 if (
-    pcc_refill_buffer(ctx, 1) < 1 ||
+    packcr_refill_buffer(ctx, 1) < 1 ||
     ctx->buffer.buf[ctx->position_offset] != '<%= Packcr.escape_character(charclass[0]) %>'
 ) goto L<%= format("%04d", onfail) %>;
 <%- if gen.location -%>
-    pcc_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);
+    packcr_location_forward(&ctx->position_offset_loc, ctx->buffer.buf + ctx->position_offset, 1);
 <%- end -%>
 ctx->position_offset++;
 <%- end -%>

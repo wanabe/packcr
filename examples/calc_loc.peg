@@ -20,17 +20,17 @@
 }
 
 %location {
-typedef struct pcc_location_tag {
+typedef struct packcr_location_tag {
     size_t pos;
     size_t lineno;
-} pcc_location_t;
+} packcr_location_t;
 
-static inline void pcc_location_init(pcc_location_t *lp) {
+static inline void packcr_location_init(packcr_location_t *lp) {
     lp->pos = 0;
     lp->lineno = 0;
 }
 
-static inline void pcc_location_forward(pcc_location_t *lp, char *buf, size_t n) {
+static inline void packcr_location_forward(packcr_location_t *lp, char *buf, size_t n) {
     size_t i = 0;
     for (; i < n; i++) {
         if (buf[i] == '\n') {
@@ -42,13 +42,13 @@ static inline void pcc_location_forward(pcc_location_t *lp, char *buf, size_t n)
     }
 }
 
-static inline pcc_location_t pcc_location_add(pcc_location_t l1, pcc_location_t l2) {
-    pcc_location_t l = {l1.pos + l2.pos, l1.lineno + l2.lineno};
+static inline packcr_location_t packcr_location_add(packcr_location_t l1, packcr_location_t l2) {
+    packcr_location_t l = {l1.pos + l2.pos, l1.lineno + l2.lineno};
     return l;
 }
 
-static inline pcc_location_t pcc_location_sub(pcc_location_t l1, pcc_location_t l2) {
-    pcc_location_t l = {l1.pos - l2.pos, l1.lineno - l2.lineno};
+static inline packcr_location_t packcr_location_sub(packcr_location_t l1, packcr_location_t l2) {
+    packcr_location_t l = {l1.pos - l2.pos, l1.lineno - l2.lineno};
     return l;
 }
 

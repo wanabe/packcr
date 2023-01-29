@@ -16,14 +16,14 @@
 
 #ifndef _MSC_VER
 #if defined __GNUC__ && defined _WIN32 /* MinGW */
-#ifndef PCC_USE_SYSTEM_STRNLEN
-#define strnlen(str, maxlen) pcc_strnlen(str, maxlen)
-static size_t pcc_strnlen(const char *str, size_t maxlen) {
+#ifndef PACKCR_USE_SYSTEM_STRNLEN
+#define strnlen(str, maxlen) packcr_strnlen(str, maxlen)
+static size_t packcr_strnlen(const char *str, size_t maxlen) {
     size_t i;
     for (i = 0; i < maxlen && str[i]; i++);
     return i;
 }
-#endif /* !PCC_USE_SYSTEM_STRNLEN */
+#endif /* !PACKCR_USE_SYSTEM_STRNLEN */
 #endif /* defined __GNUC__ && defined _WIN32 */
 #endif /* !_MSC_VER */
 
@@ -48,221 +48,221 @@ static size_t pcc_strnlen(const char *str, size_t maxlen) {
 #define MARK_FUNC_AS_USED __attribute__((__unused__))
 #endif
 
-#ifndef PCC_BUFFER_MIN_SIZE
-#define PCC_BUFFER_MIN_SIZE 256
-#endif /* !PCC_BUFFER_MIN_SIZE */
+#ifndef PACKCR_BUFFER_MIN_SIZE
+#define PACKCR_BUFFER_MIN_SIZE 256
+#endif /* !PACKCR_BUFFER_MIN_SIZE */
 
-#ifndef PCC_ARRAY_MIN_SIZE
-#define PCC_ARRAY_MIN_SIZE 2
-#endif /* !PCC_ARRAY_MIN_SIZE */
+#ifndef PACKCR_ARRAY_MIN_SIZE
+#define PACKCR_ARRAY_MIN_SIZE 2
+#endif /* !PACKCR_ARRAY_MIN_SIZE */
 
-#ifndef PCC_POOL_MIN_SIZE
-#define PCC_POOL_MIN_SIZE 65536
-#endif /* !PCC_POOL_MIN_SIZE */
+#ifndef PACKCR_POOL_MIN_SIZE
+#define PACKCR_POOL_MIN_SIZE 65536
+#endif /* !PACKCR_POOL_MIN_SIZE */
 
-#define PCC_DBG_EVALUATE 0
-#define PCC_DBG_MATCH    1
-#define PCC_DBG_NOMATCH  2
+#define PACKCR_DBG_EVALUATE 0
+#define PACKCR_DBG_MATCH    1
+#define PACKCR_DBG_NOMATCH  2
 
-#define PCC_VOID_VALUE (~(size_t)0)
+#define PACKCR_VOID_VALUE (~(size_t)0)
 
-typedef enum pcc_bool_tag {
-    PCC_FALSE = 0,
-    PCC_TRUE
-} pcc_bool_t;
+typedef enum packcr_bool_tag {
+    PACKCR_FALSE = 0,
+    PACKCR_TRUE
+} packcr_bool_t;
 
-typedef struct pcc_char_array_tag {
+typedef struct packcr_char_array_tag {
     char *buf;
     size_t max;
     size_t len;
-} pcc_char_array_t;
+} packcr_char_array_t;
 
-typedef struct pcc_range_tag {
+typedef struct packcr_range_tag {
     size_t start;
     size_t end;
 <%- if @location -%>
-    pcc_location_t start_loc;
-    pcc_location_t end_loc;
+    packcr_location_t start_loc;
+    packcr_location_t end_loc;
 <%- end -%>
-} pcc_range_t;
+} packcr_range_t;
 
-typedef <%= value_def %>pcc_value_t;
+typedef <%= value_def %>packcr_value_t;
 
-typedef <%= auxil_def %>pcc_auxil_t;
+typedef <%= auxil_def %>packcr_auxil_t;
 
-<% if prefix != "pcc" -%>
-typedef <%= prefix%>_context_t pcc_context_t;
+<% if prefix != "packcr" -%>
+typedef <%= prefix%>_context_t packcr_context_t;
 
 <% end -%>
-typedef struct pcc_value_table_tag {
-    pcc_value_t *buf;
+typedef struct packcr_value_table_tag {
+    packcr_value_t *buf;
     size_t max;
     size_t len;
-} pcc_value_table_t;
+} packcr_value_table_t;
 
-typedef struct pcc_value_refer_table_tag {
-    pcc_value_t **buf;
+typedef struct packcr_value_refer_table_tag {
+    packcr_value_t **buf;
     size_t max;
     size_t len;
-} pcc_value_refer_table_t;
+} packcr_value_refer_table_t;
 
-typedef struct pcc_capture_tag {
-    pcc_range_t range;
+typedef struct packcr_capture_tag {
+    packcr_range_t range;
     char *string; /* mutable */
-} pcc_capture_t;
+} packcr_capture_t;
 
-typedef struct pcc_capture_table_tag {
-    pcc_capture_t *buf;
+typedef struct packcr_capture_table_tag {
+    packcr_capture_t *buf;
     size_t max;
     size_t len;
-} pcc_capture_table_t;
+} packcr_capture_table_t;
 
-typedef struct pcc_capture_const_table_tag {
-    const pcc_capture_t **buf;
+typedef struct packcr_capture_const_table_tag {
+    const packcr_capture_t **buf;
     size_t max;
     size_t len;
-} pcc_capture_const_table_t;
+} packcr_capture_const_table_t;
 
-typedef struct pcc_thunk_tag pcc_thunk_t;
-typedef struct pcc_thunk_array_tag pcc_thunk_array_t;
+typedef struct packcr_thunk_tag packcr_thunk_t;
+typedef struct packcr_thunk_array_tag packcr_thunk_array_t;
 
-typedef void (*pcc_action_t)(pcc_context_t *, pcc_thunk_t *, pcc_value_t *);
+typedef void (*packcr_action_t)(packcr_context_t *, packcr_thunk_t *, packcr_value_t *);
 
-typedef enum pcc_thunk_type_tag {
-    PCC_THUNK_LEAF,
-    PCC_THUNK_NODE
-} pcc_thunk_type_t;
+typedef enum packcr_thunk_type_tag {
+    PACKCR_THUNK_LEAF,
+    PACKCR_THUNK_NODE
+} packcr_thunk_type_t;
 
-typedef struct pcc_thunk_leaf_tag {
-    pcc_value_refer_table_t values;
-    pcc_capture_const_table_t capts;
-    pcc_capture_t capt0;
-    pcc_action_t action;
-} pcc_thunk_leaf_t;
+typedef struct packcr_thunk_leaf_tag {
+    packcr_value_refer_table_t values;
+    packcr_capture_const_table_t capts;
+    packcr_capture_t capt0;
+    packcr_action_t action;
+} packcr_thunk_leaf_t;
 
-typedef struct pcc_thunk_node_tag {
-    const pcc_thunk_array_t *thunks; /* just a reference */
-    pcc_value_t *value; /* just a reference */
-} pcc_thunk_node_t;
+typedef struct packcr_thunk_node_tag {
+    const packcr_thunk_array_t *thunks; /* just a reference */
+    packcr_value_t *value; /* just a reference */
+} packcr_thunk_node_t;
 
-typedef union pcc_thunk_data_tag {
-    pcc_thunk_leaf_t leaf;
-    pcc_thunk_node_t node;
-} pcc_thunk_data_t;
+typedef union packcr_thunk_data_tag {
+    packcr_thunk_leaf_t leaf;
+    packcr_thunk_node_t node;
+} packcr_thunk_data_t;
 
-struct pcc_thunk_tag {
-    pcc_thunk_type_t type;
-    pcc_thunk_data_t data;
+struct packcr_thunk_tag {
+    packcr_thunk_type_t type;
+    packcr_thunk_data_t data;
 };
 
-struct pcc_thunk_array_tag {
-    pcc_thunk_t **buf;
+struct packcr_thunk_array_tag {
+    packcr_thunk_t **buf;
     size_t max;
     size_t len;
 };
 
-typedef struct pcc_thunk_chunk_tag {
-    pcc_value_table_t values;
-    pcc_capture_table_t capts;
-    pcc_thunk_array_t thunks;
+typedef struct packcr_thunk_chunk_tag {
+    packcr_value_table_t values;
+    packcr_capture_table_t capts;
+    packcr_thunk_array_t thunks;
     size_t pos; /* the starting position in the character buffer */
 <%- if @location -%>
-    pcc_location_t pos_loc;
+    packcr_location_t pos_loc;
 <%- end -%>
-} pcc_thunk_chunk_t;
+} packcr_thunk_chunk_t;
 
-typedef struct pcc_lr_memo_tag pcc_lr_memo_t;
+typedef struct packcr_lr_memo_tag packcr_lr_memo_t;
 
-struct pcc_lr_memo_tag {
+struct packcr_lr_memo_tag {
     size_t offset;
 <%- if @location -%>
-    pcc_location_t offset_loc;
+    packcr_location_t offset_loc;
 <%- end -%>
-    pcc_lr_memo_t *hold;
-    pcc_thunk_chunk_t *chunk;
-    pcc_bool_t fail;
-    pcc_bool_t grow;
+    packcr_lr_memo_t *hold;
+    packcr_thunk_chunk_t *chunk;
+    packcr_bool_t fail;
+    packcr_bool_t grow;
 };
 
-typedef struct pcc_rule_set_tag pcc_rule_set_t;
+typedef struct packcr_rule_set_tag packcr_rule_set_t;
 
-typedef pcc_thunk_chunk_t *(*pcc_rule_t)(pcc_context_t *, size_t<% if @location %>, pcc_location_t<% end %>, pcc_rule_set_t*);
+typedef packcr_thunk_chunk_t *(*packcr_rule_t)(packcr_context_t *, size_t<% if @location %>, packcr_location_t<% end %>, packcr_rule_set_t*);
 
-typedef struct pcc_rule_set_tag {
-    pcc_rule_t *buf;
+typedef struct packcr_rule_set_tag {
+    packcr_rule_t *buf;
     size_t max;
     size_t len;
-} pcc_rule_set_t;
+} packcr_rule_set_t;
 
-typedef struct pcc_lr_memo_map_entry_tag {
-    pcc_rule_t rule;
-    pcc_lr_memo_t *memo;
-} pcc_lr_memo_map_entry_t;
+typedef struct packcr_lr_memo_map_entry_tag {
+    packcr_rule_t rule;
+    packcr_lr_memo_t *memo;
+} packcr_lr_memo_map_entry_t;
 
-typedef struct pcc_lr_memo_map_tag {
-    pcc_lr_memo_map_entry_t *buf;
+typedef struct packcr_lr_memo_map_tag {
+    packcr_lr_memo_map_entry_t *buf;
     size_t max;
     size_t len;
-} pcc_lr_memo_map_t;
+} packcr_lr_memo_map_t;
 
-typedef struct pcc_lr_table_tag {
-    pcc_lr_memo_map_t **buf;
+typedef struct packcr_lr_table_tag {
+    packcr_lr_memo_map_t **buf;
     size_t max;
     size_t len;
     size_t ofs;
-} pcc_lr_table_t;
+} packcr_lr_table_t;
 
-typedef struct pcc_memory_entry_tag pcc_memory_entry_t;
-typedef struct pcc_memory_pool_tag pcc_memory_pool_t;
+typedef struct packcr_memory_entry_tag packcr_memory_entry_t;
+typedef struct packcr_memory_pool_tag packcr_memory_pool_t;
 
-struct pcc_memory_entry_tag {
-    pcc_memory_entry_t *next;
+struct packcr_memory_entry_tag {
+    packcr_memory_entry_t *next;
 };
 
-struct pcc_memory_pool_tag {
-    pcc_memory_pool_t *next;
+struct packcr_memory_pool_tag {
+    packcr_memory_pool_t *next;
     size_t allocated;
     size_t unused;
 };
 
-typedef struct pcc_memory_recycler_tag {
-    pcc_memory_pool_t *pool_list;
-    pcc_memory_entry_t *entry_list;
+typedef struct packcr_memory_recycler_tag {
+    packcr_memory_pool_t *pool_list;
+    packcr_memory_entry_t *entry_list;
     size_t element_size;
-} pcc_memory_recycler_t;
+} packcr_memory_recycler_t;
 
 struct <%= prefix %>_context_tag {
     size_t buffer_start_position; /* the position in the input of the first character currently buffered */
     size_t position_offset; /* the current parsing position in the character buffer */
     <%- if @location -%>
-    pcc_location_t buffer_start_position_loc;
-    pcc_location_t position_offset_loc;
+    packcr_location_t buffer_start_position_loc;
+    packcr_location_t position_offset_loc;
     <%- end -%>
     size_t level;
-    pcc_char_array_t buffer;
-    pcc_lr_table_t lrtable;
-    pcc_thunk_array_t thunks;
-    pcc_auxil_t auxil;
-    pcc_memory_recycler_t thunk_chunk_recycler;
-    pcc_memory_recycler_t lr_memo_recycler;
+    packcr_char_array_t buffer;
+    packcr_lr_table_t lrtable;
+    packcr_thunk_array_t thunks;
+    packcr_auxil_t auxil;
+    packcr_memory_recycler_t thunk_chunk_recycler;
+    packcr_memory_recycler_t lr_memo_recycler;
 };
 
-#ifndef PCC_ERROR
-#define PCC_ERROR(auxil) pcc_error()
+#ifndef PACKCR_ERROR
+#define PACKCR_ERROR(auxil) packcr_error()
 MARK_FUNC_AS_USED
-static void pcc_error(void) {
+static void packcr_error(void) {
     fprintf(stderr, "Syntax error\n");
     exit(1);
 }
-#endif /* !PCC_ERROR */
+#endif /* !PACKCR_ERROR */
 
-#ifndef PCC_GETCHAR
-#define PCC_GETCHAR(auxil) getchar()
-#endif /* !PCC_GETCHAR */
+#ifndef PACKCR_GETCHAR
+#define PACKCR_GETCHAR(auxil) getchar()
+#endif /* !PACKCR_GETCHAR */
 
-#ifndef PCC_MALLOC
-#define PCC_MALLOC(auxil, size) pcc_malloc_e(size)
-static void *pcc_malloc_e(size_t size) {
+#ifndef PACKCR_MALLOC
+#define PACKCR_MALLOC(auxil, size) packcr_malloc_e(size)
+static void *packcr_malloc_e(size_t size) {
     void *const p = malloc(size);
     if (p == NULL) {
         fprintf(stderr, "Out of memory\n");
@@ -270,11 +270,11 @@ static void *pcc_malloc_e(size_t size) {
     }
     return p;
 }
-#endif /* !PCC_MALLOC */
+#endif /* !PACKCR_MALLOC */
 
-#ifndef PCC_REALLOC
-#define PCC_REALLOC(auxil, ptr, size) pcc_realloc_e(ptr, size)
-static void *pcc_realloc_e(void *ptr, size_t size) {
+#ifndef PACKCR_REALLOC
+#define PACKCR_REALLOC(auxil, ptr, size) packcr_realloc_e(ptr, size)
+static void *packcr_realloc_e(void *ptr, size_t size) {
     void *const p = realloc(ptr, size);
     if (p == NULL) {
         fprintf(stderr, "Out of memory\n");
@@ -282,259 +282,259 @@ static void *pcc_realloc_e(void *ptr, size_t size) {
     }
     return p;
 }
-#endif /* !PCC_REALLOC */
+#endif /* !PACKCR_REALLOC */
 
-#ifndef PCC_FREE
-#define PCC_FREE(auxil, ptr) free(ptr)
-#endif /* !PCC_FREE */
+#ifndef PACKCR_FREE
+#define PACKCR_FREE(auxil, ptr) free(ptr)
+#endif /* !PACKCR_FREE */
 
-#ifndef PCC_DEBUG
-#define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
-#endif /* !PCC_DEBUG */
+#ifndef PACKCR_DEBUG
+#define PACKCR_DEBUG(auxil, event, rule, level, pos, buffer, length) ((void)0)
+#endif /* !PACKCR_DEBUG */
 
-static char *pcc_strndup_e(pcc_auxil_t auxil, const char *str, size_t len) {
+static char *packcr_strndup_e(packcr_auxil_t auxil, const char *str, size_t len) {
     const size_t m = strnlen(str, len);
-    char *const s = (char *)PCC_MALLOC(auxil, m + 1);
+    char *const s = (char *)PACKCR_MALLOC(auxil, m + 1);
     memcpy(s, str, m);
     s[m] = '\0';
     return s;
 }
 
-static void pcc_char_array__init(pcc_auxil_t auxil, pcc_char_array_t *array) {
+static void packcr_char_array__init(packcr_auxil_t auxil, packcr_char_array_t *array) {
     array->len = 0;
     array->max = 0;
     array->buf = NULL;
 }
 
-static void pcc_char_array__add(pcc_auxil_t auxil, pcc_char_array_t *array, char ch) {
+static void packcr_char_array__add(packcr_auxil_t auxil, packcr_char_array_t *array, char ch) {
     if (array->max <= array->len) {
         const size_t n = array->len + 1;
         size_t m = array->max;
-        if (m == 0) m = PCC_BUFFER_MIN_SIZE;
+        if (m == 0) m = PACKCR_BUFFER_MIN_SIZE;
         while (m < n && m != 0) m <<= 1;
         if (m == 0) m = n;
-        array->buf = (char *)PCC_REALLOC(auxil, array->buf, m);
+        array->buf = (char *)PACKCR_REALLOC(auxil, array->buf, m);
         array->max = m;
     }
     array->buf[array->len++] = ch;
 }
 
-static void pcc_char_array__term(pcc_auxil_t auxil, pcc_char_array_t *array) {
-    PCC_FREE(auxil, array->buf);
+static void packcr_char_array__term(packcr_auxil_t auxil, packcr_char_array_t *array) {
+    PACKCR_FREE(auxil, array->buf);
 }
 
-static void pcc_value_table__init(pcc_auxil_t auxil, pcc_value_table_t *table) {
+static void packcr_value_table__init(packcr_auxil_t auxil, packcr_value_table_t *table) {
     table->len = 0;
     table->max = 0;
     table->buf = NULL;
 }
 
 MARK_FUNC_AS_USED
-static void pcc_value_table__resize(pcc_auxil_t auxil, pcc_value_table_t *table, size_t len) {
+static void packcr_value_table__resize(packcr_auxil_t auxil, packcr_value_table_t *table, size_t len) {
     if (table->max < len) {
         size_t m = table->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
+        if (m == 0) m = PACKCR_ARRAY_MIN_SIZE;
         while (m < len && m != 0) m <<= 1;
         if (m == 0) m = len;
-        table->buf = (pcc_value_t *)PCC_REALLOC(auxil, table->buf, sizeof(pcc_value_t) * m);
+        table->buf = (packcr_value_t *)PACKCR_REALLOC(auxil, table->buf, sizeof(packcr_value_t) * m);
         table->max = m;
     }
     table->len = len;
 }
 
 MARK_FUNC_AS_USED
-static void pcc_value_table__clear(pcc_auxil_t auxil, pcc_value_table_t *table) {
-    memset(table->buf, 0, sizeof(pcc_value_t) * table->len);
+static void packcr_value_table__clear(packcr_auxil_t auxil, packcr_value_table_t *table) {
+    memset(table->buf, 0, sizeof(packcr_value_t) * table->len);
 }
 
-static void pcc_value_table__term(pcc_auxil_t auxil, pcc_value_table_t *table) {
-    PCC_FREE(auxil, table->buf);
+static void packcr_value_table__term(packcr_auxil_t auxil, packcr_value_table_t *table) {
+    PACKCR_FREE(auxil, table->buf);
 }
 
-static void pcc_value_refer_table__init(pcc_auxil_t auxil, pcc_value_refer_table_t *table) {
+static void packcr_value_refer_table__init(packcr_auxil_t auxil, packcr_value_refer_table_t *table) {
     table->len = 0;
     table->max = 0;
     table->buf = NULL;
 }
 
-static void pcc_value_refer_table__resize(pcc_auxil_t auxil, pcc_value_refer_table_t *table, size_t len) {
+static void packcr_value_refer_table__resize(packcr_auxil_t auxil, packcr_value_refer_table_t *table, size_t len) {
     size_t i;
     if (table->max < len) {
         size_t m = table->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
+        if (m == 0) m = PACKCR_ARRAY_MIN_SIZE;
         while (m < len && m != 0) m <<= 1;
         if (m == 0) m = len;
-        table->buf = (pcc_value_t **)PCC_REALLOC(auxil, table->buf, sizeof(pcc_value_t *) * m);
+        table->buf = (packcr_value_t **)PACKCR_REALLOC(auxil, table->buf, sizeof(packcr_value_t *) * m);
         table->max = m;
     }
     for (i = table->len; i < len; i++) table->buf[i] = NULL;
     table->len = len;
 }
 
-static void pcc_value_refer_table__term(pcc_auxil_t auxil, pcc_value_refer_table_t *table) {
-    PCC_FREE(auxil, table->buf);
+static void packcr_value_refer_table__term(packcr_auxil_t auxil, packcr_value_refer_table_t *table) {
+    PACKCR_FREE(auxil, table->buf);
 }
 
-static void pcc_capture_table__init(pcc_auxil_t auxil, pcc_capture_table_t *table) {
+static void packcr_capture_table__init(packcr_auxil_t auxil, packcr_capture_table_t *table) {
     table->len = 0;
     table->max = 0;
     table->buf = NULL;
 }
 
 MARK_FUNC_AS_USED
-static void pcc_capture_table__resize(pcc_auxil_t auxil, pcc_capture_table_t *table, size_t len) {
+static void packcr_capture_table__resize(packcr_auxil_t auxil, packcr_capture_table_t *table, size_t len) {
     size_t i;
-    for (i = len; i < table->len; i++) PCC_FREE(auxil, table->buf[i].string);
+    for (i = len; i < table->len; i++) PACKCR_FREE(auxil, table->buf[i].string);
     if (table->max < len) {
         size_t m = table->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
+        if (m == 0) m = PACKCR_ARRAY_MIN_SIZE;
         while (m < len && m != 0) m <<= 1;
         if (m == 0) m = len;
-        table->buf = (pcc_capture_t *)PCC_REALLOC(auxil, table->buf, sizeof(pcc_capture_t) * m);
+        table->buf = (packcr_capture_t *)PACKCR_REALLOC(auxil, table->buf, sizeof(packcr_capture_t) * m);
         table->max = m;
     }
     for (i = table->len; i < len; i++) {
         table->buf[i].range.start = 0;
         table->buf[i].range.end = 0;
 <%- if @location -%>
-        pcc_location_init(&table->buf[i].range.start_loc);
-        pcc_location_init(&table->buf[i].range.end_loc);
+        packcr_location_init(&table->buf[i].range.start_loc);
+        packcr_location_init(&table->buf[i].range.end_loc);
 <%- end -%>
         table->buf[i].string = NULL;
     }
     table->len = len;
 }
 
-static void pcc_capture_table__term(pcc_auxil_t auxil, pcc_capture_table_t *table) {
+static void packcr_capture_table__term(packcr_auxil_t auxil, packcr_capture_table_t *table) {
     while (table->len > 0) {
         table->len--;
-        PCC_FREE(auxil, table->buf[table->len].string);
+        PACKCR_FREE(auxil, table->buf[table->len].string);
     }
-    PCC_FREE(auxil, table->buf);
+    PACKCR_FREE(auxil, table->buf);
 }
 
-static void pcc_capture_const_table__init(pcc_auxil_t auxil, pcc_capture_const_table_t *table) {
+static void packcr_capture_const_table__init(packcr_auxil_t auxil, packcr_capture_const_table_t *table) {
     table->len = 0;
     table->max = 0;
     table->buf = NULL;
 }
 
-static void pcc_capture_const_table__resize(pcc_auxil_t auxil, pcc_capture_const_table_t *table, size_t len) {
+static void packcr_capture_const_table__resize(packcr_auxil_t auxil, packcr_capture_const_table_t *table, size_t len) {
     size_t i;
     if (table->max < len) {
         size_t m = table->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
+        if (m == 0) m = PACKCR_ARRAY_MIN_SIZE;
         while (m < len && m != 0) m <<= 1;
         if (m == 0) m = len;
-        table->buf = (const pcc_capture_t **)PCC_REALLOC(auxil, (pcc_capture_t **)table->buf, sizeof(const pcc_capture_t *) * m);
+        table->buf = (const packcr_capture_t **)PACKCR_REALLOC(auxil, (packcr_capture_t **)table->buf, sizeof(const packcr_capture_t *) * m);
         table->max = m;
     }
     for (i = table->len; i < len; i++) table->buf[i] = NULL;
     table->len = len;
 }
 
-static void pcc_capture_const_table__term(pcc_auxil_t auxil, pcc_capture_const_table_t *table) {
-    PCC_FREE(auxil, (void *)table->buf);
+static void packcr_capture_const_table__term(packcr_auxil_t auxil, packcr_capture_const_table_t *table) {
+    PACKCR_FREE(auxil, (void *)table->buf);
 }
 
 MARK_FUNC_AS_USED
-static pcc_thunk_t *pcc_thunk__create_leaf(pcc_auxil_t auxil, pcc_action_t action, size_t valuec, size_t captc) {
-    pcc_thunk_t *const thunk = (pcc_thunk_t *)PCC_MALLOC(auxil, sizeof(pcc_thunk_t));
-    thunk->type = PCC_THUNK_LEAF;
-    pcc_value_refer_table__init(auxil, &thunk->data.leaf.values);
-    pcc_value_refer_table__resize(auxil, &thunk->data.leaf.values, valuec);
-    pcc_capture_const_table__init(auxil, &thunk->data.leaf.capts);
-    pcc_capture_const_table__resize(auxil, &thunk->data.leaf.capts, captc);
+static packcr_thunk_t *packcr_thunk__create_leaf(packcr_auxil_t auxil, packcr_action_t action, size_t valuec, size_t captc) {
+    packcr_thunk_t *const thunk = (packcr_thunk_t *)PACKCR_MALLOC(auxil, sizeof(packcr_thunk_t));
+    thunk->type = PACKCR_THUNK_LEAF;
+    packcr_value_refer_table__init(auxil, &thunk->data.leaf.values);
+    packcr_value_refer_table__resize(auxil, &thunk->data.leaf.values, valuec);
+    packcr_capture_const_table__init(auxil, &thunk->data.leaf.capts);
+    packcr_capture_const_table__resize(auxil, &thunk->data.leaf.capts, captc);
     thunk->data.leaf.capt0.range.start = 0;
     thunk->data.leaf.capt0.range.end = 0;
 <%- if @location -%>
-    pcc_location_init(&thunk->data.leaf.capt0.range.start_loc);
-    pcc_location_init(&thunk->data.leaf.capt0.range.end_loc);
+    packcr_location_init(&thunk->data.leaf.capt0.range.start_loc);
+    packcr_location_init(&thunk->data.leaf.capt0.range.end_loc);
 <%- end -%>
     thunk->data.leaf.capt0.string = NULL;
     thunk->data.leaf.action = action;
     return thunk;
 }
 
-static pcc_thunk_t *pcc_thunk__create_node(pcc_auxil_t auxil, const pcc_thunk_array_t *thunks, pcc_value_t *value) {
-    pcc_thunk_t *const thunk = (pcc_thunk_t *)PCC_MALLOC(auxil, sizeof(pcc_thunk_t));
-    thunk->type = PCC_THUNK_NODE;
+static packcr_thunk_t *packcr_thunk__create_node(packcr_auxil_t auxil, const packcr_thunk_array_t *thunks, packcr_value_t *value) {
+    packcr_thunk_t *const thunk = (packcr_thunk_t *)PACKCR_MALLOC(auxil, sizeof(packcr_thunk_t));
+    thunk->type = PACKCR_THUNK_NODE;
     thunk->data.node.thunks = thunks;
     thunk->data.node.value = value;
     return thunk;
 }
 
-static void pcc_thunk__destroy(pcc_auxil_t auxil, pcc_thunk_t *thunk) {
+static void packcr_thunk__destroy(packcr_auxil_t auxil, packcr_thunk_t *thunk) {
     if (thunk == NULL) return;
     switch (thunk->type) {
-    case PCC_THUNK_LEAF:
-        PCC_FREE(auxil, thunk->data.leaf.capt0.string);
-        pcc_capture_const_table__term(auxil, &thunk->data.leaf.capts);
-        pcc_value_refer_table__term(auxil, &thunk->data.leaf.values);
+    case PACKCR_THUNK_LEAF:
+        PACKCR_FREE(auxil, thunk->data.leaf.capt0.string);
+        packcr_capture_const_table__term(auxil, &thunk->data.leaf.capts);
+        packcr_value_refer_table__term(auxil, &thunk->data.leaf.values);
         break;
-    case PCC_THUNK_NODE:
+    case PACKCR_THUNK_NODE:
         break;
     default: /* unknown */
         break;
     }
-    PCC_FREE(auxil, thunk);
+    PACKCR_FREE(auxil, thunk);
 }
 
-static void pcc_thunk_array__init(pcc_auxil_t auxil, pcc_thunk_array_t *array) {
+static void packcr_thunk_array__init(packcr_auxil_t auxil, packcr_thunk_array_t *array) {
     array->len = 0;
     array->max = 0;
     array->buf = NULL;
 }
 
-static void pcc_thunk_array__add(pcc_auxil_t auxil, pcc_thunk_array_t *array, pcc_thunk_t *thunk) {
+static void packcr_thunk_array__add(packcr_auxil_t auxil, packcr_thunk_array_t *array, packcr_thunk_t *thunk) {
     if (array->max <= array->len) {
         const size_t n = array->len + 1;
         size_t m = array->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
+        if (m == 0) m = PACKCR_ARRAY_MIN_SIZE;
         while (m < n && m != 0) m <<= 1;
         if (m == 0) m = n;
-        array->buf = (pcc_thunk_t **)PCC_REALLOC(auxil, array->buf, sizeof(pcc_thunk_t *) * m);
+        array->buf = (packcr_thunk_t **)PACKCR_REALLOC(auxil, array->buf, sizeof(packcr_thunk_t *) * m);
         array->max = m;
     }
     array->buf[array->len++] = thunk;
 }
 
-static void pcc_thunk_array__revert(pcc_auxil_t auxil, pcc_thunk_array_t *array, size_t len) {
+static void packcr_thunk_array__revert(packcr_auxil_t auxil, packcr_thunk_array_t *array, size_t len) {
     while (array->len > len) {
         array->len--;
-        pcc_thunk__destroy(auxil, array->buf[array->len]);
+        packcr_thunk__destroy(auxil, array->buf[array->len]);
     }
 }
 
-static void pcc_thunk_array__term(pcc_auxil_t auxil, pcc_thunk_array_t *array) {
+static void packcr_thunk_array__term(packcr_auxil_t auxil, packcr_thunk_array_t *array) {
     while (array->len > 0) {
         array->len--;
-        pcc_thunk__destroy(auxil, array->buf[array->len]);
+        packcr_thunk__destroy(auxil, array->buf[array->len]);
     }
-    PCC_FREE(auxil, array->buf);
+    PACKCR_FREE(auxil, array->buf);
 }
 
-static void pcc_memory_recycler__init(pcc_auxil_t auxil, pcc_memory_recycler_t *recycler, size_t element_size) {
+static void packcr_memory_recycler__init(packcr_auxil_t auxil, packcr_memory_recycler_t *recycler, size_t element_size) {
     recycler->pool_list = NULL;
     recycler->entry_list = NULL;
     recycler->element_size = element_size;
 }
 
-static void *pcc_memory_recycler__supply(pcc_auxil_t auxil, pcc_memory_recycler_t *recycler) {
+static void *packcr_memory_recycler__supply(packcr_auxil_t auxil, packcr_memory_recycler_t *recycler) {
     if (recycler->entry_list) {
-        pcc_memory_entry_t *const tmp = recycler->entry_list;
+        packcr_memory_entry_t *const tmp = recycler->entry_list;
         recycler->entry_list = tmp->next;
         return tmp;
     }
     if (!recycler->pool_list || recycler->pool_list->unused == 0) {
-        size_t size = PCC_POOL_MIN_SIZE;
+        size_t size = PACKCR_POOL_MIN_SIZE;
         if (recycler->pool_list) {
             size = recycler->pool_list->allocated << 1;
             if (size == 0) size = recycler->pool_list->allocated;
         }
         {
-            pcc_memory_pool_t *const pool = (pcc_memory_pool_t *)PCC_MALLOC(
-                auxil, sizeof(pcc_memory_pool_t) + recycler->element_size * size
+            packcr_memory_pool_t *const pool = (packcr_memory_pool_t *)PACKCR_MALLOC(
+                auxil, sizeof(packcr_memory_pool_t) + recycler->element_size * size
             );
             pool->allocated = size;
             pool->unused = size;
@@ -543,136 +543,136 @@ static void *pcc_memory_recycler__supply(pcc_auxil_t auxil, pcc_memory_recycler_
         }
     }
     recycler->pool_list->unused--;
-    return (char *)recycler->pool_list + sizeof(pcc_memory_pool_t) + recycler->element_size * recycler->pool_list->unused;
+    return (char *)recycler->pool_list + sizeof(packcr_memory_pool_t) + recycler->element_size * recycler->pool_list->unused;
 }
 
-static void pcc_memory_recycler__recycle(pcc_auxil_t auxil, pcc_memory_recycler_t *recycler, void *ptr) {
-    pcc_memory_entry_t *const tmp = (pcc_memory_entry_t *)ptr;
+static void packcr_memory_recycler__recycle(packcr_auxil_t auxil, packcr_memory_recycler_t *recycler, void *ptr) {
+    packcr_memory_entry_t *const tmp = (packcr_memory_entry_t *)ptr;
     tmp->next = recycler->entry_list;
     recycler->entry_list = tmp;
 }
 
-static void pcc_memory_recycler__term(pcc_auxil_t auxil, pcc_memory_recycler_t *recycler) {
+static void packcr_memory_recycler__term(packcr_auxil_t auxil, packcr_memory_recycler_t *recycler) {
     while (recycler->pool_list) {
-        pcc_memory_pool_t *const tmp = recycler->pool_list;
+        packcr_memory_pool_t *const tmp = recycler->pool_list;
         recycler->pool_list = tmp->next;
-        PCC_FREE(auxil, tmp);
+        PACKCR_FREE(auxil, tmp);
     }
 }
 
 MARK_FUNC_AS_USED
-static pcc_thunk_chunk_t *pcc_thunk_chunk__create(pcc_context_t *ctx) {
-    pcc_thunk_chunk_t *const chunk = (pcc_thunk_chunk_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->thunk_chunk_recycler);
-    pcc_value_table__init(ctx->auxil, &chunk->values);
-    pcc_capture_table__init(ctx->auxil, &chunk->capts);
-    pcc_thunk_array__init(ctx->auxil, &chunk->thunks);
+static packcr_thunk_chunk_t *packcr_thunk_chunk__create(packcr_context_t *ctx) {
+    packcr_thunk_chunk_t *const chunk = (packcr_thunk_chunk_t *)packcr_memory_recycler__supply(ctx->auxil, &ctx->thunk_chunk_recycler);
+    packcr_value_table__init(ctx->auxil, &chunk->values);
+    packcr_capture_table__init(ctx->auxil, &chunk->capts);
+    packcr_thunk_array__init(ctx->auxil, &chunk->thunks);
     chunk->pos = 0;
     return chunk;
 }
 
-static void pcc_thunk_chunk__destroy(pcc_context_t *ctx, pcc_thunk_chunk_t *chunk) {
+static void packcr_thunk_chunk__destroy(packcr_context_t *ctx, packcr_thunk_chunk_t *chunk) {
     if (chunk == NULL) return;
-    pcc_thunk_array__term(ctx->auxil, &chunk->thunks);
-    pcc_capture_table__term(ctx->auxil, &chunk->capts);
-    pcc_value_table__term(ctx->auxil, &chunk->values);
-    pcc_memory_recycler__recycle(ctx->auxil, &ctx->thunk_chunk_recycler, chunk);
+    packcr_thunk_array__term(ctx->auxil, &chunk->thunks);
+    packcr_capture_table__term(ctx->auxil, &chunk->capts);
+    packcr_value_table__term(ctx->auxil, &chunk->values);
+    packcr_memory_recycler__recycle(ctx->auxil, &ctx->thunk_chunk_recycler, chunk);
 }
 
-static void pcc_rule_set__init(pcc_auxil_t auxil, pcc_rule_set_t *set) {
+static void packcr_rule_set__init(packcr_auxil_t auxil, packcr_rule_set_t *set) {
     set->len = 0;
     set->max = 0;
     set->buf = NULL;
 }
 
-static size_t pcc_rule_set__index(pcc_auxil_t auxil, const pcc_rule_set_t *set, pcc_rule_t rule) {
+static size_t packcr_rule_set__index(packcr_auxil_t auxil, const packcr_rule_set_t *set, packcr_rule_t rule) {
     size_t i;
     for (i = 0; i < set->len; i++) {
         if (set->buf[i] == rule) return i;
     }
-    return PCC_VOID_VALUE;
+    return PACKCR_VOID_VALUE;
 }
 
-static pcc_bool_t pcc_rule_set__add(pcc_auxil_t auxil, pcc_rule_set_t *set, pcc_rule_t rule) {
-    const size_t i = pcc_rule_set__index(auxil, set, rule);
-    if (i != PCC_VOID_VALUE) return PCC_FALSE;
+static packcr_bool_t packcr_rule_set__add(packcr_auxil_t auxil, packcr_rule_set_t *set, packcr_rule_t rule) {
+    const size_t i = packcr_rule_set__index(auxil, set, rule);
+    if (i != PACKCR_VOID_VALUE) return PACKCR_FALSE;
     if (set->max <= set->len) {
         const size_t n = set->len + 1;
         size_t m = set->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
+        if (m == 0) m = PACKCR_ARRAY_MIN_SIZE;
         while (m < n && m != 0) m <<= 1;
         if (m == 0) m = n;
-        set->buf = (pcc_rule_t *)PCC_REALLOC(auxil, set->buf, sizeof(pcc_rule_t) * m);
+        set->buf = (packcr_rule_t *)PACKCR_REALLOC(auxil, set->buf, sizeof(packcr_rule_t) * m);
         set->max = m;
     }
     set->buf[set->len++] = rule;
-    return PCC_TRUE;
+    return PACKCR_TRUE;
 }
 
-static void pcc_rule_set__term(pcc_auxil_t auxil, pcc_rule_set_t *set) {
-    PCC_FREE(auxil, set->buf);
+static void packcr_rule_set__term(packcr_auxil_t auxil, packcr_rule_set_t *set) {
+    PACKCR_FREE(auxil, set->buf);
 }
 
-static pcc_lr_memo_t *pcc_lr_memo__create(pcc_context_t *ctx, size_t offset<% if @location %>, pcc_location_t offset_loc<% end %>) {
-    pcc_lr_memo_t *memo = (pcc_lr_memo_t *)pcc_memory_recycler__supply(ctx->auxil, &ctx->lr_memo_recycler);
+static packcr_lr_memo_t *packcr_lr_memo__create(packcr_context_t *ctx, size_t offset<% if @location %>, packcr_location_t offset_loc<% end %>) {
+    packcr_lr_memo_t *memo = (packcr_lr_memo_t *)packcr_memory_recycler__supply(ctx->auxil, &ctx->lr_memo_recycler);
     memo->offset = offset;
 <%- if @location -%>
     memo->offset_loc = offset_loc;
 <%- end -%>
     memo->chunk = NULL;
-    memo->fail = PCC_TRUE;
-    memo->grow = PCC_FALSE;
+    memo->fail = PACKCR_TRUE;
+    memo->grow = PACKCR_FALSE;
     memo->hold = NULL;
     return memo;
 }
 
-static void pcc_lr_memo__set_chunk(pcc_context_t *ctx, pcc_lr_memo_t *memo, pcc_thunk_chunk_t *chunk) {
+static void packcr_lr_memo__set_chunk(packcr_context_t *ctx, packcr_lr_memo_t *memo, packcr_thunk_chunk_t *chunk) {
     if (memo->chunk) {
-        pcc_lr_memo_t *const new_hold_memo = pcc_lr_memo__create(ctx, memo->offset<% if @location %>, memo->offset_loc<% end %>);
+        packcr_lr_memo_t *const new_hold_memo = packcr_lr_memo__create(ctx, memo->offset<% if @location %>, memo->offset_loc<% end %>);
         new_hold_memo->chunk = memo->chunk;
         new_hold_memo->hold = memo->hold;
         memo->hold = new_hold_memo;
     }
     memo->chunk = chunk;
-    memo->fail = PCC_FALSE;
+    memo->fail = PACKCR_FALSE;
 }
 
-static void pcc_lr_memo__destroy(pcc_context_t *ctx, pcc_lr_memo_t *memo) {
+static void packcr_lr_memo__destroy(packcr_context_t *ctx, packcr_lr_memo_t *memo) {
     while (memo != NULL) {
-        pcc_lr_memo_t *const hold_memo = memo->hold;
-        pcc_thunk_chunk__destroy(ctx, memo->chunk);
-        pcc_memory_recycler__recycle(ctx->auxil, &ctx->lr_memo_recycler, memo);
+        packcr_lr_memo_t *const hold_memo = memo->hold;
+        packcr_thunk_chunk__destroy(ctx, memo->chunk);
+        packcr_memory_recycler__recycle(ctx->auxil, &ctx->lr_memo_recycler, memo);
         memo = hold_memo;
     }
 }
 
-static void pcc_lr_memo_map__init(pcc_auxil_t auxil, pcc_lr_memo_map_t *map) {
+static void packcr_lr_memo_map__init(packcr_auxil_t auxil, packcr_lr_memo_map_t *map) {
     map->len = 0;
     map->max = 0;
     map->buf = NULL;
 }
 
-static size_t pcc_lr_memo_map__index(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc_rule_t rule) {
+static size_t packcr_lr_memo_map__index(packcr_context_t *ctx, packcr_lr_memo_map_t *map, packcr_rule_t rule) {
     size_t i;
     for (i = 0; i < map->len; i++) {
         if (map->buf[i].rule == rule) return i;
     }
-    return PCC_VOID_VALUE;
+    return PACKCR_VOID_VALUE;
 }
 
-static void pcc_lr_memo_map__put(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc_rule_t rule, pcc_lr_memo_t *memo) {
-    const size_t i = pcc_lr_memo_map__index(ctx, map, rule);
-    if (i != PCC_VOID_VALUE) {
-        pcc_lr_memo__destroy(ctx, map->buf[i].memo);
+static void packcr_lr_memo_map__put(packcr_context_t *ctx, packcr_lr_memo_map_t *map, packcr_rule_t rule, packcr_lr_memo_t *memo) {
+    const size_t i = packcr_lr_memo_map__index(ctx, map, rule);
+    if (i != PACKCR_VOID_VALUE) {
+        packcr_lr_memo__destroy(ctx, map->buf[i].memo);
         map->buf[i].memo = memo;
     }
     else {
         if (map->max <= map->len) {
             const size_t n = map->len + 1;
             size_t m = map->max;
-            if (m == 0) m = PCC_ARRAY_MIN_SIZE;
+            if (m == 0) m = PACKCR_ARRAY_MIN_SIZE;
             while (m < n && m != 0) m <<= 1;
             if (m == 0) m = n;
-            map->buf = (pcc_lr_memo_map_entry_t *)PCC_REALLOC(ctx->auxil, map->buf, sizeof(pcc_lr_memo_map_entry_t) * m);
+            map->buf = (packcr_lr_memo_map_entry_t *)PACKCR_REALLOC(ctx->auxil, map->buf, sizeof(packcr_lr_memo_map_entry_t) * m);
             map->max = m;
         }
         map->buf[map->len].rule = rule;
@@ -681,156 +681,156 @@ static void pcc_lr_memo_map__put(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc
     }
 }
 
-static pcc_lr_memo_t *pcc_lr_memo_map__get(pcc_context_t *ctx, pcc_lr_memo_map_t *map, pcc_rule_t rule) {
-    const size_t i = pcc_lr_memo_map__index(ctx, map, rule);
-    return (i != PCC_VOID_VALUE) ? map->buf[i].memo : NULL;
+static packcr_lr_memo_t *packcr_lr_memo_map__get(packcr_context_t *ctx, packcr_lr_memo_map_t *map, packcr_rule_t rule) {
+    const size_t i = packcr_lr_memo_map__index(ctx, map, rule);
+    return (i != PACKCR_VOID_VALUE) ? map->buf[i].memo : NULL;
 }
 
-static void pcc_lr_memo_map__term(pcc_context_t *ctx, pcc_lr_memo_map_t *map) {
+static void packcr_lr_memo_map__term(packcr_context_t *ctx, packcr_lr_memo_map_t *map) {
     while (map->len > 0) {
         map->len--;
-        pcc_lr_memo__destroy(ctx, map->buf[map->len].memo);
+        packcr_lr_memo__destroy(ctx, map->buf[map->len].memo);
     }
-    PCC_FREE(ctx->auxil, map->buf);
+    PACKCR_FREE(ctx->auxil, map->buf);
 }
 
-static pcc_lr_memo_map_t *pcc_lr_memo_map__create(pcc_context_t *ctx) {
-    pcc_lr_memo_map_t *const memo = (pcc_lr_memo_map_t *)PCC_MALLOC(ctx->auxil, sizeof(pcc_lr_memo_map_t));
-    pcc_lr_memo_map__init(ctx->auxil, memo);
+static packcr_lr_memo_map_t *packcr_lr_memo_map__create(packcr_context_t *ctx) {
+    packcr_lr_memo_map_t *const memo = (packcr_lr_memo_map_t *)PACKCR_MALLOC(ctx->auxil, sizeof(packcr_lr_memo_map_t));
+    packcr_lr_memo_map__init(ctx->auxil, memo);
     return memo;
 }
 
-static void pcc_lr_memo_map__destroy(pcc_context_t *ctx, pcc_lr_memo_map_t *memo) {
+static void packcr_lr_memo_map__destroy(packcr_context_t *ctx, packcr_lr_memo_map_t *memo) {
     if (memo == NULL) return;
-    pcc_lr_memo_map__term(ctx, memo);
-    PCC_FREE(ctx->auxil, memo);
+    packcr_lr_memo_map__term(ctx, memo);
+    PACKCR_FREE(ctx->auxil, memo);
 }
 
-static void pcc_lr_table__init(pcc_auxil_t auxil, pcc_lr_table_t *table) {
+static void packcr_lr_table__init(packcr_auxil_t auxil, packcr_lr_table_t *table) {
     table->ofs = 0;
     table->len = 0;
     table->max = 0;
     table->buf = NULL;
 }
 
-static void pcc_lr_table__resize(pcc_context_t *ctx, pcc_lr_table_t *table, size_t len) {
+static void packcr_lr_table__resize(packcr_context_t *ctx, packcr_lr_table_t *table, size_t len) {
     size_t i;
-    for (i = len; i < table->len; i++) pcc_lr_memo_map__destroy(ctx, table->buf[i]);
+    for (i = len; i < table->len; i++) packcr_lr_memo_map__destroy(ctx, table->buf[i]);
     if (table->max < len) {
         size_t m = table->max;
-        if (m == 0) m = PCC_ARRAY_MIN_SIZE;
+        if (m == 0) m = PACKCR_ARRAY_MIN_SIZE;
         while (m < len && m != 0) m <<= 1;
         if (m == 0) m = len;
-        table->buf = (pcc_lr_memo_map_t **)PCC_REALLOC(ctx->auxil, table->buf, sizeof(pcc_lr_memo_map_t *) * m);
+        table->buf = (packcr_lr_memo_map_t **)PACKCR_REALLOC(ctx->auxil, table->buf, sizeof(packcr_lr_memo_map_t *) * m);
         table->max = m;
     }
     for (i = table->len; i < len; i++) table->buf[i] = NULL;
     table->len = len;
 }
 
-static void pcc_lr_table__set_memo(pcc_context_t *ctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule, pcc_lr_memo_t *memo) {
+static void packcr_lr_table__set_memo(packcr_context_t *ctx, packcr_lr_table_t *table, size_t index, packcr_rule_t rule, packcr_lr_memo_t *memo) {
     index += table->ofs;
-    if (index >= table->len) pcc_lr_table__resize(ctx, table, index + 1);
-    if (table->buf[index] == NULL) table->buf[index] = pcc_lr_memo_map__create(ctx);
-    pcc_lr_memo_map__put(ctx, table->buf[index], rule, memo);
+    if (index >= table->len) packcr_lr_table__resize(ctx, table, index + 1);
+    if (table->buf[index] == NULL) table->buf[index] = packcr_lr_memo_map__create(ctx);
+    packcr_lr_memo_map__put(ctx, table->buf[index], rule, memo);
 }
 
-static pcc_lr_memo_t *pcc_lr_table__get_memo(pcc_context_t *ctx, pcc_lr_table_t *table, size_t index, pcc_rule_t rule) {
+static packcr_lr_memo_t *packcr_lr_table__get_memo(packcr_context_t *ctx, packcr_lr_table_t *table, size_t index, packcr_rule_t rule) {
     index += table->ofs;
     if (index >= table->len || table->buf[index] == NULL) return NULL;
-    return pcc_lr_memo_map__get(ctx, table->buf[index], rule);
+    return packcr_lr_memo_map__get(ctx, table->buf[index], rule);
 }
 
-static void pcc_lr_table__shift(pcc_context_t *ctx, pcc_lr_table_t *table, size_t count) {
+static void packcr_lr_table__shift(packcr_context_t *ctx, packcr_lr_table_t *table, size_t count) {
     size_t i;
     if (count > table->len - table->ofs) count = table->len - table->ofs;
-    for (i = 0; i < count; i++) pcc_lr_memo_map__destroy(ctx, table->buf[table->ofs++]);
+    for (i = 0; i < count; i++) packcr_lr_memo_map__destroy(ctx, table->buf[table->ofs++]);
     if (table->ofs > (table->max >> 1)) {
-        memmove(table->buf, table->buf + table->ofs, sizeof(pcc_lr_memo_map_t *) * (table->len - table->ofs));
+        memmove(table->buf, table->buf + table->ofs, sizeof(packcr_lr_memo_map_t *) * (table->len - table->ofs));
         table->len -= table->ofs;
         table->ofs = 0;
     }
 }
 
-static void pcc_lr_table__term(pcc_context_t *ctx, pcc_lr_table_t *table) {
+static void packcr_lr_table__term(packcr_context_t *ctx, packcr_lr_table_t *table) {
     while (table->len > table->ofs) {
         table->len--;
-        pcc_lr_memo_map__destroy(ctx, table->buf[table->len]);
+        packcr_lr_memo_map__destroy(ctx, table->buf[table->len]);
     }
-    PCC_FREE(ctx->auxil, table->buf);
+    PACKCR_FREE(ctx->auxil, table->buf);
 }
 
-static pcc_context_t *pcc_context__create(pcc_auxil_t auxil) {
-    pcc_context_t *const ctx = (pcc_context_t *)PCC_MALLOC(auxil, sizeof(pcc_context_t));
+static packcr_context_t *packcr_context__create(packcr_auxil_t auxil) {
+    packcr_context_t *const ctx = (packcr_context_t *)PACKCR_MALLOC(auxil, sizeof(packcr_context_t));
     ctx->buffer_start_position = 0;
     ctx->position_offset = 0;
 <%- if @location -%>
-    pcc_location_init(&ctx->buffer_start_position_loc);
-    pcc_location_init(&ctx->position_offset_loc);
+    packcr_location_init(&ctx->buffer_start_position_loc);
+    packcr_location_init(&ctx->position_offset_loc);
 <%- end -%>
     ctx->level = 0;
-    pcc_char_array__init(auxil, &ctx->buffer);
-    pcc_lr_table__init(auxil, &ctx->lrtable);
-    pcc_thunk_array__init(auxil, &ctx->thunks);
-    pcc_memory_recycler__init(auxil, &ctx->thunk_chunk_recycler, sizeof(pcc_thunk_chunk_t));
-    pcc_memory_recycler__init(auxil, &ctx->lr_memo_recycler, sizeof(pcc_lr_memo_t));
+    packcr_char_array__init(auxil, &ctx->buffer);
+    packcr_lr_table__init(auxil, &ctx->lrtable);
+    packcr_thunk_array__init(auxil, &ctx->thunks);
+    packcr_memory_recycler__init(auxil, &ctx->thunk_chunk_recycler, sizeof(packcr_thunk_chunk_t));
+    packcr_memory_recycler__init(auxil, &ctx->lr_memo_recycler, sizeof(packcr_lr_memo_t));
     ctx->auxil = auxil;
     return ctx;
 }
 
-static void pcc_context__destroy(pcc_context_t *ctx) {
+static void packcr_context__destroy(packcr_context_t *ctx) {
     if (ctx == NULL) return;
-    pcc_thunk_array__term(ctx->auxil, &ctx->thunks);
-    pcc_lr_table__term(ctx, &ctx->lrtable);
-    pcc_char_array__term(ctx->auxil, &ctx->buffer);
-    pcc_memory_recycler__term(ctx->auxil, &ctx->thunk_chunk_recycler);
-    pcc_memory_recycler__term(ctx->auxil, &ctx->lr_memo_recycler);
-    PCC_FREE(ctx->auxil, ctx);
+    packcr_thunk_array__term(ctx->auxil, &ctx->thunks);
+    packcr_lr_table__term(ctx, &ctx->lrtable);
+    packcr_char_array__term(ctx->auxil, &ctx->buffer);
+    packcr_memory_recycler__term(ctx->auxil, &ctx->thunk_chunk_recycler);
+    packcr_memory_recycler__term(ctx->auxil, &ctx->lr_memo_recycler);
+    PACKCR_FREE(ctx->auxil, ctx);
 }
 
-static size_t pcc_refill_buffer(pcc_context_t *ctx, size_t num) {
+static size_t packcr_refill_buffer(packcr_context_t *ctx, size_t num) {
     if (ctx->buffer.len >= ctx->position_offset + num) return ctx->buffer.len - ctx->position_offset;
     while (ctx->buffer.len < ctx->position_offset + num) {
-        const int c = PCC_GETCHAR(ctx->auxil);
+        const int c = PACKCR_GETCHAR(ctx->auxil);
         if (c < 0) break;
-        pcc_char_array__add(ctx->auxil, &ctx->buffer, (char)c);
+        packcr_char_array__add(ctx->auxil, &ctx->buffer, (char)c);
     }
     return ctx->buffer.len - ctx->position_offset;
 }
 
 MARK_FUNC_AS_USED
-static void pcc_commit_buffer(pcc_context_t *ctx) {
+static void packcr_commit_buffer(packcr_context_t *ctx) {
     memmove(ctx->buffer.buf, ctx->buffer.buf + ctx->position_offset, ctx->buffer.len - ctx->position_offset);
     ctx->buffer.len -= ctx->position_offset;
     ctx->buffer_start_position += ctx->position_offset;
-    pcc_lr_table__shift(ctx, &ctx->lrtable, ctx->position_offset);
+    packcr_lr_table__shift(ctx, &ctx->lrtable, ctx->position_offset);
     ctx->position_offset = 0;
 <%- if @location -%>
-    ctx->buffer_start_position_loc = pcc_location_add(ctx->buffer_start_position_loc, ctx->position_offset_loc);
-    pcc_location_init(&ctx->position_offset_loc);
+    ctx->buffer_start_position_loc = packcr_location_add(ctx->buffer_start_position_loc, ctx->position_offset_loc);
+    packcr_location_init(&ctx->position_offset_loc);
 <%- end -%>
 }
 
 MARK_FUNC_AS_USED
-static const char *pcc_get_capture_string(pcc_context_t *ctx, const pcc_capture_t *capt) {
+static const char *packcr_get_capture_string(packcr_context_t *ctx, const packcr_capture_t *capt) {
     if (capt->string == NULL)
-        ((pcc_capture_t *)capt)->string =
-            pcc_strndup_e(ctx->auxil, ctx->buffer.buf + capt->range.start, capt->range.end - capt->range.start);
+        ((packcr_capture_t *)capt)->string =
+            packcr_strndup_e(ctx->auxil, ctx->buffer.buf + capt->range.start, capt->range.end - capt->range.start);
     return capt->string;
 }
 
 <% if @utf8 -%>
-static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with checking UTF-8 validity */
+static size_t packcr_get_char_as_utf32(packcr_context_t *ctx, int *out) { /* with checking UTF-8 validity */
     int c, u;
     size_t n;
-    if (pcc_refill_buffer(ctx, 1) < 1) return 0;
+    if (packcr_refill_buffer(ctx, 1) < 1) return 0;
     c = (int)(unsigned char)ctx->buffer.buf[ctx->position_offset];
     n = (c < 0x80) ? 1 :
         ((c & 0xe0) == 0xc0) ? 2 :
         ((c & 0xf0) == 0xe0) ? 3 :
         ((c & 0xf8) == 0xf0) ? 4 : 0;
     if (n < 1) return 0;
-    if (pcc_refill_buffer(ctx, n) < n) return 0;
+    if (packcr_refill_buffer(ctx, n) < n) return 0;
     switch (n) {
     case 1:
         u = c;
@@ -873,28 +873,28 @@ static size_t pcc_get_char_as_utf32(pcc_context_t *ctx, int *out) { /* with chec
 }
 
 <% end -%>
-static void pcc_grow_lr(pcc_context_t *ctx, pcc_rule_t rule, size_t offset<% if @location %>, pcc_location_t offset_loc<% end %>) {
+static void packcr_grow_lr(packcr_context_t *ctx, packcr_rule_t rule, size_t offset<% if @location %>, packcr_location_t offset_loc<% end %>) {
     while(1) {
         const size_t old_offset = ctx->position_offset;
-        pcc_thunk_chunk_t *chunk;
-        pcc_lr_memo_t *memo;
-        pcc_rule_set_t limits;
+        packcr_thunk_chunk_t *chunk;
+        packcr_lr_memo_t *memo;
+        packcr_rule_set_t limits;
         ctx->position_offset = offset;
 <%- if @location -%>
         ctx->position_offset_loc = offset_loc;
 <%- end -%>
-        pcc_rule_set__init(ctx->auxil, &limits);
-        pcc_rule_set__add(ctx->auxil, &limits, rule);
+        packcr_rule_set__init(ctx->auxil, &limits);
+        packcr_rule_set__add(ctx->auxil, &limits, rule);
         chunk = rule(ctx, offset<% if @location %>, offset_loc<% end %>, &limits);
-        pcc_rule_set__term(ctx->auxil, &limits);
+        packcr_rule_set__term(ctx->auxil, &limits);
         if (!chunk)
             break;
         if (ctx->position_offset <= old_offset) {
-            pcc_thunk_chunk__destroy(ctx, chunk);
+            packcr_thunk_chunk__destroy(ctx, chunk);
             break;
         }
-        memo = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
-        pcc_lr_memo__set_chunk(ctx, memo, chunk);
+        memo = packcr_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
+        packcr_lr_memo__set_chunk(ctx, memo, chunk);
         memo->offset = ctx->position_offset;
         <%- if @location -%>
         memo->offset_loc = ctx->position_offset_loc;
@@ -903,26 +903,26 @@ static void pcc_grow_lr(pcc_context_t *ctx, pcc_rule_t rule, size_t offset<% if 
 }
 
 MARK_FUNC_AS_USED
-static pcc_thunk_chunk_t *pcc_get_rule_thunk_chunk(pcc_context_t *ctx, pcc_rule_t rule) {
-    pcc_thunk_chunk_t *c = NULL;
+static packcr_thunk_chunk_t *packcr_get_rule_thunk_chunk(packcr_context_t *ctx, packcr_rule_t rule) {
+    packcr_thunk_chunk_t *c = NULL;
     size_t offset = ctx->position_offset;
 <%- if @location -%>
-    pcc_location_t offset_loc = ctx->position_offset_loc;
+    packcr_location_t offset_loc = ctx->position_offset_loc;
 <%- end -%>
-    pcc_lr_memo_t *memo = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
+    packcr_lr_memo_t *memo = packcr_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
 
     if (memo == NULL) {
-        memo = pcc_lr_memo__create(ctx, offset<% if @location %>, offset_loc<% end %>);
-        pcc_lr_table__set_memo(ctx, &ctx->lrtable, offset, rule, memo);
+        memo = packcr_lr_memo__create(ctx, offset<% if @location %>, offset_loc<% end %>);
+        packcr_lr_table__set_memo(ctx, &ctx->lrtable, offset, rule, memo);
         c = rule(ctx, offset<% if @location %>, offset_loc<% end %>, NULL);
-        pcc_lr_memo__set_chunk(ctx, memo, c);
+        packcr_lr_memo__set_chunk(ctx, memo, c);
         memo->offset = ctx->position_offset;
 <%- if @location -%>
         memo->offset_loc = ctx->position_offset_loc;
 <%- end -%>
         if (memo->grow) {
-            pcc_grow_lr(ctx, rule, offset<% if @location %>, offset_loc<% end %>);
-            memo->grow = PCC_FALSE;
+            packcr_grow_lr(ctx, rule, offset<% if @location %>, offset_loc<% end %>);
+            memo->grow = PACKCR_FALSE;
             ctx->position_offset = memo->offset;
 <%- if @location -%>
             ctx->position_offset_loc = memo->offset_loc;
@@ -931,8 +931,8 @@ static pcc_thunk_chunk_t *pcc_get_rule_thunk_chunk(pcc_context_t *ctx, pcc_rule_
         }
         return c;
     } else if (memo->fail) {
-        pcc_lr_memo__set_chunk(ctx, memo, NULL);
-        memo->grow = PCC_TRUE;
+        packcr_lr_memo__set_chunk(ctx, memo, NULL);
+        memo->grow = PACKCR_TRUE;
         return NULL;
     }
     ctx->position_offset = memo->offset;
@@ -943,14 +943,14 @@ static pcc_thunk_chunk_t *pcc_get_rule_thunk_chunk(pcc_context_t *ctx, pcc_rule_
 }
 
 MARK_FUNC_AS_USED
-static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_array_t *thunks, pcc_value_t *value, size_t offset<% if @location %>, pcc_location_t offset_loc<% end %>, pcc_rule_set_t *limits) {
-    static pcc_value_t null;
-    pcc_thunk_chunk_t *c;
+static packcr_bool_t packcr_apply_rule(packcr_context_t *ctx, packcr_rule_t rule, packcr_thunk_array_t *thunks, packcr_value_t *value, size_t offset<% if @location %>, packcr_location_t offset_loc<% end %>, packcr_rule_set_t *limits) {
+    static packcr_value_t null;
+    packcr_thunk_chunk_t *c;
     if (limits != NULL) {
-        pcc_lr_memo_t *memo;
-        pcc_rule_set__add(ctx->auxil, limits, rule);
+        packcr_lr_memo_t *memo;
+        packcr_rule_set__add(ctx->auxil, limits, rule);
         c = rule(ctx, offset<% if @location %>, offset_loc<% end %>, limits);
-        memo = pcc_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
+        memo = packcr_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
         if (memo == NULL || ctx->position_offset <= memo->offset) {
             c = memo->chunk;
             ctx->position_offset = memo->offset;
@@ -958,33 +958,33 @@ static pcc_bool_t pcc_apply_rule(pcc_context_t *ctx, pcc_rule_t rule, pcc_thunk_
             ctx->position_offset_loc = memo->offset_loc;
             <%- end -%>
         } else {
-            pcc_lr_memo__set_chunk(ctx, memo, c);
+            packcr_lr_memo__set_chunk(ctx, memo, c);
             memo->offset = ctx->position_offset;
             <%- if @location -%>
             memo->offset_loc = ctx->position_offset_loc;
             <%- end -%>
         }
     } else {
-        c = pcc_get_rule_thunk_chunk(ctx, rule);
+        c = packcr_get_rule_thunk_chunk(ctx, rule);
     }
-    if (c == NULL) return PCC_FALSE;
+    if (c == NULL) return PACKCR_FALSE;
     if (value == NULL) value = &null;
-    memset(value, 0, sizeof(pcc_value_t)); /* in case */
-    pcc_thunk_array__add(ctx->auxil, thunks, pcc_thunk__create_node(ctx->auxil, &c->thunks, value));
-    return PCC_TRUE;
+    memset(value, 0, sizeof(packcr_value_t)); /* in case */
+    packcr_thunk_array__add(ctx->auxil, thunks, packcr_thunk__create_node(ctx->auxil, &c->thunks, value));
+    return PACKCR_TRUE;
 }
 
 MARK_FUNC_AS_USED
-static void pcc_do_action(pcc_context_t *ctx, const pcc_thunk_array_t *thunks, pcc_value_t *value) {
+static void packcr_do_action(packcr_context_t *ctx, const packcr_thunk_array_t *thunks, packcr_value_t *value) {
     size_t i;
     for (i = 0; i < thunks->len; i++) {
-        pcc_thunk_t *const thunk = thunks->buf[i];
+        packcr_thunk_t *const thunk = thunks->buf[i];
         switch (thunk->type) {
-        case PCC_THUNK_LEAF:
+        case PACKCR_THUNK_LEAF:
             thunk->data.leaf.action(ctx, thunk, value);
             break;
-        case PCC_THUNK_NODE:
-            pcc_do_action(ctx, thunk->data.node.thunks, thunk->data.node.value);
+        case PACKCR_THUNK_NODE:
+            packcr_do_action(ctx, thunk->data.node.thunks, thunk->data.node.value);
             break;
         default: /* unknown */
             break;
@@ -994,32 +994,32 @@ static void pcc_do_action(pcc_context_t *ctx, const pcc_thunk_array_t *thunks, p
 
 <%- @root.rules.each do |rule| -%>
 <%-   rule.codes.each do |code| -%>
-static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
-#define auxil (__pcc_ctx->auxil)
-#define __ (*__pcc_out)
+static void packcr_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__packcr_ctx, packcr_thunk_t *__packcr_in, packcr_value_t *__packcr_out) {
+#define auxil (__packcr_ctx->auxil)
+#define __ (*__packcr_out)
 <%-     code.vars.each do |ref| -%>
-#define <%= ref.var %> (*__pcc_in->data.leaf.values.buf[<%= ref.index %>])
+#define <%= ref.var %> (*__packcr_in->data.leaf.values.buf[<%= ref.index %>])
 <%      end -%>
-#define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
-#define _0s ((const size_t)(__pcc_ctx->buffer_start_position + __pcc_in->data.leaf.capt0.range.start))
-#define _0e ((const size_t)(__pcc_ctx->buffer_start_position + __pcc_in->data.leaf.capt0.range.end))
+#define _0 packcr_get_capture_string(__packcr_ctx, &__packcr_in->data.leaf.capt0)
+#define _0s ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capt0.range.start))
+#define _0e ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capt0.range.end))
 <%-     if @location -%>
-#define _0sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->buffer_start_position_loc, __pcc_in->data.leaf.capt0.range.start_loc)))
-#define _0el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->buffer_start_position_loc, __pcc_in->data.leaf.capt0.range.end_loc)))
+#define _0sl ((const packcr_location_t)(packcr_location_add(__packcr_ctx->buffer_start_position_loc, __packcr_in->data.leaf.capt0.range.start_loc)))
+#define _0el ((const packcr_location_t)(packcr_location_add(__packcr_ctx->buffer_start_position_loc, __packcr_in->data.leaf.capt0.range.end_loc)))
 <%-     end -%>
 <%-     if @capture_in_code -%>
-#define _0c __pcc_in->data.leaf.capt0
+#define _0c __packcr_in->data.leaf.capt0
 <%-     end -%>
 <%      code.capts.each do |capture| -%>
-#define _<%= capture.index + 1 %> pcc_get_capture_string(__pcc_ctx, __pcc_in->data.leaf.capts.buf[<%= capture.index %>])
-#define _<%= capture.index + 1 %>s ((const size_t)(__pcc_ctx->buffer_start_position + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
-#define _<%= capture.index + 1 %>e ((const size_t)(__pcc_ctx->buffer_start_position + __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
+#define _<%= capture.index + 1 %> packcr_get_capture_string(__packcr_ctx, __packcr_in->data.leaf.capts.buf[<%= capture.index %>])
+#define _<%= capture.index + 1 %>s ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
+#define _<%= capture.index + 1 %>e ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
 <%-       if @location -%>
-#define _<%= capture.index + 1 %>sl ((const pcc_location_t)(pcc_location_add(__pcc_ctx->buffer_start_position_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.start_loc)))
-#define _<%= capture.index + 1 %>el ((const pcc_location_t)(pcc_location_add(__pcc_ctx->buffer_start_position_loc, __pcc_in->data.leaf.capts.buf[<%= capture.index %>]->range.end_loc)))
+#define _<%= capture.index + 1 %>sl ((const packcr_location_t)(packcr_location_add(__packcr_ctx->buffer_start_position_loc, __packcr_in->data.leaf.capts.buf[<%= capture.index %>]->range.start_loc)))
+#define _<%= capture.index + 1 %>el ((const packcr_location_t)(packcr_location_add(__packcr_ctx->buffer_start_position_loc, __packcr_in->data.leaf.capts.buf[<%= capture.index %>]->range.end_loc)))
 <%-       end -%>
 <%-       if @capture_in_code -%>
-#define _<%= capture.index + 1 %>c (*__pcc_in->data.leaf.capts.buf[<%= capture.index %>])
+#define _<%= capture.index + 1 %>c (*__packcr_in->data.leaf.capts.buf[<%= capture.index %>])
 <%-       end -%>
 <%-     end -%>
 <%=     stream.get_code_block(code.code, 4, @iname) -%>
@@ -1045,7 +1045,7 @@ static void pcc_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_
 <%-   end -%>
 <%- end -%>
 <%- @root.rules.each do |rule| -%>
-static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx, size_t offset<% if @location %>, pcc_location_t offset_loc<% end %>, pcc_rule_set_t *limits);
+static packcr_thunk_chunk_t *packcr_evaluate_rule_<%= rule.name %>(packcr_context_t *ctx, size_t offset<% if @location %>, packcr_location_t offset_loc<% end %>, packcr_rule_set_t *limits);
 <%- end -%>
 
 <%- @root.rules.each do |rule| -%>
@@ -1054,24 +1054,24 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_<%= rule.name %>(pcc_context_t *ctx,
 
 <%- end -%>
 <%= prefix %>_context_t *<%= prefix %>_create(<%= auxil_def %>auxil) {
-    return pcc_context__create(auxil);
+    return packcr_context__create(auxil);
 }
 
 int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
     size_t pos = ctx->buffer_start_position;
 <%- if !@root.rules.empty? -%>
-    if (pcc_apply_rule(ctx, pcc_evaluate_rule_<%= @root.rules[0].name %>, &ctx->thunks, ret, ctx->position_offset<% if @location %>, ctx->position_offset_loc<% end %>, NULL))
-        pcc_do_action(ctx, &ctx->thunks, ret);
+    if (packcr_apply_rule(ctx, packcr_evaluate_rule_<%= @root.rules[0].name %>, &ctx->thunks, ret, ctx->position_offset<% if @location %>, ctx->position_offset_loc<% end %>, NULL))
+        packcr_do_action(ctx, &ctx->thunks, ret);
     else
-        PCC_ERROR(ctx->auxil);
-    pcc_commit_buffer(ctx);
+        PACKCR_ERROR(ctx->auxil);
+    packcr_commit_buffer(ctx);
 <%- end -%>
-    pcc_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);
-    return pos != ctx->buffer_start_position && pcc_refill_buffer(ctx, 1) >= 1;
+    packcr_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);
+    return pos != ctx->buffer_start_position && packcr_refill_buffer(ctx, 1) >= 1;
 }
 
 void <%= prefix %>_destroy(<%= prefix %>_context_t *ctx) {
-    pcc_context__destroy(ctx);
+    packcr_context__destroy(ctx);
 }
 <%- if !code(:lsource).empty? -%>
 

@@ -2,7 +2,7 @@
 {
     const size_t p = ctx->position_offset;
 <%- if gen.location -%>
-    const pcc_location_t p_loc = ctx->position_offset_loc;
+    const packcr_location_t p_loc = ctx->position_offset_loc;
 <%- end -%>
     const size_t n = chunk->thunks.len;
 <%- nodes.each_with_index do |expr, i| -%>
@@ -25,7 +25,7 @@ L<%= format("%04d", l) %>:;
 <%- if gen.location -%>
     ctx->position_offset_loc = p_loc;
 <%- end -%>
-    pcc_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
+    packcr_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
 <%-   if !c -%>
     goto L<%= format("%04d", onfail) %>;
 <%-   end -%>

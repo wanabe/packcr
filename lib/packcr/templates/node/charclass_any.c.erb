@@ -1,5 +1,5 @@
-if (pcc_refill_buffer(ctx, 1) < 1) goto L<%= format("%04d", onfail) %>;
+if (packcr_refill_buffer(ctx, 1) < 1) goto L<%= format("%04d", onfail) %>;
 <%- if gen.location -%>
-pcc_location_forward(&ctx->position_offset, ctx->buffer.buf + ctx->position_offset, 1);
+packcr_location_forward(&ctx->position_offset, ctx->buffer.buf + ctx->position_offset, 1);
 <%- end -%>
 ctx->position_offset++;

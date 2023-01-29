@@ -10,7 +10,7 @@ class Packcr
           l = gen.next_label
           m = gen.next_label
 
-          erbout << "#{gen.generate_code(expr, l, 4, true)}    goto L#{format("%04d", m)};\nL#{format("%04d", l)}:;\n    {\n        pcc_value_t null;\n        pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_#{gen.rule.name}_#{index}, #{gen.rule.vars.length}, #{gen.rule.capts.length});\n".freeze
+          erbout << "#{gen.generate_code(expr, l, 4, true)}    goto L#{format("%04d", m)};\nL#{format("%04d", l)}:;\n    {\n        packcr_value_t null;\n        packcr_thunk_t *const thunk = packcr_thunk__create_leaf(ctx->auxil, packcr_action_#{gen.rule.name}_#{index}, #{gen.rule.vars.length}, #{gen.rule.capts.length});\n".freeze
 
           vars.each do |var|
             erbout << "        thunk->data.leaf.values.buf[#{var.index}] = &(chunk->values.buf[#{var.index}]);\n".freeze
@@ -23,7 +23,7 @@ class Packcr
           if gen.location
             erbout << "        thunk->data.leaf.capt0.range.start_loc = chunk->pos_loc;\n        thunk->data.leaf.capt0.range.end_loc = ctx->position_offset_loc;\n".freeze
           end
-          erbout << "        memset(&null, 0, sizeof(pcc_value_t)); /* in case */\n        thunk->data.leaf.action(ctx, thunk, &null);\n        pcc_thunk__destroy(ctx->auxil, thunk);\n    }\n    goto L#{format("%04d", onfail)};\nL#{format("%04d", m)}:;\n}\n".freeze
+          erbout << "        memset(&null, 0, sizeof(packcr_value_t)); /* in case */\n        thunk->data.leaf.action(ctx, thunk, &null);\n        packcr_thunk__destroy(ctx->auxil, thunk);\n    }\n    goto L#{format("%04d", onfail)};\nL#{format("%04d", m)}:;\n}\n".freeze
 
           erbout
         when :rb

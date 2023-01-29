@@ -5,26 +5,26 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "static pcc_thunk_chunk_t *pcc_evaluate_rule_#{name}(pcc_context_t *ctx, size_t offset".freeze
+          erbout << "static packcr_thunk_chunk_t *packcr_evaluate_rule_#{name}(packcr_context_t *ctx, size_t offset".freeze
           if gen.location
-            erbout << ", pcc_location_t offset_loc".freeze
+            erbout << ", packcr_location_t offset_loc".freeze
           end
-          erbout << ", pcc_rule_set_t *limits) {\n    pcc_thunk_chunk_t *const chunk = pcc_thunk_chunk__create(ctx);\n    chunk->pos = ctx->position_offset;\n".freeze
+          erbout << ", packcr_rule_set_t *limits) {\n    packcr_thunk_chunk_t *const chunk = packcr_thunk_chunk__create(ctx);\n    chunk->pos = ctx->position_offset;\n".freeze
 
           if gen.location
             erbout << "    chunk->pos_loc = ctx->position_offset_loc;\n".freeze
           end
-          erbout << "    PCC_DEBUG(ctx->auxil, PCC_DBG_EVALUATE, \"#{name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));\n    ctx->level++;\n    pcc_value_table__resize(ctx->auxil, &chunk->values, #{vars.length});\n    pcc_capture_table__resize(ctx->auxil, &chunk->capts, #{capts.length});\n".freeze
+          erbout << "    PACKCR_DEBUG(ctx->auxil, PACKCR_DBG_EVALUATE, \"#{name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));\n    ctx->level++;\n    packcr_value_table__resize(ctx->auxil, &chunk->values, #{vars.length});\n    packcr_capture_table__resize(ctx->auxil, &chunk->capts, #{capts.length});\n".freeze
 
           if !vars.empty?
-            erbout << "    pcc_value_table__clear(ctx->auxil, &chunk->values);\n".freeze
+            erbout << "    packcr_value_table__clear(ctx->auxil, &chunk->values);\n".freeze
           end
           r = expr.reachability
 
-          erbout << "#{gen.generate_code(expr, 0, 4, false)}    ctx->level--;\n    PCC_DEBUG(ctx->auxil, PCC_DBG_MATCH, \"#{name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));\n    return chunk;\n".freeze
+          erbout << "#{gen.generate_code(expr, 0, 4, false)}    ctx->level--;\n    PACKCR_DEBUG(ctx->auxil, PACKCR_DBG_MATCH, \"#{name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));\n    return chunk;\n".freeze
 
           if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
-            erbout << "L0000:;\n    ctx->level--;\n    PCC_DEBUG(ctx->auxil, PCC_DBG_NOMATCH, \"#{name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));\n    pcc_thunk_chunk__destroy(ctx, chunk);\n    return NULL;\n".freeze
+            erbout << "L0000:;\n    ctx->level--;\n    PACKCR_DEBUG(ctx->auxil, PACKCR_DBG_NOMATCH, \"#{name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->position_offset - chunk->pos));\n    packcr_thunk_chunk__destroy(ctx, chunk);\n    return NULL;\n".freeze
           end
           erbout << "}\n".freeze
 
