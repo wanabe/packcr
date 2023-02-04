@@ -2,6 +2,45 @@
 
 class Packcr
   class Parser
+    class Location
+      attr_reader :charnum, :linenum
+
+      def initialize(charnum = 0, linenum = 0)
+        @charnum = charnum
+        @linenum = linenum
+      end
+
+      def +(other)
+        if other.linenum.zero?
+          Location.new(@charnum + other.charnum, @linenum + other.linenum)
+        else
+          Location.new(           other.charnum, @linenum + other.linenum)
+        end
+      end
+
+      def -(other)
+        raise "unexpected location #{inspect} - #{other.inspect}" unless other.linenum == linenum || other.charnum.zero?
+
+        Location.new(@charnum - other.charnum, @linenum - other.linenum)
+      end
+
+      def forward(buffer, cur, n)
+        Location.new(@charnum, @linenum).forward!(buffer, cur, n)
+      end
+
+      def forward!(buffer, cur, n)
+        buffer[cur, n].scan(/(.*)(\n)?/) do
+          if Regexp.last_match[2]
+            @linenum += 1
+            @charnum = 0
+          else
+            @charnum += Regexp.last_match[1].length
+          end
+        end
+        self
+      end
+    end
+
     def initialize(ctx = nil, ifile = nil, debug: false)
       @buffer = +""
 
@@ -4734,45 +4773,6 @@ class Packcr
     def do_action(thunks, values, index)
       thunks.each do |thunk|
         thunk.do_action(self, values, index)
-      end
-    end
-
-    class Location
-      attr_reader :charnum, :linenum
-
-      def initialize(charnum = 0, linenum = 0)
-        @charnum = charnum
-        @linenum = linenum
-      end
-
-      def +(other)
-        if other.linenum.zero?
-          Location.new(@charnum + other.charnum, @linenum + other.linenum)
-        else
-          Location.new(           other.charnum, @linenum + other.linenum)
-        end
-      end
-
-      def -(other)
-        raise "unexpected location #{inspect} - #{other.inspect}" unless other.linenum == linenum || other.charnum.zero?
-
-        Location.new(@charnum - other.charnum, @linenum - other.linenum)
-      end
-
-      def forward(buffer, cur, n)
-        Location.new(@charnum, @linenum).forward!(buffer, cur, n)
-      end
-
-      def forward!(buffer, cur, n)
-        buffer[cur, n].scan(/(.*)(\n)?/) do
-          if Regexp.last_match[2]
-            @linenum += 1
-            @charnum = 0
-          else
-            @charnum += Regexp.last_match[1].length
-          end
-        end
-        self
       end
     end
 

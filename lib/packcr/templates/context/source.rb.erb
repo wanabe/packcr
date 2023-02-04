@@ -6,10 +6,12 @@
 <%-   end -%>
 <%- end -%>
 class <%= class_name %>
-  <%- if !code(:source).empty? -%>
-  <%-   code(:source).each do |code| -%>
-  <%=     stream.get_code_block(code, 2, @iname) -%>
-  <%-   end -%>
+  <%- code(:location).each do |code| -%>
+  <%- %><%= stream.get_code_block(code, 2, @iname) -%>
+
+  <%- end -%>
+  <%- code(:source).each do |code| -%>
+  <%=   stream.get_code_block(code, 2, @iname) -%>
 
   <%- end -%>
   def initialize(<% if @auxil_type %><%= auxil_type %>, <% end %>debug: false)
@@ -225,10 +227,6 @@ class <%= class_name %>
     end
   end
 
-  <%-   code(:location).each do |code| -%>
-  <%- %><%= stream.get_code_block(code, 2, @iname) -%>
-
-  <%-   end -%>
   class LrMemoTable
     def initialize
       @memos = {}

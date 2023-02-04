@@ -278,11 +278,11 @@ class Packcr
         end
         erbout << "class #{class_name}\n".freeze
 
-        if !code(:source).empty?
-          code(:source).each do |code|
-            erbout << "  #{stream.get_code_block(code, 2, @iname)}".freeze
-          end
-          erbout << "\n".freeze
+        code(:location).each do |code|
+          erbout << "#{stream.get_code_block(code, 2, @iname)}\n".freeze
+        end
+        code(:source).each do |code|
+          erbout << "  #{stream.get_code_block(code, 2, @iname)}\n".freeze
         end
         erbout << "  def initialize(".freeze
         if @auxil_type
@@ -434,12 +434,7 @@ class Packcr
         if @location
           erbout << "        memo.offset_loc = @position_offset_loc\n".freeze
         end
-        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n\n".freeze
-
-        code(:location).each do |code|
-          erbout << "#{stream.get_code_block(code, 2, @iname)}\n".freeze
-        end
-        erbout << "  class LrMemoTable\n    def initialize\n      @memos = {}\n    end\n\n    def clear\n      @memos.clear\n    end\n\n    def []=(index, rule_name, memo)\n      entry = @memos[index] ||= {}\n      entry[rule_name] = memo\n    end\n\n    def [](index, rule_name)\n      @memos.dig(index, rule_name)\n    end\n  end\n\n  class LrMemo\n    attr_accessor :grow, :answer, :offset, :fail\n".freeze
+        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n\n  class LrMemoTable\n    def initialize\n      @memos = {}\n    end\n\n    def clear\n      @memos.clear\n    end\n\n    def []=(index, rule_name, memo)\n      entry = @memos[index] ||= {}\n      entry[rule_name] = memo\n    end\n\n    def [](index, rule_name)\n      @memos.dig(index, rule_name)\n    end\n  end\n\n  class LrMemo\n    attr_accessor :grow, :answer, :offset, :fail\n".freeze
 
         if @location
           erbout << "    attr_accessor :offset_loc\n".freeze
