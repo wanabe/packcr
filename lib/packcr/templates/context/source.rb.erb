@@ -197,11 +197,13 @@ class <%= class_name %>
       answer = public_send(rule, offset<% if @location %>, offset_loc<% end %>, limits: limits)
       memo = @memos[offset, rule]
       if !answer || @position_offset <= memo.offset
-        answer = memo.answer
-        @position_offset = memo.offset
-        <%- if @location -%>
-        @position_offset_loc = memo.offset_loc
-        <%- end -%>
+        if memo
+          answer = memo.answer
+          @position_offset = memo.offset
+          <%- if @location -%>
+          @position_offset_loc = memo.offset_loc
+          <%- end -%>
+        end
       else
         memo.answer = answer
         memo.offset = @position_offset

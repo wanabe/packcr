@@ -181,12 +181,12 @@ class Packcr
         if @location
           erbout << ", offset_loc".freeze
         end
-        erbout << ", limits);\n        memo = packcr_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);\n        if (memo == NULL || ctx->position_offset <= memo->offset) {\n            c = memo->chunk;\n            ctx->position_offset = memo->offset;\n".freeze
+        erbout << ", limits);\n        memo = packcr_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);\n        if (memo == NULL || ctx->position_offset <= memo->offset) {\n            if (memo) {\n                c = memo->chunk;\n                ctx->position_offset = memo->offset;\n".freeze
 
         if @location
-          erbout << "            ctx->position_offset_loc = memo->offset_loc;\n".freeze
+          erbout << "                ctx->position_offset_loc = memo->offset_loc;\n".freeze
         end
-        erbout << "        } else {\n            packcr_lr_memo__set_chunk(ctx, memo, c);\n            memo->offset = ctx->position_offset;\n".freeze
+        erbout << "            }\n        } else {\n            packcr_lr_memo__set_chunk(ctx, memo, c);\n            memo->offset = ctx->position_offset;\n".freeze
 
         if @location
           erbout << "            memo->offset_loc = ctx->position_offset_loc;\n".freeze
@@ -424,12 +424,12 @@ class Packcr
         if @location
           erbout << ", offset_loc".freeze
         end
-        erbout << ", limits: limits)\n      memo = @memos[offset, rule]\n      if !answer || @position_offset <= memo.offset\n        answer = memo.answer\n        @position_offset = memo.offset\n".freeze
+        erbout << ", limits: limits)\n      memo = @memos[offset, rule]\n      if !answer || @position_offset <= memo.offset\n        if memo\n          answer = memo.answer\n          @position_offset = memo.offset\n".freeze
 
         if @location
-          erbout << "        @position_offset_loc = memo.offset_loc\n".freeze
+          erbout << "          @position_offset_loc = memo.offset_loc\n".freeze
         end
-        erbout << "      else\n        memo.answer = answer\n        memo.offset = @position_offset\n".freeze
+        erbout << "        end\n      else\n        memo.answer = answer\n        memo.offset = @position_offset\n".freeze
 
         if @location
           erbout << "        memo.offset_loc = @position_offset_loc\n".freeze

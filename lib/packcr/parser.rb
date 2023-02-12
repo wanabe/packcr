@@ -4749,9 +4749,11 @@ class Packcr
         answer = public_send(rule, offset, offset_loc, limits: limits)
         memo = @memos[offset, rule]
         if !answer || @position_offset <= memo.offset
-          answer = memo.answer
-          @position_offset = memo.offset
-          @position_offset_loc = memo.offset_loc
+          if memo
+            answer = memo.answer
+            @position_offset = memo.offset
+            @position_offset_loc = memo.offset_loc
+          end
         else
           memo.answer = answer
           memo.offset = @position_offset

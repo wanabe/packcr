@@ -952,11 +952,13 @@ static packcr_bool_t packcr_apply_rule(packcr_context_t *ctx, packcr_rule_t rule
         c = rule(ctx, offset<% if @location %>, offset_loc<% end %>, limits);
         memo = packcr_lr_table__get_memo(ctx, &ctx->lrtable, offset, rule);
         if (memo == NULL || ctx->position_offset <= memo->offset) {
-            c = memo->chunk;
-            ctx->position_offset = memo->offset;
-            <%- if @location -%>
-            ctx->position_offset_loc = memo->offset_loc;
-            <%- end -%>
+            if (memo) {
+                c = memo->chunk;
+                ctx->position_offset = memo->offset;
+                <%- if @location -%>
+                ctx->position_offset_loc = memo->offset_loc;
+                <%- end -%>
+            }
         } else {
             packcr_lr_memo__set_chunk(ctx, memo, c);
             memo->offset = ctx->position_offset;
