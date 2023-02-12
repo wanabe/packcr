@@ -112,45 +112,43 @@ class Packcr
         case gen.lang
         when :c
           erbout = +""
-          erbout << "{\n".freeze
-
-          l = gen.next_label
-          erbout << "    const size_t p = ctx->position_offset;\n".freeze
-
-          if gen.location
-            erbout << "    const packcr_location_t p_loc = ctx->position_offset_loc;\n".freeze
-          end
-          erbout << "    const size_t n = chunk->thunks.len;\n".freeze
-
           r = expr.reachability
-          erbout << "#{gen.generate_code(expr, l, 4, false)}".freeze
-          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+          if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
+            erbout << "#{gen.generate_code(expr, nil, 0, true)}".freeze
+          else
+            erbout << "{\n".freeze
+
+            l = gen.next_label
+            erbout << "    const size_t p = ctx->position_offset;\n".freeze
+
+            if gen.location
+              erbout << "    const packcr_location_t p_loc = ctx->position_offset_loc;\n".freeze
+            end
+            erbout << "    const size_t n = chunk->thunks.len;\n#{gen.generate_code(expr, l, 4, false)}".freeze
             m = gen.next_label
             erbout << "    goto L#{format("%04d", m)};\nL#{format("%04d", l)}:;\n".freeze
 
             if gen.location
               erbout << "    ctx->position_offset_loc = p_loc;\n".freeze
             end
-            erbout << "    ctx->position_offset = p;\n    packcr_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\nL#{format("%04d", m)}:;\n".freeze
+            erbout << "    ctx->position_offset = p;\n    packcr_thunk_array__revert(ctx->auxil, &chunk->thunks, n);\nL#{format("%04d", m)}:;\n}\n".freeze
           end
-          erbout << "}\n".freeze
-
           erbout
         when :rb
           erbout = +""
-          l = gen.next_label
-          erbout << "pos#{gen.level} = @position_offset\n".freeze
-
-          if gen.location
-            erbout << "p_loc#{gen.level} = @position_offset_loc\n".freeze
-          end
-          erbout << "n#{gen.level} = answer.thunks.length\n".freeze
-
           r = expr.reachability
           if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
 
-            erbout << "#{gen.generate_code(expr, l, 0, false)}".freeze
+            erbout << "#{gen.generate_code(expr, nil, 0, true)}".freeze
           else
+            l = gen.next_label
+            erbout << "pos#{gen.level} = @position_offset\n".freeze
+
+            if gen.location
+              erbout << "p_loc#{gen.level} = @position_offset_loc\n".freeze
+            end
+            erbout << "n#{gen.level} = answer.thunks.length\n".freeze
+
             m = gen.next_label
             erbout << "catch(#{m}) do\n  catch(#{l}) do\n#{gen.generate_code(expr, l, 4, false)}    throw(#{m})\n  end\n".freeze
 

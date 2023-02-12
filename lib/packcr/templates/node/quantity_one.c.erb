@@ -1,13 +1,15 @@
+<%- r = expr.reachability -%>
+<%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+<%= gen.generate_code(expr, nil, 0, true) -%>
+<%- else -%>
 {
 <%- l = gen.next_label -%>
     const size_t p = ctx->position_offset;
-<%- if gen.location -%>
+<%-   if gen.location -%>
     const packcr_location_t p_loc = ctx->position_offset_loc;
-<%- end -%>
+<%-   end -%>
     const size_t n = chunk->thunks.len;
-<%- r = expr.reachability -%>
 <%= gen.generate_code(expr, l, 4, false) -%>
-<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-   m = gen.next_label -%>
     goto L<%= format("%04d", m) %>;
 L<%= format("%04d", l) %>:;
@@ -17,5 +19,5 @@ L<%= format("%04d", l) %>:;
     ctx->position_offset = p;
     packcr_thunk_array__revert(ctx->auxil, &chunk->thunks, n);
 L<%= format("%04d", m) %>:;
-<%- end -%>
 }
+<%- end -%>

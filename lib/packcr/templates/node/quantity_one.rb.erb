@@ -1,13 +1,13 @@
+<%- r = expr.reachability -%>
+<%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+<%- %><%= gen.generate_code(expr, nil, 0, true) -%>
+<%- else -%>
 <%- l = gen.next_label -%>
 pos<%= gen.level %> = @position_offset
 <%- if gen.location -%>
 p_loc<%= gen.level %> = @position_offset_loc
 <%- end -%>
 n<%= gen.level %> = answer.thunks.length
-<%- r = expr.reachability -%>
-<%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-<%- %><%= gen.generate_code(expr, l, 0, false) -%>
-<%- else -%>
 <%-   m = gen.next_label -%>
 catch(<%= m %>) do
   catch(<%= l %>) do
