@@ -7,6 +7,7 @@ class Packcr
           erbout = +""
           erbout << "{\n".freeze
 
+          r = expr.reachability
           if min > 0
             erbout << "    const size_t p0 = ctx->position_offset;\n".freeze
 
@@ -23,15 +24,15 @@ class Packcr
           else
             erbout << "    for (i = 0; i < #{max}; i++) {\n".freeze
           end
-          erbout << "        const size_t p = ctx->position_offset;\n".freeze
+          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+            erbout << "        const size_t p = ctx->position_offset;\n".freeze
 
-          if gen.location
-            erbout << "        const packcr_location_t p_loc = ctx->position_offset_loc;\n".freeze
+            if gen.location
+              erbout << "        const packcr_location_t p_loc = ctx->position_offset_loc;\n".freeze
+            end
+            erbout << "        const size_t n = chunk->thunks.len;\n".freeze
           end
-          erbout << "        const size_t n = chunk->thunks.len;\n".freeze
-
           l = gen.next_label
-          r = expr.reachability
           erbout << "#{gen.generate_code(expr, l, 8, false)}        if (ctx->position_offset == p) break;\n".freeze
 
           if r != Packcr::CODE_REACH__ALWAYS_SUCCEED

@@ -1,4 +1,5 @@
 {
+<%- r = expr.reachability -%>
 <%- if min > 0 -%>
     const size_t p0 = ctx->position_offset;
 <%-   if gen.location -%>
@@ -12,13 +13,14 @@
 <%- else -%>
     for (i = 0; i < <%= max %>; i++) {
 <%- end -%>
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
         const size_t p = ctx->position_offset;
-<%- if gen.location -%>
+<%-   if gen.location -%>
         const packcr_location_t p_loc = ctx->position_offset_loc;
-<%- end -%>
+<%-   end -%>
         const size_t n = chunk->thunks.len;
+<%- end -%>
 <%- l = gen.next_label -%>
-<%- r = expr.reachability -%>
 <%= gen.generate_code(expr, l, 8, false) -%>
         if (ctx->position_offset == p) break;
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
