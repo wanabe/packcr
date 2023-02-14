@@ -5,8 +5,8 @@ class Packcr
     def unescape_string(str, is_charclass)
       if is_charclass
         str.gsub!("\\" * 2) { "\\" * 4 }
-        str.gsub!("\"") { "\\\"" }
       end
+      str.gsub!("\"") { "\\\"" }
       str.gsub!(/\\(.)/) do
         c = ::Regexp.last_match(1)
         case c
