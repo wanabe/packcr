@@ -13,8 +13,8 @@
 <%- else -%>
     for (i = 0; i < <%= max %>; i++) {
 <%- end -%>
-<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
         const size_t p = ctx->position_offset;
+<%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 <%-   if gen.location -%>
         const packcr_location_t p_loc = ctx->position_offset_loc;
 <%-   end -%>

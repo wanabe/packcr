@@ -24,9 +24,9 @@ class Packcr
           else
             erbout << "    for (i = 0; i < #{max}; i++) {\n".freeze
           end
-          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
-            erbout << "        const size_t p = ctx->position_offset;\n".freeze
+          erbout << "        const size_t p = ctx->position_offset;\n".freeze
 
+          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
             if gen.location
               erbout << "        const packcr_location_t p_loc = ctx->position_offset_loc;\n".freeze
             end
