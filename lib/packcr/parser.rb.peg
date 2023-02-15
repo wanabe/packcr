@@ -97,9 +97,9 @@ code <- codechar+
       / quotation_single
       / quotation_double
       / '{' code* '}'
-codechar <- [^{}"'] / '\\\"' / '\\\'' / '\{' / '\}'
+codechar <- [^{}"'] / '\\"' / '\\\'' / '\{' / '\}'
 quotation_single <- '\'' < ( [^\\'\n] / '\\\'' / '\\\n' / '\\' [^\'\n] )*> '\'' { $$ = $1 }
-quotation_double <- '\"' < ( [^\\"\n] / '\\\"' / '\\\n' / '\\' [^"\n] )*> '\"' { $$ = $1 }
+quotation_double <- '"' < ( [^\\"\n] / '\\"' / '\\\n' / '\\' [^"\n] )*> '"' { $$ = $1 }
 
 identifier <- [a-zA-Z_] [a-zA-Z_0-9]* { $$ = $0 }
 
