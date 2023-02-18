@@ -5,6 +5,7 @@ statement <- comment
            / directive_include
            / directive_string
            / directive_value
+           / directive_comment
            / rule
            / footer
            / EOF
@@ -38,6 +39,8 @@ directive_string <- '%value' opt_spaces_or_comments strings:lang_strings { strin
                   / '%' < identifier > opt_spaces_or_comments str:quotation_double { @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Invalid directive: #{$1}" }
 
 directive_value <- '%capture' spaces ('on' / 'true') { @ctx.capture_in_code = true }
+
+directive_comment <- '%#' spaces? <[^\n]*> (lf / EOF) { Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << Packcr::CodeBlock.new(@ctx.line_comment_code($1), $0sl.linenum, $0sl.charnum) }
 
 lang_strings <- strings:lang_strings opt_spaces_or_comments string:lang_string { strings.push(string) if string; $$ = strings }
               / string:lang_string { $$ = string ? [string] : [] }

@@ -363,6 +363,23 @@ class Packcr
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
 
+    def action_directive_comment_0(__packcr_in, __packcr_vars, __packcr_index)
+      ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
+      __0 = __packcr_in.capt0.capture_string(@buffer)
+      __0s = @buffer_start_position + __packcr_in.capt0.range_start
+      __0e = @buffer_start_position + __packcr_in.capt0.range_end
+      __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
+      __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
+      __1 = __packcr_in.capts[0].capture_string(@buffer)
+      __1s = @buffer_start_position + __packcr_in.capts[0].range_start
+      __1e = @buffer_start_position + __packcr_in.capts[0].range_end
+      __1sl = @buffer_start_position_loc + __packcr_in.capts[0].start_loc
+      __1el = @buffer_start_position_loc + __packcr_in.capts[0].end_loc
+      Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << Packcr::CodeBlock.new(@ctx.line_comment_code(__1), __0sl.linenum, __0sl.charnum)
+
+      __packcr_vars[__packcr_index].value = ____ if __packcr_vars
+    end
+
     def action_lang_strings_0(__packcr_in, __packcr_vars, __packcr_index)
       ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
       strings = (__packcr_in.value_refs[0]  ||= Value.new).value
@@ -972,6 +989,16 @@ class Packcr
               throw(1)
             end
           elsif apply_rule(:evaluate_rule_directive_value, answer.thunks, nil, 0, offset, offset_loc)
+            throw(1)
+          end
+          @position_offset = pos2
+          @position_offset_loc = p_loc2
+          answer.thunks[n2..-1] = []
+          if limits && @position_offset == offset && !limits[:evaluate_rule_directive_comment]
+            if apply_rule(:evaluate_rule_directive_comment, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(1)
+            end
+          elsif apply_rule(:evaluate_rule_directive_comment, answer.thunks, nil, 0, offset, offset_loc)
             throw(1)
           end
           @position_offset = pos2
@@ -1963,6 +1990,123 @@ class Packcr
       end
       @level -= 1
       debug { warn "#{"  " * @level}NOMATCH directive_value #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
+      nil
+    end
+
+    def evaluate_rule_directive_comment(offset, offset_loc, limits: nil)
+      answer = ThunkChunk.new
+      answer.pos = @position_offset
+      answer.pos_loc = @position_offset_loc
+      debug { warn "#{"  " * @level}EVAL    directive_comment #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
+      @level += 1
+      answer.resize_captures(1)
+      catch(0) do
+        if refill_buffer(2) < 2 ||
+           @buffer[@position_offset, 2] != "%#"
+
+          throw(0)
+        end
+        @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
+        @position_offset += 2
+        pos3 = @position_offset
+        p_loc3 = @position_offset_loc
+        n3 = answer.thunks.length
+        catch(2) do
+          catch(1) do
+            if limits && @position_offset == offset && !limits[:evaluate_rule_spaces]
+              if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+                throw(1)
+              end
+            elsif !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc)
+              throw(1)
+            end
+            throw(2)
+          end
+          @position_offset_loc = p_loc3
+          @position_offset = pos3
+          answer.thunks[n3..-1] = []
+        end
+        pos3 = @position_offset
+        p_loc3 = @position_offset_loc
+        i4 = 0
+        pos4 = nil
+        p_loc4 = nil
+        n4 = nil
+        catch(3) do
+          pos4 = @position_offset
+          p_loc4 = @position_offset_loc
+          n4 = answer.thunks.length
+          if refill_buffer(1) < 1
+            throw(3)
+          end
+          u5 = @buffer[@position_offset]
+          if u5 == "\n"
+
+            throw(3)
+          end
+          @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
+          @position_offset += 1
+          i4 += 1
+          if @position_offset != pos4
+            redo
+          end
+          pos4 = nil
+        end
+        if pos4
+          @position_offset = pos4
+          @position_offset_loc = p_loc4
+          answer.thunks[n4..-1] = []
+        end
+        q3 = @position_offset
+        capt3 = answer.capts[0]
+        capt3.range_start = pos3
+        capt3.range_end = q3
+        q_loc3 = @position_offset_loc
+        capt3.start_loc = p_loc3
+        capt3.end_loc = q_loc3
+        catch(4) do
+          pos3 = @position_offset
+          p_loc3 = @position_offset_loc
+          n3 = answer.thunks.length
+          if limits && @position_offset == offset && !limits[:evaluate_rule_lf]
+            if apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          elsif apply_rule(:evaluate_rule_lf, answer.thunks, nil, 0, offset, offset_loc)
+            throw(4)
+          end
+          @position_offset = pos3
+          @position_offset_loc = p_loc3
+          answer.thunks[n3..-1] = []
+          if limits && @position_offset == offset && !limits[:evaluate_rule_EOF]
+            if apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+              throw(4)
+            end
+          elsif apply_rule(:evaluate_rule_EOF, answer.thunks, nil, 0, offset, offset_loc)
+            throw(4)
+          end
+          @position_offset = pos3
+          @position_offset_loc = p_loc3
+          answer.thunks[n3..-1] = []
+          throw(0)
+        end
+        answer.thunks.push(
+          ThunkLeaf.new(
+            :action_directive_comment_0,
+            Capture.new(
+              answer.pos, @position_offset,
+              answer.pos_loc, @position_offset_loc,
+            ),
+            {},
+            answer.capts.slice(0),
+          ),
+        )
+        @level -= 1
+        debug { warn "#{"  " * @level}MATCH   directive_comment #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
+        return answer
+      end
+      @level -= 1
+      debug { warn "#{"  " * @level}NOMATCH directive_comment #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
       nil
     end
 

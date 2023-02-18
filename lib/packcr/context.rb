@@ -96,6 +96,17 @@ class Packcr
       end
     end
 
+    def line_comment_code(line)
+      line = line.chomp
+      case @lang
+      when :c
+        line.gsub("*/", "* /")
+        "/* #{line} */"
+      when :rb
+        "# #{line}"
+      end
+    end
+
     def class_name
       prefix.gsub(/(?:_|^|(\W))([a-z])/) { "#{::Regexp.last_match(1)}#{::Regexp.last_match(2)}".upcase }
     end
