@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 2.7.0"
 
   s.bindir      = "exe"
-  s.files       = Dir.glob("lib/**/*.rb") + Dir.glob("lib/**/*.erb") + Dir.glob("exe/*")
+  s.files       = Dir.glob("{#{%w[LICENSE README.md lib/**/*.rb lib/**/*.erb exe/*].join(",")}}")
   s.executables = ["packcr"]
 
   s.add_development_dependency "rake", "~> 13.0"
