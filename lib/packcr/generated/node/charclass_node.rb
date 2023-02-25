@@ -92,6 +92,8 @@ class Packcr
           end
           erbout << "@position_offset += 1\n".freeze
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
 
@@ -117,6 +119,8 @@ class Packcr
           erbout << "@position_offset += 1\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
 
@@ -132,6 +136,8 @@ class Packcr
           erbout << "throw(#{onfail})\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
 
@@ -165,6 +171,8 @@ class Packcr
           end
           erbout << "@position_offset += 1\n".freeze
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
 
@@ -295,6 +303,8 @@ class Packcr
           erbout << "@position_offset += 1\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
 
@@ -365,6 +375,8 @@ class Packcr
           erbout << "end\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end

@@ -23,6 +23,8 @@ class Packcr
           erbout << "  @position_offset += n#{gen.level}\nend\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end

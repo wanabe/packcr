@@ -106,6 +106,8 @@ class Packcr
             erbout << "  answer.thunks[m#{gen.level}..-1] = []\n  throw(#{onfail})\nend\n".freeze
           end
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
 
@@ -159,6 +161,8 @@ class Packcr
             erbout << "  @position_offset = pos#{gen.level}\n  answer.thunks[n#{gen.level}..-1] = []\nend\n".freeze
           end
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end

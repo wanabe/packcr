@@ -32,6 +32,8 @@ class Packcr
             erbout << "q_loc#{gen.level} = @position_offset_loc\ncapt#{gen.level}.start_loc = p_loc#{gen.level}\ncapt#{gen.level}.end_loc = q_loc#{gen.level}\n".freeze
           end
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end

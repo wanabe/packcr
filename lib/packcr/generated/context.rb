@@ -20,6 +20,8 @@ class Packcr
         erbout << "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\ntypedef struct #{prefix}_context_tag #{prefix}_context_t;\n\n#{prefix}_context_t *#{prefix}_create(#{auxil_def}auxil);\nint #{prefix}_parse(#{prefix}_context_t *ctx, #{value_def}*ret);\nvoid #{prefix}_destroy(#{prefix}_context_t *ctx);\n\n#ifdef __cplusplus\n}\n#endif\n\n#endif /* !PACKCR_INCLUDED_#{@hid} */\n".freeze
 
         erbout
+      else
+        raise "unknown lang #{lang}"
       end
     end
 
@@ -482,6 +484,8 @@ class Packcr
           end
         end
         erbout
+      else
+        raise "unknown lang #{lang}"
       end
     end
   end

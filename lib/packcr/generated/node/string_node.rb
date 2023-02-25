@@ -28,6 +28,8 @@ class Packcr
           erbout << "@position_offset += #{n}\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
 
@@ -53,6 +55,8 @@ class Packcr
           erbout << "@position_offset += 1\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end

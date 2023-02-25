@@ -35,6 +35,8 @@ class Packcr
             break
           end
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end

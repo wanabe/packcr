@@ -45,7 +45,9 @@ def generate_code(t, namespace, base, selector, args_map)
       EOS
     end
     scr << <<~EOS
-      end
+        else
+          raise "unknown lang \#{#{selector}}"
+        end
       end
     EOS
   end

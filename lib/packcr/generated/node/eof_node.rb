@@ -13,6 +13,8 @@ class Packcr
           erbout << "if refill_buffer(1) >= 1\n  throw(#{onfail})\nend\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end

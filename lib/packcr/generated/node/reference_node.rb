@@ -37,6 +37,8 @@ class Packcr
           end
           erbout << ")\n    throw(#{onfail})\n  end\nend\n".freeze
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
 
@@ -63,6 +65,8 @@ class Packcr
           end
           erbout << ")\n    throw(#{onsuccess})\n  end\nend\n".freeze
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end

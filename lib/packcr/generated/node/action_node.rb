@@ -53,6 +53,8 @@ class Packcr
           erbout << "  )\n)\n".freeze
 
           erbout
+        else
+          raise "unknown lang #{gen.lang}"
         end
       end
     end
