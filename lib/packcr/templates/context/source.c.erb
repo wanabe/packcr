@@ -994,6 +994,33 @@ static void packcr_do_action(packcr_context_t *ctx, const packcr_thunk_array_t *
     }
 }
 
+<%= prefix %>_context_t *<%= prefix %>_create(<%= auxil_def %>auxil) {
+    return packcr_context__create(auxil);
+}
+
+void <%= prefix %>_destroy(<%= prefix %>_context_t *ctx) {
+    packcr_context__destroy(ctx);
+}
+<%- if !@root.rules.empty? -%>
+
+<%-   @root.rules.each do |rule| -%>
+static packcr_thunk_chunk_t *packcr_evaluate_rule_<%= rule.name %>(packcr_context_t *ctx, size_t offset<% if @location %>, packcr_location_t offset_loc<% end %>, packcr_rule_set_t *limits);
+<%-   end -%>
+<%- end -%>
+
+int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
+    size_t pos = ctx->buffer_start_position;
+<%- if !@root.rules.empty? -%>
+    if (packcr_apply_rule(ctx, packcr_evaluate_rule_<%= @root.rules[0].name %>, &ctx->thunks, ret, ctx->position_offset<% if @location %>, ctx->position_offset_loc<% end %>, NULL))
+        packcr_do_action(ctx, &ctx->thunks, ret);
+    else
+        PACKCR_ERROR(ctx->auxil);
+    packcr_commit_buffer(ctx);
+<%- end -%>
+    packcr_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);
+    return pos != ctx->buffer_start_position && packcr_refill_buffer(ctx, 1) >= 1;
+}
+
 <%- @root.rules.each do |rule| -%>
 <%-   rule.codes.each do |code| -%>
 static void packcr_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__packcr_ctx, packcr_thunk_t *__packcr_in, packcr_value_t *__packcr_out) {
@@ -1046,35 +1073,12 @@ static void packcr_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_conte
 
 <%-   end -%>
 <%- end -%>
-<%- @root.rules.each do |rule| -%>
-static packcr_thunk_chunk_t *packcr_evaluate_rule_<%= rule.name %>(packcr_context_t *ctx, size_t offset<% if @location %>, packcr_location_t offset_loc<% end %>, packcr_rule_set_t *limits);
-<%- end -%>
 
 <%- @root.rules.each do |rule| -%>
 <%-   gen = ::Packcr::Generator.new(rule, @ascii, @location) -%>
 <%=   gen.generate_code(rule, 0, 0, false) -%>
 
 <%- end -%>
-<%= prefix %>_context_t *<%= prefix %>_create(<%= auxil_def %>auxil) {
-    return packcr_context__create(auxil);
-}
-
-int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
-    size_t pos = ctx->buffer_start_position;
-<%- if !@root.rules.empty? -%>
-    if (packcr_apply_rule(ctx, packcr_evaluate_rule_<%= @root.rules[0].name %>, &ctx->thunks, ret, ctx->position_offset<% if @location %>, ctx->position_offset_loc<% end %>, NULL))
-        packcr_do_action(ctx, &ctx->thunks, ret);
-    else
-        PACKCR_ERROR(ctx->auxil);
-    packcr_commit_buffer(ctx);
-<%- end -%>
-    packcr_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);
-    return pos != ctx->buffer_start_position && packcr_refill_buffer(ctx, 1) >= 1;
-}
-
-void <%= prefix %>_destroy(<%= prefix %>_context_t *ctx) {
-    packcr_context__destroy(ctx);
-}
 <%- if !code(:lsource).empty? -%>
 
 <%-   code(:lsource).each do |code| -%>

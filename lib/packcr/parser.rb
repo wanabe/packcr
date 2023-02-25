@@ -41,6 +41,114 @@ class Packcr
       end
     end
 
+    class LrMemoTable
+      def initialize
+        @memos = {}
+      end
+
+      def clear
+        @memos.clear
+      end
+
+      def []=(index, rule_name, memo)
+        entry = @memos[index] ||= {}
+        entry[rule_name] = memo
+      end
+
+      def [](index, rule_name)
+        @memos.dig(index, rule_name)
+      end
+    end
+
+    class LrMemo
+      attr_accessor :grow, :answer, :offset, :fail, :offset_loc
+
+      def initialize(offset, offset_loc)
+        @offset = offset
+        @offset_loc = offset_loc
+        @fail = true
+        @grow = false
+      end
+
+      def answer=(answer)
+        @fail = nil
+        @answer = answer
+      end
+    end
+
+    class ThunkChunk
+      attr_accessor :thunks, :capts, :pos, :values, :pos_loc
+
+      def initialize
+        super
+        @thunks = []
+        @capts = {}
+        @pos = 0
+        @values = {}
+      end
+
+      def resize_captures(len)
+        len.times do |i|
+          @capts[i] = Capture.new
+        end
+      end
+    end
+
+    class ThunkLeaf
+      attr_accessor :capt0, :capts, :value_refs, :action
+
+      def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})
+        @value_refs = value_refs
+        @capts = capts
+        @capt0 = capt0
+        @action = action
+      end
+
+      def do_action(ctx, values, index)
+        ctx.public_send(action, self, values, index)
+      end
+    end
+
+    class ThunkNode
+      attr_accessor :thunks, :values, :index
+
+      def initialize(thunks, values, index)
+        @thunks = thunks
+        @values = values
+        @index = index
+        values[index] ||= Value.new if values
+      end
+
+      def do_action(ctx, _values, _index)
+        @thunks.each do |thunk|
+          thunk.do_action(ctx, @values, @index)
+        end
+      end
+
+      def clear
+        @thunks.clear
+      end
+    end
+
+    class Capture
+      attr_accessor :range_start, :range_end, :start_loc, :end_loc
+
+      def initialize(range_start = 0, range_end = 0, start_loc = nil, end_loc = nil)
+        @range_start = range_start
+        @range_end = range_end
+        @start_loc = start_loc || Location.new
+        @end_loc = end_loc || Location.new
+      end
+
+      def capture_string(buffer)
+        @capture_string ||= buffer[@range_start, @range_end - @range_start]
+      end
+    end
+
+    class Value
+      attr_accessor :value
+    end
+
     def initialize(ctx = nil, ifile = nil, debug: false)
       @buffer = +""
 
@@ -106,6 +214,89 @@ class Packcr
 
     def run
       nil while parse
+    end
+
+    def grow_lr(rule, offset, offset_loc)
+      while true
+        old_offset = @position_offset
+        @position_offset = offset
+        @position_offset_loc = offset_loc
+        answer = public_send(rule, offset, offset_loc, limits: { rule => true })
+        if !answer || @position_offset <= old_offset
+          break
+        end
+
+        memo = @memos[offset, rule]
+        memo.answer = answer
+        memo.offset = @position_offset
+        memo.offset_loc = @position_offset_loc
+      end
+    end
+
+    def rule_answer(rule)
+      offset = @position_offset
+      offset_loc = @position_offset_loc
+      memo = @memos[offset, rule]
+
+      if !memo
+        memo = LrMemo.new(offset, offset_loc)
+        @memos[offset, rule] = memo
+        answer = public_send(rule, offset, offset_loc)
+        memo.answer = answer
+        memo.offset = @position_offset
+        memo.offset_loc = @position_offset_loc
+        if memo.grow
+          grow_lr(rule, offset, offset_loc)
+          memo.grow = false
+          answer = memo.answer
+          @position_offset = memo.offset
+          @position_offset_loc = memo.offset_loc
+        end
+        answer
+      elsif memo.fail
+        memo.answer = nil
+        memo.grow = true
+        nil
+      else
+        @position_offset = memo.offset
+        @position_offset_loc = memo.offset_loc
+        memo.answer
+      end
+    end
+
+    def apply_rule(rule, thunks, values, index, offset, offset_loc, limits: nil)
+      if limits
+        limits = limits.merge(rule => true)
+        answer = public_send(rule, offset, offset_loc, limits: limits)
+        memo = @memos[offset, rule]
+        if !answer || @position_offset <= memo.offset
+          if memo
+            answer = memo.answer
+            @position_offset = memo.offset
+            @position_offset_loc = memo.offset_loc
+          end
+        else
+          memo.answer = answer
+          memo.offset = @position_offset
+          memo.offset_loc = @position_offset_loc
+        end
+      else
+        answer = rule_answer(rule)
+      end
+
+      if !answer
+        return false
+      end
+
+      values ||= @global_values
+      thunks << ThunkNode.new(answer.thunks, values, index)
+      true
+    end
+
+    def do_action(thunks, values, index)
+      thunks.each do |thunk|
+        thunk.do_action(self, values, index)
+      end
     end
 
     def action_statement_0(__packcr_in, __packcr_vars, __packcr_index)
@@ -4837,197 +5028,6 @@ class Packcr
       @level -= 1
       debug { warn "#{"  " * @level}NOMATCH EOF #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
       nil
-    end
-
-    def grow_lr(rule, offset, offset_loc)
-      while true
-        old_offset = @position_offset
-        @position_offset = offset
-        @position_offset_loc = offset_loc
-        answer = public_send(rule, offset, offset_loc, limits: { rule => true })
-        if !answer || @position_offset <= old_offset
-          break
-        end
-
-        memo = @memos[offset, rule]
-        memo.answer = answer
-        memo.offset = @position_offset
-        memo.offset_loc = @position_offset_loc
-      end
-    end
-
-    def rule_answer(rule)
-      offset = @position_offset
-      offset_loc = @position_offset_loc
-      memo = @memos[offset, rule]
-
-      if !memo
-        memo = LrMemo.new(offset, offset_loc)
-        @memos[offset, rule] = memo
-        answer = public_send(rule, offset, offset_loc)
-        memo.answer = answer
-        memo.offset = @position_offset
-        memo.offset_loc = @position_offset_loc
-        if memo.grow
-          grow_lr(rule, offset, offset_loc)
-          memo.grow = false
-          answer = memo.answer
-          @position_offset = memo.offset
-          @position_offset_loc = memo.offset_loc
-        end
-        answer
-      elsif memo.fail
-        memo.answer = nil
-        memo.grow = true
-        nil
-      else
-        @position_offset = memo.offset
-        @position_offset_loc = memo.offset_loc
-        memo.answer
-      end
-    end
-
-    def apply_rule(rule, thunks, values, index, offset, offset_loc, limits: nil)
-      if limits
-        limits = limits.merge(rule => true)
-        answer = public_send(rule, offset, offset_loc, limits: limits)
-        memo = @memos[offset, rule]
-        if !answer || @position_offset <= memo.offset
-          if memo
-            answer = memo.answer
-            @position_offset = memo.offset
-            @position_offset_loc = memo.offset_loc
-          end
-        else
-          memo.answer = answer
-          memo.offset = @position_offset
-          memo.offset_loc = @position_offset_loc
-        end
-      else
-        answer = rule_answer(rule)
-      end
-
-      if !answer
-        return false
-      end
-
-      values ||= @global_values
-      thunks << ThunkNode.new(answer.thunks, values, index)
-      true
-    end
-
-    def do_action(thunks, values, index)
-      thunks.each do |thunk|
-        thunk.do_action(self, values, index)
-      end
-    end
-
-    class LrMemoTable
-      def initialize
-        @memos = {}
-      end
-
-      def clear
-        @memos.clear
-      end
-
-      def []=(index, rule_name, memo)
-        entry = @memos[index] ||= {}
-        entry[rule_name] = memo
-      end
-
-      def [](index, rule_name)
-        @memos.dig(index, rule_name)
-      end
-    end
-
-    class LrMemo
-      attr_accessor :grow, :answer, :offset, :fail, :offset_loc
-
-      def initialize(offset, offset_loc)
-        @offset = offset
-        @offset_loc = offset_loc
-        @fail = true
-        @grow = false
-      end
-
-      def answer=(answer)
-        @fail = nil
-        @answer = answer
-      end
-    end
-
-    class ThunkChunk
-      attr_accessor :thunks, :capts, :pos, :values, :pos_loc
-
-      def initialize
-        super
-        @thunks = []
-        @capts = {}
-        @pos = 0
-        @values = {}
-      end
-
-      def resize_captures(len)
-        len.times do |i|
-          @capts[i] = Capture.new
-        end
-      end
-    end
-
-    class ThunkLeaf
-      attr_accessor :capt0, :capts, :value_refs, :action
-
-      def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})
-        @value_refs = value_refs
-        @capts = capts
-        @capt0 = capt0
-        @action = action
-      end
-
-      def do_action(ctx, values, index)
-        ctx.public_send(action, self, values, index)
-      end
-    end
-
-    class ThunkNode
-      attr_accessor :thunks, :values, :index
-
-      def initialize(thunks, values, index)
-        @thunks = thunks
-        @values = values
-        @index = index
-        values[index] ||= Value.new if values
-      end
-
-      def do_action(ctx, _values, _index)
-        @thunks.each do |thunk|
-          thunk.do_action(ctx, @values, @index)
-        end
-      end
-
-      def clear
-        @thunks.clear
-      end
-    end
-
-    class Capture
-      attr_accessor :range_start, :range_end, :start_loc, :end_loc
-
-      def initialize(range_start = 0, range_end = 0, start_loc = nil, end_loc = nil)
-        @range_start = range_start
-        @range_end = range_end
-        @start_loc = start_loc || Location.new
-        @end_loc = end_loc || Location.new
-      end
-
-      def capture_string(buffer)
-        @capture_string ||= buffer[@range_start, @range_end - @range_start]
-      end
-    end
-
-    class Value
-      attr_accessor :value
     end
   end
 

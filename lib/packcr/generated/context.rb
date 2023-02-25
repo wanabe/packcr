@@ -191,7 +191,29 @@ class Packcr
         if @location
           erbout << "            memo->offset_loc = ctx->position_offset_loc;\n".freeze
         end
-        erbout << "        }\n    } else {\n        c = packcr_get_rule_thunk_chunk(ctx, rule);\n    }\n    if (c == NULL) return PACKCR_FALSE;\n    if (value == NULL) value = &null;\n    memset(value, 0, sizeof(packcr_value_t)); /* in case */\n    packcr_thunk_array__add(ctx->auxil, thunks, packcr_thunk__create_node(ctx->auxil, &c->thunks, value));\n    return PACKCR_TRUE;\n}\n\nMARK_FUNC_AS_USED\nstatic void packcr_do_action(packcr_context_t *ctx, const packcr_thunk_array_t *thunks, packcr_value_t *value) {\n    size_t i;\n    for (i = 0; i < thunks->len; i++) {\n        packcr_thunk_t *const thunk = thunks->buf[i];\n        switch (thunk->type) {\n        case PACKCR_THUNK_LEAF:\n            thunk->data.leaf.action(ctx, thunk, value);\n            break;\n        case PACKCR_THUNK_NODE:\n            packcr_do_action(ctx, thunk->data.node.thunks, thunk->data.node.value);\n            break;\n        default: /* unknown */\n            break;\n        }\n    }\n}\n\n".freeze
+        erbout << "        }\n    } else {\n        c = packcr_get_rule_thunk_chunk(ctx, rule);\n    }\n    if (c == NULL) return PACKCR_FALSE;\n    if (value == NULL) value = &null;\n    memset(value, 0, sizeof(packcr_value_t)); /* in case */\n    packcr_thunk_array__add(ctx->auxil, thunks, packcr_thunk__create_node(ctx->auxil, &c->thunks, value));\n    return PACKCR_TRUE;\n}\n\nMARK_FUNC_AS_USED\nstatic void packcr_do_action(packcr_context_t *ctx, const packcr_thunk_array_t *thunks, packcr_value_t *value) {\n    size_t i;\n    for (i = 0; i < thunks->len; i++) {\n        packcr_thunk_t *const thunk = thunks->buf[i];\n        switch (thunk->type) {\n        case PACKCR_THUNK_LEAF:\n            thunk->data.leaf.action(ctx, thunk, value);\n            break;\n        case PACKCR_THUNK_NODE:\n            packcr_do_action(ctx, thunk->data.node.thunks, thunk->data.node.value);\n            break;\n        default: /* unknown */\n            break;\n        }\n    }\n}\n\n#{prefix}_context_t *#{prefix}_create(#{auxil_def}auxil) {\n    return packcr_context__create(auxil);\n}\n\nvoid #{prefix}_destroy(#{prefix}_context_t *ctx) {\n    packcr_context__destroy(ctx);\n}\n".freeze
+
+        if !@root.rules.empty?
+          erbout << "\n".freeze
+
+          @root.rules.each do |rule|
+            erbout << "static packcr_thunk_chunk_t *packcr_evaluate_rule_#{rule.name}(packcr_context_t *ctx, size_t offset".freeze
+            if @location
+              erbout << ", packcr_location_t offset_loc".freeze
+            end
+            erbout << ", packcr_rule_set_t *limits);\n".freeze
+          end
+        end
+        erbout << "\nint #{prefix}_parse(#{prefix}_context_t *ctx, #{value_def}*ret) {\n    size_t pos = ctx->buffer_start_position;\n".freeze
+
+        if !@root.rules.empty?
+          erbout << "    if (packcr_apply_rule(ctx, packcr_evaluate_rule_#{@root.rules[0].name}, &ctx->thunks, ret, ctx->position_offset".freeze
+          if @location
+            erbout << ", ctx->position_offset_loc".freeze
+          end
+          erbout << ", NULL))\n        packcr_do_action(ctx, &ctx->thunks, ret);\n    else\n        PACKCR_ERROR(ctx->auxil);\n    packcr_commit_buffer(ctx);\n".freeze
+        end
+        erbout << "    packcr_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);\n    return pos != ctx->buffer_start_position && packcr_refill_buffer(ctx, 1) >= 1;\n}\n\n".freeze
 
         @root.rules.each do |rule|
           rule.codes.each do |code|
@@ -233,30 +255,12 @@ class Packcr
             erbout << "#undef __\n#undef auxil\n}\n\n".freeze
           end
         end
-        @root.rules.each do |rule|
-          erbout << "static packcr_thunk_chunk_t *packcr_evaluate_rule_#{rule.name}(packcr_context_t *ctx, size_t offset".freeze
-          if @location
-            erbout << ", packcr_location_t offset_loc".freeze
-          end
-          erbout << ", packcr_rule_set_t *limits);\n".freeze
-        end
         erbout << "\n".freeze
 
         @root.rules.each do |rule|
           gen = ::Packcr::Generator.new(rule, @ascii, @location)
           erbout << "#{gen.generate_code(rule, 0, 0, false)}\n".freeze
         end
-        erbout << "#{prefix}_context_t *#{prefix}_create(#{auxil_def}auxil) {\n    return packcr_context__create(auxil);\n}\n\nint #{prefix}_parse(#{prefix}_context_t *ctx, #{value_def}*ret) {\n    size_t pos = ctx->buffer_start_position;\n".freeze
-
-        if !@root.rules.empty?
-          erbout << "    if (packcr_apply_rule(ctx, packcr_evaluate_rule_#{@root.rules[0].name}, &ctx->thunks, ret, ctx->position_offset".freeze
-          if @location
-            erbout << ", ctx->position_offset_loc".freeze
-          end
-          erbout << ", NULL))\n        packcr_do_action(ctx, &ctx->thunks, ret);\n    else\n        PACKCR_ERROR(ctx->auxil);\n    packcr_commit_buffer(ctx);\n".freeze
-        end
-        erbout << "    packcr_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);\n    return pos != ctx->buffer_start_position && packcr_refill_buffer(ctx, 1) >= 1;\n}\n\nvoid #{prefix}_destroy(#{prefix}_context_t *ctx) {\n    packcr_context__destroy(ctx);\n}\n".freeze
-
         if !code(:lsource).empty?
           erbout << "\n".freeze
 
@@ -283,7 +287,40 @@ class Packcr
         code(:source).each do |code|
           erbout << "  #{stream.get_code_block(code, 2, @iname)}\n".freeze
         end
-        erbout << "  def initialize(".freeze
+        erbout << "  class LrMemoTable\n    def initialize\n      @memos = {}\n    end\n\n    def clear\n      @memos.clear\n    end\n\n    def []=(index, rule_name, memo)\n      entry = @memos[index] ||= {}\n      entry[rule_name] = memo\n    end\n\n    def [](index, rule_name)\n      @memos.dig(index, rule_name)\n    end\n  end\n\n  class LrMemo\n    attr_accessor :grow, :answer, :offset, :fail\n".freeze
+
+        if @location
+          erbout << "    attr_accessor :offset_loc\n".freeze
+        end
+        erbout << "\n    def initialize(offset".freeze
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ")\n      @offset = offset\n".freeze
+
+        if @location
+          erbout << "      @offset_loc = offset_loc\n".freeze
+        end
+        erbout << "      @fail = true\n      @grow = false\n    end\n\n    def answer=(answer)\n      @fail = nil\n      @answer = answer\n    end\n  end\n\n  class ThunkChunk\n    attr_accessor :thunks, :capts, :pos, :values\n".freeze
+
+        if @location
+          erbout << "    attr_accessor :pos_loc\n".freeze
+        end
+        erbout << "\n    def initialize\n      super\n      @thunks = []\n      @capts = {}\n      @pos = 0\n      @values = {}\n    end\n\n    def resize_captures(len)\n      len.times do |i|\n        @capts[i] = Capture.new\n      end\n    end\n  end\n\n  class ThunkLeaf\n    attr_accessor :capt0, :capts, :value_refs, :action\n\n    def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})\n      @value_refs = value_refs\n      @capts = capts\n      @capt0 = capt0\n      @action = action\n    end\n\n    def do_action(ctx, values, index)\n      ctx.public_send(action, self, values, index)\n    end\n  end\n\n  class ThunkNode\n    attr_accessor :thunks, :values, :index\n\n    def initialize(thunks, values, index)\n      @thunks = thunks\n      @values = values\n      @index = index\n      values[index] ||= Value.new if values\n    end\n\n    def do_action(ctx, _values, _index)\n      @thunks.each do |thunk|\n        thunk.do_action(ctx, @values, @index)\n      end\n    end\n\n    def clear\n      @thunks.clear\n    end\n  end\n\n  class Capture\n    attr_accessor :range_start, :range_end\n".freeze
+
+        if @location
+          erbout << "    attr_accessor :start_loc, :end_loc\n".freeze
+        end
+        erbout << "\n    def initialize(range_start = 0, range_end = 0".freeze
+        if @location
+          erbout << ", start_loc = nil, end_loc = nil".freeze
+        end
+        erbout << ")\n      @range_start = range_start\n      @range_end = range_end\n".freeze
+
+        if @location
+          erbout << "      @start_loc = start_loc || Location.new\n      @end_loc = end_loc || Location.new\n".freeze
+        end
+        erbout << "    end\n\n    def capture_string(buffer)\n      @capture_string ||= buffer[@range_start, @range_end - @range_start]\n    end\n  end\n\n  class Value\n    attr_accessor :value\n  end\n\n  def initialize(".freeze
         if @auxil_type
           erbout << "#{auxil_type}, ".freeze
         end
@@ -325,43 +362,7 @@ class Packcr
           end
           erbout << ")\n      @thunk.do_action(self, nil, 0)\n    else\n      raise SyntaxError, \"can't parse\"\n    end\n    commit_buffer\n".freeze
         end
-        erbout << "    @thunk.clear\n    refill_buffer(1) >= 1 && pos != @buffer_start_position\n  end\n\n  def run\n    nil while parse\n  end\n\n".freeze
-
-        @root.rules.each do |rule|
-          rule.codes.each do |code|
-            erbout << "  def action_#{rule.name}_#{code.index}(__packcr_in, __packcr_vars, __packcr_index)\n    ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars\n".freeze
-
-            code.vars.each do |ref|
-              erbout << "    #{ref.var} = (__packcr_in.value_refs[#{ref.index}]  ||= Value.new).value\n".freeze
-            end
-            erbout << "    __0 = __packcr_in.capt0.capture_string(@buffer)\n    __0s = @buffer_start_position + __packcr_in.capt0.range_start\n    __0e = @buffer_start_position + __packcr_in.capt0.range_end\n".freeze
-
-            if @location
-              erbout << "    __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc\n    __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc\n".freeze
-            end
-            if @capture_in_code
-              erbout << "    __0c = __packcr_in.capt0\n".freeze
-            end
-            code.capts.each do |capture|
-              erbout << "    __#{capture.index + 1} = __packcr_in.capts[#{capture.index}].capture_string(@buffer)\n    __#{capture.index + 1}s = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_start\n    __#{capture.index + 1}e = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_end\n".freeze
-
-              if @location
-                erbout << "    __#{capture.index + 1}sl = @buffer_start_position_loc + __packcr_in.capts[#{capture.index}].start_loc\n    __#{capture.index + 1}el = @buffer_start_position_loc + __packcr_in.capts[#{capture.index}].end_loc\n".freeze
-              end
-              next unless @capture_in_code
-
-              erbout << "    __#{capture.index + 1}c = __packcr_in.capts[#{capture.index}]\n".freeze
-            end
-
-            erbout << "#{stream.get_code_block(code.code, 4, @iname)}\n    __packcr_vars[__packcr_index].value = ____ if __packcr_vars\n  end\n\n".freeze
-          end
-        end
-        @root.rules.each do |rule|
-          gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb)
-
-          erbout << "#{gen.generate_code(rule, 0, 2, false)}\n".freeze
-        end
-        erbout << "  def grow_lr(rule, offset".freeze
+        erbout << "    @thunk.clear\n    refill_buffer(1) >= 1 && pos != @buffer_start_position\n  end\n\n  def run\n    nil while parse\n  end\n\n  def grow_lr(rule, offset".freeze
         if @location
           erbout << ", offset_loc".freeze
         end
@@ -433,40 +434,45 @@ class Packcr
         if @location
           erbout << "        memo.offset_loc = @position_offset_loc\n".freeze
         end
-        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n\n  class LrMemoTable\n    def initialize\n      @memos = {}\n    end\n\n    def clear\n      @memos.clear\n    end\n\n    def []=(index, rule_name, memo)\n      entry = @memos[index] ||= {}\n      entry[rule_name] = memo\n    end\n\n    def [](index, rule_name)\n      @memos.dig(index, rule_name)\n    end\n  end\n\n  class LrMemo\n    attr_accessor :grow, :answer, :offset, :fail\n".freeze
+        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n".freeze
 
-        if @location
-          erbout << "    attr_accessor :offset_loc\n".freeze
-        end
-        erbout << "\n    def initialize(offset".freeze
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ")\n      @offset = offset\n".freeze
+        @root.rules.each do |rule|
+          rule.codes.each do |code|
+            erbout << "\n  def action_#{rule.name}_#{code.index}(__packcr_in, __packcr_vars, __packcr_index)\n    ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars\n".freeze
 
-        if @location
-          erbout << "      @offset_loc = offset_loc\n".freeze
-        end
-        erbout << "      @fail = true\n      @grow = false\n    end\n\n    def answer=(answer)\n      @fail = nil\n      @answer = answer\n    end\n  end\n\n  class ThunkChunk\n    attr_accessor :thunks, :capts, :pos, :values\n".freeze
+            code.vars.each do |ref|
+              erbout << "    #{ref.var} = (__packcr_in.value_refs[#{ref.index}]  ||= Value.new).value\n".freeze
+            end
+            erbout << "    __0 = __packcr_in.capt0.capture_string(@buffer)\n    __0s = @buffer_start_position + __packcr_in.capt0.range_start\n    __0e = @buffer_start_position + __packcr_in.capt0.range_end\n".freeze
 
-        if @location
-          erbout << "    attr_accessor :pos_loc\n".freeze
-        end
-        erbout << "\n    def initialize\n      super\n      @thunks = []\n      @capts = {}\n      @pos = 0\n      @values = {}\n    end\n\n    def resize_captures(len)\n      len.times do |i|\n        @capts[i] = Capture.new\n      end\n    end\n  end\n\n  class ThunkLeaf\n    attr_accessor :capt0, :capts, :value_refs, :action\n\n    def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})\n      @value_refs = value_refs\n      @capts = capts\n      @capt0 = capt0\n      @action = action\n    end\n\n    def do_action(ctx, values, index)\n      ctx.public_send(action, self, values, index)\n    end\n  end\n\n  class ThunkNode\n    attr_accessor :thunks, :values, :index\n\n    def initialize(thunks, values, index)\n      @thunks = thunks\n      @values = values\n      @index = index\n      values[index] ||= Value.new if values\n    end\n\n    def do_action(ctx, _values, _index)\n      @thunks.each do |thunk|\n        thunk.do_action(ctx, @values, @index)\n      end\n    end\n\n    def clear\n      @thunks.clear\n    end\n  end\n\n  class Capture\n    attr_accessor :range_start, :range_end\n".freeze
+            if @location
+              erbout << "    __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc\n    __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc\n".freeze
+            end
+            if @capture_in_code
+              erbout << "    __0c = __packcr_in.capt0\n".freeze
+            end
+            code.capts.each do |capture|
+              erbout << "    __#{capture.index + 1} = __packcr_in.capts[#{capture.index}].capture_string(@buffer)\n    __#{capture.index + 1}s = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_start\n    __#{capture.index + 1}e = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_end\n".freeze
 
-        if @location
-          erbout << "    attr_accessor :start_loc, :end_loc\n".freeze
-        end
-        erbout << "\n    def initialize(range_start = 0, range_end = 0".freeze
-        if @location
-          erbout << ", start_loc = nil, end_loc = nil".freeze
-        end
-        erbout << ")\n      @range_start = range_start\n      @range_end = range_end\n".freeze
+              if @location
+                erbout << "    __#{capture.index + 1}sl = @buffer_start_position_loc + __packcr_in.capts[#{capture.index}].start_loc\n    __#{capture.index + 1}el = @buffer_start_position_loc + __packcr_in.capts[#{capture.index}].end_loc\n".freeze
+              end
+              next unless @capture_in_code
 
-        if @location
-          erbout << "      @start_loc = start_loc || Location.new\n      @end_loc = end_loc || Location.new\n".freeze
+              erbout << "    __#{capture.index + 1}c = __packcr_in.capts[#{capture.index}]\n".freeze
+            end
+
+            erbout << "#{stream.get_code_block(code.code, 4, @iname)}\n    __packcr_vars[__packcr_index].value = ____ if __packcr_vars\n  end\n".freeze
+          end
         end
-        erbout << "    end\n\n    def capture_string(buffer)\n      @capture_string ||= buffer[@range_start, @range_end - @range_start]\n    end\n  end\n\n  class Value\n    attr_accessor :value\n  end\nend\n".freeze
+        @root.rules.each do |rule|
+          erbout << "\n".freeze
+
+          gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb)
+
+          erbout << "#{gen.generate_code(rule, 0, 2, false)}".freeze
+        end
+        erbout << "end\n".freeze
 
         if !code(:lsource).empty?
           erbout << "\n".freeze
