@@ -40,9 +40,9 @@ class Packcr
           get_header_code: @hname,
         }
         @hid = File.basename(@hname).upcase.gsub(/[^A-Z0-9]/, "_")
-      when :rb
+      when :rb, :rs
         @patterns = {
-          get_source_code: "#{path}.rb",
+          get_source_code: "#{path}.#{@lang}",
         }
       else
         raise "unexpected lang: #{@lang}"

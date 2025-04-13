@@ -484,6 +484,11 @@ class Packcr
           end
         end
         erbout
+      when :rs
+        erbout = +""
+        erbout << "fn main() {\n}\n".freeze
+
+        erbout
       else
         raise "unknown lang #{lang}"
       end
