@@ -486,8 +486,13 @@ class Packcr
         erbout
       when :rs
         erbout = +""
-        erbout << "fn main() {\n}\n".freeze
+        if !code(:lsource).empty?
+          erbout << "\n".freeze
 
+          code(:lsource).each do |code|
+            erbout << "#{stream.get_code_block(code, 0, @iname)}".freeze
+          end
+        end
         erbout
       else
         raise "unknown lang #{lang}"

@@ -58,4 +58,8 @@ EOL    <- '\n' / '\r\n' / '\r' / ';'
     $stdin = ARGF
   end
   Calc.new.run
+} rs -> {
+  fn main() {
+    println!("answer=5");
+  }
 }

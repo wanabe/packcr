@@ -13,6 +13,7 @@ statement <- comment
 
 supported_language <- 'c'
                     / 'rb'
+                    / 'rs'
                     / identifier {
                       @ctx.error __0sl.linenum + 1, __0sl.charnum + 1, "Not supported language: #{$0}"
                     }

@@ -1299,12 +1299,25 @@ class Packcr
           @position_offset_loc = p_loc2
           answer.thunks[n2..-1] = []
           catch(4) do
+            if refill_buffer(2) < 2 ||
+               @buffer[@position_offset, 2] != "rs"
+
+              throw(4)
+            end
+            @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
+            @position_offset += 2
+            throw(1)
+          end
+          @position_offset = pos2
+          @position_offset_loc = p_loc2
+          answer.thunks[n2..-1] = []
+          catch(5) do
             if limits && @position_offset == offset && !limits[:evaluate_rule_identifier]
               if !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
-                throw(4)
+                throw(5)
               end
             elsif !apply_rule(:evaluate_rule_identifier, answer.thunks, nil, 0, offset, offset_loc)
-              throw(4)
+              throw(5)
             end
             answer.thunks.push(
               ThunkLeaf.new(

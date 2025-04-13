@@ -1,2 +1,6 @@
-fn main() {
-}
+<%- if !code(:lsource).empty? -%>
+
+<%-   code(:lsource).each do |code| -%>
+<%=     stream.get_code_block(code, 0, @iname) -%>
+<%-   end -%>
+<%- end -%>
