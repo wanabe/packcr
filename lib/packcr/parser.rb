@@ -487,7 +487,7 @@ class Packcr
 
     def action_directive_string_0(__packcr_in, __packcr_vars, __packcr_index)
       ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
-      strings = (__packcr_in.value_refs[0]  ||= Value.new).value
+      strings = (__packcr_in.value_refs[0] ||= Value.new).value
       __0 = __packcr_in.capt0.capture_string(@buffer)
       __0s = @buffer_start_position + __packcr_in.capt0.range_start
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
@@ -500,7 +500,7 @@ class Packcr
 
     def action_directive_string_1(__packcr_in, __packcr_vars, __packcr_index)
       ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
-      strings = (__packcr_in.value_refs[0]  ||= Value.new).value
+      strings = (__packcr_in.value_refs[0] ||= Value.new).value
       __0 = __packcr_in.capt0.capture_string(@buffer)
       __0s = @buffer_start_position + __packcr_in.capt0.range_start
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
@@ -513,7 +513,7 @@ class Packcr
 
     def action_directive_string_2(__packcr_in, __packcr_vars, __packcr_index)
       ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
-      strings = (__packcr_in.value_refs[0]  ||= Value.new).value
+      strings = (__packcr_in.value_refs[0] ||= Value.new).value
       __0 = __packcr_in.capt0.capture_string(@buffer)
       __0s = @buffer_start_position + __packcr_in.capt0.range_start
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
@@ -573,7 +573,7 @@ class Packcr
 
     def action_lang_strings_0(__packcr_in, __packcr_vars, __packcr_index)
       ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
-      strings = (__packcr_in.value_refs[0]  ||= Value.new).value
+      strings = (__packcr_in.value_refs[0] ||= Value.new).value
       string = (__packcr_in.value_refs[1] ||= Value.new).value
       __0 = __packcr_in.capt0.capture_string(@buffer)
       __0s = @buffer_start_position + __packcr_in.capt0.range_start
@@ -631,8 +631,8 @@ class Packcr
 
     def action_rule_0(__packcr_in, __packcr_vars, __packcr_index)
       ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
-      name = (__packcr_in.value_refs[0]  ||= Value.new).value
-      expr = (__packcr_in.value_refs[1]  ||= Value.new).value
+      name = (__packcr_in.value_refs[0] ||= Value.new).value
+      expr = (__packcr_in.value_refs[1] ||= Value.new).value
       __0 = __packcr_in.capt0.capture_string(@buffer)
       __0s = @buffer_start_position + __packcr_in.capt0.range_start
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
@@ -3224,8 +3224,7 @@ class Packcr
                   throw(5)
                 end
                 u8 = @buffer[@position_offset]
-                if !
-                  [" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
+                if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
 
                   throw(5)
                 end
@@ -3322,8 +3321,7 @@ class Packcr
                   throw(8)
                 end
                 u8 = @buffer[@position_offset]
-                if !
-                  [" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
+                if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
 
                   throw(8)
                 end
@@ -3392,8 +3390,7 @@ class Packcr
                   throw(11)
                 end
                 u8 = @buffer[@position_offset]
-                if !
-                  [" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
+                if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
 
                   throw(11)
                 end
@@ -3557,9 +3554,8 @@ class Packcr
               throw(14)
             end
             u6 = @buffer[@position_offset]
-            if !(
-              (u6 >= "1" && u6 <= "9")
-            )
+            if !u6.between?("1", "9")
+
               throw(14)
             end
             @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
@@ -3576,9 +3572,8 @@ class Packcr
                 throw(15)
               end
               u7 = @buffer[@position_offset]
-              if !(
-                (u7 >= "0" && u7 <= "9")
-              )
+              if !u7.between?("0", "9")
+
                 throw(15)
               end
               @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
@@ -4068,8 +4063,7 @@ class Packcr
             throw(1)
           end
           u6 = @buffer[@position_offset]
-          if !
-            [" ", "\t", "\v", "\f", "\r", "\n"].include?(u6)
+          if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u6)
 
             throw(1)
           end
@@ -4161,8 +4155,7 @@ class Packcr
             throw(2)
           end
           u5 = @buffer[@position_offset]
-          if !
-            [" ", "\t", "\v", "\f", "\r", "\n"].include?(u5)
+          if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u5)
 
             throw(2)
           end
@@ -4699,8 +4692,8 @@ class Packcr
         end
         u3 = @buffer[@position_offset]
         if !(
-          (u3 >= "a" && u3 <= "z") ||
-          (u3 >= "A" && u3 <= "Z") ||
+          u3.between?("a", "z") ||
+          u3.between?("A", "Z") ||
           u3 == "_"
         )
           throw(0)
@@ -4720,10 +4713,10 @@ class Packcr
           end
           u4 = @buffer[@position_offset]
           if !(
-            (u4 >= "a" && u4 <= "z") ||
-            (u4 >= "A" && u4 <= "Z") ||
+            u4.between?("a", "z") ||
+            u4.between?("A", "Z") ||
             u4 == "_" ||
-            (u4 >= "0" && u4 <= "9")
+            u4.between?("0", "9")
           )
             throw(1)
           end
@@ -4783,8 +4776,7 @@ class Packcr
             throw(1)
           end
           u3 = @buffer[@position_offset]
-          if !
-            [" ", "\t", "\v", "\f", "\r", "\n"].include?(u3)
+          if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u3)
 
             throw(1)
           end

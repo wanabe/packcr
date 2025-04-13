@@ -161,9 +161,7 @@ class Packcr
 
         next if @errnum.zero?
 
-        results.each do |_, r|
-          r.close
-        end
+        results.each_value(&:close)
         return false
       end
 

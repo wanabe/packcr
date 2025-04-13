@@ -16,9 +16,5 @@ Gem::Specification.new do |s|
   s.files       = Dir.glob("{#{%w[LICENSE README.md lib/**/*.rb lib/**/*.erb exe/*].join(",")}}")
   s.executables = ["packcr"]
 
-  s.add_development_dependency "rake", "~> 13.0"
-  s.add_development_dependency "rspec", "~> 3.12"
-  s.add_development_dependency "rspec-parameterized", "~> 1.0"
-  s.add_development_dependency "rubocop", "~> 1.43.0"
   s.metadata["rubygems_mfa_required"] = "true"
 end

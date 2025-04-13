@@ -19,13 +19,12 @@ class Packcr
             r = expr.reachability
 
             erbout << "#{gen.generate_code(expr, l, 4, false)}".freeze
-            case r
-            when Packcr::CODE_REACH__ALWAYS_SUCCEED
+            if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
               if c
                 erbout << "    /* unreachable codes omitted */\n".freeze
               end
               break
-            when Packcr::CODE_REACH__BOTH
+            elsif r == Packcr::CODE_REACH__BOTH
               erbout << "    goto L#{format("%04d", m)};\n".freeze
             end
             erbout << "L#{format("%04d", l)}:;\n    ctx->position_offset = p;\n".freeze
@@ -64,15 +63,14 @@ class Packcr
               r = expr.reachability
 
               erbout << "#{gen.generate_code(expr, l, 4, false, oncut: onfail)}".freeze
-              case r
-              when Packcr::CODE_REACH__ALWAYS_SUCCEED
+              if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
                 if c
                   erbout << "    # unreachable codes omitted\n".freeze
                 end
                 erbout << "  end\n".freeze
 
                 break
-              when Packcr::CODE_REACH__BOTH
+              elsif r == Packcr::CODE_REACH__BOTH
                 erbout << "    throw(#{m})\n".freeze
               end
               erbout << "  end\n".freeze

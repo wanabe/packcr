@@ -21,7 +21,7 @@ class Packcr
     end
 
     def write_text(s)
-      write s.gsub(/\r\n/, "\n")
+      write s.gsub("\r\n", "\n")
     end
 
     def write_line_directive(fname, lineno)
