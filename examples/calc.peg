@@ -14,9 +14,11 @@
 
 %prefix "calc"
 
-%source c-> {
-#include <stdio.h>
-#include <stdlib.h>
+%earlysource c-> {
+  #include <stdio.h>
+  #include <stdlib.h>
+} rs -> {
+  use std::io::{self};
 }
 
 statement <- _ e:expression _ EOL c -> { printf("answer=%d\n", e); } rb -> { puts "answer=#{e}\n" }
@@ -60,6 +62,8 @@ EOL    <- '\n' / '\r\n' / '\r' / ';'
   Calc.new.run
 } rs -> {
   fn main() {
-    println!("answer=5");
+    let stdin = io::stdin();
+    let calc = Calc::new();
+    calc.run(stdin.lock());
   }
 }
