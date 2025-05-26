@@ -303,6 +303,61 @@ class Packcr
           erbout << "@position_offset += 1\n".freeze
 
           erbout
+        when :rs
+          erbout = +""
+          a = charclass && charclass[0] == "^"
+          i = a ? 1 : 0
+          any_code = !charclass || (a && n == 1)
+          erbout << "let (#{any_code ? "_" : ""}u, n) = self.get_char_as_utf32();\nif n == 0 {\n    break 'L#{format("%04d", onfail)};\n}\n".freeze
+
+          unless any_code
+            erbout << "if ".freeze
+            if !a
+
+              erbout << "!(".freeze
+            end
+            while i < n
+              if charclass[i] == "\\" && i + 1 < n
+                i += 1
+              end
+              u = charclass[i].ord
+              i += 1
+              if r
+                # character range
+
+                erbout << "(0x#{format("%06x", u0)}..=0x#{format("%06x", u)}).contains(&u)".freeze
+
+                if i < n
+                  erbout << " || ".freeze
+                end
+                u0 = 0
+                r = false
+              elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position
+                # single character
+
+                erbout << "u == 0x#{format("%06x", u)}".freeze
+                if i < n
+                  erbout << " || ".freeze
+                end
+                u0 = 0
+                r = false
+              elsif charclass[i] == "-"
+                i += 1
+                u0 = u
+                r = true
+              else
+                raise "unexpected charclass #{charclass[i]}"
+              end
+            end
+            if !a
+              erbout << ") ".freeze
+            end
+
+            erbout << "{\n    break 'L#{format("%04d", onfail)};\n}\n".freeze
+          end
+          erbout << "self.input.position_offset += n;\n".freeze
+
+          erbout
         else
           raise "unknown lang #{gen.lang}"
         end

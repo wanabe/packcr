@@ -17,12 +17,10 @@
 %earlysource c-> {
   #include <stdio.h>
   #include <stdlib.h>
-} rs -> {
-  use std::io::{self};
 }
 
-statement <- _ e:expression _ EOL c -> { printf("answer=%d\n", e); } rb -> { puts "answer=#{e}\n" }
-           / ( !EOL . )* EOL      c -> { printf("error\n"); } rb -> { warn "error\n" }
+statement <- _ e:expression _ EOL c -> { printf("answer=%d\n", e); } rb -> { puts "answer=#{e}\n" } rs -> { println!("answer={}", e); }
+           / ( !EOL . )* EOL      c -> { printf("error\n"); } rb -> { warn "error\n" } rs -> { println!("error"); }
 
 expression <- e:term { $$ = e; }
 
@@ -34,11 +32,11 @@ factor <- l:factor _ '*' _ r:unary { $$ = l * r; }
         / l:factor _ '/' _ r:unary { $$ = l / r; }
         / e:unary                  { $$ = e; }
 
-unary <- '+' _ e:unary { $$ = +e; }
+unary <- '+' _ e:unary { $$ = e; }
        / '-' _ e:unary { $$ = -e; }
        / e:primary     { $$ = e; }
 
-primary <- < [0-9]+ >               c -> { $$ = atoi($1); } rb -> { $$ = $1.to_i }
+primary <- < [0-9]+ >               c -> { $$ = atoi($1); } rb -> { $$ = $1.to_i } rs -> { $$ = $1.parse::<i32>().unwrap_or(0); }
          / '(' _ e:expression _ ')' { $$ = e; }
 
 _      <- [ \t]*
@@ -62,8 +60,7 @@ EOL    <- '\n' / '\r\n' / '\r' / ';'
   Calc.new.run
 } rs -> {
   fn main() {
-    let stdin = io::stdin();
-    let calc = Calc::new();
-    calc.run(stdin.lock());
+      let mut calc = Calc::new(std::io::stdin().lock());
+      while calc.parse() {}
   }
 }

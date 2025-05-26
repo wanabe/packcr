@@ -1,0 +1,13 @@
+let p_inner = self.input.position_offset;
+<%- if gen.location -%>
+TODO
+<%- end -%>
+{
+    <%- %><%= gen.generate_code(expr, onfail, 4, false) -%>
+}
+let q = self.input.position_offset;
+answer.capts[<%= index %>].start = p_inner;
+answer.capts[<%= index %>].end = q;
+<%- if gen.location -%>
+TODO
+<%- end -%>

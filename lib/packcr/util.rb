@@ -88,6 +88,15 @@ class Packcr
       result.gsub!(/^( *?) {0,4}<<<</) { ::Regexp.last_match(1) }
       result
     end
+
+    def escape_varriables(code, lang)
+      code = code.gsub("$$", "*out") if lang == :rs
+      code.gsub("$", lang == :rb ? "__" : "_")
+    end
+
+    def camelize(string)
+      string.sub(/^_/, "Underscore").split(/[^a-zA-Z0-9]+/).map(&:capitalize).join
+    end
   end
 
   extend Util

@@ -94,7 +94,7 @@ character_class <- '[' <( [^\\\[\]] / '\[' / '\]' / '\\' )*> ']' { $$ = $1 }
 lang_code_block <- code:code_block { ____ = code }
                  / < supported_language > opt_spaces_or_comments '->' opt_spaces_or_comments code:code_block { $$ = @ctx.lang == $1.to_sym ? code : nil  }
 code_block <- '$' code:plain_code_block { $$ = code }
-            / code:plain_code_block ${ ____ = code.gsub("$", @ctx.lang == :rb ? "__" : "_") }
+            / code:plain_code_block ${ ____ = Packcr.escape_varriables(code, @ctx.lang) }
 plain_code_block <- '{' < [ \t\v\f\r\n]* opt_codes > '}' { $$ = $1 }
 opt_codes <- (code [ \t\v\f\r\n]*)*
 code <- codechar+

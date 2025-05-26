@@ -1,0 +1,10 @@
+if self.refill_buffer(<%= n %>) < <%= n %>
+  || self.input.buffer.as_bytes()[self.input.position_offset..(self.input.position_offset + <%= n %>)] != <% -%>
+  <%- %>[<%= value[0, n].each_char.map { |c| "b'#{Packcr.escape_character(c)}'" }.join(", ") %>]
+{
+    break 'L<%= format("%04d", onfail) %>;
+}
+<%- if gen.location -%>
+TODO
+<%- end -%>
+self.input.position_offset += <%= n %>;

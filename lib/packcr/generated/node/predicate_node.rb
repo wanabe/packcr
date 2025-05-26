@@ -135,6 +135,35 @@ class Packcr
             end
           end
           erbout
+        when :rs
+          erbout = +""
+          l = gen.next_label
+          r = expr.reachability
+          erbout << "let p = self.input.position_offset;\n".freeze
+
+          if gen.location
+            erbout << "TODO\n".freeze
+          end
+          erbout << "'L#{format("%04d", l)}: {\n    {\n#{gen.generate_code(expr, l, 4, false)}    }\n".freeze
+
+          if r != Packcr::CODE_REACH__ALWAYS_FAIL
+            erbout << "    self.input.position_offset = p;\n".freeze
+
+            if gen.location
+              erbout << "    TODO\n".freeze
+            end
+            erbout << "    break 'L#{format("%04d", onfail)};\n".freeze
+          end
+          erbout << "}\n".freeze
+
+          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+            erbout << "self.input.position_offset = p;\n".freeze
+
+            if gen.location
+              erbout << "TODO\n".freeze
+            end
+          end
+          erbout
         else
           raise "unknown lang #{gen.lang}"
         end

@@ -1,0 +1,6 @@
+answer.push_leaf(
+    Action::<%= Packcr.camelize(gen.rule.name) %><%= index %>,
+    self.input.position_offset,
+    &[<% vars.each_with_index do |var, i| %><%= ", " if i > 0 %><%= var.index %><% end %>],
+    &[<% capts.each_with_index do |capt, i| %><%= ", " if i > 0 %><%= capt.index %><% end %>],
+);

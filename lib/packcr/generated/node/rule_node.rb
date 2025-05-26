@@ -57,8 +57,34 @@ class Packcr
 
           erbout
         when :rs
-          +""
+          erbout = +""
+          for_ref = has_ref ? "" : "_"
+          erbout << "#[allow(non_snake_case)]\nfn evaluate_rule_#{name}(\n    &mut self,\n    #{for_ref}offset: usize,\n".freeze
 
+          if gen.location
+            erbout << "    TODO\n".freeze
+          end
+          erbout << "    #{for_ref}limits: Option<RuleSet>,\n) -> Option<ThunkChunk> {\n    let mut answer = ThunkChunk::new(self.input.position_offset);\n".freeze
+
+          if gen.location
+            erbout << "    TODO\n".freeze
+          end
+          erbout << "    self.level += 1;\n    answer.capts.resize(#{capts.length});\n".freeze
+
+          if !vars.empty?
+            erbout << "    answer.values.clear();\n".freeze
+          end
+          r = expr.reachability
+          if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
+
+            erbout << "#{gen.generate_code(expr, 0, 4, false)}    self.level -= 1;\n    return Some(answer);\n".freeze
+
+          else
+            erbout << "    'L0000: {\n#{gen.generate_code(expr, 0, 8, false)}        self.level -= 1;\n        return Some(answer);\n    }\n    self.level -= 1;\n    return None;\n".freeze
+          end
+          erbout << "}\n".freeze
+
+          erbout
         else
           raise "unknown lang #{gen.lang}"
         end

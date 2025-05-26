@@ -1,0 +1,50 @@
+<%- if min > 0 -%>
+let p0 = self.input.position_offset;
+<%-   if gen.location -%>
+TODO
+<%-   end -%>
+<%- end -%>
+<%- use_count = max >= 0 || min > 0 -%>
+<%- if use_count -%>
+let mut i = -1;
+<%- end -%>
+<%- m = gen.next_label -%>
+'L<%= format("%04d", m) %>: loop {
+    <%- if use_count -%>
+    i += 1;
+    <%- end -%>
+    <%- if max >= 0 -%>
+    if i >= <%= max %> { break; }
+    <%- end -%>
+    let p = self.input.position_offset;
+    <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+    <%-   if gen.location -%>
+    TODO
+    <%-   end -%>
+    <%- end -%>
+    <%- l = gen.next_label -%>
+    <%- r = expr.reachability -%>
+    'L<%= format("%04d", l) %>: {
+        <%- %><%= gen.generate_code(expr, l, 8, false) -%>
+        if self.input.position_offset == p {
+            break 'L<%= format("%04d", m) %>;
+        }
+        <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+        continue 'L<%= format("%04d", m) %>;
+    }
+    self.input.position_offset = p;
+    <%-   if gen.location -%>
+    TODO
+    <%-   end -%>
+    break 'L<%= format("%04d", m) %>;
+    <%- end -%>
+}
+<%- if min > 0 -%>
+if i < <%= min %> {
+    self.input.position_offset = p0;
+    <%-   if gen.location -%>
+    TODO
+    <%-   end -%>
+    break 'L<%= format("%04d", onfail) %>;
+}
+<%- end -%>

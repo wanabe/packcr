@@ -1,0 +1,34 @@
+<%- for_ref = has_ref ? "" : "_" -%>
+#[allow(non_snake_case)]
+fn evaluate_rule_<%= name %>(
+    &mut self,
+    <%= for_ref %>offset: usize,
+    <%- if gen.location -%>
+    TODO
+    <%- end -%>
+    <%= for_ref %>limits: Option<RuleSet>,
+) -> Option<ThunkChunk> {
+    let mut answer = ThunkChunk::new(self.input.position_offset);
+    <%-   if gen.location -%>
+    TODO
+    <%-   end -%>
+    self.level += 1;
+    answer.capts.resize(<%= capts.length %>);
+    <%- if vars.length > 0 -%>
+    answer.values.clear();
+    <%- end -%>
+    <%- r = expr.reachability -%>
+    <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+    <%- -%><%= gen.generate_code(expr, 0, 4, false) -%>
+    self.level -= 1;
+    return Some(answer);
+    <%- else -%>
+    'L0000: {
+        <%- -%><%= gen.generate_code(expr, 0, 8, false) -%>
+        self.level -= 1;
+        return Some(answer);
+    }
+    self.level -= 1;
+    return None;
+    <%- end -%>
+}

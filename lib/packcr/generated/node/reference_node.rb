@@ -37,6 +37,11 @@ class Packcr
           end
           erbout << ")\n    throw(#{onfail})\n  end\nend\n".freeze
           erbout
+        when :rs
+          erbout = +""
+          erbout << "if !self.apply_rule(Rule::#{Packcr.camelize(name)}, &mut answer, #{index || 0}, offset, limits.clone()) {\n    break 'L#{format("%04d", onfail)};\n}\n".freeze
+
+          erbout
         else
           raise "unknown lang #{gen.lang}"
         end
@@ -64,6 +69,11 @@ class Packcr
             erbout << ", offset_loc".freeze
           end
           erbout << ")\n    throw(#{onsuccess})\n  end\nend\n".freeze
+          erbout
+        when :rs
+          erbout = +""
+          erbout << "/* lib/packcr/templates/node/reference_reverse.rs.erb */\n\n".freeze
+
           erbout
         else
           raise "unknown lang #{gen.lang}"

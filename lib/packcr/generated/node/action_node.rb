@@ -53,6 +53,21 @@ class Packcr
           erbout << "  )\n)\n".freeze
 
           erbout
+        when :rs
+          erbout = +""
+          erbout << "answer.push_leaf(\n    Action::#{Packcr.camelize(gen.rule.name)}#{index},\n    self.input.position_offset,\n    &[".freeze
+
+          vars.each_with_index do |var, i|
+            erbout << "#{", " if i > 0}#{var.index}".freeze
+          end
+          erbout << "],\n    &[".freeze
+
+          capts.each_with_index do |capt, i|
+            erbout << "#{", " if i > 0}#{capt.index}".freeze
+          end
+          erbout << "],\n);\n".freeze
+
+          erbout
         else
           raise "unknown lang #{gen.lang}"
         end

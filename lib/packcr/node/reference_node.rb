@@ -33,6 +33,7 @@ class Packcr
       end
 
       def setup_rule(rule)
+        rule.has_ref = true
         return unless var
 
         i = rule.vars.index do |ref|

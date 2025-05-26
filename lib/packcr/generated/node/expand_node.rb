@@ -23,6 +23,11 @@ class Packcr
           erbout << "  @position_offset += n#{gen.level}\nend\n".freeze
 
           erbout
+        when :rs
+          erbout = +""
+          erbout << "/* lib/packcr/templates/node/expand.rs.erb */\n\n".freeze
+
+          erbout
         else
           raise "unknown lang #{gen.lang}"
         end

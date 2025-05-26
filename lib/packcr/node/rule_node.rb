@@ -1,7 +1,7 @@
 class Packcr
   class Node
     class RuleNode < Packcr::Node
-      attr_accessor :codes, :name, :expr, :ref, :vars, :capts, :line, :col, :top
+      attr_accessor :codes, :name, :expr, :ref, :vars, :capts, :line, :col, :top, :has_ref
 
       def initialize(expr = nil, name = nil, line = nil, col = nil)
         super()
@@ -13,6 +13,7 @@ class Packcr
         @name = name
         @line = line
         @col = col
+        @has_ref = false
       end
 
       def debug_dump(indent = 0)

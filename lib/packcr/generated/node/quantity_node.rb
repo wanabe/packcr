@@ -106,6 +106,56 @@ class Packcr
             erbout << "  answer.thunks[m#{gen.level}..-1] = []\n  throw(#{onfail})\nend\n".freeze
           end
           erbout
+        when :rs
+          erbout = +""
+          if min > 0
+            erbout << "let p0 = self.input.position_offset;\n".freeze
+
+            if gen.location
+              erbout << "TODO\n".freeze
+            end
+          end
+          use_count = max >= 0 || min > 0
+          if use_count
+            erbout << "let mut i = -1;\n".freeze
+          end
+          m = gen.next_label
+          erbout << "'L#{format("%04d", m)}: loop {\n".freeze
+
+          if use_count
+            erbout << "    i += 1;\n".freeze
+          end
+          if max >= 0
+            erbout << "    if i >= #{max} { break; }\n".freeze
+          end
+          erbout << "    let p = self.input.position_offset;\n".freeze
+
+          if (r != Packcr::CODE_REACH__ALWAYS_SUCCEED) && gen.location
+            erbout << "    TODO\n".freeze
+          end
+          l = gen.next_label
+          r = expr.reachability
+          erbout << "    'L#{format("%04d", l)}: {\n#{gen.generate_code(expr, l, 8, false)}        if self.input.position_offset == p {\n            break 'L#{format("%04d", m)};\n        }\n".freeze
+
+          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
+            erbout << "        continue 'L#{format("%04d", m)};\n    }\n    self.input.position_offset = p;\n".freeze
+
+            if gen.location
+              erbout << "    TODO\n".freeze
+            end
+            erbout << "    break 'L#{format("%04d", m)};\n".freeze
+          end
+          erbout << "}\n".freeze
+
+          if min > 0
+            erbout << "if i < #{min} {\n    self.input.position_offset = p0;\n".freeze
+
+            if gen.location
+              erbout << "    TODO\n".freeze
+            end
+            erbout << "    break 'L#{format("%04d", onfail)};\n}\n".freeze
+          end
+          erbout
         else
           raise "unknown lang #{gen.lang}"
         end

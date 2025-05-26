@@ -1,5 +1,7 @@
-S <- A 'b' { printf("S0 %s\n", $0); } / 'b' { printf("S1 %s\n", $0); }
-A <- A 'a' { printf("A0 %s\n", $0); } / S 'a' { printf("A1 %s\n", $0); }
+S <- A 'b' c-> { printf("S0 %s\n", $0); } rb-> { printf("S0 %s\n", $0); } rs-> { println!("S0 {}", $0); }
+   / 'b' c-> { printf("S1 %s\n", $0); } rb-> { printf("S1 %s\n", $0); } rs-> { println!("S1 {}", $0); }
+A <- A 'a' c-> { printf("A0 %s\n", $0); } rb-> { printf("A0 %s\n", $0); } rs-> { println!("A0 {}", $0); }
+   / S 'a' c-> { printf("A1 %s\n", $0); } rb-> { printf("A1 %s\n", $0); } rs-> { println!("A1 {}", $0); }
 
 %source c-> {
   #define PACKCR_GETCHAR(auxil) packcr_getchar()
@@ -30,4 +32,11 @@ A <- A 'a' { printf("A0 %s\n", $0); } / S 'a' { printf("A1 %s\n", $0); }
     $stdin = StringIO.new("baab")
     Packcr.new.run
     puts "parsed"
+  }
+  rs -> ${
+    fn main() {
+        let mut parser = Packcr::new(&[b'b', b'a', b'a', b'b'][..]);
+        while parser.parse() {}
+        println!("parsed");
+    }
   }
