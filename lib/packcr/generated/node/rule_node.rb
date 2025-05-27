@@ -76,11 +76,10 @@ class Packcr
           end
           r = expr.reachability
           if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
-
-            erbout << "#{gen.generate_code(expr, 0, 4, false)}    self.level -= 1;\n    return Some(answer);\n".freeze
+            erbout << "    let _ = (||{\n#{gen.generate_code(expr, 0, 8, false)}        NOP\n    })();\n    self.level -= 1;\n    Some(answer)\n".freeze
 
           else
-            erbout << "    'L0000: {\n#{gen.generate_code(expr, 0, 8, false)}        self.level -= 1;\n        return Some(answer);\n    }\n    self.level -= 1;\n    return None;\n".freeze
+            erbout << "    match (||{\n#{gen.generate_code(expr, 0, 8, false)}        NOP\n    })() {\n        NOP => {\n            self.level -= 1;\n            Some(answer)\n        },\n        _ => {\n            self.level -= 1;\n            None\n        }\n    }\n".freeze
           end
           erbout << "}\n".freeze
 

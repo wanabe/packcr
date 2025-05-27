@@ -144,17 +144,19 @@ class Packcr
           if gen.location
             erbout << "TODO\n".freeze
           end
-          erbout << "'L#{format("%04d", l)}: {\n    {\n#{gen.generate_code(expr, l, 4, false)}    }\n".freeze
-
-          if r != Packcr::CODE_REACH__ALWAYS_FAIL
+          erbout << "catch(||{\n#{gen.generate_code(expr, l, 4, false)}".freeze
+          if r == Packcr::CODE_REACH__ALWAYS_FAIL
+            erbout << "    NOP\n".freeze
+          else
             erbout << "    self.input.position_offset = p;\n".freeze
 
             if gen.location
               erbout << "    TODO\n".freeze
             end
-            erbout << "    break 'L#{format("%04d", onfail)};\n".freeze
+            erbout << "    throw(#{onfail})\n".freeze
+
           end
-          erbout << "}\n".freeze
+          erbout << "}, #{l})?;\n".freeze
 
           if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
             erbout << "self.input.position_offset = p;\n".freeze

@@ -3,7 +3,7 @@
 <%- any_code = !charclass || (a && n == 1) -%>
 let (<%= any_code ? "_" : "" %>u, n) = self.get_char_as_utf32();
 if n == 0 {
-    break 'L<%= format("%04d", onfail) %>;
+    return throw(<%= onfail %>);
 }
 <%- unless any_code -%>
 if <% if !a -%>
@@ -35,7 +35,7 @@ if <% if !a -%>
     <%-   end -%>
     <%-   if !a -%>) <% end -%>
     <%- %>{
-    break 'L<%= format("%04d", onfail) %>;
+    return throw(<%= onfail %>);
 }
 <%- end -%>
 self.input.position_offset += n;

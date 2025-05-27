@@ -9,42 +9,69 @@ TODO
 let mut i = -1;
 <%- end -%>
 <%- m = gen.next_label -%>
-'L<%= format("%04d", m) %>: loop {
-    <%- if use_count -%>
-    i += 1;
-    <%- end -%>
-    <%- if max >= 0 -%>
-    if i >= <%= max %> { break; }
-    <%- end -%>
-    let p = self.input.position_offset;
-    <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-    <%-   if gen.location -%>
-    TODO
-    <%-   end -%>
-    <%- end -%>
-    <%- l = gen.next_label -%>
-    <%- r = expr.reachability -%>
-    'L<%= format("%04d", l) %>: {
-        <%- %><%= gen.generate_code(expr, l, 8, false) -%>
-        if self.input.position_offset == p {
-            break 'L<%= format("%04d", m) %>;
+catch(||{
+    loop {
+        <%- if use_count -%>
+        i += 1;
+        <%- end -%>
+        <%- if max >= 0 -%>
+        if i >= <%= max %> {
+            return NOP;
         }
+        <%- end -%>
+        let p = self.input.position_offset;
         <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-        continue 'L<%= format("%04d", m) %>;
+        <%-   if gen.location -%>
+        TODO
+        <%-   end -%>
+        <%- end -%>
+        <%- l = gen.next_label -%>
+        <%- r = expr.reachability -%>
+        <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+        TODO
+        match (||{
+            <%- %><%= gen.generate_code(expr, l, 12, false) -%>
+            if self.input.position_offset == p {
+                return throw(<%= m %>);
+            }
+        })() {
+            NOP => continue,
+            Err(label) if label != <%= l %> => return throw(label),
+            _ => {
+                self.input.position_offset = p;
+                <%-   if gen.location -%>
+                TODO
+                <%-   end -%>
+                return throw(<%= m %>);
+            }
+        }
+        <%- else -%>
+        match (||{
+            <%- %><%= gen.generate_code(expr, l, 12, false) -%>
+            if self.input.position_offset == p {
+                return throw(<%= m %>);
+            }
+            NOP
+        })() {
+            NOP => continue,
+            Err(label) if label != <%= l %> => return throw(label),
+            _ => {
+                self.input.position_offset = p;
+                <%-   if gen.location -%>
+                TODO
+                <%-   end -%>
+                return throw(<%= m %>);
+            }
+        }
+        <%- end -%>
     }
-    self.input.position_offset = p;
-    <%-   if gen.location -%>
-    TODO
-    <%-   end -%>
-    break 'L<%= format("%04d", m) %>;
-    <%- end -%>
-}
+}, <%= m %>)?;
 <%- if min > 0 -%>
 if i < <%= min %> {
     self.input.position_offset = p0;
     <%-   if gen.location -%>
     TODO
     <%-   end -%>
-    break 'L<%= format("%04d", onfail) %>;
+    return throw(<%= onfail %>);
 }
 <%- end -%>

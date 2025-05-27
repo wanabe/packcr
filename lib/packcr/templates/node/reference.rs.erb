@@ -1,3 +1,3 @@
 if !self.apply_rule(Rule::<%= Packcr.camelize(name) %>, &mut answer, <%= index || 0 %>, offset, limits.clone()) {
-    break 'L<%= format("%04d", onfail) %>;
+    return throw(<%= onfail %>);
 }

@@ -382,6 +382,19 @@ impl Input {
     }
 }
 
+const NOP: Result<usize, usize> = Ok(0);
+const fn throw(label: usize) -> Result<usize, usize> {
+    Err(label)
+}
+
+fn catch(f: impl FnOnce() -> Result<usize, usize>, label: usize) -> Result<usize, usize> {
+    match f() {
+        Ok(_) => NOP,
+        Err(e) if e == label => NOP,
+        Err(e) => throw(e),
+    }
+}
+
 struct <%= class_name %> {
     level: usize,
     memos: LrMemoTable,

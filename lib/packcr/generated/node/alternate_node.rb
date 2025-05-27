@@ -92,47 +92,41 @@ class Packcr
         when :rs
           erbout = +""
           m = gen.next_label
-          erbout << "'L#{format("%04d", m)}: {\n    let p = self.input.position_offset;\n".freeze
+          erbout << "catch(||{\n    let p = self.input.position_offset;\n".freeze
 
           if gen.location
             erbout << "    TODO\n".freeze
           end
           nodes.each_with_index do |expr, i|
-            erbout << "    {\n".freeze
-
             c = i + 1 < nodes.length
             if expr.reversible?(gen)
 
-              erbout << "#{gen.generate_code(expr, m, 8, false, reverse: true, oncut: onfail)}".freeze
+              erbout << "#{gen.generate_code(expr, m, 4, false, reverse: true, oncut: onfail)}".freeze
             else
               l = gen.next_label
-              erbout << "        'L#{format("%04d", l)}: {\n".freeze
-
               r = expr.reachability
-
-              erbout << "#{gen.generate_code(expr, l, 12, false, oncut: onfail)}".freeze
               if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
+                erbout << "    catch(||{\n#{gen.generate_code(expr, l, 8, false, oncut: onfail)}".freeze
                 if c
-                  erbout << "            // unreachable codes omitted\n".freeze
+                  erbout << "        // unreachable codes omitted\n".freeze
                 end
-                erbout << "        }\n".freeze
+                erbout << "        NOP\n    }, #{l})?\n".freeze
 
                 break
-              elsif r == Packcr::CODE_REACH__BOTH
-                erbout << "            break 'L#{format("%04d", m)};\n".freeze
+              else
+                erbout << "    catch(||{\n#{gen.generate_code(expr, l, 8, false, oncut: onfail)}        throw(#{m})\n    }, #{l})?;\n".freeze
               end
-              erbout << "        }\n".freeze
             end
-            erbout << "    }\n    self.input.position_offset = p;\n".freeze
+            erbout << "    self.input.position_offset = p;\n".freeze
 
             if gen.location
               erbout << "    TODO\n".freeze
             end
             next if c
 
-            erbout << "    break 'L#{format("%04d", onfail)};\n".freeze
+            erbout << "    throw(#{onfail})\n".freeze
           end
-          erbout << "} // 'L#{format("%04d", m)}\n".freeze
+          erbout << "}, #{m})?;\n".freeze
 
           erbout
         else

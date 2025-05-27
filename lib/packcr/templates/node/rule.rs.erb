@@ -19,16 +19,25 @@ fn evaluate_rule_<%= name %>(
     <%- end -%>
     <%- r = expr.reachability -%>
     <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-    <%- -%><%= gen.generate_code(expr, 0, 4, false) -%>
-    self.level -= 1;
-    return Some(answer);
-    <%- else -%>
-    'L0000: {
+    let _ = (||{
         <%- -%><%= gen.generate_code(expr, 0, 8, false) -%>
-        self.level -= 1;
-        return Some(answer);
-    }
+        NOP
+    })();
     self.level -= 1;
-    return None;
+    Some(answer)
+    <%- else -%>
+    match (||{
+        <%- -%><%= gen.generate_code(expr, 0, 8, false) -%>
+        NOP
+    })() {
+        NOP => {
+            self.level -= 1;
+            Some(answer)
+        },
+        _ => {
+            self.level -= 1;
+            None
+        }
+    }
     <%- end -%>
 }

@@ -120,32 +120,32 @@ class Packcr
             erbout << "let mut i = -1;\n".freeze
           end
           m = gen.next_label
-          erbout << "'L#{format("%04d", m)}: loop {\n".freeze
+          erbout << "catch(||{\n    loop {\n".freeze
 
           if use_count
-            erbout << "    i += 1;\n".freeze
+            erbout << "        i += 1;\n".freeze
           end
           if max >= 0
-            erbout << "    if i >= #{max} { break; }\n".freeze
+            erbout << "        if i >= #{max} {\n            return NOP;\n        }\n".freeze
           end
-          erbout << "    let p = self.input.position_offset;\n".freeze
+          erbout << "        let p = self.input.position_offset;\n".freeze
 
           if (r != Packcr::CODE_REACH__ALWAYS_SUCCEED) && gen.location
-            erbout << "    TODO\n".freeze
+            erbout << "        TODO\n".freeze
           end
           l = gen.next_label
           r = expr.reachability
-          erbout << "    'L#{format("%04d", l)}: {\n#{gen.generate_code(expr, l, 8, false)}        if self.input.position_offset == p {\n            break 'L#{format("%04d", m)};\n        }\n".freeze
+          if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
+            erbout << "        TODO\n        match (||{\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset == p {\n                return throw(#{m});\n            }\n        })() {\n            NOP => continue,\n            Err(label) if label != #{l} => return throw(label),\n            _ => {\n                self.input.position_offset = p;\n".freeze
 
-          if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
-            erbout << "        continue 'L#{format("%04d", m)};\n    }\n    self.input.position_offset = p;\n".freeze
+          else
+            erbout << "        match (||{\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset == p {\n                return throw(#{m});\n            }\n            NOP\n        })() {\n            NOP => continue,\n            Err(label) if label != #{l} => return throw(label),\n            _ => {\n                self.input.position_offset = p;\n".freeze
 
-            if gen.location
-              erbout << "    TODO\n".freeze
-            end
-            erbout << "    break 'L#{format("%04d", m)};\n".freeze
           end
-          erbout << "}\n".freeze
+          if gen.location
+            erbout << "                TODO\n".freeze
+          end
+          erbout << "                return throw(#{m});\n            }\n        }\n    }\n}, #{m})?;\n".freeze
 
           if min > 0
             erbout << "if i < #{min} {\n    self.input.position_offset = p0;\n".freeze
@@ -153,7 +153,7 @@ class Packcr
             if gen.location
               erbout << "    TODO\n".freeze
             end
-            erbout << "    break 'L#{format("%04d", onfail)};\n}\n".freeze
+            erbout << "    return throw(#{onfail});\n}\n".freeze
           end
           erbout
         else
