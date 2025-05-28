@@ -148,5 +148,7 @@ file "lib/packcr/generated/node/string_node.rb" => Dir.glob("lib/packcr/template
   generate_code(t, %w[Packcr Node StringNode], "string", "gen.lang",
     "_many" => "(gen, onfail, indent, bare, oncut, n)",
     "_one" => "(gen, onfail, indent, bare, oncut, n)",
+    "_many_reverse" => "(gen, onsuccess, indent, bare, oncut, n)",
+    "_one_reverse" => "(gen, onsuccess, indent, bare, oncut, n)",
   )
 end

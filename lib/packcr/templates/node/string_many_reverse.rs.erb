@@ -1,0 +1,7 @@
+if self.refill_buffer(<%= n %>) >= <%= n %>
+    && self.input.buffer[self.input.position_offset..]<% -%>
+    <%- %>.starts_with("<%= value[0, n].each_char.map { |c| "#{Packcr.escape_character(c)}" }.join %>")
+{
+    self.input.position_offset += <%= n %>;
+    return throw(<%= onsuccess %>);
+}

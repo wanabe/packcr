@@ -17,6 +17,10 @@ class Packcr
         $stdout.print "')\n"
       end
 
+      def reversible?(gen)
+        gen.lang == :rs
+      end
+
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         n = value&.length || 0
         return unless n > 0
@@ -25,6 +29,16 @@ class Packcr
           gen.write Packcr.format_code(get_many_code(gen, onfail, indent, bare, oncut, n), indent: indent)
         else
           gen.write Packcr.format_code(get_one_code(gen, onfail, indent, bare, oncut, n), indent: indent)
+        end
+      end
+
+      def generate_reverse_code(gen, onsuccess, indent, bare, oncut: nil)
+        n = value&.length || 0
+
+        if n > 1
+          gen.write Packcr.format_code(get_many_reverse_code(gen, onsuccess, indent, bare, oncut, n), indent: indent)
+        else
+          gen.write Packcr.format_code(get_one_reverse_code(gen, onsuccess, indent, bare, oncut, n), indent: indent)
         end
       end
 
