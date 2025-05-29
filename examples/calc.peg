@@ -55,7 +55,7 @@ EOL    <- '\n' / '\r\n' / '\r' / ';'
     str = ARGV[0]
     $stdin = StringIO.new("#{str}\n", "r")
   else
-    $stdin = ARGF
+    $stdin = STDIN
   end
   Calc.new.run
 } rs -> {

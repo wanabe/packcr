@@ -50,6 +50,6 @@ if ARGV[0]
   str = ARGV[0]
   $stdin = StringIO.new("#{str}\n", "r")
 else
-  $stdin = ARGF
+  $stdin = STDIN
 end
 Calc.new.run
