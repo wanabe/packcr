@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.summary    = "Parser generator for C or Ruby"
   s.authors    = ["wanabe"]
   s.licenses   = ["MIT"]
-  s.required_ruby_version = ">= 2.7.0"
+  s.required_ruby_version = ">= 3.2.0"
 
   s.bindir      = "exe"
   s.files       = Dir.glob("{#{%w[LICENSE README.md lib/**/*.rb lib/**/*.erb exe/*].join(",")}}")

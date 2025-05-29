@@ -3,7 +3,7 @@ require:
   - ./tool/rubocop/cop/packcr/erbout/left_shift_format.rb
 
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.2
   NewCops: enable
   SuggestExtensions: false
   Exclude:
