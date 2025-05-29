@@ -1,7 +1,7 @@
 class Packcr
   class Node
     class QuantityNode
-      def get_many_code(gen, onfail, indent, bare, oncut)
+      def get_many_code(gen, onfail, indent, unwrap, oncut)
         case gen.lang
         when :c
           erbout = +""
@@ -161,7 +161,7 @@ class Packcr
         end
       end
 
-      def get_one_code(gen, onfail, indent, bare, oncut)
+      def get_one_code(gen, onfail, indent, unwrap, oncut)
         case gen.lang
         when :c
           erbout = +""

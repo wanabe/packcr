@@ -1,7 +1,7 @@
 class Packcr
   class Node
     class PredicateNode
-      def get_code(gen, onfail, indent, bare, oncut)
+      def get_code(gen, onfail, indent, unwrap, oncut)
         case gen.lang
         when :c
           erbout = +""
@@ -77,7 +77,7 @@ class Packcr
         end
       end
 
-      def get_neg_code(gen, onfail, indent, bare, oncut)
+      def get_neg_code(gen, onfail, indent, unwrap, oncut)
         case gen.lang
         when :c
           erbout = +""

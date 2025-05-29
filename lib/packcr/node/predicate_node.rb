@@ -15,11 +15,11 @@ class Packcr
         $stdout.print "#{" " * indent}}\n"
       end
 
-      def generate_code(gen, onfail, indent, bare, oncut: nil)
+      def generate_code(gen, onfail, indent, unwrap, oncut: nil)
         if neg
-          get_neg_code(gen, onfail, indent, bare, oncut)
+          get_neg_code(gen, onfail, indent, unwrap, oncut)
         else
-          get_code(gen, onfail, indent, bare, oncut)
+          get_code(gen, onfail, indent, unwrap, oncut)
         end
       end
 

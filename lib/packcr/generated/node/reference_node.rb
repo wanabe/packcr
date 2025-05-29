@@ -1,7 +1,7 @@
 class Packcr
   class Node
     class ReferenceNode
-      def get_code(gen, onfail, indent, bare, oncut)
+      def get_code(gen, onfail, indent, unwrap, oncut)
         case gen.lang
         when :c
           erbout = +""
@@ -47,7 +47,7 @@ class Packcr
         end
       end
 
-      def get_reverse_code(gen, onsuccess, indent, bare, oncut)
+      def get_reverse_code(gen, onsuccess, indent, unwrap, oncut)
         case gen.lang
         when :rb
           erbout = +""

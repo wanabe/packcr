@@ -1,7 +1,7 @@
 class Packcr
   class Node
     class StringNode
-      def get_many_code(gen, onfail, indent, bare, oncut, n)
+      def get_many_code(gen, onfail, indent, unwrap, oncut, n)
         case gen.lang
         when :c
           erbout = +""
@@ -43,7 +43,7 @@ class Packcr
         end
       end
 
-      def get_many_reverse_code(gen, onsuccess, indent, bare, oncut, n)
+      def get_many_reverse_code(gen, onsuccess, indent, unwrap, oncut, n)
         case gen.lang
         when :rs
           erbout = +""
@@ -55,7 +55,7 @@ class Packcr
         end
       end
 
-      def get_one_code(gen, onfail, indent, bare, oncut, n)
+      def get_one_code(gen, onfail, indent, unwrap, oncut, n)
         case gen.lang
         when :c
           erbout = +""
@@ -92,7 +92,7 @@ class Packcr
         end
       end
 
-      def get_one_reverse_code(gen, onsuccess, indent, bare, oncut, n)
+      def get_one_reverse_code(gen, onsuccess, indent, unwrap, oncut, n)
         case gen.lang
         when :rs
           erbout = +""

@@ -1,7 +1,7 @@
 class Packcr
   class Node
     class SequenceNode
-      def get_code(gen, onfail, indent, bare, oncut)
+      def get_code(gen, onfail, indent, unwrap, oncut)
         case gen.lang
         when :c
           erbout = +""

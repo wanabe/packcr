@@ -20,12 +20,12 @@ class Packcr
         gen.lang == :rb
       end
 
-      def generate_code(gen, onfail, indent, bare, oncut: nil)
-        get_code(gen, onfail, indent, bare, oncut)
+      def generate_code(gen, onfail, indent, unwrap, oncut: nil)
+        get_code(gen, onfail, indent, unwrap, oncut)
       end
 
-      def generate_reverse_code(gen, onsuccess, indent, bare, oncut: nil)
-        get_reverse_code(gen, onsuccess, indent, bare, oncut)
+      def generate_reverse_code(gen, onsuccess, indent, unwrap, oncut: nil)
+        get_reverse_code(gen, onsuccess, indent, unwrap, oncut)
       end
 
       def reachability

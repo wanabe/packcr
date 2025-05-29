@@ -15,17 +15,17 @@ class Packcr
       @label += 1
     end
 
-    def generate_code(node, onescape, indent, bare, reverse: false, oncut: nil)
+    def generate_code(node, onescape, indent, unwrap, reverse: false, oncut: nil)
       stream = @stream
       @stream = +""
       @level += 1
       begin
         if reverse
-          code = node.generate_reverse_code(self, onescape, indent, bare, oncut: oncut)
+          code = node.generate_reverse_code(self, onescape, indent, unwrap, oncut: oncut)
         else
-          code = node.generate_code(self, onescape, indent, bare, oncut: oncut)
+          code = node.generate_code(self, onescape, indent, unwrap, oncut: oncut)
         end
-        write Packcr.format_code(code, indent: indent, unwrap: bare)
+        write Packcr.format_code(code, indent: indent, unwrap: unwrap)
         @stream
       ensure
         @level -= 1

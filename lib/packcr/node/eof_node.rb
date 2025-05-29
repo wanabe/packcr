@@ -5,8 +5,8 @@ class Packcr
         $stdout.print "#{" " * indent}Eof()\n"
       end
 
-      def generate_code(gen, onfail, indent, bare, oncut: nil)
-        get_code(gen, onfail, indent, bare, oncut)
+      def generate_code(gen, onfail, indent, unwrap, oncut: nil)
+        get_code(gen, onfail, indent, unwrap, oncut)
       end
 
       def reachability

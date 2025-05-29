@@ -66,89 +66,89 @@ end
 
 file "lib/packcr/generated/node/action_node.rb" => Dir.glob("lib/packcr/templates/node/action*.erb") do |t|
   generate_code(t, %w[Packcr Node ActionNode], "action", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/alternate_node.rb" => Dir.glob("lib/packcr/templates/node/alternate*.erb") do |t|
   generate_code(t, %w[Packcr Node AlternateNode], "alternate", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/capture_node.rb" => Dir.glob("lib/packcr/templates/node/capture*.erb") do |t|
   generate_code(t, %w[Packcr Node CaptureNode], "capture", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/charclass_node.rb" => Dir.glob("lib/packcr/templates/node/charclass*.erb") do |t|
   generate_code(t, %w[Packcr Node CharclassNode], "charclass", "gen.lang",
-    "" => "(gen, onfail, indent, bare, charclass, n, a)",
-    "_one" => "(gen, onfail, indent, bare, charclass, n, a)",
-    "_any" => "(gen, onfail, indent, bare, charclass)",
-    "_fail" => "(gen, onfail, indent, bare)",
-    "_utf8" => "(gen, onfail, indent, bare, charclass, n)",
-    "_utf8_reverse" => "(gen, onsuccess, indent, bare, charclass, n)",
+    "" => "(gen, onfail, indent, unwrap, charclass, n, a)",
+    "_one" => "(gen, onfail, indent, unwrap, charclass, n, a)",
+    "_any" => "(gen, onfail, indent, unwrap, charclass)",
+    "_fail" => "(gen, onfail, indent, unwrap)",
+    "_utf8" => "(gen, onfail, indent, unwrap, charclass, n)",
+    "_utf8_reverse" => "(gen, onsuccess, indent, unwrap, charclass, n)",
   )
 end
 
 file "lib/packcr/generated/node/eof_node.rb" => Dir.glob("lib/packcr/templates/node/eof*.erb") do |t|
   generate_code(t, %w[Packcr Node EofNode], "eof", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/error_node.rb" => Dir.glob("lib/packcr/templates/node/error*.erb") do |t|
   generate_code(t, %w[Packcr Node ErrorNode], "error", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/expand_node.rb" => Dir.glob("lib/packcr/templates/node/expand*.erb") do |t|
   generate_code(t, %w[Packcr Node ExpandNode], "expand", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/predicate_node.rb" => Dir.glob("lib/packcr/templates/node/predicate*.erb") do |t|
   generate_code(t, %w[Packcr Node PredicateNode], "predicate", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
-    "_neg" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
+    "_neg" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/quantity_node.rb" => Dir.glob("lib/packcr/templates/node/quantity*.erb") do |t|
   generate_code(t, %w[Packcr Node QuantityNode], "quantity", "gen.lang",
-    "_many" => "(gen, onfail, indent, bare, oncut)",
-    "_one" => "(gen, onfail, indent, bare, oncut)",
+    "_many" => "(gen, onfail, indent, unwrap, oncut)",
+    "_one" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/reference_node.rb" => Dir.glob("lib/packcr/templates/node/reference*.erb") do |t|
   generate_code(t, %w[Packcr Node ReferenceNode], "reference", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
-    "_reverse" => "(gen, onsuccess, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
+    "_reverse" => "(gen, onsuccess, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/rule_node.rb" => Dir.glob("lib/packcr/templates/node/rule*.erb") do |t|
   generate_code(t, %w[Packcr Node RuleNode], "rule", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/sequence_node.rb" => Dir.glob("lib/packcr/templates/node/sequence*.erb") do |t|
   generate_code(t, %w[Packcr Node SequenceNode], "sequence", "gen.lang",
-    "" => "(gen, onfail, indent, bare, oncut)",
+    "" => "(gen, onfail, indent, unwrap, oncut)",
   )
 end
 
 file "lib/packcr/generated/node/string_node.rb" => Dir.glob("lib/packcr/templates/node/string*.erb") do |t|
   generate_code(t, %w[Packcr Node StringNode], "string", "gen.lang",
-    "_many" => "(gen, onfail, indent, bare, oncut, n)",
-    "_one" => "(gen, onfail, indent, bare, oncut, n)",
-    "_many_reverse" => "(gen, onsuccess, indent, bare, oncut, n)",
-    "_one_reverse" => "(gen, onsuccess, indent, bare, oncut, n)",
+    "_many" => "(gen, onfail, indent, unwrap, oncut, n)",
+    "_one" => "(gen, onfail, indent, unwrap, oncut, n)",
+    "_many_reverse" => "(gen, onsuccess, indent, unwrap, oncut, n)",
+    "_one_reverse" => "(gen, onsuccess, indent, unwrap, oncut, n)",
   )
 end

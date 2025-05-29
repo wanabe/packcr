@@ -21,24 +21,24 @@ class Packcr
         gen.lang == :rs
       end
 
-      def generate_code(gen, onfail, indent, bare, oncut: nil)
+      def generate_code(gen, onfail, indent, unwrap, oncut: nil)
         n = value&.length || 0
         return unless n > 0
 
         if n > 1
-          get_many_code(gen, onfail, indent, bare, oncut, n)
+          get_many_code(gen, onfail, indent, unwrap, oncut, n)
         else
-          get_one_code(gen, onfail, indent, bare, oncut, n)
+          get_one_code(gen, onfail, indent, unwrap, oncut, n)
         end
       end
 
-      def generate_reverse_code(gen, onsuccess, indent, bare, oncut: nil)
+      def generate_reverse_code(gen, onsuccess, indent, unwrap, oncut: nil)
         n = value&.length || 0
 
         if n > 1
-          get_many_reverse_code(gen, onsuccess, indent, bare, oncut, n)
+          get_many_reverse_code(gen, onsuccess, indent, unwrap, oncut, n)
         else
-          get_one_reverse_code(gen, onsuccess, indent, bare, oncut, n)
+          get_one_reverse_code(gen, onsuccess, indent, unwrap, oncut, n)
         end
       end
 

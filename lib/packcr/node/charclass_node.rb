@@ -17,16 +17,16 @@ class Packcr
         gen.lang == :rb && !gen.ascii
       end
 
-      def generate_code(gen, onfail, indent, bare, oncut: nil)
-        return generate_ascii_code(gen, onfail, indent, bare) if gen.ascii
+      def generate_code(gen, onfail, indent, unwrap, oncut: nil)
+        return generate_ascii_code(gen, onfail, indent, unwrap) if gen.ascii
 
-        generate_utf8_charclass_code(gen, onfail, indent, bare)
+        generate_utf8_charclass_code(gen, onfail, indent, unwrap)
       end
 
-      def generate_reverse_code(gen, onsuccess, indent, bare, oncut: nil)
+      def generate_reverse_code(gen, onsuccess, indent, unwrap, oncut: nil)
         raise "unexpected" if gen.ascii
 
-        generate_utf8_charclass_reverse_code(gen, onsuccess, indent, bare)
+        generate_utf8_charclass_reverse_code(gen, onsuccess, indent, unwrap)
       end
 
       def reachability
@@ -39,20 +39,20 @@ class Packcr
 
       private
 
-      def generate_utf8_charclass_code(gen, onfail, indent, bare)
+      def generate_utf8_charclass_code(gen, onfail, indent, unwrap)
         charclass = value
         if charclass && charclass.encoding != Encoding::UTF_8
           charclass = charclass.dup.force_encoding(Encoding::UTF_8)
         end
         n = charclass&.length || 0
         if charclass.nil? || n > 0
-          get_utf8_code(gen, onfail, indent, bare, charclass, n)
+          get_utf8_code(gen, onfail, indent, unwrap, charclass, n)
         else
-          get_fail_code(gen, onfail, indent, bare)
+          get_fail_code(gen, onfail, indent, unwrap)
         end
       end
 
-      def generate_utf8_charclass_reverse_code(gen, onsuccess, indent, bare)
+      def generate_utf8_charclass_reverse_code(gen, onsuccess, indent, unwrap)
         charclass = value
         if charclass && charclass.encoding != Encoding::UTF_8
           charclass = charclass.dup.force_encoding(Encoding::UTF_8)
@@ -60,10 +60,10 @@ class Packcr
         n = charclass&.length || 0
         return unless charclass.nil? || n > 0
 
-        get_utf8_reverse_code(gen, onsuccess, indent, bare, charclass, n)
+        get_utf8_reverse_code(gen, onsuccess, indent, unwrap, charclass, n)
       end
 
-      def generate_ascii_code(gen, onfail, indent, bare)
+      def generate_ascii_code(gen, onfail, indent, unwrap)
         charclass = value
         if charclass
           n = charclass.length
@@ -74,15 +74,15 @@ class Packcr
           end
           if n > 0
             if n > 1
-              get_code(gen, onfail, indent, bare, charclass, n, a)
+              get_code(gen, onfail, indent, unwrap, charclass, n, a)
             else
-              get_one_code(gen, onfail, indent, bare, charclass, n, a)
+              get_one_code(gen, onfail, indent, unwrap, charclass, n, a)
             end
           else
-            get_fail_code(gen, onfail, indent, bare)
+            get_fail_code(gen, onfail, indent, unwrap)
           end
         else
-          get_any_code(gen, onfail, indent, bare, charclass)
+          get_any_code(gen, onfail, indent, unwrap, charclass)
         end
       end
 

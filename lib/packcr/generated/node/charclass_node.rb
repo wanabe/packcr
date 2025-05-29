@@ -1,7 +1,7 @@
 class Packcr
   class Node
     class CharclassNode
-      def get_code(gen, onfail, indent, bare, charclass, n, a)
+      def get_code(gen, onfail, indent, unwrap, charclass, n, a)
         case gen.lang
         when :c
           erbout = +""
@@ -97,7 +97,7 @@ class Packcr
         end
       end
 
-      def get_any_code(gen, onfail, indent, bare, charclass)
+      def get_any_code(gen, onfail, indent, unwrap, charclass)
         case gen.lang
         when :c
           erbout = +""
@@ -124,7 +124,7 @@ class Packcr
         end
       end
 
-      def get_fail_code(gen, onfail, indent, bare)
+      def get_fail_code(gen, onfail, indent, unwrap)
         case gen.lang
         when :c
           erbout = +""
@@ -141,7 +141,7 @@ class Packcr
         end
       end
 
-      def get_one_code(gen, onfail, indent, bare, charclass, n, a)
+      def get_one_code(gen, onfail, indent, unwrap, charclass, n, a)
         case gen.lang
         when :c
           erbout = +""
@@ -176,7 +176,7 @@ class Packcr
         end
       end
 
-      def get_utf8_code(gen, onfail, indent, bare, charclass, n)
+      def get_utf8_code(gen, onfail, indent, unwrap, charclass, n)
         case gen.lang
         when :c
           erbout = +""
@@ -363,7 +363,7 @@ class Packcr
         end
       end
 
-      def get_utf8_reverse_code(gen, onsuccess, indent, bare, charclass, n)
+      def get_utf8_reverse_code(gen, onsuccess, indent, unwrap, charclass, n)
         case gen.lang
         when :rb
           erbout = +""

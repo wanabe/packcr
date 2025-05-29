@@ -16,14 +16,14 @@ class Packcr
         $stdout.print "#{" " * indent}}\n"
       end
 
-      def generate_code(gen, onfail, indent, bare, oncut: nil)
+      def generate_code(gen, onfail, indent, unwrap, oncut: nil)
         if max > 1 || max < 0
-          get_many_code(gen, onfail, indent, bare, oncut)
+          get_many_code(gen, onfail, indent, unwrap, oncut)
         elsif max == 1
           if min > 0
-            gen.generate_code(expr, onfail, indent, bare, oncut: oncut)
+            gen.generate_code(expr, onfail, indent, unwrap, oncut: oncut)
           else
-            get_one_code(gen, onfail, indent, bare, oncut)
+            get_one_code(gen, onfail, indent, unwrap, oncut)
           end
         end
       end
