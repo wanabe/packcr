@@ -17,9 +17,9 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         if neg
-          Packcr.format_code(get_neg_code(gen, onfail, indent, bare, oncut), indent: indent, unwrap: bare)
+          get_neg_code(gen, onfail, indent, bare, oncut)
         else
-          Packcr.format_code(get_code(gen, onfail, indent, bare, oncut), indent: indent, unwrap: bare)
+          get_code(gen, onfail, indent, bare, oncut)
         end
       end
 

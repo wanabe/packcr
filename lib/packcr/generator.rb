@@ -21,10 +21,11 @@ class Packcr
       @level += 1
       begin
         if reverse
-          write node.generate_reverse_code(self, onescape, indent, bare, oncut: oncut)
+          code = node.generate_reverse_code(self, onescape, indent, bare, oncut: oncut)
         else
-          write node.generate_code(self, onescape, indent, bare, oncut: oncut)
+          code = node.generate_code(self, onescape, indent, bare, oncut: oncut)
         end
+        write Packcr.format_code(code, indent: indent, unwrap: bare)
         @stream
       ensure
         @level -= 1

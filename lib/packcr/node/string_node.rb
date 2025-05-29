@@ -26,9 +26,9 @@ class Packcr
         return unless n > 0
 
         if n > 1
-          Packcr.format_code(get_many_code(gen, onfail, indent, bare, oncut, n), indent: indent)
+          get_many_code(gen, onfail, indent, bare, oncut, n)
         else
-          Packcr.format_code(get_one_code(gen, onfail, indent, bare, oncut, n), indent: indent)
+          get_one_code(gen, onfail, indent, bare, oncut, n)
         end
       end
 
@@ -36,9 +36,9 @@ class Packcr
         n = value&.length || 0
 
         if n > 1
-          Packcr.format_code(get_many_reverse_code(gen, onsuccess, indent, bare, oncut, n), indent: indent)
+          get_many_reverse_code(gen, onsuccess, indent, bare, oncut, n)
         else
-          Packcr.format_code(get_one_reverse_code(gen, onsuccess, indent, bare, oncut, n), indent: indent)
+          get_one_reverse_code(gen, onsuccess, indent, bare, oncut, n)
         end
       end
 

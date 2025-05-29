@@ -21,11 +21,11 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
-        Packcr.format_code(get_code(gen, onfail, indent, bare, oncut), indent: indent, unwrap: bare)
+        get_code(gen, onfail, indent, bare, oncut)
       end
 
       def generate_reverse_code(gen, onsuccess, indent, bare, oncut: nil)
-        Packcr.format_code(get_reverse_code(gen, onsuccess, indent, bare, oncut), indent: indent)
+        get_reverse_code(gen, onsuccess, indent, bare, oncut)
       end
 
       def reachability

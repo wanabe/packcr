@@ -18,12 +18,12 @@ class Packcr
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
         if max > 1 || max < 0
-          Packcr.format_code(get_many_code(gen, onfail, indent, bare, oncut), indent: indent, unwrap: bare)
+          get_many_code(gen, onfail, indent, bare, oncut)
         elsif max == 1
           if min > 0
             gen.generate_code(expr, onfail, indent, bare, oncut: oncut)
           else
-            Packcr.format_code(get_one_code(gen, onfail, indent, bare, oncut), indent: indent, unwrap: bare)
+            get_one_code(gen, onfail, indent, bare, oncut)
           end
         end
       end
