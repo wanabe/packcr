@@ -46,9 +46,9 @@ class Packcr
         end
         n = charclass&.length || 0
         if charclass.nil? || n > 0
-          gen.write Packcr.format_code(get_utf8_code(gen, onfail, indent, bare, charclass, n), indent: indent, unwrap: bare)
+          Packcr.format_code(get_utf8_code(gen, onfail, indent, bare, charclass, n), indent: indent, unwrap: bare)
         else
-          gen.write Packcr.format_code(get_fail_code(gen, onfail, indent, bare), indent: indent)
+          Packcr.format_code(get_fail_code(gen, onfail, indent, bare), indent: indent)
         end
       end
 
@@ -60,7 +60,7 @@ class Packcr
         n = charclass&.length || 0
         return unless charclass.nil? || n > 0
 
-        gen.write Packcr.format_code(get_utf8_reverse_code(gen, onsuccess, indent, bare, charclass, n), indent: indent, unwrap: bare)
+        Packcr.format_code(get_utf8_reverse_code(gen, onsuccess, indent, bare, charclass, n), indent: indent, unwrap: bare)
       end
 
       def generate_ascii_code(gen, onfail, indent, bare)
@@ -74,15 +74,15 @@ class Packcr
           end
           if n > 0
             if n > 1
-              gen.write Packcr.format_code(get_code(gen, onfail, indent, bare, charclass, n, a), indent: indent, unwrap: bare)
+              Packcr.format_code(get_code(gen, onfail, indent, bare, charclass, n, a), indent: indent, unwrap: bare)
             else
-              gen.write Packcr.format_code(get_one_code(gen, onfail, indent, bare, charclass, n, a), indent: indent)
+              Packcr.format_code(get_one_code(gen, onfail, indent, bare, charclass, n, a), indent: indent)
             end
           else
-            gen.write Packcr.format_code(get_fail_code(gen, onfail, indent, bare), indent: indent)
+            Packcr.format_code(get_fail_code(gen, onfail, indent, bare), indent: indent)
           end
         else
-          gen.write Packcr.format_code(get_any_code(gen, onfail, indent, bare, charclass), indent: indent)
+          Packcr.format_code(get_any_code(gen, onfail, indent, bare, charclass), indent: indent)
         end
       end
 

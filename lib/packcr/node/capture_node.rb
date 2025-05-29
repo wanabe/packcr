@@ -16,7 +16,7 @@ class Packcr
       end
 
       def generate_code(gen, onfail, indent, bare, oncut: nil)
-        gen.write Packcr.format_code(get_code(gen, onfail, indent, bare, oncut), indent: indent)
+        Packcr.format_code(get_code(gen, onfail, indent, bare, oncut), indent: indent)
       end
 
       def reachability
