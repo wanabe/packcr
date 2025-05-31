@@ -39,7 +39,7 @@ class Packcr
           erbout
         when :rs
           erbout = +""
-          erbout << "if !self.apply_rule(Rule::#{Packcr.camelize(name)}, &mut answer, #{index || 0}, offset, limits.clone()) {\n    return throw(#{onfail});\n}\n".freeze
+          erbout << "if !self.apply_rule(Rule::#{Packcr.camelize(name)}, &mut answer, #{index || 0}, offset, &limits) {\n    return throw(#{onfail});\n}\n".freeze
 
           erbout
         else

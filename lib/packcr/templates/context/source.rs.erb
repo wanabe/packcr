@@ -435,11 +435,11 @@ impl <%= class_name %> {
 
         let value = {
             let node = self.rule_thunk_node(
-                Rule::Statement,
+                Rule::<%= Packcr.camelize(@root.rules[0].name) %>,
                 &mut answer,
                 0,
                 self.input.position_offset,
-                None,
+                &None,
             );
 
             if node.is_none() {
@@ -530,7 +530,7 @@ impl <%= class_name %> {
         parent: &mut ThunkChunk,
         value_index: usize,
         offset: usize,
-        limits: RuleLimit,
+        limits: &RuleLimit,
     ) -> bool {
         let node = self.rule_thunk_node(rule, parent, value_index, offset, limits);
         if node.is_none() {
@@ -547,13 +547,13 @@ impl <%= class_name %> {
         parent: &ThunkChunk,
         value_index: usize,
         offset: usize,
-        limits: RuleLimit,
+        limits: &RuleLimit,
     ) -> Option<ThunkNode> {
-        match &limits {
+        match limits {
             Some(limit_set)
                 if self.input.position_offset == offset && !limit_set.contains(&rule) =>
             {
-                self.rule_answer_with_limits(rule, limits.unwrap())
+                self.rule_answer_with_limits(rule, limits.clone().unwrap())
             }
             _ => self.rule_answer(rule),
         }
