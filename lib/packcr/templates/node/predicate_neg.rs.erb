@@ -4,7 +4,7 @@ let p = self.input.position_offset;
 <%- if gen.location -%>
 TODO
 <%- end -%>
-catch(||{
+catch(<%= l %>, || {
     <%- %><%= gen.generate_code(expr, l, 4, false) -%>
     <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     self.input.position_offset = p;
@@ -15,7 +15,7 @@ catch(||{
     <%- else -%>
     NOP
     <%- end -%>
-}, <%= l %>)?;
+})?;
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 self.input.position_offset = p;
 <%-   if gen.location -%>

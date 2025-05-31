@@ -144,7 +144,7 @@ class Packcr
           if gen.location
             erbout << "TODO\n".freeze
           end
-          erbout << "catch(||{\n#{gen.generate_code(expr, l, 4, false)}".freeze
+          erbout << "catch(#{l}, || {\n#{gen.generate_code(expr, l, 4, false)}".freeze
           if r == Packcr::CODE_REACH__ALWAYS_FAIL
             erbout << "    NOP\n".freeze
           else
@@ -156,7 +156,7 @@ class Packcr
             erbout << "    throw(#{onfail})\n".freeze
 
           end
-          erbout << "}, #{l})?;\n".freeze
+          erbout << "})?;\n".freeze
 
           if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
             erbout << "self.input.position_offset = p;\n".freeze

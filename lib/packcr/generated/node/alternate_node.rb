@@ -92,7 +92,7 @@ class Packcr
         when :rs
           erbout = +""
           m = gen.next_label
-          erbout << "catch(||{\n    let p = self.input.position_offset;\n".freeze
+          erbout << "catch(#{m}, || {\n    let p = self.input.position_offset;\n".freeze
 
           if gen.location
             erbout << "    TODO\n".freeze
@@ -106,15 +106,15 @@ class Packcr
               l = gen.next_label
               r = expr.reachability
               if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
-                erbout << "    catch(||{\n#{gen.generate_code(expr, l, 8, false, oncut: onfail)}".freeze
+                erbout << "    catch(#{l}, || {\n#{gen.generate_code(expr, l, 8, false, oncut: onfail)}".freeze
                 if c
                   erbout << "        // unreachable codes omitted\n".freeze
                 end
-                erbout << "        NOP\n    }, #{l})?\n".freeze
+                erbout << "        NOP\n    })?\n".freeze
 
                 break
               else
-                erbout << "    catch(||{\n#{gen.generate_code(expr, l, 8, false, oncut: onfail)}        throw(#{m})\n    }, #{l})?;\n".freeze
+                erbout << "    catch(#{l}, || {\n#{gen.generate_code(expr, l, 8, false, oncut: onfail)}        throw(#{m})\n    })?;\n".freeze
               end
             end
             erbout << "    self.input.position_offset = p;\n".freeze
@@ -126,7 +126,7 @@ class Packcr
 
             erbout << "    throw(#{onfail})\n".freeze
           end
-          erbout << "}, #{m})?;\n".freeze
+          erbout << "})?;\n".freeze
 
           erbout
         else

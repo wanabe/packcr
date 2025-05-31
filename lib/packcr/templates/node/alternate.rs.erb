@@ -1,5 +1,5 @@
 <%- m = gen.next_label -%>
-catch(||{
+catch(<%= m %>, || {
     let p = self.input.position_offset;
     <%- if gen.location -%>
     TODO
@@ -12,19 +12,19 @@ catch(||{
     <%-     l = gen.next_label -%>
     <%-     r = expr.reachability -%>
     <%-     if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
-    catch(||{
+    catch(<%= l %>, || {
         <%-   %><%= gen.generate_code(expr, l, 8, false, oncut: onfail) -%>
         <%-   if c -%>
         // unreachable codes omitted
         <%-   end -%>
         NOP
-    }, <%= l %>)?
+    })?
     <%-       break -%>
     <%-     else -%>
-    catch(||{
+    catch(<%= l %>, || {
         <%-   %><%= gen.generate_code(expr, l, 8, false, oncut: onfail) -%>
         throw(<%= m %>)
-    }, <%= l %>)?;
+    })?;
     <%-     end -%>
     <%-   end -%>
     self.input.position_offset = p;
@@ -35,4 +35,4 @@ catch(||{
     throw(<%= onfail %>)
     <%-   end -%>
     <%- end -%>
-}, <%= m %>)?;
+})?;

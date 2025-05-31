@@ -9,7 +9,7 @@ TODO
 let mut i = -1;
 <%- end -%>
 <%- m = gen.next_label -%>
-catch(||{
+catch(<%= m %>, || {
     loop {
         <%- if use_count -%>
         i += 1;
@@ -29,7 +29,7 @@ catch(||{
         <%- r = expr.reachability -%>
         <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
         TODO
-        match (||{
+        match (|| {
             <%- %><%= gen.generate_code(expr, l, 12, false) -%>
             if self.input.position_offset == p {
                 return throw(<%= m %>);
@@ -46,7 +46,7 @@ catch(||{
             }
         }
         <%- else -%>
-        match (||{
+        match (|| {
             <%- %><%= gen.generate_code(expr, l, 12, false) -%>
             if self.input.position_offset == p {
                 return throw(<%= m %>);
@@ -65,7 +65,7 @@ catch(||{
         }
         <%- end -%>
     }
-}, <%= m %>)?;
+})?;
 <%- if min > 0 -%>
 if i < <%= min %> {
     self.input.position_offset = p0;

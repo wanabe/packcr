@@ -55,17 +55,15 @@ class Packcr
           erbout
         when :rs
           erbout = +""
-          erbout << "answer.push_leaf(\n    Action::#{Packcr.camelize(gen.rule.name)}#{index},\n    self.input.position_offset,\n    &[".freeze
-
+          erbout << "answer.push_leaf(Action::#{Packcr.camelize(gen.rule.name)}#{index}, self.input.position_offset, &[".freeze
           vars.each_with_index do |var, i|
             erbout << "#{", " if i > 0}#{var.index}".freeze
           end
-          erbout << "],\n    &[".freeze
-
+          erbout << "], &[".freeze
           capts.each_with_index do |capt, i|
             erbout << "#{", " if i > 0}#{capt.index}".freeze
           end
-          erbout << "],\n);\n".freeze
+          erbout << "]);\n".freeze
 
           erbout
         else

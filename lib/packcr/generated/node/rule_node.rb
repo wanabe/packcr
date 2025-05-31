@@ -59,12 +59,13 @@ class Packcr
         when :rs
           erbout = +""
           for_ref = has_ref ? "" : "_"
-          erbout << "#[allow(non_snake_case)]\nfn evaluate_rule_#{name}(\n    &mut self,\n    #{for_ref}offset: usize,\n".freeze
+          erbout << "#[allow(non_snake_case)]\nfn evaluate_rule_#{name}(&mut self, #{for_ref}offset: usize, ".freeze
 
           if gen.location
             erbout << "    TODO\n".freeze
           end
-          erbout << "    #{for_ref}limits: Option<RuleSet>,\n) -> Option<ThunkChunk> {\n    let mut answer = ThunkChunk::new(self.input.position_offset);\n".freeze
+
+          erbout << "#{for_ref}limits: RuleLimit) -> Option<ThunkChunk> {\n    let mut answer = ThunkChunk::new(self.input.position_offset);\n".freeze
 
           if gen.location
             erbout << "    TODO\n".freeze
@@ -76,10 +77,10 @@ class Packcr
           end
           r = expr.reachability
           if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
-            erbout << "    let _ = (||{\n#{gen.generate_code(expr, 0, 8, false)}        NOP\n    })();\n    self.level -= 1;\n    Some(answer)\n".freeze
+            erbout << "    let _ = (|| {\n#{gen.generate_code(expr, 0, 8, false)}        NOP\n    })();\n    self.level -= 1;\n    Some(answer)\n".freeze
 
           else
-            erbout << "    match (||{\n#{gen.generate_code(expr, 0, 8, false)}        NOP\n    })() {\n        NOP => {\n            self.level -= 1;\n            Some(answer)\n        },\n        _ => {\n            self.level -= 1;\n            None\n        }\n    }\n".freeze
+            erbout << "    match (|| {\n#{gen.generate_code(expr, 0, 8, false)}        NOP\n    })() {\n        NOP => {\n            self.level -= 1;\n            Some(answer)\n        }\n        _ => {\n            self.level -= 1;\n            None\n        }\n    }\n".freeze
           end
           erbout << "}\n".freeze
 
