@@ -61,6 +61,8 @@ EOL    <- '\n' / '\r\n' / '\r' / ';'
 } rs -> {
   fn main() {
       let mut calc = Calc::new(std::io::stdin().lock());
-      while calc.parse() {}
+      while !calc.input.closed {
+          calc.parse();
+      }
   }
 }

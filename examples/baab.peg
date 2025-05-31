@@ -36,7 +36,9 @@ A <- A 'a' c-> { printf("A0 %s\n", $0); } rb-> { printf("A0 %s\n", $0); } rs-> {
   rs -> ${
     fn main() {
         let mut parser = Packcr::new(&[b'b', b'a', b'a', b'b'][..]);
-        while parser.parse() {}
+        while !parser.input.closed {
+            parser.parse();
+        }
         println!("parsed");
     }
   }

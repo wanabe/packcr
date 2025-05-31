@@ -241,11 +241,9 @@ impl ValueRef {
         self.values.with_mut(self.index, f);
     }
 
-    <%- if use_value -%>
     fn get(&self) -> i32 {
         *self.values.table.borrow().get(&self.index).unwrap_or(&0)
     }
-    <%- end -%>
 }
 impl Clone for ValueRef {
     fn clone(&self) -> Self {
@@ -308,6 +306,7 @@ struct Input {
     start_position: usize,
     position_offset: usize,
     buffer: String,
+    closed: bool,
 }
 
 impl Input {
@@ -317,6 +316,7 @@ impl Input {
             start_position: 0,
             position_offset: 0,
             buffer: String::new(),
+            closed: false,
         }
     }
 
@@ -424,30 +424,38 @@ impl <%= class_name %> {
         self.memos.clear();
     }
 
-    fn parse(&mut self) -> bool {
+    fn parse(&mut self) -> Option<Value> {
+        if self.input.closed {
+            return None;
+        }
+
         let mut answer = ThunkChunk::new(0);
         let pos = self.input.start_position;
 
         <%- if !@root.rules.empty? -%>
-        let apply_result = self.apply_rule(
-            Rule::<%= Packcr.camelize(@root.rules[0].name) %>,
-            &mut answer,
-            0,
-            self.input.position_offset,
-            None,
-        );
+        let value = {
+            let node = self.rule_thunk_node(
+                Rule::Statement,
+                &mut answer,
+                0,
+                self.input.position_offset,
+                None,
+            );
 
-        if apply_result {
-            if let Thunk::Node(node) = answer.thunks.borrow_mut().last().unwrap() {
-                node.do_action(&ThunkProcessor::new(&self.input.buffer));
+            if node.is_none() {
+                self.error();
             }
-        } else {
-            self.error();
+            let node = node.unwrap();
+            node.do_action(&ThunkProcessor::new(&self.input.buffer));
+            Some(node.value.get())
+        };
+        self.commit_buffer();
+        if pos == self.input.start_position || self.refill_buffer(1) < 1{
+            self.input.closed = true;
         }
+        value
 
         <%- end -%>
-        self.commit_buffer();
-        pos != self.input.start_position && self.refill_buffer(1) >= 1
     }
 
     #[allow(dead_code)]
@@ -525,26 +533,36 @@ impl <%= class_name %> {
         offset: usize,
         limits: Option<RuleSet>,
     ) -> bool {
-        let answer = match &limits {
+        let node = self.rule_thunk_node(rule, parent, value_index, offset, limits);
+        if node.is_none() {
+            return false;
+        }
+        let node = node.unwrap();
+        parent.thunks.borrow_mut().push(Thunk::Node(node));
+        true
+    }
+
+    fn rule_thunk_node(
+        &mut self,
+        rule: Rule,
+        parent: &ThunkChunk,
+        value_index: usize,
+        offset: usize,
+        limits: Option<RuleSet>,
+    ) -> Option<ThunkNode> {
+        match &limits {
             Some(limit_set)
                 if self.input.position_offset == offset && !limit_set.contains(&rule) =>
             {
                 self.rule_answer_with_limits(rule, limits.unwrap())
             }
             _ => self.rule_answer(rule),
-        };
-
-        let Some(answer) = answer else {
-            return false;
-        };
-
-        let new_node = Thunk::Node(ThunkNode {
-            thunks: answer.borrow().thunks.clone(),
-            value: parent.value_ref(value_index),
-        });
-        parent.thunks.borrow_mut().push(new_node);
-
-        true
+        }.map(|answer| {
+            ThunkNode {
+                thunks: answer.borrow().thunks.clone(),
+                value: parent.value_ref(value_index),
+            }
+        })
     }
 
     fn call_rule(
