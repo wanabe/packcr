@@ -72,8 +72,7 @@ impl LrMemo {
         self.offset = offset;
     }
 
-    fn answer_as_deref_mut(&mut self) -> Option<Rc<RefCell<ThunkChunk>>> {
-        self.answer.as_ref()?;
+    fn clone_answer(&mut self) -> Option<Rc<RefCell<ThunkChunk>>> {
         self.answer.as_ref().map(Rc::clone)
     }
 }
@@ -378,7 +377,7 @@ impl Input {
 
     fn back_to(&mut self, memo: &mut LrMemo) -> Option<Rc<RefCell<ThunkChunk>>> {
         self.position_offset = memo.offset;
-        memo.answer_as_deref_mut()
+        memo.clone_answer()
     }
 }
 
@@ -518,7 +517,7 @@ impl <%= class_name %> {
 
         if self.input.position_offset > memo.offset {
             memo.start_match(answer, self.input.position_offset);
-            return memo.answer_as_deref_mut();
+            return self.input.back_to(memo);
         }
 
         self.input.back_to(memo)
