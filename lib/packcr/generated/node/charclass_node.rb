@@ -308,7 +308,7 @@ class Packcr
           a = charclass && charclass[0] == "^"
           i = a ? 1 : 0
           any_code = !charclass || (a && n == 1)
-          erbout << "let (#{any_code ? "_" : ""}u, n) = self.get_char_as_utf32();\nif n == 0 {\n    return throw(#{onfail});\n}\n".freeze
+          erbout << "let (#{any_code ? "_" : ""}u, n) = self.input.get_char_as_utf32();\nif n == 0 {\n    return throw(#{onfail});\n}\n".freeze
 
           unless any_code
             erbout << "if ".freeze

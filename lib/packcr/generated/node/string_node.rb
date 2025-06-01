@@ -30,7 +30,7 @@ class Packcr
           erbout
         when :rs
           erbout = +""
-          erbout << "if self.refill_buffer(#{n}) < #{n}\n    || !self.input.buffer[self.input.position_offset..] .starts_with(\"#{value[0, n].each_char.map { |c| "#{Packcr.escape_character(c)}" }.join}\")\n{\n    return throw(#{onfail});\n}\n".freeze
+          erbout << "if self.input.refill_buffer(#{n}) < #{n}\n    || !self.input.buffer[self.input.position_offset..] .starts_with(\"#{value[0, n].each_char.map { |c| "#{Packcr.escape_character(c)}" }.join}\")\n{\n    return throw(#{onfail});\n}\n".freeze
 
           if gen.location
             erbout << "TODO\n".freeze
@@ -47,7 +47,7 @@ class Packcr
         case gen.lang
         when :rs
           erbout = +""
-          erbout << "if self.refill_buffer(#{n}) >= #{n}\n    && self.input.buffer[self.input.position_offset..].starts_with(\"#{value[0, n].each_char.map { |c| "#{Packcr.escape_character(c)}" }.join}\")\n{\n    self.input.position_offset += #{n};\n    return throw(#{onsuccess});\n}\n".freeze
+          erbout << "if self.input.refill_buffer(#{n}) >= #{n}\n    && self.input.buffer[self.input.position_offset..].starts_with(\"#{value[0, n].each_char.map { |c| "#{Packcr.escape_character(c)}" }.join}\")\n{\n    self.input.position_offset += #{n};\n    return throw(#{onsuccess});\n}\n".freeze
 
           erbout
         else
@@ -79,7 +79,7 @@ class Packcr
           erbout
         when :rs
           erbout = +""
-          erbout << "if self.refill_buffer(1) < 1\n    || !self.input.buffer[self.input.position_offset..].starts_with(\"#{Packcr.escape_character(value[0])}\")\n{\n    return throw(#{onfail});\n}\n".freeze
+          erbout << "if self.input.refill_buffer(1) < 1\n    || !self.input.buffer[self.input.position_offset..].starts_with(\"#{Packcr.escape_character(value[0])}\")\n{\n    return throw(#{onfail});\n}\n".freeze
 
           if gen.location
             erbout << "TODO\n".freeze
@@ -96,7 +96,7 @@ class Packcr
         case gen.lang
         when :rs
           erbout = +""
-          erbout << "if self.refill_buffer(1) >= 1\n    && self.input.buffer[self.input.position_offset..].starts_with(\"#{Packcr.escape_character(value[0])}\")\n{\n    self.input.position_offset += 1;\n    return throw(#{onsuccess});\n}\n".freeze
+          erbout << "if self.input.refill_buffer(1) >= 1\n    && self.input.buffer[self.input.position_offset..].starts_with(\"#{Packcr.escape_character(value[0])}\")\n{\n    self.input.position_offset += 1;\n    return throw(#{onsuccess});\n}\n".freeze
 
           erbout
         else

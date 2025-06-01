@@ -414,15 +414,6 @@ impl <%= class_name %> {
         std::process::exit(1);
     }
 
-    fn refill_buffer(&mut self, num: usize) -> usize {
-        self.input.refill_buffer(num)
-    }
-
-    fn commit_buffer(&mut self) {
-        self.input.commit_buffer();
-        self.memos.clear();
-    }
-
     fn parse(&mut self) -> Option<Value> {
         if self.input.closed {
             return None;
@@ -440,6 +431,7 @@ impl <%= class_name %> {
                 self.input.position_offset,
                 &None,
             );
+            self.memos.clear();
 
             if node.is_none() {
                 self.error();
@@ -448,17 +440,12 @@ impl <%= class_name %> {
             node.do_action(&ThunkProcessor::new(&self.input.buffer));
             Some(node.value.get())
         };
-        self.commit_buffer();
-        if pos == self.input.start_position || self.refill_buffer(1) < 1 {
+        self.input.commit_buffer();
+        if pos == self.input.start_position || self.input.refill_buffer(1) < 1 {
             self.input.closed = true;
         }
         value
         <%- end -%>
-    }
-
-    #[allow(dead_code)]
-    fn get_char_as_utf32(&mut self) -> (i32, usize) {
-        self.input.get_char_as_utf32()
     }
 
     fn grow_lr(&mut self, rule: Rule, offset: usize) {

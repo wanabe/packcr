@@ -1,7 +1,7 @@
 <%- a = charclass && charclass[0] == '^' -%>
 <%- i = a ? 1 : 0 -%>
 <%- any_code = !charclass || (a && n == 1) -%>
-let (<%= any_code ? "_" : "" %>u, n) = self.get_char_as_utf32();
+let (<%= any_code ? "_" : "" %>u, n) = self.input.get_char_as_utf32();
 if n == 0 {
     return throw(<%= onfail %>);
 }
