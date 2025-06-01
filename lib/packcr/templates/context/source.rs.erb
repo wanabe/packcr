@@ -34,12 +34,10 @@ impl LrMemoTable {
     fn get(&mut self, index: usize, rule: Rule) -> &mut LrMemo {
         self.memos.get_mut(&index).unwrap().get_mut(&rule).unwrap()
     }
-    fn has(&mut self, index: usize, rule: Rule) -> bool {
-        let memo_opt = self.memos.get_mut(&index);
-        if memo_opt.is_none() {
-            return false;
-        }
-        memo_opt.unwrap().contains_key(&rule)
+    fn has(&self, index: usize, rule: Rule) -> bool {
+        self.memos
+            .get(&index)
+            .is_some_and(|memo_map| memo_map.contains_key(&rule))
     }
 }
 
@@ -59,15 +57,15 @@ impl LrMemo {
     }
 
     fn start_grow(&mut self) -> bool {
-        if self.grow || self.answer.is_some() {
-            return false;
+        if !self.grow && self.answer.is_none() {
+            self.grow = true;
+            true
+        } else {
+            false
         }
-        self.answer = None;
-        self.grow = true;
-        true
     }
 
-    fn start_match(&mut self, answer: Option<ThunkChunk>, offset: usize) {
+    fn update(&mut self, answer: Option<ThunkChunk>, offset: usize) {
         self.answer = answer.map(|c| Rc::new(RefCell::new(c)));
         self.offset = offset;
     }
@@ -454,16 +452,19 @@ impl <%= class_name %> {
             self.input.position_offset = offset;
 
             let answer = self.call_rule(rule, offset, Some(RuleSet::new()));
-            if answer.is_none() || self.input.position_offset <= old_offset {
-                return;
+            match answer {
+                Some(answer) if self.input.position_offset > old_offset => {
+                    let memo = self.memos.get(offset, rule);
+                    memo.update(Some(answer), self.input.position_offset);
+                }
+                _ => {
+                    return;
+                }
             }
-
-            let memo = self.memos.get(offset, rule);
-            memo.start_match(answer, self.input.position_offset);
         }
     }
 
-    fn rule_answer(&mut self, rule: Rule) -> Option<Rc<RefCell<ThunkChunk>>> {
+    fn rule_answer_without_limits(&mut self, rule: Rule) -> Option<Rc<RefCell<ThunkChunk>>> {
         let offset = self.input.position_offset;
         if !self.memos.has(offset, rule) {
             let memo = LrMemo::new(offset);
@@ -471,7 +472,7 @@ impl <%= class_name %> {
             let answer = self.call_rule(rule, offset, None);
 
             let memo = self.memos.get(offset, rule);
-            memo.start_match(answer, self.input.position_offset);
+            memo.update(answer, self.input.position_offset);
             if !memo.grow {
                 return self.input.back_to(memo);
             }
@@ -497,16 +498,13 @@ impl <%= class_name %> {
         let offset = self.input.position_offset;
         let answer = self.call_rule(rule, offset, Some(limits));
         if !self.memos.has(offset, rule) {
-            answer.as_ref()?;
-            return Some(Rc::new(RefCell::new(answer.unwrap())));
+            return answer.map(|answer| Rc::new(RefCell::new(answer)));
         }
+
         let memo = self.memos.get(offset, rule);
-
         if self.input.position_offset > memo.offset {
-            memo.start_match(answer, self.input.position_offset);
-            return self.input.back_to(memo);
+            memo.update(answer, self.input.position_offset);
         }
-
         self.input.back_to(memo)
     }
 
@@ -519,12 +517,10 @@ impl <%= class_name %> {
         limits: &RuleLimit,
     ) -> bool {
         let node = self.rule_thunk_node(rule, parent, value_index, offset, limits);
-        if node.is_none() {
-            return false;
-        }
-        let node = node.unwrap();
-        parent.thunks.borrow_mut().push(Thunk::Node(node));
-        true
+        node.is_some_and(|node| {
+            parent.thunks.borrow_mut().push(Thunk::Node(node));
+            true
+        })
     }
 
     fn rule_thunk_node(
@@ -541,7 +537,7 @@ impl <%= class_name %> {
             {
                 self.rule_answer_with_limits(rule, limits.clone().unwrap())
             }
-            _ => self.rule_answer(rule),
+            _ => self.rule_answer_without_limits(rule),
         }
         .map(|answer| ThunkNode {
             thunks: answer.borrow().thunks.clone(),
