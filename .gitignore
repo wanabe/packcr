@@ -11,3 +11,4 @@ Gemfile.lock
 /examples/**/*.h
 /examples/**/*.rb
 /examples/**/Makefile
+/spec/integration/test_parser.rs

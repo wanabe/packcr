@@ -1,0 +1,32 @@
+pattern <- 'action1:' rs -> { $$ = 110; }
+         / 'char1:' [1] rs -> { $$ = 210; }
+         / 'char2:' [123] rs -> { $$ = 220; }
+         / 'char3:' [1-3] rs -> { $$ = 230; }
+         / 'char4:' [^a] rs -> { $$ = 240; }
+         / 'char5:' [^abc] rs -> { $$ = 250; }
+         / 'char6:' [^a-z] rs -> { $$ = 260; }
+         / 'capt1:' <[123]> rs -> { $$ = 310 + $1.parse::<i32>().unwrap_or(0); }
+         / 'pred1:' !'1' [0-3] rs -> { $$ = 410; }
+         / 'quan1:' 'a'* '1' rs -> { $$ = 510; }
+         / 'quan2:' 'a'+ '2' rs -> { $$ = 520; }
+         / 'ref1:' child rs -> { $$ = 610; }
+child <- '0' / '123' / '456'
+
+%earlysource rs -> {
+  use std::ffi::CStr;
+  use std::os::raw::{c_char,c_int};
+}
+
+%latesource rs -> {
+  #[unsafe(no_mangle)]
+  pub extern "C" fn parse(cstr: *const c_char) -> c_int {
+      let bytes = unsafe { CStr::from_ptr(cstr) }.to_bytes();
+      let cursor = std::io::Cursor::new(bytes);
+      let mut parser = Packcr::new(cursor);
+      match parser.parse() {
+        Some(value) => value,
+        None => -1,
+      }
+      
+  }
+}
