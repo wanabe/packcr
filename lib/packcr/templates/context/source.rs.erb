@@ -124,7 +124,7 @@ enum Thunk {
     Node(ThunkNode),
 }
 impl Thunk {
-    fn do_action(&self, processor: &ThunkProcessor, value: ValueRef) {
+    fn do_action(&self, processor: &ThunkProcessor, value: ValueRef) -> Value {
         match self {
             Thunk::Leaf(leaf) => leaf.do_action(processor, value),
             Thunk::Node(node) => node.do_action(processor),
@@ -155,10 +155,11 @@ impl ThunkLeaf {
         }
     }
 
-    fn do_action(&self, processor: &ThunkProcessor, mut value: ValueRef) {
+    fn do_action(&self, processor: &ThunkProcessor, mut value: ValueRef) -> Value {
         value.with_mut(|v| {
             processor.call_action(self.action, self, v);
         });
+        value.get()
     }
     <%- if use_value -%>
 
@@ -173,10 +174,12 @@ struct ThunkNode {
     value: ValueRef,
 }
 impl ThunkNode {
-    fn do_action(&self, processor: &ThunkProcessor) {
-        for thunk in self.thunks.borrow().iter() {
-            thunk.do_action(processor, self.value.clone());
+    fn do_action(&self, processor: &ThunkProcessor) -> Value {
+        let mut v = 0;
+        for thunk in self.thunks.borrow_mut().iter_mut() {
+            v = thunk.do_action(processor, self.value.clone());
         }
+        v
     }
 }
 
@@ -435,8 +438,7 @@ impl <%= class_name %> {
                 self.error();
             }
             let node = node.unwrap();
-            node.do_action(&ThunkProcessor::new(&self.input.buffer));
-            Some(node.value.get())
+            Some(node.do_action(&ThunkProcessor::new(&self.input.buffer)))
         };
         self.input.commit_buffer();
         if pos == self.input.start_position || self.input.refill_buffer(1) < 1 {
