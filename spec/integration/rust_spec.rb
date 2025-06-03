@@ -13,6 +13,21 @@ RSpec.describe "rust integration" do
     target
   end
 
+  def capture_output
+    r, w = IO.pipe
+    orig_stdout = $stdout.dup
+    begin
+      $stdout.reopen(w)
+      yield
+    ensure
+      $stdout.reopen(orig_stdout)
+    end
+    w.close
+    result = r.read
+    r.close
+    result
+  end
+
   let(:dir) { File.expand_path(__dir__) }
   let(:peg) { File.expand_path("test_parser.peg", dir) }
   let(:rs) { make("test_parser.rs", peg, dir) { Packcr.new(peg, lang: :rs).run } }
@@ -54,6 +69,31 @@ RSpec.describe "rust integration" do
       it do
         expect(parser.parse(src)).to eq(value)
       end
+    end
+  end
+
+  context "calc" do
+    where(:src, :value) do
+      [
+        ["calc:1", 1],
+        ["calc:-1+2+4", 5],
+        ["calc:1-23*45/3", -344],
+        ["calc:(1+2)*3", 9],
+        ["calc:x**2", -1],
+      ]
+    end
+
+    with_them do
+      it do
+        expect(parser.parse(src)).to eq(value)
+      end
+    end
+
+    it "handles divzero error" do
+      out = capture_output do
+        expect(parser.parse("calc:1/0")).to eq(0)
+      end
+      expect(out.chomp).to eq("Div zero error")
     end
   end
 end

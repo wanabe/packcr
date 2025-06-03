@@ -10,7 +10,27 @@ pattern <- 'action1:' rs -> { $$ = 110; }
          / 'quan1:' 'a'* '1' rs -> { $$ = 510; }
          / 'quan2:' 'a'+ '2' rs -> { $$ = 520; }
          / 'ref1:' child rs -> { $$ = 610; }
+         / 'calc:' e:calc_expr rs -> { $$ = e; }
 child <- '0' / '123' / '456'
+
+calc_expr <- l:calc_expr '+' r:calc_factor { $$ = l + r; }
+           / l:calc_expr '-' r:calc_factor { $$ = l - r; }
+           / e:calc_factor { $$ = e; }
+calc_factor <- l:calc_factor '*' r:calc_unary { $$ = l * r; }
+             / l:calc_factor '/' r:calc_unary rs -> {
+                   if r == 0 {
+                       println!("Div zero error");
+                       $$ = 0;
+                   } else {
+                       $$ = l / r;
+                   }
+               }
+             / e:calc_unary { $$ = e; }
+calc_unary <- '+' e:calc_primary { $$ = e; }
+            / '-' e:calc_primary { $$ = -e; }
+            / e:calc_primary     { $$ = e; }
+calc_primary <- < [0-9]+ > rs -> { $$ = $1.parse::<i32>().unwrap_or(0); }
+              / '(' e:calc_expr ')' { $$ = e; }
 
 %earlysource rs -> {
   use std::ffi::CStr;
