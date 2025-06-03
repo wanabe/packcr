@@ -46,6 +46,7 @@ RSpec.describe "rust integration" do
         ["quan2:aaaaa2", 520],
         ["ref1:0", 610],
         ["ref1:123", 610],
+        ["unknown", -1],
       ]
     end
 

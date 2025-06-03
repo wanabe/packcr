@@ -410,11 +410,6 @@ impl <%= class_name %> {
         }
     }
 
-    fn error(&self) -> ! {
-        eprintln!("Syntax error");
-        std::process::exit(1);
-    }
-
     fn parse(&mut self) -> Option<Value> {
         if self.input.closed {
             return None;
@@ -433,12 +428,7 @@ impl <%= class_name %> {
                 &None,
             );
             self.memos.clear();
-
-            if node.is_none() {
-                self.error();
-            }
-            let node = node.unwrap();
-            Some(node.do_action(&ThunkProcessor::new(&self.input.buffer)))
+            node.map(|node| node.do_action(&ThunkProcessor::new(&self.input.buffer)))
         };
         self.input.commit_buffer();
         if pos == self.input.start_position || self.input.refill_buffer(1) < 1 {
