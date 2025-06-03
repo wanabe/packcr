@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.name       = "packcr"
   s.version    = version_module::Packcr::VERSION
   s.homepage   = "https://github.com/wanabe/packcr"
-  s.summary    = "Parser generator for C or Ruby"
+  s.summary    = "Parser generator for C, Ruby, and Rust"
   s.authors    = ["wanabe"]
   s.licenses   = ["MIT"]
   s.required_ruby_version = ">= 3.2.0"

@@ -2,7 +2,7 @@
 
 ## Overview
 
-PackCR is a parser generator for C or Ruby.
+PackCR is a parser generator for C, Ruby, and Rust.
 This library is a port of PackCC rewritten in ruby.
 The Original PackCC is https://github.com/arithy/packcc.
 
