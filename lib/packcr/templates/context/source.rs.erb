@@ -389,8 +389,8 @@ const fn throw(label: usize) -> Result<usize, usize> {
 
 fn catch(label: usize, f: impl FnOnce() -> Result<usize, usize>) -> Result<usize, usize> {
     match f() {
-        Ok(_) => NOP,
         Err(e) if e == label => NOP,
+        Ok(_) => NOP,
         Err(e) => throw(e),
     }
 }

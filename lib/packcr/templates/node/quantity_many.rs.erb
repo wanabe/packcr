@@ -45,24 +45,28 @@ catch(<%= m %>, || {
                 return throw(<%= m %>);
             }
         }
+        <%- elsif expr.reversible?(gen) -%>
+        catch(<%= l %>, || {
+            <%- %><%= gen.generate_code(expr, l, 12, false, reverse: true) -%>
+            self.input.position_offset = p;
+            throw(<%= m %>)
+        })?;
+        if self.input.position_offset == p {
+            return throw(<%= m %>);
+        };
         <%- else -%>
-        match (|| {
+        let label = (|| {
             <%- %><%= gen.generate_code(expr, l, 12, false) -%>
             if self.input.position_offset == p {
                 return throw(<%= m %>);
             }
             NOP
-        })() {
-            NOP => continue,
-            Err(label) if label != <%= l %> => return throw(label),
-            _ => {
-                self.input.position_offset = p;
-                <%-   if gen.location -%>
-                TODO
-                <%-   end -%>
-                return throw(<%= m %>);
-            }
-        }
+        })();
+        if let Err(<%= l %>) = label {
+            self.input.position_offset = p;
+            return throw(<%= m %>);
+        };
+        label?;
         <%- end -%>
     }
 })?;

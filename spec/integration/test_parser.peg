@@ -8,7 +8,7 @@ pattern <- 'action1:' rs -> { $$ = 110; }
          / 'capt1:' <[123]> rs -> { $$ = 310 + $1.parse::<i32>().unwrap_or(0); }
          / 'pred1:' !'1' [0-3] rs -> { $$ = 410; }
          / 'quan1:' 'a'* '1' rs -> { $$ = 510; }
-         / 'quan2:' 'a'+ '2' rs -> { $$ = 520; }
+         / 'quan2:' [a]+ '2' rs -> { $$ = 520; }
          / 'ref1:' child rs -> { $$ = 610; }
          / 'calc:' e:calc_expr rs -> { $$ = e; }
 child <- '0' / '123' / '456'

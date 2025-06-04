@@ -138,14 +138,18 @@ class Packcr
           if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
             erbout << "        TODO\n        match (|| {\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset == p {\n                return throw(#{m});\n            }\n        })() {\n            NOP => continue,\n            Err(label) if label != #{l} => return throw(label),\n            _ => {\n                self.input.position_offset = p;\n".freeze
 
-          else
-            erbout << "        match (|| {\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset == p {\n                return throw(#{m});\n            }\n            NOP\n        })() {\n            NOP => continue,\n            Err(label) if label != #{l} => return throw(label),\n            _ => {\n                self.input.position_offset = p;\n".freeze
+            if gen.location
+              erbout << "                TODO\n".freeze
+            end
+            erbout << "                return throw(#{m});\n            }\n        }\n".freeze
 
+          elsif expr.reversible?(gen)
+            erbout << "        catch(#{l}, || {\n#{gen.generate_code(expr, l, 12, false, reverse: true)}            self.input.position_offset = p;\n            throw(#{m})\n        })?;\n        if self.input.position_offset == p {\n            return throw(#{m});\n        };\n".freeze
+
+          else
+            erbout << "        let label = (|| {\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset == p {\n                return throw(#{m});\n            }\n            NOP\n        })();\n        if let Err(#{l}) = label {\n            self.input.position_offset = p;\n            return throw(#{m});\n        };\n        label?;\n".freeze
           end
-          if gen.location
-            erbout << "                TODO\n".freeze
-          end
-          erbout << "                return throw(#{m});\n            }\n        }\n    }\n})?;\n".freeze
+          erbout << "    }\n})?;\n".freeze
 
           if min > 0
             erbout << "if i < #{min} {\n    self.input.position_offset = p0;\n".freeze
