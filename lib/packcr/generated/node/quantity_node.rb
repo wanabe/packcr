@@ -215,6 +215,32 @@ class Packcr
             erbout << "  @position_offset = pos#{gen.level}\n  answer.thunks[n#{gen.level}..-1] = []\nend\n".freeze
           end
           erbout
+        when :rs
+          erbout = +""
+          r = expr.reachability
+          if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
+            erbout << "#{gen.generate_code(expr, nil, 0, true)}".freeze
+          else
+            erbout << "let p = self.input.position_offset;\n".freeze
+
+            if gen.location
+              erbout << "TODO\n".freeze
+            end
+            l = gen.next_label
+            if expr.reversible?(gen)
+              erbout << "catch(#{l}, || {\n    #{gen.generate_code(expr, l, 4, false, reverse: true)}    self.input.position_offset = p;\n    NOP\n})?;\n".freeze
+
+            else
+              m = gen.next_label
+              erbout << "catch(#{m}, || {\n    catch(#{l}, || {\n        #{gen.generate_code(expr, l, 8, false)}        return throw(#{m});\n    })?;\n".freeze
+
+              if gen.location
+                erbout << "    TODO\n".freeze
+              end
+              erbout << "    self.input.position_offset = p;\n    NOP\n})?;\n".freeze
+            end
+          end
+          erbout
         else
           raise "unknown lang #{gen.lang}"
         end

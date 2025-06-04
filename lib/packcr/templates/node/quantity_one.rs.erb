@@ -1,0 +1,31 @@
+<%- r = expr.reachability -%>
+<%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
+<%= gen.generate_code(expr, nil, 0, true) -%>
+<%- else -%>
+let p = self.input.position_offset;
+<%-   if gen.location -%>
+TODO
+<%-   end -%>
+<%-   if expr.reversible?(gen) -%>
+<%-     l = gen.next_label -%>
+catch(<%= l %>, || {
+    <%= gen.generate_code(expr, l, 4, false, reverse: true) -%>
+    self.input.position_offset = p;
+    NOP
+})?;
+<%-   else -%>
+<%-     l = gen.next_label -%>
+<%-     m = gen.next_label -%>
+catch(<%= m %>, || {
+    catch(<%= l %>, || {
+        <%= gen.generate_code(expr, l, 8, false) -%>
+        return throw(<%= m %>);
+    })?;
+    <%- if gen.location -%>
+    TODO
+    <%-   end -%>
+    self.input.position_offset = p;
+    NOP
+})?;
+<%-   end -%>
+<%- end -%>
