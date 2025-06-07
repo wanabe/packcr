@@ -1,29 +1,18 @@
 class Packcr
   class Node
     class ErrorNode < Packcr::Node
-      attr_accessor :expr, :code, :index, :vars, :capts
+      attr_accessor :expr, :action
 
-      def initialize(expr = nil, code = nil, index = nil)
+      def initialize(expr, action)
         super()
         @expr = expr
-        @code = code
-        @index = index
-        self.vars = []
-        self.capts = []
+        @action = action
       end
 
       def debug_dump(indent = 0)
-        $stdout.print "#{" " * indent}Error(index:"
-        Packcr.dump_integer_value(index)
-        $stdout.print ", code:{"
-        Packcr.dump_escaped_string(code.code)
-        $stdout.print "}, vars:\n"
-        vars.each do |ref|
-          $stdout.print "#{" " * (indent + 2)}'#{ref.var}'\n"
-        end
-        capts.each do |capt|
-          $stdout.print "#{" " * (indent + 2)}$#{capt.index + 1}\n"
-        end
+        $stdout.print "#{" " * indent}Error(action: #{@action}) {\n"
+        $stdout.print "#{" " * (indent + 2)}Action: "
+        action.debug_dump(indent + 2)
         $stdout.print "#{" " * indent}) {\n"
         expr.debug_dump(indent + 2)
         $stdout.print "#{" " * indent}}\n"
@@ -37,32 +26,26 @@ class Packcr
         expr.reachability
       end
 
-      def verify_variables(vars)
-        @vars = vars
-        super
-      end
-
-      def verify_captures(ctx, capts)
-        @capts = capts
-        super
-      end
-
       def nodes
-        [expr]
+        [expr, action]
       end
 
-      def setup_rule(rule)
-        @index = rule.codes.length
-        rule.codes.push(self)
+      def index
+        action.index
+      end
+
+      def vars
+        action.vars
+      end
+
+      def capts
+        action.capts
       end
 
       def to_h
         {
           type: :error,
-          code: code&.code,
-          vars: vars&.map(&:to_h),
-          capts: capts&.map(&:to_h),
-          index: @index,
+          action: action&.to_h,
         }
       end
     end

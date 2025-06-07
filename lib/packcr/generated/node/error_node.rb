@@ -60,11 +60,6 @@ class Packcr
           erbout << "    ),\n    nil,\n    0\n  )\n\n  throw(#{onfail})\nend\n".freeze
 
           erbout
-        when :rs
-          erbout = +""
-          erbout << "/* lib/packcr/templates/node/error.rs.erb */\n\n".freeze
-
-          erbout
         else
           raise "unknown lang #{gen.lang}"
         end

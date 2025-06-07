@@ -59,7 +59,14 @@ expression <- expr:expression opt_spaces_or_comments '/' 8< opt_spaces_or_commen
             / seq:sequence { $$ = seq }
 
 sequence <- seq:sequence opt_spaces_or_comments '8<' 8< opt_spaces_or_comments expr:term { $$ = seq.seq(expr, cut: true) }
-          / seq:sequence opt_spaces_or_comments '~' 8< opt_spaces_or_comments code:lang_code_block { $$ = code ? Packcr::Node::ErrorNode.new(seq, code.loc($0sl.linenum, $0sl.charnum)) : seq }
+          / seq:sequence opt_spaces_or_comments '~' 8< opt_spaces_or_comments code:lang_code_block {
+              if code
+                action = Packcr::Node::ActionNode.new(code.loc($0sl.linenum, $0sl.charnum))
+                $$ = Packcr::Node::ErrorNode.new(seq, action)
+              else
+                $$ = seq
+              end
+            }
           / seq:sequence opt_spaces_or_comments expr:term { $$ = seq&.seq(expr) || expr }
           / expr:term { $$ = expr }
 

@@ -696,7 +696,12 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      ____ = code ? Packcr::Node::ErrorNode.new(seq, code.loc(__0sl.linenum, __0sl.charnum)) : seq
+      if code
+        action = Packcr::Node::ActionNode.new(code.loc(__0sl.linenum, __0sl.charnum))
+        ____ = Packcr::Node::ErrorNode.new(seq, action)
+      else
+        ____ = seq
+      end
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
