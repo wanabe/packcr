@@ -42,10 +42,10 @@ class Packcr
       write_line_directive(@name, @line)
     end
 
-    def write_code_block(code, indent, fname)
-      text = code.code
+    def write_code_block(code_block, indent, fname)
+      text = code_block.code
       ptr = text.b
-      lineno = code.line
+      lineno = code_block.line
 
       ptr.sub!(/\A\n+/) do
         lineno += ::Regexp.last_match(0).length
@@ -86,13 +86,13 @@ class Packcr
       write_output_line_directive
     end
 
-    def get_code_block(code, indent, fname)
+    def get_code_block(code_block, indent, fname)
       buf = +""
       line = @line
       stream = @stream
       @stream = buf
       @line &&= :uuid
-      write_code_block(code, indent, fname)
+      write_code_block(code_block, indent, fname)
       buf
     ensure
       @line = line

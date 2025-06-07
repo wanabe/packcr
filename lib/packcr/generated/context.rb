@@ -218,10 +218,10 @@ class Packcr
         erbout << "    packcr_thunk_array__revert(ctx->auxil, &ctx->thunks, 0);\n    return pos != ctx->buffer_start_position && packcr_refill_buffer(ctx, 1) >= 1;\n}\n\n".freeze
 
         @root.rules.each do |rule|
-          rule.actions.each do |code|
-            erbout << "static void packcr_action_#{rule.name}_#{code.index}(#{prefix}_context_t *__packcr_ctx, packcr_thunk_t *__packcr_in, packcr_value_t *__packcr_out) {\n#define auxil (__packcr_ctx->auxil)\n#define __ (*__packcr_out)\n".freeze
+          rule.actions.each do |action|
+            erbout << "static void packcr_action_#{rule.name}_#{action.index}(#{prefix}_context_t *__packcr_ctx, packcr_thunk_t *__packcr_in, packcr_value_t *__packcr_out) {\n#define auxil (__packcr_ctx->auxil)\n#define __ (*__packcr_out)\n".freeze
 
-            code.vars.each do |ref|
+            action.vars.each do |ref|
               erbout << "#define #{ref.var} (*__packcr_in->data.leaf.values.buf[#{ref.index}])\n".freeze
             end
             erbout << "#define _0 packcr_get_capture_string(__packcr_ctx, &__packcr_in->data.leaf.capt0)\n#define _0s ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capt0.range.start))\n#define _0e ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capt0.range.end))\n".freeze
@@ -232,7 +232,7 @@ class Packcr
             if @capture_in_code
               erbout << "#define _0c __packcr_in->data.leaf.capt0\n".freeze
             end
-            code.capts.each do |capture|
+            action.capts.each do |capture|
               erbout << "#define _#{capture.index + 1} packcr_get_capture_string(__packcr_ctx, __packcr_in->data.leaf.capts.buf[#{capture.index}])\n#define _#{capture.index + 1}s ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capts.buf[#{capture.index}]->range.start))\n#define _#{capture.index + 1}e ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capts.buf[#{capture.index}]->range.end))\n".freeze
 
               if @location
@@ -242,8 +242,8 @@ class Packcr
 
               erbout << "#define _#{capture.index + 1}c (*__packcr_in->data.leaf.capts.buf[#{capture.index}])\n".freeze
             end
-            erbout << "#{stream.get_code_block(code.code, 4, @iname)}".freeze
-            code.capts.reverse_each do |capture|
+            erbout << "#{stream.get_code_block(action.code, 4, @iname)}".freeze
+            action.capts.reverse_each do |capture|
               if @location
                 erbout << "#undef _#{capture.index + 1}el\n#undef _#{capture.index + 1}sl\n".freeze
               end
@@ -251,7 +251,7 @@ class Packcr
             end
             erbout << "#undef _0e\n#undef _0s\n#undef _0\n".freeze
 
-            code.vars.reverse_each do |ref|
+            action.vars.reverse_each do |ref|
               erbout << "#undef #{ref.var}\n".freeze
             end
             erbout << "#undef __\n#undef auxil\n}\n\n".freeze
@@ -439,10 +439,10 @@ class Packcr
         erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n".freeze
 
         @root.rules.each do |rule|
-          rule.actions.each do |code|
-            erbout << "\n  def action_#{rule.name}_#{code.index}(__packcr_in, __packcr_vars, __packcr_index)\n    ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars\n".freeze
+          rule.actions.each do |action|
+            erbout << "\n  def action_#{rule.name}_#{action.index}(__packcr_in, __packcr_vars, __packcr_index)\n    ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars\n".freeze
 
-            code.vars.each do |ref|
+            action.vars.each do |ref|
               erbout << "    #{ref.var} = (__packcr_in.value_refs[#{ref.index}]  ||= Value.new).value\n".freeze
             end
             erbout << "    __0 = __packcr_in.capt0.capture_string(@buffer)\n    __0s = @buffer_start_position + __packcr_in.capt0.range_start\n    __0e = @buffer_start_position + __packcr_in.capt0.range_end\n".freeze
@@ -453,7 +453,7 @@ class Packcr
             if @capture_in_code
               erbout << "    __0c = __packcr_in.capt0\n".freeze
             end
-            code.capts.each do |capture|
+            action.capts.each do |capture|
               erbout << "    __#{capture.index + 1} = __packcr_in.capts[#{capture.index}].capture_string(@buffer)\n    __#{capture.index + 1}s = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_start\n    __#{capture.index + 1}e = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_end\n".freeze
 
               if @location
@@ -464,7 +464,7 @@ class Packcr
               erbout << "    __#{capture.index + 1}c = __packcr_in.capts[#{capture.index}]\n".freeze
             end
 
-            erbout << "#{stream.get_code_block(code.code, 4, @iname)}\n    __packcr_vars[__packcr_index].value = ____ if __packcr_vars\n  end\n".freeze
+            erbout << "#{stream.get_code_block(action.code, 4, @iname)}\n    __packcr_vars[__packcr_index].value = ____ if __packcr_vars\n  end\n".freeze
           end
         end
         @root.rules.each do |rule|
@@ -528,36 +528,36 @@ class Packcr
         erbout << "}\n\nstruct ThunkProcessor<'a> {\n    buffer: &'a str,\n}\n\nimpl<'a> ThunkProcessor<'a> {\n    fn new(buffer: &'a str) -> Self {\n        Self { buffer }\n    }\n\n    fn call_action(&self, action: Action, thunk: &ThunkLeaf, value: &mut Value) {\n        match action {\n".freeze
 
         @root.rules.each do |rule|
-          rule.actions.each do |code|
-            erbout << "            Action::#{Packcr.camelize(rule.name)}#{code.index} => self.action_#{rule.name}_#{code.index}(thunk, value),\n".freeze
+          rule.actions.each do |action|
+            erbout << "            Action::#{Packcr.camelize(rule.name)}#{action.index} => self.action_#{rule.name}_#{action.index}(thunk, value),\n".freeze
           end
         end
         erbout << "        }\n    }\n".freeze
 
         @root.rules.each do |rule|
-          rule.actions.each do |code|
-            erbout << "\n    #[allow(unused_variables, non_snake_case)]\n    fn action_#{rule.name}_#{code.index}(&self, leaf: &ThunkLeaf, out: &mut Value) {\n".freeze
+          rule.actions.each do |action|
+            erbout << "\n    #[allow(unused_variables, non_snake_case)]\n    fn action_#{rule.name}_#{action.index}(&self, leaf: &ThunkLeaf, out: &mut Value) {\n".freeze
 
-            code.vars.each_with_index do |ref, i|
+            action.vars.each_with_index do |ref, i|
               if i == 0
                 erbout << "        let values = leaf.values();\n".freeze
               end
               erbout << "        let #{ref.var} = values[&#{ref.index}];\n".freeze
             end
-            if code.code.vars.include?("$0")
+            if action.code.vars.include?("$0")
               erbout << "        let _0 = {\n            let capt = &leaf.capt0;\n            &self.buffer[(capt.start)..(capt.end)]\n        };\n".freeze
             end
-            code.capts.size.times do |i|
+            action.capts.size.times do |i|
               erbout << "        let _#{i + 1} = {\n            let capt = &leaf.capts[&#{i}];\n            &self.buffer[(capt.start)..(capt.end)]\n        };\n".freeze
             end
-            erbout << "    #{stream.get_code_block(code.code, 4, @iname)}    }\n".freeze
+            erbout << "    #{stream.get_code_block(action.code, 4, @iname)}    }\n".freeze
           end
         end
         erbout << "}\n\n#[derive(Copy, Clone)]\nenum Action {\n".freeze
 
         @root.rules.each do |rule|
-          rule.actions.each do |code|
-            erbout << "    #{Packcr.camelize(rule.name)}#{code.index},\n".freeze
+          rule.actions.each do |action|
+            erbout << "    #{Packcr.camelize(rule.name)}#{action.index},\n".freeze
           end
         end
         erbout << "}\n\n#[derive(Copy, Clone, PartialEq, Eq, Hash)]\nenum Rule {\n".freeze

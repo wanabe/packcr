@@ -1022,11 +1022,11 @@ int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
 }
 
 <%- @root.rules.each do |rule| -%>
-<%-   rule.actions.each do |code| -%>
-static void packcr_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__packcr_ctx, packcr_thunk_t *__packcr_in, packcr_value_t *__packcr_out) {
+<%-   rule.actions.each do |action| -%>
+static void packcr_action_<%= rule.name %>_<%= action.index %>(<%= prefix %>_context_t *__packcr_ctx, packcr_thunk_t *__packcr_in, packcr_value_t *__packcr_out) {
 #define auxil (__packcr_ctx->auxil)
 #define __ (*__packcr_out)
-<%-     code.vars.each do |ref| -%>
+<%-     action.vars.each do |ref| -%>
 #define <%= ref.var %> (*__packcr_in->data.leaf.values.buf[<%= ref.index %>])
 <%      end -%>
 #define _0 packcr_get_capture_string(__packcr_ctx, &__packcr_in->data.leaf.capt0)
@@ -1039,7 +1039,7 @@ static void packcr_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_conte
 <%-     if @capture_in_code -%>
 #define _0c __packcr_in->data.leaf.capt0
 <%-     end -%>
-<%      code.capts.each do |capture| -%>
+<%      action.capts.each do |capture| -%>
 #define _<%= capture.index + 1 %> packcr_get_capture_string(__packcr_ctx, __packcr_in->data.leaf.capts.buf[<%= capture.index %>])
 #define _<%= capture.index + 1 %>s ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capts.buf[<%= capture.index %>]->range.start))
 #define _<%= capture.index + 1 %>e ((const size_t)(__packcr_ctx->buffer_start_position + __packcr_in->data.leaf.capts.buf[<%= capture.index %>]->range.end))
@@ -1051,8 +1051,8 @@ static void packcr_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_conte
 #define _<%= capture.index + 1 %>c (*__packcr_in->data.leaf.capts.buf[<%= capture.index %>])
 <%-       end -%>
 <%-     end -%>
-<%=     stream.get_code_block(code.code, 4, @iname) -%>
-<%-     code.capts.reverse_each do |capture| -%>
+<%=     stream.get_code_block(action.code, 4, @iname) -%>
+<%-     action.capts.reverse_each do |capture| -%>
 <%-       if @location -%>
 #undef _<%= capture.index + 1 %>el
 #undef _<%= capture.index + 1 %>sl
@@ -1064,7 +1064,7 @@ static void packcr_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_conte
 #undef _0e
 #undef _0s
 #undef _0
-<%- code.vars.reverse_each do |ref| -%>
+<%- action.vars.reverse_each do |ref| -%>
 #undef <%= ref.var %>
 <%-     end -%>
 #undef __

@@ -571,36 +571,36 @@ impl<'a> ThunkProcessor<'a> {
     fn call_action(&self, action: Action, thunk: &ThunkLeaf, value: &mut Value) {
         match action {
             <%- @root.rules.each do |rule| -%>
-            <%-   rule.actions.each do |code| -%>
-            Action::<%= Packcr.camelize(rule.name) %><%= code.index %> => self.action_<%= rule.name %>_<%= code.index %>(thunk, value),
+            <%-   rule.actions.each do |action| -%>
+            Action::<%= Packcr.camelize(rule.name) %><%= action.index %> => self.action_<%= rule.name %>_<%= action.index %>(thunk, value),
             <%-   end -%>
             <%- end -%>
         }
     }
     <%- @root.rules.each do |rule| -%>
-    <%-   rule.actions.each do |code| -%>
+    <%-   rule.actions.each do |action| -%>
 
     #[allow(unused_variables, non_snake_case)]
-    fn action_<%= rule.name %>_<%= code.index %>(&self, leaf: &ThunkLeaf, out: &mut Value) {
-        <%-   code.vars.each_with_index do |ref, i| -%>
+    fn action_<%= rule.name %>_<%= action.index %>(&self, leaf: &ThunkLeaf, out: &mut Value) {
+        <%-   action.vars.each_with_index do |ref, i| -%>
         <%-     if i == 0 -%>
         let values = leaf.values();
         <%-     end -%>
         let <%= ref.var %> = values[&<%= ref.index %>];
         <%-   end -%>
-        <%-   if code.code.vars.include?("$0") -%>
+        <%-   if action.code.vars.include?("$0") -%>
         let _0 = {
             let capt = &leaf.capt0;
             &self.buffer[(capt.start)..(capt.end)]
         };
         <%-   end -%>
-        <%-   code.capts.size.times do |i| -%>
+        <%-   action.capts.size.times do |i| -%>
         let _<%= i + 1 %> = {
             let capt = &leaf.capts[&<%= i %>];
             &self.buffer[(capt.start)..(capt.end)]
         };
         <%-   end -%>
-    <%=   stream.get_code_block(code.code, 4, @iname) -%>
+    <%=   stream.get_code_block(action.code, 4, @iname) -%>
     }
     <%-   end -%>
     <%- end -%>
@@ -609,8 +609,8 @@ impl<'a> ThunkProcessor<'a> {
 #[derive(Copy, Clone)]
 enum Action {
     <%- @root.rules.each do |rule| -%>
-    <%-   rule.actions.each do |code| -%>
-    <%= Packcr.camelize(rule.name) %><%= code.index %>,
+    <%-   rule.actions.each do |action| -%>
+    <%= Packcr.camelize(rule.name) %><%= action.index %>,
     <%-   end -%>
     <%- end -%>
 }
