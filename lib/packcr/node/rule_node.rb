@@ -1,14 +1,14 @@
 class Packcr
   class Node
     class RuleNode < Packcr::Node
-      attr_accessor :codes, :name, :expr, :ref, :vars, :capts, :line, :col, :top, :has_ref
+      attr_accessor :actions, :name, :expr, :ref, :vars, :capts, :line, :col, :top, :has_ref
 
       def initialize(expr = nil, name = nil, line = nil, col = nil)
         super()
         self.ref = 0
         self.vars = []
         self.capts = []
-        self.codes = []
+        self.actions = []
         @expr = expr
         @name = name
         @line = line
@@ -17,7 +17,7 @@ class Packcr
       end
 
       def debug_dump(indent = 0)
-        $stdout.print "#{" " * indent}Rule(name:'#{name}', ref:#{ref}, vars.len:#{vars.length}, capts.len:#{capts.length}, codes.len:#{codes.length}) {\n"
+        $stdout.print "#{" " * indent}Rule(name:'#{name}', ref:#{ref}, vars.len:#{vars.length}, capts.len:#{capts.length}, actions.len:#{actions.length}) {\n"
         expr.debug_dump(indent + 2)
         $stdout.print "#{" " * indent}}\n"
       end

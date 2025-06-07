@@ -310,7 +310,7 @@ class <%= class_name %>
     end
   end
   <%- @root.rules.each do |rule| -%>
-  <%-   rule.codes.each do |code| -%>
+  <%-   rule.actions.each do |code| -%>
 
   def action_<%= rule.name %>_<%= code.index %>(__packcr_in, __packcr_vars, __packcr_index)
     ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars

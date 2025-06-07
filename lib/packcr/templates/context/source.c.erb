@@ -1022,7 +1022,7 @@ int <%= prefix %>_parse(<%= prefix %>_context_t *ctx, <%= value_def %>*ret) {
 }
 
 <%- @root.rules.each do |rule| -%>
-<%-   rule.codes.each do |code| -%>
+<%-   rule.actions.each do |code| -%>
 static void packcr_action_<%= rule.name %>_<%= code.index %>(<%= prefix %>_context_t *__packcr_ctx, packcr_thunk_t *__packcr_in, packcr_value_t *__packcr_out) {
 #define auxil (__packcr_ctx->auxil)
 #define __ (*__packcr_out)

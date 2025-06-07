@@ -571,14 +571,14 @@ impl<'a> ThunkProcessor<'a> {
     fn call_action(&self, action: Action, thunk: &ThunkLeaf, value: &mut Value) {
         match action {
             <%- @root.rules.each do |rule| -%>
-            <%-   rule.codes.each do |code| -%>
+            <%-   rule.actions.each do |code| -%>
             Action::<%= Packcr.camelize(rule.name) %><%= code.index %> => self.action_<%= rule.name %>_<%= code.index %>(thunk, value),
             <%-   end -%>
             <%- end -%>
         }
     }
     <%- @root.rules.each do |rule| -%>
-    <%-   rule.codes.each do |code| -%>
+    <%-   rule.actions.each do |code| -%>
 
     #[allow(unused_variables, non_snake_case)]
     fn action_<%= rule.name %>_<%= code.index %>(&self, leaf: &ThunkLeaf, out: &mut Value) {
@@ -609,7 +609,7 @@ impl<'a> ThunkProcessor<'a> {
 #[derive(Copy, Clone)]
 enum Action {
     <%- @root.rules.each do |rule| -%>
-    <%-   rule.codes.each do |code| -%>
+    <%-   rule.actions.each do |code| -%>
     <%= Packcr.camelize(rule.name) %><%= code.index %>,
     <%-   end -%>
     <%- end -%>

@@ -50,8 +50,8 @@ class Packcr
       end
 
       def setup_rule(rule)
-        @index = rule.codes.length
-        rule.codes.push(self)
+        @index = rule.actions.length
+        rule.actions.push(self)
       end
 
       def to_h
