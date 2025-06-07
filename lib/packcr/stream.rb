@@ -43,7 +43,7 @@ class Packcr
     end
 
     def write_code_block(code, indent, fname)
-      text = code.text
+      text = code.code
       ptr = text.b
       lineno = code.line
 

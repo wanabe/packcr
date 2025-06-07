@@ -14,7 +14,7 @@ class Packcr
         $stdout.print "#{" " * indent}Action(index:"
         Packcr.dump_integer_value(index)
         $stdout.print ", code:{"
-        Packcr.dump_escaped_string(code.text)
+        Packcr.dump_escaped_string(code.code)
         $stdout.print "}, vars:"
 
         vars = self.vars
@@ -57,7 +57,7 @@ class Packcr
       def to_h
         {
           type: :action,
-          code: code&.text,
+          code: code&.code,
           vars: vars&.map(&:to_h),
           capts: capts&.map(&:to_h),
         }

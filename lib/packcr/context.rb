@@ -96,10 +96,8 @@ class Packcr
 
     def pass_value_code(var)
       case @lang
-      when :c
-        "__ = #{var};"
-      when :rb
-        "____ = #{var}"
+      when :c, :rb, :rs
+        "$$ = #{var};"
       end
     end
 

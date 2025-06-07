@@ -84,6 +84,8 @@ Metrics/ParameterLists:
   Enabled: false
 Metrics/BlockNesting:
   Enabled: false
+Metrics/ModuleLength:
+  Enabled: false
 Layout/SpaceInsideParens:
   Enabled: false
 Style/InfiniteLoop:

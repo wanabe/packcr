@@ -89,9 +89,30 @@ class Packcr
       result
     end
 
-    def escape_varriables(code, lang)
-      code = code.gsub("$$", "*out") if lang == :rs
-      code.gsub("$", lang == :rb ? "__" : "_")
+    def escape_variables(code, lang)
+      variables = Set.new
+      code = code.dup
+      code.gsub!("$$") do
+        variables.add("$$")
+        case lang
+        when :rb
+          "____"
+        when :rs
+          "*out"
+        else
+          "__"
+        end
+      end
+      code.gsub!(/\$[0-9]+/) do |match|
+        variables.add(match)
+        case lang
+        when :rb
+          "__#{match[1..-1]}"
+        else
+          "_#{match[1..-1]}"
+        end
+      end
+      [code, variables]
     end
 
     def camelize(string)

@@ -331,7 +331,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| @ctx.code(:esource) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| @ctx.code(:esource) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -344,7 +344,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| @ctx.code(:source) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| @ctx.code(:source) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -357,7 +357,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| @ctx.code(:lheader) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| @ctx.code(:lheader) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -370,7 +370,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| @ctx.code(:lsource) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| @ctx.code(:lsource) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -383,7 +383,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| @ctx.code(:header) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| @ctx.code(:header) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -396,7 +396,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| @ctx.code(:location) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| @ctx.code(:location) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -409,7 +409,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| @ctx.code(:init) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| @ctx.code(:init) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -422,7 +422,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -435,7 +435,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      blocks.each { |b| Packcr::BroadCast.new(@ctx.code(:header), @ctx.code(:source)) << Packcr::CodeBlock.new(b, __0sl.linenum, __0sl.charnum) }
+      blocks.each { |b| Packcr::BroadCast.new(@ctx.code(:header), @ctx.code(:source)) << b.loc(__0sl.linenum, __0sl.charnum) }
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -566,7 +566,7 @@ class Packcr
       __1e = @buffer_start_position + __packcr_in.capts[0].range_end
       __1sl = @buffer_start_position_loc + __packcr_in.capts[0].start_loc
       __1el = @buffer_start_position_loc + __packcr_in.capts[0].end_loc
-      Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << Packcr::CodeBlock.new(@ctx.line_comment_code(__1), __0sl.linenum, __0sl.charnum)
+      Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << Packcr::CodeBlock.new(@ctx.line_comment_code(__1)).loc(__0sl.linenum, __0sl.charnum)
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -696,7 +696,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      ____ = code ? Packcr::Node::ErrorNode.new(seq, Packcr::CodeBlock.new(code, __0sl.linenum, __0sl.charnum)) : seq
+      ____ = code ? Packcr::Node::ErrorNode.new(seq, code.loc(__0sl.linenum, __0sl.charnum)) : seq
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -827,7 +827,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      ____ = code && Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, __0sl.linenum, __0sl.charnum))
+      ____ = code && Packcr::Node::ActionNode.new(code.loc(__0sl.linenum, __0sl.charnum))
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -855,8 +855,8 @@ class Packcr
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
       ref = Packcr::Node::ReferenceNode.new(name, "_out", __0sl.linenum, __0sl.charnum)
-      code = @ctx.pass_value_code("_out")
-      act = Packcr::Node::ActionNode.new(Packcr::CodeBlock.new(code, __0sl.linenum, __0sl.charnum))
+      code = Packcr::CodeBlock.new(@ctx.pass_value_code("_out"), lang: @ctx.lang)
+      act = Packcr::Node::ActionNode.new(code.loc(__0sl.linenum, __0sl.charnum))
       ____ = ref.seq(act)
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
@@ -1025,7 +1025,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      ____ = code
+      ____ = CodeBlock.new(code)
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -1038,7 +1038,7 @@ class Packcr
       __0e = @buffer_start_position + __packcr_in.capt0.range_end
       __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
       __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
-      ____ = Packcr.escape_varriables(code, @ctx.lang)
+      ____ = CodeBlock.new(code, lang: @ctx.lang)
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
@@ -1118,7 +1118,7 @@ class Packcr
       __1e = @buffer_start_position + __packcr_in.capts[0].range_end
       __1sl = @buffer_start_position_loc + __packcr_in.capts[0].start_loc
       __1el = @buffer_start_position_loc + __packcr_in.capts[0].end_loc
-      @ctx.code(:lsource) << Packcr::CodeBlock.new(__1, __1sl.linenum, __1sl.charnum)
+      @ctx.code(:lsource) << Packcr::CodeBlock.new(__1).loc(__1sl.linenum, __1sl.charnum)
 
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end

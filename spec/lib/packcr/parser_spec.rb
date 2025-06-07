@@ -17,7 +17,7 @@ class DummyContext
   end
 
   def codes
-    @codes.transform_values { |codes| codes.map(&:text) }
+    @codes.transform_values { |codes| codes.map(&:code) }
   end
 end
 
