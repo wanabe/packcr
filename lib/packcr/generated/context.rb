@@ -544,8 +544,9 @@ class Packcr
               end
               erbout << "        let #{ref.var} = values[&#{ref.index}];\n".freeze
             end
-            erbout << "        let _0 = {\n            let capt = &leaf.capt0;\n            &self.buffer[(capt.start)..(capt.end)]\n        };\n".freeze
-
+            if code.code.vars.include?("$0")
+              erbout << "        let _0 = {\n            let capt = &leaf.capt0;\n            &self.buffer[(capt.start)..(capt.end)]\n        };\n".freeze
+            end
             code.capts.size.times do |i|
               erbout << "        let _#{i + 1} = {\n            let capt = &leaf.capts[&#{i}];\n            &self.buffer[(capt.start)..(capt.end)]\n        };\n".freeze
             end

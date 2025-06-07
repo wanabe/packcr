@@ -588,10 +588,12 @@ impl<'a> ThunkProcessor<'a> {
         <%-     end -%>
         let <%= ref.var %> = values[&<%= ref.index %>];
         <%-   end -%>
+        <%-   if code.code.vars.include?("$0") -%>
         let _0 = {
             let capt = &leaf.capt0;
             &self.buffer[(capt.start)..(capt.end)]
         };
+        <%-   end -%>
         <%-   code.capts.size.times do |i| -%>
         let _<%= i + 1 %> = {
             let capt = &leaf.capts[&<%= i %>];

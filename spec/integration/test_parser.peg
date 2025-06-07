@@ -6,6 +6,7 @@ pattern <- 'action1:' rs -> { $$ = 110; }
          / 'char5:' [^abc] rs -> { $$ = 250; }
          / 'char6:' [^a-z] rs -> { $$ = 260; }
          / 'capt1:' <[123]> rs -> { $$ = 310 + $1.parse::<i32>().unwrap_or(0); }
+         / 'capt2:' c:capt2 rs -> { $$ = 320 + c; }
          / 'pred1:' !'1' [0-3] rs -> { $$ = 410; }
          / 'quan1:' 'a'* '1' rs -> { $$ = 510; }
          / 'quan2:' [a]+ '2' rs -> { $$ = 520; }
@@ -14,6 +15,7 @@ pattern <- 'action1:' rs -> { $$ = 110; }
          / 'ref1:' child rs -> { $$ = 610; }
          / 'calc:' e:calc_expr rs -> { $$ = e; }
 child <- '0' / '123' / '456'
+capt2 <- [456] rs -> { $$ = $0.parse::<i32>().unwrap_or(0); }
 
 calc_expr <- l:calc_expr '+' r:calc_factor { $$ = l + r; }
            / l:calc_expr '-' r:calc_factor { $$ = l - r; }

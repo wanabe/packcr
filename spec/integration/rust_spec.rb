@@ -54,6 +54,8 @@ RSpec.describe "rust integration" do
         ["char6:7", 260],
         ["capt1:1", 311],
         ["capt1:3", 313],
+        ["capt2:4", 324],
+        ["capt2:6", 326],
         ["pred1:2", 410],
         ["quan1:1", 510],
         ["quan1:a1", 510],
