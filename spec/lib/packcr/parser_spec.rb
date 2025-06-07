@@ -8,16 +8,16 @@ class DummyContext
 
   def initialize(lang)
     @lang = lang
-    @codes = {}
+    @code_blocks = {}
     @root = Packcr::Node::RootNode.new
   end
 
-  def code(name)
-    @codes[name] ||= []
+  def code_block(name)
+    @code_blocks[name] ||= []
   end
 
-  def codes
-    @codes.transform_values { |codes| codes.map(&:code) }
+  def code_blocks
+    @code_blocks.transform_values { |code_blocks| code_blocks.map(&:code) }
   end
 end
 
@@ -57,7 +57,7 @@ RSpec.describe Packcr::Parser do
     end
 
     context "directive_include" do
-      where(:peg, :codes) do
+      where(:peg, :code_blocks) do
         [
           ["%earlysource {}", { esource: [""] }],
           ["%earlycommon { }", { esource: [" "], eheader: [" "] }],
@@ -77,7 +77,7 @@ RSpec.describe Packcr::Parser do
           subject
           expect(debug_messages).to match(/^ *MATCH *directive_include 0 #{Regexp.escape(peg.inspect)}/)
           expect(debug_messages).to match(/^MATCH *statement 0 .*\n\z/)
-          expect(ctx.codes).to eq(codes)
+          expect(ctx.code_blocks).to eq(code_blocks)
         end
       end
 
@@ -143,7 +143,7 @@ RSpec.describe Packcr::Parser do
     end
 
     context "footer" do
-      where(:peg, :codes) do
+      where(:peg, :code_blocks) do
         [
           ["%%", { lsource: [""] }],
           ["%%\n", { lsource: [""] }],
@@ -156,7 +156,7 @@ RSpec.describe Packcr::Parser do
           subject
           expect(debug_messages).to match(/^ *MATCH *footer 0 #{Regexp.escape(peg.inspect)}/)
           expect(debug_messages).to match(/^MATCH *statement 0 .*\n\z/)
-          expect(ctx.codes).to eq(codes)
+          expect(ctx.code_blocks).to eq(code_blocks)
         end
       end
     end

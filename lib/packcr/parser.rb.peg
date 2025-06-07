@@ -20,15 +20,15 @@ supported_language <- 'c'
 
 comment <- '#' [^\n]* (lf / EOF)
 
-directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:esource)  << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%source'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:source)   << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%lateheader'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:lheader)  << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%latesource'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:lsource)  << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%header'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:header)   << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%location'    opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:location) << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%initialize'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code(:init)     << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%earlycommon' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%common'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| Packcr::BroadCast.new(@ctx.code(:header),  @ctx.code(:source))  << b.loc($0sl.linenum, $0sl.charnum) } }
+directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:esource)  << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%source'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:source)   << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%lateheader'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:lheader)  << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%latesource'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:lsource)  << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%header'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:header)   << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%location'    opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:location) << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%initialize'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:init)     << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%earlycommon' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| Packcr::BroadCast.new(@ctx.code_block(:eheader), @ctx.code_block(:esource)) << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%common'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| Packcr::BroadCast.new(@ctx.code_block(:header),  @ctx.code_block(:source))  << b.loc($0sl.linenum, $0sl.charnum) } }
                    / '%' < identifier > opt_spaces_or_comments blocks:code_blocks { blocks.each { @ctx.error $0sl.linenum + 1, $0sl.charnum + 1, "Invalid directive: #{$1}" } }
 
 code_blocks <- blocks:code_blocks opt_spaces_or_comments block:lang_code_block { blocks.push(block) if block; $$ = blocks }
@@ -41,7 +41,7 @@ directive_string <- '%value' opt_spaces_or_comments strings:lang_strings { strin
 
 directive_value <- '%capture' spaces ('on' / 'true') { @ctx.capture_in_code = true }
 
-directive_comment <- '%#' spaces? <[^\n]*> (lf / EOF) { Packcr::BroadCast.new(@ctx.code(:eheader), @ctx.code(:esource)) << Packcr::CodeBlock.new(@ctx.line_comment_code($1)).loc($0sl.linenum, $0sl.charnum) }
+directive_comment <- '%#' spaces? <[^\n]*> (lf / EOF) { Packcr::BroadCast.new(@ctx.code_block(:eheader), @ctx.code_block(:esource)) << Packcr::CodeBlock.new(@ctx.line_comment_code($1)).loc($0sl.linenum, $0sl.charnum) }
 
 lang_strings <- strings:lang_strings opt_spaces_or_comments string:lang_string { strings.push(string) if string; $$ = strings }
               / string:lang_string { $$ = string ? [string] : [] }
@@ -118,7 +118,7 @@ spaces <- ([ \t\v\f\r\n])+
 opt_spaces_or_comments <- (comment / spaces)*
 lf <- '\r'? '\n'
 
-footer <- '%%' (lf / EOF) <.*> { @ctx.code(:lsource) << Packcr::CodeBlock.new($1).loc($1sl.linenum, $1sl.charnum) }
+footer <- '%%' (lf / EOF) <.*> { @ctx.code_block(:lsource) << Packcr::CodeBlock.new($1).loc($1sl.linenum, $1sl.charnum) }
 
 %location {
   class Location

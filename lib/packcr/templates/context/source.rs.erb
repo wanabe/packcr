@@ -4,9 +4,9 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::rc::Rc;
-<%- if !code(:esource).empty? -%>
+<%- if !code_block(:esource).empty? -%>
 
-<%-   code(:esource).each do |code| -%>
+<%-   code_block(:esource).each do |code| -%>
 <%=     stream.get_code_block(code, 0, @iname) -%>
 <%-   end -%>
 <%- end -%>
@@ -621,9 +621,9 @@ enum Rule {
     <%= Packcr.camelize(rule.name) %>,
   <%- end -%>
 }
-<%- if !code(:lsource).empty? -%>
+<%- if !code_block(:lsource).empty? -%>
 
-<%-   code(:lsource).each do |code| -%>
+<%-   code_block(:lsource).each do |code| -%>
 <%=     stream.get_code_block(code, 0, @iname) -%>
 <%-   end -%>
 <%- end -%>

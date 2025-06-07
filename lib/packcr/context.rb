@@ -54,7 +54,7 @@ class Packcr
 
       @errnum = 0
 
-      @codes = {}
+      @code_blocks = {}
       @root = Node::RootNode.new
 
       return unless block_given?
@@ -62,8 +62,8 @@ class Packcr
       yield(self)
     end
 
-    def code(name)
-      @codes[name] ||= []
+    def code_block(name)
+      @code_blocks[name] ||= []
     end
 
     def inspect
@@ -140,7 +140,7 @@ class Packcr
         nil while parser.parse
       end
 
-      if !code(:location).empty?
+      if !code_block(:location).empty?
         @location = true
       end
 
