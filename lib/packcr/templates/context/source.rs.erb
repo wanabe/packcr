@@ -189,7 +189,7 @@ struct Capture {
     end: usize,
 }
 
-type Value = i32;
+type Value = <%= value_def %>;
 
 struct ValueTable {
     table: Rc<RefCell<HashMap<usize, Value>>>,
@@ -235,12 +235,12 @@ impl ValueRef {
 
     fn with_mut<F>(&mut self, f: F)
     where
-        F: FnOnce(&mut i32),
+        F: FnOnce(&mut Value),
     {
         self.values.with_mut(self.index, f);
     }
 
-    fn get(&self) -> i32 {
+    fn get(&self) -> Value {
         *self.values.table.borrow().get(&self.index).unwrap_or(&0)
     }
 }
@@ -568,7 +568,7 @@ impl<'a> ThunkProcessor<'a> {
         Self { buffer }
     }
 
-    fn call_action(&self, action: Action, thunk: &ThunkLeaf, value: &mut i32) {
+    fn call_action(&self, action: Action, thunk: &ThunkLeaf, value: &mut Value) {
         match action {
             <%- @root.rules.each do |rule| -%>
             <%-   rule.codes.each do |code| -%>
@@ -581,7 +581,7 @@ impl<'a> ThunkProcessor<'a> {
     <%-   rule.codes.each do |code| -%>
 
     #[allow(unused_variables, non_snake_case)]
-    fn action_<%= rule.name %>_<%= code.index %>(&self, leaf: &ThunkLeaf, out: &mut i32) {
+    fn action_<%= rule.name %>_<%= code.index %>(&self, leaf: &ThunkLeaf, out: &mut Value) {
         <%-   code.vars.each_with_index do |ref, i| -%>
         <%-     if i == 0 -%>
         let values = leaf.values();

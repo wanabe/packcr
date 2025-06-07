@@ -76,7 +76,14 @@ class Packcr
     end
 
     def value_type
-      @value_type || "int"
+      return @value_type if @value_type
+
+      case @lang
+      when :c
+        "int"
+      when :rs
+        "i32"
+      end
     end
 
     def auxil_type
