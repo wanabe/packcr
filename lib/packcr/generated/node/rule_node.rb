@@ -16,7 +16,7 @@ class Packcr
           end
           erbout << "    PACKCR_DEBUG(ctx->auxil, PACKCR_DBG_EVALUATE, \"#{name}\", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->buffer.len - chunk->pos));\n    ctx->level++;\n    packcr_value_table__resize(ctx->auxil, &chunk->values, #{vars.length});\n    packcr_capture_table__resize(ctx->auxil, &chunk->capts, #{capts.length});\n".freeze
 
-          if !vars.empty?
+          unless vars.empty?
             erbout << "    packcr_value_table__clear(ctx->auxil, &chunk->values);\n".freeze
           end
           r = expr.reachability
@@ -40,18 +40,18 @@ class Packcr
           if gen.location
             erbout << "  answer.pos_loc = @position_offset_loc\n".freeze
           end
-          erbout << "  debug { warn \"\#{ \"  \" * @level}EVAL    #{name} \#{answer.pos} \#{@buffer[answer.pos..-1].inspect}\" }\n  @level += 1\n  answer.resize_captures(#{capts.length})\n".freeze
+          erbout << "  debug { warn \"\#{\"  \" * @level}EVAL    #{name} \#{answer.pos} \#{@buffer[answer.pos..-1].inspect}\" }\n  @level += 1\n  answer.resize_captures(#{capts.length})\n".freeze
 
-          if !vars.empty?
+          unless vars.empty?
             erbout << "  answer.values = {}\n".freeze
           end
           r = expr.reachability
           if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
 
-            erbout << "#{gen.generate_code(expr, 0, 2, false)}  @level -= 1\n  debug { warn \"\#{ \"  \" * @level}MATCH   #{name} \#{answer.pos} \#{@buffer[answer.pos...@position_offset].inspect}\" }\n  return answer\n".freeze
+            erbout << "#{gen.generate_code(expr, 0, 2, false)}  @level -= 1\n  debug { warn \"\#{\"  \" * @level}MATCH   #{name} \#{answer.pos} \#{@buffer[answer.pos...@position_offset].inspect}\" }\n  answer\n".freeze
 
           else
-            erbout << "  catch(0) do\n#{gen.generate_code(expr, 0, 4, false)}    @level -= 1\n    debug { warn \"\#{ \"  \" * @level}MATCH   #{name} \#{answer.pos} \#{@buffer[answer.pos...@position_offset].inspect}\" }\n    return answer\n  end\n  @level -= 1\n  debug { warn \"\#{ \"  \" * @level}NOMATCH #{name} \#{answer.pos} \#{@buffer[answer.pos...@position_offset].inspect}\" }\n  return nil\n".freeze
+            erbout << "  catch(0) do\n#{gen.generate_code(expr, 0, 4, false)}    @level -= 1\n    debug { warn \"\#{\"  \" * @level}MATCH   #{name} \#{answer.pos} \#{@buffer[answer.pos...@position_offset].inspect}\" }\n    return answer\n  end\n  @level -= 1\n  debug { warn \"\#{\"  \" * @level}NOMATCH #{name} \#{answer.pos} \#{@buffer[answer.pos...@position_offset].inspect}\" }\n  nil\n".freeze
           end
           erbout << "end\n".freeze
 
@@ -59,20 +59,9 @@ class Packcr
         when :rs
           erbout = +""
           for_ref = has_ref ? "" : "_"
-          erbout << "#[allow(non_snake_case)]\nfn evaluate_rule_#{name}(&mut self, #{for_ref}offset: usize, ".freeze
+          erbout << "#[allow(non_snake_case)]\nfn evaluate_rule_#{name}(&mut self, #{for_ref}offset: Position, #{for_ref}limits: RuleLimit) -> Option<ThunkChunk> {\n    let mut answer = ThunkChunk::new(self.input.position_offset);\n    self.level += 1;\n    answer.capts.resize(#{capts.length});\n".freeze
 
-          if gen.location
-            erbout << "    TODO\n".freeze
-          end
-
-          erbout << "#{for_ref}limits: RuleLimit) -> Option<ThunkChunk> {\n    let mut answer = ThunkChunk::new(self.input.position_offset);\n".freeze
-
-          if gen.location
-            erbout << "    TODO\n".freeze
-          end
-          erbout << "    self.level += 1;\n    answer.capts.resize(#{capts.length});\n".freeze
-
-          if !vars.empty?
+          unless vars.empty?
             erbout << "    answer.values.clear();\n".freeze
           end
           r = expr.reachability

@@ -8,7 +8,7 @@ static packcr_thunk_chunk_t *packcr_evaluate_rule_<%= name %>(packcr_context_t *
     ctx->level++;
     packcr_value_table__resize(ctx->auxil, &chunk->values, <%= vars.length %>);
     packcr_capture_table__resize(ctx->auxil, &chunk->capts, <%= capts.length %>);
-    <%- if vars.length > 0 -%>
+    <%- unless vars.empty? -%>
     packcr_value_table__clear(ctx->auxil, &chunk->values);
     <%- end -%>
     <%- r = expr.reachability -%>

@@ -496,22 +496,181 @@ class Packcr
           end
         end
         use_value = @root.rules.map { |r| r.vars.size }.max > 0
-        erbout << "\nstruct LrMemoTable {\n    memos: HashMap<usize, LrMemoMap>,\n}\nimpl LrMemoTable {\n    fn new() -> Self {\n        Self {\n            memos: HashMap::new(),\n        }\n    }\n\n    fn clear(&mut self) {\n        self.memos.clear();\n    }\n\n    fn set(&mut self, index: usize, rule: Rule, memo: LrMemo) {\n        let memo_map = self.memos.entry(index).or_default();\n        memo_map.insert(rule, memo);\n    }\n\n    fn get(&mut self, index: usize, rule: Rule) -> &mut LrMemo {\n        self.memos.get_mut(&index).unwrap().get_mut(&rule).unwrap()\n    }\n    fn has(&self, index: usize, rule: Rule) -> bool {\n        self.memos\n            .get(&index)\n            .is_some_and(|memo_map| memo_map.contains_key(&rule))\n    }\n}\n\nstruct LrMemo {\n    offset: usize,\n    answer: Option<Rc<RefCell<ThunkChunk>>>,\n    grow: bool,\n}\n\nimpl LrMemo {\n    fn new(offset: usize) -> Self {\n        Self {\n            offset,\n            answer: None,\n            grow: false,\n        }\n    }\n\n    fn start_grow(&mut self) -> bool {\n        if !self.grow && self.answer.is_none() {\n            self.grow = true;\n            true\n        } else {\n            false\n        }\n    }\n\n    fn update(&mut self, answer: Option<ThunkChunk>, offset: usize) {\n        self.answer = answer.map(|c| Rc::new(RefCell::new(c)));\n        self.offset = offset;\n    }\n\n    fn clone_answer(&mut self) -> Option<Rc<RefCell<ThunkChunk>>> {\n        self.answer.as_ref().map(Rc::clone)\n    }\n}\n\nstruct ThunkChunk {\n    thunks: Rc<RefCell<Vec<Thunk>>>,\n    capts: CaptureTable,\n    pos: usize,\n    values: ValueTable,\n}\n\nimpl ThunkChunk {\n    fn new(pos: usize) -> Self {\n        Self {\n            values: ValueTable::new(),\n            capts: CaptureTable::new(),\n            thunks: Rc::new(RefCell::new(Vec::new())),\n            pos,\n        }\n    }\n\n    fn push_leaf(\n        &self,\n        action: Action,\n        end: usize,\n        value_indices: &[usize],\n        capt_indices: &[usize],\n    ) {\n        {\n            let start = self.pos;\n            let mut value_refs = HashMap::new();\n            for &index in value_indices {\n                value_refs.insert(index, ValueRef::new(index, self.values.clone()));\n            }\n            let mut capts = HashMap::new();\n            for &index in capt_indices {\n                capts.insert(index, self.capts[index].clone());\n            }\n            let leaf = Thunk::Leaf(ThunkLeaf::new(action, start, end, value_refs, capts));\n            self.thunks.borrow_mut().push(leaf);\n        }\n    }\n\n    fn value_ref(&self, index: usize) -> ValueRef {\n        ValueRef::new(index, self.values.clone())\n    }\n}\n\nenum Thunk {\n    Leaf(ThunkLeaf),\n    Node(ThunkNode),\n}\nimpl Thunk {\n    fn do_action(&self, processor: &ThunkProcessor, value: ValueRef) -> Value {\n        match self {\n            Thunk::Leaf(leaf) => leaf.do_action(processor, value),\n            Thunk::Node(node) => node.do_action(processor),\n        }\n    }\n}\n\n#[allow(dead_code)]\nstruct ThunkLeaf {\n    value_refs: HashMap<usize, ValueRef>,\n    capts: HashMap<usize, Capture>,\n    capt0: Capture,\n    action: Action,\n}\nimpl ThunkLeaf {\n    fn new(\n        action: Action,\n        start: usize,\n        end: usize,\n        value_refs: HashMap<usize, ValueRef>,\n        capts: HashMap<usize, Capture>,\n    ) -> Self {\n        Self {\n            value_refs,\n            capts,\n            capt0: Capture { start, end },\n            action,\n        }\n    }\n\n    fn do_action(&self, processor: &ThunkProcessor, mut value: ValueRef) -> Value {\n        value.with_mut(|v| {\n            processor.call_action(self.action, self, v);\n        });\n        value.get()\n    }\n".freeze
+        erbout << "\n\n".freeze
+
+        if @location
+          erbout << "#[derive(Copy, Clone)]\nstruct Position {\n    position: usize,\n    location: Location,\n}\n".freeze
+
+        else
+          erbout << "type Position = usize;\n".freeze
+        end
+        erbout << "\nstruct LrMemoTable {\n    memos: HashMap<usize, LrMemoMap>,\n}\nimpl LrMemoTable {\n    fn new() -> Self {\n        Self {\n            memos: HashMap::new(),\n        }\n    }\n\n    fn clear(&mut self) {\n        self.memos.clear();\n    }\n\n    fn set(&mut self, index: usize, rule: Rule, memo: LrMemo) {\n        let memo_map = self.memos.entry(index).or_default();\n        memo_map.insert(rule, memo);\n    }\n\n    fn get(&mut self, index: usize, rule: Rule) -> &mut LrMemo {\n        self.memos.get_mut(&index).unwrap().get_mut(&rule).unwrap()\n    }\n    fn has(&self, index: usize, rule: Rule) -> bool {\n        self.memos\n            .get(&index)\n            .is_some_and(|memo_map| memo_map.contains_key(&rule))\n    }\n}\n\nstruct LrMemo {\n    offset: Position,\n    answer: Option<Rc<RefCell<ThunkChunk>>>,\n    grow: bool,\n}\n\nimpl LrMemo {\n    fn new(offset: Position) -> Self {\n        Self {\n            offset,\n            answer: None,\n            grow: false,\n        }\n    }\n\n    fn start_grow(&mut self) -> bool {\n        if !self.grow && self.answer.is_none() {\n            self.grow = true;\n            true\n        } else {\n            false\n        }\n    }\n\n    fn update(&mut self, answer: Option<ThunkChunk>, offset: Position) {\n        self.answer = answer.map(|c| Rc::new(RefCell::new(c)));\n        self.offset = offset;\n    }\n\n    fn clone_answer(&mut self) -> Option<Rc<RefCell<ThunkChunk>>> {\n        self.answer.as_ref().map(Rc::clone)\n    }\n}\n\nstruct ThunkChunk {\n    thunks: Rc<RefCell<Vec<Thunk>>>,\n    capts: CaptureTable,\n    pos: Position,\n    values: ValueTable,\n}\n\nimpl ThunkChunk {\n    fn new(pos: Position) -> Self {\n        Self {\n            values: ValueTable::new(),\n            capts: CaptureTable::new(),\n            thunks: Rc::new(RefCell::new(Vec::new())),\n            pos,\n        }\n    }\n\n    fn push_leaf(\n        &self,\n        action: Action,\n        end: Position,\n        value_indices: &[usize],\n        capt_indices: &[usize],\n    ) {\n        {\n            let start = self.pos;\n            let mut value_refs = HashMap::new();\n            for &index in value_indices {\n                value_refs.insert(index, ValueRef::new(index, self.values.clone()));\n            }\n            let mut capts = HashMap::new();\n            for &index in capt_indices {\n                capts.insert(index, self.capts[index].clone());\n            }\n            let leaf = Thunk::Leaf(ThunkLeaf::new(action, start, end, value_refs, capts));\n            self.thunks.borrow_mut().push(leaf);\n        }\n    }\n\n    fn value_ref(&self, index: usize) -> ValueRef {\n        ValueRef::new(index, self.values.clone())\n    }\n}\n\nenum Thunk {\n    Leaf(ThunkLeaf),\n    Node(ThunkNode),\n}\nimpl Thunk {\n    fn do_action(&self, processor: &ThunkProcessor, value: ValueRef) -> Value {\n        match self {\n            Thunk::Leaf(leaf) => leaf.do_action(processor, value),\n            Thunk::Node(node) => node.do_action(processor),\n        }\n    }\n}\n\n#[allow(dead_code)]\nstruct ThunkLeaf {\n    value_refs: HashMap<usize, ValueRef>,\n    capts: HashMap<usize, Capture>,\n    capt0: Capture,\n    action: Action,\n}\nimpl ThunkLeaf {\n    fn new(\n        action: Action,\n        start: Position,\n        end: Position,\n        value_refs: HashMap<usize, ValueRef>,\n        capts: HashMap<usize, Capture>,\n    ) -> Self {\n        Self {\n            value_refs,\n            capts,\n            capt0: Capture { start, end },\n            action,\n        }\n    }\n\n    fn do_action(&self, processor: &ThunkProcessor, mut value: ValueRef) -> Value {\n        value.with_mut(|v| {\n            processor.call_action(self.action, self, v);\n        });\n        value.get()\n    }\n".freeze
 
         if use_value
           erbout << "\n    fn values(&self) -> HashMap<usize, Value> {\n        self.value_refs.iter().map(|(k, v)| (*k, v.get())).collect()\n    }\n".freeze
         end
-        erbout << "}\n\nstruct ThunkNode {\n    thunks: Rc<RefCell<Vec<Thunk>>>,\n    value: ValueRef,\n}\nimpl ThunkNode {\n    fn do_action(&self, processor: &ThunkProcessor) -> Value {\n        let mut v = 0;\n        for thunk in self.thunks.borrow_mut().iter_mut() {\n            v = thunk.do_action(processor, self.value.clone());\n        }\n        v\n    }\n}\n\n#[derive(Clone)]\nstruct Capture {\n    start: usize,\n    end: usize,\n}\n\ntype Value = #{value_def};\n\nstruct ValueTable {\n    table: Rc<RefCell<HashMap<usize, Value>>>,\n}\nimpl ValueTable {\n    fn new() -> Self {\n        Self {\n            table: Rc::new(RefCell::new(HashMap::new())),\n        }\n    }\n".freeze
+        erbout << "}\n\nstruct ThunkNode {\n    thunks: Rc<RefCell<Vec<Thunk>>>,\n    value: ValueRef,\n}\nimpl ThunkNode {\n    fn do_action(&self, processor: &ThunkProcessor) -> Value {\n        let mut v = 0;\n        for thunk in self.thunks.borrow_mut().iter_mut() {\n            v = thunk.do_action(processor, self.value.clone());\n        }\n        v\n    }\n}\n\n#[derive(Clone)]\nstruct Capture {\n    start: Position,\n    end: Position,\n}\n\nimpl Capture {\n    fn new() -> Self {\n        Self {\n".freeze
+
+        if @location
+          erbout << "            start: Position {\n                position: 0,\n                location: Location::new(),\n            },\n            end: Position {\n                position: 0,\n                location: Location::new(),\n            },\n".freeze
+
+        else
+          erbout << "            start: 0,\n            end: 0,\n".freeze
+        end
+        erbout << "        }\n    }\n}\n\ntype Value = #{value_def};\n\nstruct ValueTable {\n    table: Rc<RefCell<HashMap<usize, Value>>>,\n}\nimpl ValueTable {\n    fn new() -> Self {\n        Self {\n            table: Rc::new(RefCell::new(HashMap::new())),\n        }\n    }\n".freeze
 
         if use_value
           erbout << "\n    fn clear(&mut self) {\n        self.table.borrow_mut().clear();\n    }\n".freeze
         end
-        erbout << "\n    fn with_mut<F>(&mut self, index: usize, f: F)\n    where\n        F: FnOnce(&mut Value),\n    {\n        let mut table = self.table.borrow_mut();\n        let value = table.entry(index).or_insert(0);\n        f(value);\n    }\n}\nimpl Clone for ValueTable {\n    fn clone(&self) -> Self {\n        Self {\n            table: self.table.clone(),\n        }\n    }\n}\n\nstruct ValueRef {\n    values: ValueTable,\n    index: usize,\n}\nimpl ValueRef {\n    fn new(index: usize, values: ValueTable) -> Self {\n        Self { index, values }\n    }\n\n    fn with_mut<F>(&mut self, f: F)\n    where\n        F: FnOnce(&mut Value),\n    {\n        self.values.with_mut(self.index, f);\n    }\n\n    fn get(&self) -> Value {\n        *self.values.table.borrow().get(&self.index).unwrap_or(&0)\n    }\n}\nimpl Clone for ValueRef {\n    fn clone(&self) -> Self {\n        Self {\n            index: self.index,\n            values: self.values.clone(),\n        }\n    }\n}\n\nstruct CaptureTable {\n    table: HashMap<usize, Capture>,\n    len: usize,\n}\n\ntype RuleSet = HashSet<Rule>;\ntype RuleLimit = Option<RuleSet>;\n\ntype LrMemoMap = HashMap<Rule, LrMemo>;\n\nimpl CaptureTable {\n    fn new() -> Self {\n        Self {\n            table: HashMap::new(),\n            len: 0,\n        }\n    }\n\n    fn resize(&mut self, len: usize) {\n        let current_len = self.len;\n        if len > current_len {\n            for i in current_len..len {\n                self.table.insert(i, Capture { start: 0, end: 0 });\n            }\n        } else if len < current_len {\n            for i in len..current_len {\n                self.table.remove(&i);\n            }\n        }\n        self.len = len;\n    }\n}\nimpl std::ops::Index<usize> for CaptureTable {\n    type Output = Capture;\n\n    fn index(&self, index: usize) -> &Self::Output {\n        &self.table[&index]\n    }\n}\nimpl std::ops::IndexMut<usize> for CaptureTable {\n    fn index_mut(&mut self, index: usize) -> &mut Self::Output {\n        if self.len <= index {\n            self.resize(index + 1);\n        }\n        self.table.get_mut(&index).unwrap()\n    }\n}\n\nstruct Input {\n    input: Box<dyn std::io::Read>,\n    start_position: usize,\n    position_offset: usize,\n    buffer: String,\n    closed: bool,\n}\n\nimpl Input {\n    fn new(input: impl std::io::Read + 'static) -> Self {\n        Self {\n            input: Box::new(input),\n            start_position: 0,\n            position_offset: 0,\n            buffer: String::new(),\n            closed: false,\n        }\n    }\n\n    fn refill_buffer(&mut self, num: usize) -> usize {\n        let mut len = self.buffer.len();\n        if len >= self.position_offset + num {\n            return len - self.position_offset;\n        }\n\n        let mut input_buffer = [0u8; 1024];\n\n        while len < self.position_offset + num {\n            match self.input.read(&mut input_buffer) {\n                Ok(0) => break,\n                Ok(bytes_read) => {\n                    let s = std::string::String::from_utf8_lossy(&input_buffer[..bytes_read]);\n                    self.buffer.push_str(&s);\n                }\n                Err(_) => break,\n            }\n            len = self.buffer.len();\n        }\n\n        len - self.position_offset\n    }\n\n    fn commit_buffer(&mut self) {\n        let position_offset = self.position_offset;\n\n        self.buffer.drain(..position_offset);\n\n        self.start_position += position_offset;\n        self.position_offset = 0;\n    }\n\n    #[allow(dead_code)]\n    fn get_char_as_utf32(&mut self) -> (i32, usize) {\n        if self.refill_buffer(1) < 1 {\n            return (0, 0);\n        }\n\n        let current_position = self.position_offset;\n        let remaining_chars: &str = &self.buffer[current_position..];\n\n        if let Some(ch) = remaining_chars.chars().next() {\n            let bytes_used = ch.len_utf8();\n\n            if self.refill_buffer(bytes_used) < bytes_used {\n                return (0, 0);\n            }\n\n            let utf32_value = ch as u32 as i32;\n\n            return (utf32_value, bytes_used);\n        }\n\n        (0, 0)\n    }\n\n    fn back_to(&mut self, memo: &mut LrMemo) -> Option<Rc<RefCell<ThunkChunk>>> {\n        self.position_offset = memo.offset;\n        memo.clone_answer()\n    }\n}\n\nconst NOP: Result<usize, usize> = Ok(0);\nconst fn throw(label: usize) -> Result<usize, usize> {\n    Err(label)\n}\n\nfn catch(label: usize, f: impl FnOnce() -> Result<usize, usize>) -> Result<usize, usize> {\n    match f() {\n        Err(e) if e == label => NOP,\n        Ok(_) => NOP,\n        Err(e) => throw(e),\n    }\n}\n\nstruct #{class_name} {\n    level: usize,\n    memos: LrMemoTable,\n    input: Input,\n}\n\nimpl #{class_name} {\n    fn new(input: impl std::io::Read + 'static) -> Self {\n        Self {\n            level: 0,\n            memos: LrMemoTable::new(),\n            input: Input::new(input),\n        }\n    }\n\n    fn parse(&mut self) -> Option<Value> {\n        if self.input.closed {\n            return None;\n        }\n\n        let mut answer = ThunkChunk::new(0);\n        let pos = self.input.start_position;\n".freeze
+        erbout << "\n    fn with_mut<F>(&mut self, index: usize, f: F)\n    where\n        F: FnOnce(&mut Value),\n    {\n        let mut table = self.table.borrow_mut();\n        let value = table.entry(index).or_insert(0);\n        f(value);\n    }\n}\nimpl Clone for ValueTable {\n    fn clone(&self) -> Self {\n        Self {\n            table: self.table.clone(),\n        }\n    }\n}\n\nstruct ValueRef {\n    values: ValueTable,\n    index: usize,\n}\nimpl ValueRef {\n    fn new(index: usize, values: ValueTable) -> Self {\n        Self { index, values }\n    }\n\n    fn with_mut<F>(&mut self, f: F)\n    where\n        F: FnOnce(&mut Value),\n    {\n        self.values.with_mut(self.index, f);\n    }\n\n    fn get(&self) -> Value {\n        *self.values.table.borrow().get(&self.index).unwrap_or(&0)\n    }\n}\nimpl Clone for ValueRef {\n    fn clone(&self) -> Self {\n        Self {\n            index: self.index,\n            values: self.values.clone(),\n        }\n    }\n}\n\nstruct CaptureTable {\n    table: HashMap<usize, Capture>,\n    len: usize,\n}\n\ntype RuleSet = HashSet<Rule>;\ntype RuleLimit = Option<RuleSet>;\n\ntype LrMemoMap = HashMap<Rule, LrMemo>;\n\nimpl CaptureTable {\n    fn new() -> Self {\n        Self {\n            table: HashMap::new(),\n            len: 0,\n        }\n    }\n\n    fn resize(&mut self, len: usize) {\n        let current_len = self.len;\n        if len > current_len {\n            for i in current_len..len {\n                self.table.insert(i, Capture::new());\n            }\n        } else if len < current_len {\n            for i in len..current_len {\n                self.table.remove(&i);\n            }\n        }\n        self.len = len;\n    }\n}\nimpl std::ops::Index<usize> for CaptureTable {\n    type Output = Capture;\n\n    fn index(&self, index: usize) -> &Self::Output {\n        &self.table[&index]\n    }\n}\nimpl std::ops::IndexMut<usize> for CaptureTable {\n    fn index_mut(&mut self, index: usize) -> &mut Self::Output {\n        if self.len <= index {\n            self.resize(index + 1);\n        }\n        self.table.get_mut(&index).unwrap()\n    }\n}\n\nstruct Input {\n    input: Box<dyn std::io::Read>,\n    start_position: Position,\n    position_offset: Position,\n    buffer: String,\n    closed: bool,\n}\n\nimpl Input {\n    fn new(input: impl std::io::Read + 'static) -> Self {\n        Self {\n            input: Box::new(input),\n".freeze
+
+        if @location
+          erbout << "            start_position: Position {\n                position: 0,\n                location: Location::new(),\n            },\n            position_offset: Position {\n                position: 0,\n                location: Location::new(),\n            },\n".freeze
+
+        else
+          erbout << "            start_position: 0,\n            position_offset: 0,\n".freeze
+        end
+        erbout << "            buffer: String::new(),\n            closed: false,\n        }\n    }\n\n    fn refill_buffer(&mut self, num: usize) -> usize {\n        let mut len = self.buffer.len();\n        if len >= self.position_offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << " + num {\n            return len - self.position_offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ";\n        }\n\n        let mut input_buffer = [0u8; 1024];\n\n        while len < self.position_offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << " + num {\n            match self.input.read(&mut input_buffer) {\n                Ok(0) => break,\n                Ok(bytes_read) => {\n                    let s = std::string::String::from_utf8_lossy(&input_buffer[..bytes_read]);\n                    self.buffer.push_str(&s);\n                }\n                Err(_) => break,\n            }\n            len = self.buffer.len();\n        }\n\n        len - self.position_offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << "\n    }\n\n    fn commit_buffer(&mut self) {\n        let position_offset = self.position_offset;\n\n".freeze
+
+        if @location
+          erbout << "        self.buffer.drain(..position_offset.position);\n        self.start_position.position += position_offset.position;\n        self.start_position.location = self.start_position.location.add(&position_offset.location);\n        self.position_offset.position = 0;\n        self.position_offset.location = Location::new();\n".freeze
+
+        else
+          erbout << "        self.buffer.drain(..position_offset);\n        self.start_position += position_offset;\n        self.position_offset = 0;\n".freeze
+        end
+        erbout << "    }\n\n    #[allow(dead_code)]\n    fn get_char_as_utf32(&mut self) -> (i32, usize) {\n        if self.refill_buffer(1) < 1 {\n            return (0, 0);\n        }\n\n        let current_position = self.position_offset;\n        let remaining_chars: &str = &self.buffer[current_position".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << "..];\n\n        if let Some(ch) = remaining_chars.chars().next() {\n            let bytes_used = ch.len_utf8();\n\n            if self.refill_buffer(bytes_used) < bytes_used {\n                return (0, 0);\n            }\n\n            let utf32_value = ch as u32 as i32;\n\n            return (utf32_value, bytes_used);\n        }\n\n        (0, 0)\n    }\n\n    fn back_to(&mut self, memo: &mut LrMemo) -> Option<Rc<RefCell<ThunkChunk>>> {\n        self.position_offset = memo.offset;\n        memo.clone_answer()\n    }\n\n    fn forward(&mut self, n: usize) {\n".freeze
+
+        if @location
+          erbout << "        let p = self.position_offset.position;\n        self.position_offset.location.forward(&self.buffer[p..(p + n)]);\n        self.position_offset.position += n;\n".freeze
+
+        else
+          erbout << "        self.position_offset += n;\n".freeze
+        end
+        erbout << "    }\n\n    fn starts_with(&self, str: &str) -> bool {\n        self.buffer[self.position_offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << "..].starts_with(str)\n    }\n}\n\nconst NOP: Result<usize, usize> = Ok(0);\nconst fn throw(label: usize) -> Result<usize, usize> {\n    Err(label)\n}\n\nfn catch(label: usize, f: impl FnOnce() -> Result<usize, usize>) -> Result<usize, usize> {\n    match f() {\n        Err(e) if e == label => NOP,\n        Ok(_) => NOP,\n        Err(e) => throw(e),\n    }\n}\n".freeze
+
+        if !code_block(:location).empty?
+          erbout << "\n".freeze
+
+          code_block(:location).each do |code|
+            erbout << "#{stream.get_code_block(code, 0, @iname)}".freeze
+          end
+        end
+        erbout << "\nstruct #{class_name} {\n    level: usize,\n    memos: LrMemoTable,\n    input: Input,\n}\n\nimpl #{class_name} {\n    fn new(input: impl std::io::Read + 'static) -> Self {\n        Self {\n            level: 0,\n            memos: LrMemoTable::new(),\n            input: Input::new(input),\n        }\n    }\n\n    fn parse(&mut self) -> Option<Value> {\n        if self.input.closed {\n            return None;\n        }\n\n        let mut answer = ThunkChunk::new(".freeze
+        if @location
+
+          erbout << "Position { position: 0, location: Location::new() }".freeze
+
+        else
+
+          erbout << "0".freeze
+
+        end
+        erbout << ");\n        let pos = self.input.start_position;\n".freeze
 
         if !@root.rules.empty?
-          erbout << "\n        let value = {\n            let node = self.rule_thunk_node(\n                Rule::#{Packcr.camelize(@root.rules[0].name)},\n                &mut answer,\n                0,\n                self.input.position_offset,\n                &None,\n            );\n            self.memos.clear();\n            node.map(|node| node.do_action(&ThunkProcessor::new(&self.input.buffer)))\n        };\n        self.input.commit_buffer();\n        if pos == self.input.start_position || self.input.refill_buffer(1) < 1 {\n            self.input.closed = true;\n        }\n        value\n".freeze
+          erbout << "\n        let value = {\n            let node = self.rule_thunk_node(\n                Rule::#{Packcr.camelize(@root.rules[0].name)},\n                &mut answer,\n                0,\n                self.input.position_offset,\n                &None,\n            );\n            self.memos.clear();\n            node.map(|node| node.do_action(&ThunkProcessor::new(&self.input.buffer, self.input.start_position)))\n        };\n        self.input.commit_buffer();\n        if pos".freeze
+
+          if @location
+            erbout << ".position".freeze
+          end
+          erbout << " == self.input.start_position".freeze
+          if @location
+            erbout << ".position".freeze
+          end
+          erbout << " || self.input.refill_buffer(1) < 1 {\n            self.input.closed = true;\n        }\n        value\n".freeze
         end
-        erbout << "    }\n\n    fn grow_lr(&mut self, rule: Rule, offset: usize) {\n        loop {\n            let old_offset = self.input.position_offset;\n            self.input.position_offset = offset;\n\n            let answer = self.call_rule(rule, offset, Some(RuleSet::new()));\n            match answer {\n                Some(answer) if self.input.position_offset > old_offset => {\n                    let memo = self.memos.get(offset, rule);\n                    memo.update(Some(answer), self.input.position_offset);\n                }\n                _ => {\n                    return;\n                }\n            }\n        }\n    }\n\n    fn rule_answer_without_limits(&mut self, rule: Rule) -> Option<Rc<RefCell<ThunkChunk>>> {\n        let offset = self.input.position_offset;\n        if !self.memos.has(offset, rule) {\n            let memo = LrMemo::new(offset);\n            self.memos.set(offset, rule, memo);\n            let answer = self.call_rule(rule, offset, None);\n\n            let memo = self.memos.get(offset, rule);\n            memo.update(answer, self.input.position_offset);\n            if !memo.grow {\n                return self.input.back_to(memo);\n            }\n            self.grow_lr(rule, offset);\n\n            let memo = self.memos.get(offset, rule);\n            memo.grow = false;\n            return self.input.back_to(memo);\n        }\n\n        let memo = self.memos.get(offset, rule);\n        if memo.start_grow() {\n            return None;\n        }\n        self.input.back_to(memo)\n    }\n\n    fn rule_answer_with_limits(\n        &mut self,\n        rule: Rule,\n        limits: RuleSet,\n    ) -> Option<Rc<RefCell<ThunkChunk>>> {\n        let offset = self.input.position_offset;\n        let answer = self.call_rule(rule, offset, Some(limits));\n        if !self.memos.has(offset, rule) {\n            return answer.map(|answer| Rc::new(RefCell::new(answer)));\n        }\n\n        let memo = self.memos.get(offset, rule);\n        if self.input.position_offset > memo.offset {\n            memo.update(answer, self.input.position_offset);\n        }\n        self.input.back_to(memo)\n    }\n\n    fn apply_rule(\n        &mut self,\n        rule: Rule,\n        parent: &mut ThunkChunk,\n        value_index: usize,\n        offset: usize,\n        limits: &RuleLimit,\n    ) -> bool {\n        let node = self.rule_thunk_node(rule, parent, value_index, offset, limits);\n        node.is_some_and(|node| {\n            parent.thunks.borrow_mut().push(Thunk::Node(node));\n            true\n        })\n    }\n\n    fn rule_thunk_node(\n        &mut self,\n        rule: Rule,\n        parent: &ThunkChunk,\n        value_index: usize,\n        offset: usize,\n        limits: &RuleLimit,\n    ) -> Option<ThunkNode> {\n        match limits {\n            Some(limit_set)\n                if self.input.position_offset == offset && !limit_set.contains(&rule) =>\n            {\n                self.rule_answer_with_limits(rule, limits.clone().unwrap())\n            }\n            _ => self.rule_answer_without_limits(rule),\n        }\n        .map(|answer| ThunkNode {\n            thunks: answer.borrow().thunks.clone(),\n            value: parent.value_ref(value_index),\n        })\n    }\n\n    fn call_rule(\n        &mut self,\n        rule: Rule,\n        offset: usize,\n        mut limits: RuleLimit,\n    ) -> Option<ThunkChunk> {\n        if let Some(ref mut limits) = limits {\n            limits.insert(rule);\n        }\n        match rule {\n".freeze
+        erbout << "    }\n\n    fn grow_lr(&mut self, rule: Rule, offset: Position) {\n        loop {\n            let old_offset = self.input.position_offset;\n            self.input.position_offset = offset;\n\n            let answer = self.call_rule(rule, offset, Some(RuleSet::new()));\n            match answer {\n                Some(answer) if self.input.position_offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << " > old_offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << " => {\n                    let memo = self.memos.get(offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ", rule);\n                    memo.update(Some(answer), self.input.position_offset);\n                }\n                _ => {\n                    return;\n                }\n            }\n        }\n    }\n\n    fn rule_answer_without_limits(&mut self, rule: Rule) -> Option<Rc<RefCell<ThunkChunk>>> {\n        let offset = self.input.position_offset;\n        if !self.memos.has(offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ", rule) {\n            let memo = LrMemo::new(offset);\n            self.memos.set(offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ", rule, memo);\n            let answer = self.call_rule(rule, offset, None);\n\n            let memo = self.memos.get(offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ", rule);\n            memo.update(answer, self.input.position_offset);\n            if !memo.grow {\n                return self.input.back_to(memo);\n            }\n            self.grow_lr(rule, offset);\n\n            let memo = self.memos.get(offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ", rule);\n            memo.grow = false;\n            return self.input.back_to(memo);\n        }\n\n        let memo = self.memos.get(offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ", rule);\n        if memo.start_grow() {\n            return None;\n        }\n        self.input.back_to(memo)\n    }\n\n    fn rule_answer_with_limits(\n        &mut self,\n        rule: Rule,\n        limits: RuleSet,\n    ) -> Option<Rc<RefCell<ThunkChunk>>> {\n        let offset = self.input.position_offset;\n        let answer = self.call_rule(rule, offset, Some(limits));\n        if !self.memos.has(offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ", rule) {\n            return answer.map(|answer| Rc::new(RefCell::new(answer)));\n        }\n\n        let memo = self.memos.get(offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << ", rule);\n        if self.input.position_offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << " > memo.offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << " {\n            memo.update(answer, self.input.position_offset);\n        }\n        self.input.back_to(memo)\n    }\n\n    fn apply_rule(\n        &mut self,\n        rule: Rule,\n        parent: &mut ThunkChunk,\n        value_index: usize,\n        offset: Position,\n        limits: &RuleLimit,\n    ) -> bool {\n        let node = self.rule_thunk_node(rule, parent, value_index, offset, limits);\n        node.is_some_and(|node| {\n            parent.thunks.borrow_mut().push(Thunk::Node(node));\n            true\n        })\n    }\n\n    fn rule_thunk_node(\n        &mut self,\n        rule: Rule,\n        parent: &ThunkChunk,\n        value_index: usize,\n        offset: Position,\n        limits: &RuleLimit,\n    ) -> Option<ThunkNode> {\n        match limits {\n            Some(limit_set)\n                if self.input.position_offset".freeze
+
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << " == offset".freeze
+        if @location
+          erbout << ".position".freeze
+        end
+        erbout << " && !limit_set.contains(&rule) =>\n            {\n                self.rule_answer_with_limits(rule, limits.clone().unwrap())\n            }\n            _ => self.rule_answer_without_limits(rule),\n        }\n        .map(|answer| ThunkNode {\n            thunks: answer.borrow().thunks.clone(),\n            value: parent.value_ref(value_index),\n        })\n    }\n\n    fn call_rule(\n        &mut self,\n        rule: Rule,\n        offset: Position,\n        mut limits: RuleLimit,\n    ) -> Option<ThunkChunk> {\n        if let Some(ref mut limits) = limits {\n            limits.insert(rule);\n        }\n        match rule {\n".freeze
 
         @root.rules.each do |rule|
           erbout << "            Rule::#{Packcr.camelize(rule.name)} => self.evaluate_rule_#{rule.name}(offset, limits),\n".freeze
@@ -525,7 +684,7 @@ class Packcr
 
           erbout << "#{gen.generate_code(rule, 0, 4, false)}".freeze
         end
-        erbout << "}\n\nstruct ThunkProcessor<'a> {\n    buffer: &'a str,\n}\n\nimpl<'a> ThunkProcessor<'a> {\n    fn new(buffer: &'a str) -> Self {\n        Self { buffer }\n    }\n\n    fn call_action(&self, action: Action, thunk: &ThunkLeaf, value: &mut Value) {\n        match action {\n".freeze
+        erbout << "}\n\nstruct ThunkProcessor<'a> {\n    buffer: &'a str,\n    start_position: Position,\n}\n\nimpl<'a> ThunkProcessor<'a> {\n    fn new(buffer: &'a str, start_position: Position) -> Self {\n        Self {\n            buffer,\n            start_position,\n        }\n    }\n\n    fn call_action(&self, action: Action, thunk: &ThunkLeaf, value: &mut Value) {\n        match action {\n".freeze
 
         @root.rules.each do |rule|
           rule.actions.each do |action|
@@ -545,10 +704,33 @@ class Packcr
               erbout << "        let #{ref.var} = values[&#{ref.index}];\n".freeze
             end
             if action.code.vars.include?("$0")
-              erbout << "        let _0 = {\n            let capt = &leaf.capt0;\n            &self.buffer[(capt.start)..(capt.end)]\n        };\n".freeze
+              erbout << "        let _0 = {\n            let capt = &leaf.capt0;\n            &self.buffer[(capt.start".freeze
+
+              if @location
+                erbout << ".position".freeze
+              end
+              erbout << ")..(capt.end".freeze
+              if @location
+                erbout << ".position".freeze
+              end
+              erbout << ")]\n        };\n".freeze
             end
             action.capts.size.times do |i|
-              erbout << "        let _#{i + 1} = {\n            let capt = &leaf.capts[&#{i}];\n            &self.buffer[(capt.start)..(capt.end)]\n        };\n".freeze
+              erbout << "        let _#{i + 1} = {\n            let capt = &leaf.capts[&#{i}];\n            &self.buffer[(capt.start".freeze
+
+              if @location
+                erbout << ".position".freeze
+              end
+              erbout << ")..(capt.end".freeze
+              if @location
+                erbout << ".position".freeze
+              end
+              erbout << ")]\n        };\n".freeze
+
+              if @location
+                erbout << "        let _#{i + 1}sl = self.start_position.location.add(&leaf.capts[&#{i}].start.location);\n        let _#{i + 1}el = self.start_position.location.add(&leaf.capts[&#{i}].end.location);\n".freeze
+              end
+              erbout << " \n".freeze
             end
             erbout << "    #{stream.get_code_block(action.code, 4, @iname)}    }\n".freeze
           end

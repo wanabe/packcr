@@ -12,6 +12,17 @@ use std::rc::Rc;
 <%- end -%>
 <%- use_value = @root.rules.map {|r| r.vars.size }.max > 0 -%>
 
+
+<%- if @location -%>
+#[derive(Copy, Clone)]
+struct Position {
+    position: usize,
+    location: Location,
+}
+<%- else -%>
+type Position = usize;
+<%- end -%>
+
 struct LrMemoTable {
     memos: HashMap<usize, LrMemoMap>,
 }
@@ -42,13 +53,13 @@ impl LrMemoTable {
 }
 
 struct LrMemo {
-    offset: usize,
+    offset: Position,
     answer: Option<Rc<RefCell<ThunkChunk>>>,
     grow: bool,
 }
 
 impl LrMemo {
-    fn new(offset: usize) -> Self {
+    fn new(offset: Position) -> Self {
         Self {
             offset,
             answer: None,
@@ -65,7 +76,7 @@ impl LrMemo {
         }
     }
 
-    fn update(&mut self, answer: Option<ThunkChunk>, offset: usize) {
+    fn update(&mut self, answer: Option<ThunkChunk>, offset: Position) {
         self.answer = answer.map(|c| Rc::new(RefCell::new(c)));
         self.offset = offset;
     }
@@ -78,12 +89,12 @@ impl LrMemo {
 struct ThunkChunk {
     thunks: Rc<RefCell<Vec<Thunk>>>,
     capts: CaptureTable,
-    pos: usize,
+    pos: Position,
     values: ValueTable,
 }
 
 impl ThunkChunk {
-    fn new(pos: usize) -> Self {
+    fn new(pos: Position) -> Self {
         Self {
             values: ValueTable::new(),
             capts: CaptureTable::new(),
@@ -95,7 +106,7 @@ impl ThunkChunk {
     fn push_leaf(
         &self,
         action: Action,
-        end: usize,
+        end: Position,
         value_indices: &[usize],
         capt_indices: &[usize],
     ) {
@@ -142,8 +153,8 @@ struct ThunkLeaf {
 impl ThunkLeaf {
     fn new(
         action: Action,
-        start: usize,
-        end: usize,
+        start: Position,
+        end: Position,
         value_refs: HashMap<usize, ValueRef>,
         capts: HashMap<usize, Capture>,
     ) -> Self {
@@ -185,8 +196,28 @@ impl ThunkNode {
 
 #[derive(Clone)]
 struct Capture {
-    start: usize,
-    end: usize,
+    start: Position,
+    end: Position,
+}
+
+impl Capture {
+    fn new() -> Self {
+        Self {
+            <%- if @location -%>
+            start: Position {
+                position: 0,
+                location: Location::new(),
+            },
+            end: Position {
+                position: 0,
+                location: Location::new(),
+            },
+            <%- else -%>
+            start: 0,
+            end: 0,
+            <%- end -%>
+        }
+    }
 }
 
 type Value = <%= value_def %>;
@@ -275,7 +306,7 @@ impl CaptureTable {
         let current_len = self.len;
         if len > current_len {
             for i in current_len..len {
-                self.table.insert(i, Capture { start: 0, end: 0 });
+                self.table.insert(i, Capture::new());
             }
         } else if len < current_len {
             for i in len..current_len {
@@ -303,8 +334,8 @@ impl std::ops::IndexMut<usize> for CaptureTable {
 
 struct Input {
     input: Box<dyn std::io::Read>,
-    start_position: usize,
-    position_offset: usize,
+    start_position: Position,
+    position_offset: Position,
     buffer: String,
     closed: bool,
 }
@@ -313,8 +344,19 @@ impl Input {
     fn new(input: impl std::io::Read + 'static) -> Self {
         Self {
             input: Box::new(input),
+            <%- if @location -%>
+            start_position: Position {
+                position: 0,
+                location: Location::new(),
+            },
+            position_offset: Position {
+                position: 0,
+                location: Location::new(),
+            },
+            <%- else -%>
             start_position: 0,
             position_offset: 0,
+            <%- end -%>
             buffer: String::new(),
             closed: false,
         }
@@ -322,13 +364,13 @@ impl Input {
 
     fn refill_buffer(&mut self, num: usize) -> usize {
         let mut len = self.buffer.len();
-        if len >= self.position_offset + num {
-            return len - self.position_offset;
+        if len >= self.position_offset<% if @location %>.position<% end %> + num {
+            return len - self.position_offset<% if @location %>.position<% end %>;
         }
 
         let mut input_buffer = [0u8; 1024];
 
-        while len < self.position_offset + num {
+        while len < self.position_offset<% if @location %>.position<% end %> + num {
             match self.input.read(&mut input_buffer) {
                 Ok(0) => break,
                 Ok(bytes_read) => {
@@ -340,16 +382,23 @@ impl Input {
             len = self.buffer.len();
         }
 
-        len - self.position_offset
+        len - self.position_offset<% if @location %>.position<% end %>
     }
 
     fn commit_buffer(&mut self) {
         let position_offset = self.position_offset;
 
+        <%- if @location -%>
+        self.buffer.drain(..position_offset.position);
+        self.start_position.position += position_offset.position;
+        self.start_position.location = self.start_position.location.add(&position_offset.location);
+        self.position_offset.position = 0;
+        self.position_offset.location = Location::new();
+        <%- else -%>
         self.buffer.drain(..position_offset);
-
         self.start_position += position_offset;
         self.position_offset = 0;
+        <%- end -%>
     }
 
     #[allow(dead_code)]
@@ -359,7 +408,7 @@ impl Input {
         }
 
         let current_position = self.position_offset;
-        let remaining_chars: &str = &self.buffer[current_position..];
+        let remaining_chars: &str = &self.buffer[current_position<% if @location %>.position<% end %>..];
 
         if let Some(ch) = remaining_chars.chars().next() {
             let bytes_used = ch.len_utf8();
@@ -380,6 +429,20 @@ impl Input {
         self.position_offset = memo.offset;
         memo.clone_answer()
     }
+
+    fn forward(&mut self, n: usize) {
+        <%- if @location -%>
+        let p = self.position_offset.position;
+        self.position_offset.location.forward(&self.buffer[p..(p + n)]);
+        self.position_offset.position += n;
+        <%- else -%>
+        self.position_offset += n;
+        <%- end -%>
+    }
+
+    fn starts_with(&self, str: &str) -> bool {
+        self.buffer[self.position_offset<% if @location %>.position<% end %>..].starts_with(str)
+    }
 }
 
 const NOP: Result<usize, usize> = Ok(0);
@@ -394,6 +457,12 @@ fn catch(label: usize, f: impl FnOnce() -> Result<usize, usize>) -> Result<usize
         Err(e) => throw(e),
     }
 }
+<%- if !code_block(:location).empty? -%>
+
+<%-   code_block(:location).each do |code| -%>
+<%=     stream.get_code_block(code, 0, @iname) -%>
+<%-   end -%>
+<%- end -%>
 
 struct <%= class_name %> {
     level: usize,
@@ -415,7 +484,11 @@ impl <%= class_name %> {
             return None;
         }
 
-        let mut answer = ThunkChunk::new(0);
+        let mut answer = ThunkChunk::new(<%- if @location -%>
+            <%- %>Position { position: 0, location: Location::new() }<% -%>
+        <%- else -%>
+            <%- %>0<% -%>
+        <%- end %>);
         let pos = self.input.start_position;
         <%- if !@root.rules.empty? -%>
 
@@ -428,25 +501,25 @@ impl <%= class_name %> {
                 &None,
             );
             self.memos.clear();
-            node.map(|node| node.do_action(&ThunkProcessor::new(&self.input.buffer)))
+            node.map(|node| node.do_action(&ThunkProcessor::new(&self.input.buffer, self.input.start_position)))
         };
         self.input.commit_buffer();
-        if pos == self.input.start_position || self.input.refill_buffer(1) < 1 {
+        if pos<% if @location %>.position<% end %> == self.input.start_position<% if @location %>.position<% end %> || self.input.refill_buffer(1) < 1 {
             self.input.closed = true;
         }
         value
         <%- end -%>
     }
 
-    fn grow_lr(&mut self, rule: Rule, offset: usize) {
+    fn grow_lr(&mut self, rule: Rule, offset: Position) {
         loop {
             let old_offset = self.input.position_offset;
             self.input.position_offset = offset;
 
             let answer = self.call_rule(rule, offset, Some(RuleSet::new()));
             match answer {
-                Some(answer) if self.input.position_offset > old_offset => {
-                    let memo = self.memos.get(offset, rule);
+                Some(answer) if self.input.position_offset<% if @location %>.position<% end %> > old_offset<% if @location %>.position<% end %> => {
+                    let memo = self.memos.get(offset<% if @location %>.position<% end %>, rule);
                     memo.update(Some(answer), self.input.position_offset);
                 }
                 _ => {
@@ -458,24 +531,24 @@ impl <%= class_name %> {
 
     fn rule_answer_without_limits(&mut self, rule: Rule) -> Option<Rc<RefCell<ThunkChunk>>> {
         let offset = self.input.position_offset;
-        if !self.memos.has(offset, rule) {
+        if !self.memos.has(offset<% if @location %>.position<% end %>, rule) {
             let memo = LrMemo::new(offset);
-            self.memos.set(offset, rule, memo);
+            self.memos.set(offset<% if @location %>.position<% end %>, rule, memo);
             let answer = self.call_rule(rule, offset, None);
 
-            let memo = self.memos.get(offset, rule);
+            let memo = self.memos.get(offset<% if @location %>.position<% end %>, rule);
             memo.update(answer, self.input.position_offset);
             if !memo.grow {
                 return self.input.back_to(memo);
             }
             self.grow_lr(rule, offset);
 
-            let memo = self.memos.get(offset, rule);
+            let memo = self.memos.get(offset<% if @location %>.position<% end %>, rule);
             memo.grow = false;
             return self.input.back_to(memo);
         }
 
-        let memo = self.memos.get(offset, rule);
+        let memo = self.memos.get(offset<% if @location %>.position<% end %>, rule);
         if memo.start_grow() {
             return None;
         }
@@ -489,12 +562,12 @@ impl <%= class_name %> {
     ) -> Option<Rc<RefCell<ThunkChunk>>> {
         let offset = self.input.position_offset;
         let answer = self.call_rule(rule, offset, Some(limits));
-        if !self.memos.has(offset, rule) {
+        if !self.memos.has(offset<% if @location %>.position<% end %>, rule) {
             return answer.map(|answer| Rc::new(RefCell::new(answer)));
         }
 
-        let memo = self.memos.get(offset, rule);
-        if self.input.position_offset > memo.offset {
+        let memo = self.memos.get(offset<% if @location %>.position<% end %>, rule);
+        if self.input.position_offset<% if @location %>.position<% end %> > memo.offset<% if @location %>.position<% end %> {
             memo.update(answer, self.input.position_offset);
         }
         self.input.back_to(memo)
@@ -505,7 +578,7 @@ impl <%= class_name %> {
         rule: Rule,
         parent: &mut ThunkChunk,
         value_index: usize,
-        offset: usize,
+        offset: Position,
         limits: &RuleLimit,
     ) -> bool {
         let node = self.rule_thunk_node(rule, parent, value_index, offset, limits);
@@ -520,12 +593,12 @@ impl <%= class_name %> {
         rule: Rule,
         parent: &ThunkChunk,
         value_index: usize,
-        offset: usize,
+        offset: Position,
         limits: &RuleLimit,
     ) -> Option<ThunkNode> {
         match limits {
             Some(limit_set)
-                if self.input.position_offset == offset && !limit_set.contains(&rule) =>
+                if self.input.position_offset<% if @location %>.position<% end %> == offset<% if @location %>.position<% end %> && !limit_set.contains(&rule) =>
             {
                 self.rule_answer_with_limits(rule, limits.clone().unwrap())
             }
@@ -540,7 +613,7 @@ impl <%= class_name %> {
     fn call_rule(
         &mut self,
         rule: Rule,
-        offset: usize,
+        offset: Position,
         mut limits: RuleLimit,
     ) -> Option<ThunkChunk> {
         if let Some(ref mut limits) = limits {
@@ -561,11 +634,15 @@ impl <%= class_name %> {
 
 struct ThunkProcessor<'a> {
     buffer: &'a str,
+    start_position: Position,
 }
 
 impl<'a> ThunkProcessor<'a> {
-    fn new(buffer: &'a str) -> Self {
-        Self { buffer }
+    fn new(buffer: &'a str, start_position: Position) -> Self {
+        Self {
+            buffer,
+            start_position,
+        }
     }
 
     fn call_action(&self, action: Action, thunk: &ThunkLeaf, value: &mut Value) {
@@ -591,14 +668,18 @@ impl<'a> ThunkProcessor<'a> {
         <%-   if action.code.vars.include?("$0") -%>
         let _0 = {
             let capt = &leaf.capt0;
-            &self.buffer[(capt.start)..(capt.end)]
+            &self.buffer[(capt.start<% if @location %>.position<% end %>)..(capt.end<% if @location %>.position<% end %>)]
         };
         <%-   end -%>
         <%-   action.capts.size.times do |i| -%>
         let _<%= i + 1 %> = {
             let capt = &leaf.capts[&<%= i %>];
-            &self.buffer[(capt.start)..(capt.end)]
+            &self.buffer[(capt.start<% if @location %>.position<% end %>)..(capt.end<% if @location %>.position<% end %>)]
         };
+        <%-     if @location -%>
+        let _<%= i + 1 %>sl = self.start_position.location.add(&leaf.capts[&<%= i %>].start.location);
+        let _<%= i + 1 %>el = self.start_position.location.add(&leaf.capts[&<%= i %>].end.location);
+        <%-     end -%> 
         <%-   end -%>
     <%=   stream.get_code_block(action.code, 4, @iname) -%>
     }

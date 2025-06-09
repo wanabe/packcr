@@ -109,11 +109,7 @@ class Packcr
         when :rs
           erbout = +""
           if min > 0
-            erbout << "let p0 = self.input.position_offset;\n".freeze
-
-            if gen.location
-              erbout << "TODO\n".freeze
-            end
+            erbout << "let q = self.input.position_offset;\n".freeze
           end
           use_count = max >= 0 || min > 0
           if use_count
@@ -130,34 +126,46 @@ class Packcr
           end
           erbout << "        let p = self.input.position_offset;\n".freeze
 
-          if (r != Packcr::CODE_REACH__ALWAYS_SUCCEED) && gen.location
-            erbout << "        TODO\n".freeze
-          end
           l = gen.next_label
           r = expr.reachability
           if r == Packcr::CODE_REACH__ALWAYS_SUCCEED
-            erbout << "        TODO\n        match (|| {\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset == p {\n                return throw(#{m});\n            }\n        })() {\n            NOP => continue,\n            Err(label) if label != #{l} => return throw(label),\n            _ => {\n                self.input.position_offset = p;\n".freeze
-
+            erbout << "        TODO\n        match (|| {\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset".freeze
             if gen.location
-              erbout << "                TODO\n".freeze
+              erbout << ".position".freeze
             end
-            erbout << "                return throw(#{m});\n            }\n        }\n".freeze
+            erbout << " == p".freeze
+            if gen.location
+              erbout << ".position".freeze
+            end
+            erbout << " {\n                return throw(#{m});\n            }\n        })() {\n            NOP => continue,\n            Err(label) if label != #{l} => return throw(label),\n            _ => {\n                self.input.position_offset = p;\n                return throw(#{m});\n            }\n        }\n".freeze
 
           elsif expr.reversible?(gen)
-            erbout << "        catch(#{l}, || {\n#{gen.generate_code(expr, l, 12, false, reverse: true)}            self.input.position_offset = p;\n            throw(#{m})\n        })?;\n        if self.input.position_offset == p {\n            return throw(#{m});\n        };\n".freeze
+            erbout << "        catch(#{l}, || {\n#{gen.generate_code(expr, l, 12, false, reverse: true)}            self.input.position_offset = p;\n            throw(#{m})\n        })?;\n        if self.input.position_offset".freeze
+
+            if gen.location
+              erbout << ".position".freeze
+            end
+            erbout << " == p".freeze
+            if gen.location
+              erbout << ".position".freeze
+            end
+            erbout << " {\n            return throw(#{m});\n        };\n".freeze
 
           else
-            erbout << "        let label = (|| {\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset == p {\n                return throw(#{m});\n            }\n            NOP\n        })();\n        if let Err(#{l}) = label {\n            self.input.position_offset = p;\n            return throw(#{m});\n        };\n        label?;\n".freeze
+            erbout << "        let label = (|| {\n#{gen.generate_code(expr, l, 12, false)}            if self.input.position_offset".freeze
+            if gen.location
+              erbout << ".position".freeze
+            end
+            erbout << " == p".freeze
+            if gen.location
+              erbout << ".position".freeze
+            end
+            erbout << " {\n                return throw(#{m});\n            }\n            NOP\n        })();\n        if let Err(#{l}) = label {\n            self.input.position_offset = p;\n            return throw(#{m});\n        };\n        label?;\n".freeze
           end
           erbout << "    }\n})?;\n".freeze
 
           if min > 0
-            erbout << "if i < #{min} {\n    self.input.position_offset = p0;\n".freeze
-
-            if gen.location
-              erbout << "    TODO\n".freeze
-            end
-            erbout << "    return throw(#{onfail});\n}\n".freeze
+            erbout << "if i < #{min} {\n    self.input.position_offset = q;\n    return throw(#{onfail});\n}\n".freeze
           end
           erbout
         else
@@ -223,21 +231,13 @@ class Packcr
           else
             erbout << "let p = self.input.position_offset;\n".freeze
 
-            if gen.location
-              erbout << "TODO\n".freeze
-            end
             l = gen.next_label
             if expr.reversible?(gen)
               erbout << "catch(#{l}, || {\n    #{gen.generate_code(expr, l, 4, false, reverse: true)}    self.input.position_offset = p;\n    NOP\n})?;\n".freeze
 
             else
               m = gen.next_label
-              erbout << "catch(#{m}, || {\n    catch(#{l}, || {\n        #{gen.generate_code(expr, l, 8, false)}        return throw(#{m});\n    })?;\n".freeze
-
-              if gen.location
-                erbout << "    TODO\n".freeze
-              end
-              erbout << "    self.input.position_offset = p;\n    NOP\n})?;\n".freeze
+              erbout << "catch(#{m}, || {\n    catch(#{l}, || {\n        #{gen.generate_code(expr, l, 8, false)}        return throw(#{m});\n    })?;\n    self.input.position_offset = p;\n    NOP\n})?;\n".freeze
             end
           end
           erbout

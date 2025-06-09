@@ -34,16 +34,8 @@ class Packcr
           erbout
         when :rs
           erbout = +""
-          erbout << "let p_inner = self.input.position_offset;\n".freeze
+          erbout << "let p_inner = self.input.position_offset;\n{\n#{gen.generate_code(expr, onfail, 4, false)}}\nanswer.capts[#{index}].start = p_inner;\nanswer.capts[#{index}].end = self.input.position_offset;\n".freeze
 
-          if gen.location
-            erbout << "TODO\n".freeze
-          end
-          erbout << "{\n#{gen.generate_code(expr, onfail, 4, false)}}\nlet q = self.input.position_offset;\nanswer.capts[#{index}].start = p_inner;\nanswer.capts[#{index}].end = q;\n".freeze
-
-          if gen.location
-            erbout << "TODO\n".freeze
-          end
           erbout
         else
           raise "unknown lang #{gen.lang}"

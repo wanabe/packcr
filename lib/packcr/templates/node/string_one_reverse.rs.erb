@@ -1,6 +1,6 @@
 if self.input.refill_buffer(1) >= 1
-    && self.input.buffer[self.input.position_offset..].starts_with("<%= Packcr.escape_character(value[0]) %>")
+    && self.input.starts_with("<%= Packcr.escape_character(value[0]) %>")
 {
-    self.input.position_offset += 1;
+    self.input.forward(1);
     return throw(<%= onsuccess %>);
 }

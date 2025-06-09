@@ -19,43 +19,75 @@
 #include <stdlib.h>
 }
 
-%location {
-typedef struct packcr_location_tag {
-    size_t pos;
-    size_t lineno;
-} packcr_location_t;
+%location c ->{
+    typedef struct packcr_location_tag {
+        size_t pos;
+        size_t lineno;
+    } packcr_location_t;
 
-static inline void packcr_location_init(packcr_location_t *lp) {
-    lp->pos = 0;
-    lp->lineno = 0;
-}
+    static inline void packcr_location_init(packcr_location_t *lp) {
+        lp->pos = 0;
+        lp->lineno = 0;
+    }
 
-static inline void packcr_location_forward(packcr_location_t *lp, char *buf, size_t n) {
-    size_t i = 0;
-    for (; i < n; i++) {
-        if (buf[i] == '\n') {
-            lp->pos = 0;
-            lp->lineno++;
-        } else {
-            lp->pos++;
+    static inline void packcr_location_forward(packcr_location_t *lp, char *buf, size_t n) {
+        size_t i = 0;
+        for (; i < n; i++) {
+            if (buf[i] == '\n') {
+                lp->pos = 0;
+                lp->lineno++;
+            } else {
+                lp->pos++;
+            }
+        }
+    }
+
+    static inline packcr_location_t packcr_location_add(packcr_location_t l1, packcr_location_t l2) {
+        packcr_location_t l = {l1.pos + l2.pos, l1.lineno + l2.lineno};
+        return l;
+    }
+
+    static inline packcr_location_t packcr_location_sub(packcr_location_t l1, packcr_location_t l2) {
+        packcr_location_t l = {l1.pos - l2.pos, l1.lineno - l2.lineno};
+        return l;
+    }
+} rs -> {
+    #[derive(Copy, Clone)]
+    struct Location {
+        pos: usize,
+        lineno: usize,
+    }
+
+    impl Location {
+        fn new() -> Self {
+            Self {
+                pos: 0,
+                lineno: 0,
+            }
+        }
+
+        fn forward(&mut self, buf: &str) {
+            for ch in buf.chars() {
+                if ch == '\n' {
+                    self.pos = 0;
+                    self.lineno += 1;
+                } else {
+                    self.pos += 1;
+                }
+            }
+        }
+
+        fn add(&self, loc: &Self) -> Self {
+            Self {
+                pos: self.pos + loc.pos,
+                lineno: self.lineno + loc.lineno,
+            }
         }
     }
 }
 
-static inline packcr_location_t packcr_location_add(packcr_location_t l1, packcr_location_t l2) {
-    packcr_location_t l = {l1.pos + l2.pos, l1.lineno + l2.lineno};
-    return l;
-}
-
-static inline packcr_location_t packcr_location_sub(packcr_location_t l1, packcr_location_t l2) {
-    packcr_location_t l = {l1.pos - l2.pos, l1.lineno - l2.lineno};
-    return l;
-}
-
-}
-
-statement <- _ e:expression _ EOL { printf("answer=%d\n", e); }
-           / ( !EOL . )* EOL      { printf("error\n"); }
+statement <- _ e:expression _ EOL c -> { printf("answer=%d\n", e); }  rs -> { println!("answer={}", e); }
+           / ( !EOL . )* EOL      c -> { printf("error\n"); } rs -> { println!("error"); }
 
 expression <- e:term { $$ = e; }
 
@@ -67,23 +99,37 @@ factor <- l:factor _ '*' _ r:unary { $$ = l * r; }
         / l:factor _ '/' _ r:unary { $$ = l / r; }
         / e:unary                  { $$ = e; }
 
-unary <- '+' _ e:unary { $$ = +e; }
+unary <- '+' _ e:unary { $$ = e; }
        / '-' _ e:unary { $$ = -e; }
        / e:primary     { $$ = e; }
 
-primary <- < [0-9]+ > {
+primary <- < [0-9]+ > c -> {
                fprintf(stderr, "primary captured: '%s', pos [%ld, %ld]-[%ld, %ld]\n", $1, $1sl.pos, $1sl.lineno, $1el.pos, $1el.lineno);
                $$ = atoi($1);
+           } rs -> {
+               eprintln!("primary captured: '{}', pos [{}, {}]-[{}, {}]", $1, $1sl.pos, $1sl.lineno, $1el.pos, $1el.lineno);
+               $$ = $1.parse::<i32>().unwrap_or(0);
            }
          / '(' _ e:expression _ ')' { $$ = e; }
 
 _      <- [ \t]*
 EOL    <- '\n' / '\r\n' / '\r' / ';'
 
-%%
-int main() {
-    calc_context_t *ctx = calc_create(NULL);
-    while (calc_parse(ctx, NULL));
-    calc_destroy(ctx);
-    return 0;
+%latesource c -> {
+    int main() {
+        calc_context_t *ctx = calc_create(NULL);
+        while (calc_parse(ctx, NULL));
+        calc_destroy(ctx);
+        return 0;
+    }
+} rs -> {
+  fn main() {
+      let mut calc = Calc::new(std::io::stdin().lock());
+      while !calc.input.closed {
+          if calc.parse().is_none() {
+            println!("Syntax error");
+            break;
+          }
+      }
+  }
 }

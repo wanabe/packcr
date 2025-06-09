@@ -4,27 +4,27 @@ def evaluate_rule_<%= name %>(offset<% if gen.location %>, offset_loc<% end %>, 
   <%-   if gen.location -%>
   answer.pos_loc = @position_offset_loc
   <%-   end -%>
-  debug { warn "#{ "  " * @level}EVAL    <%= name %> #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
+  debug { warn "#{"  " * @level}EVAL    <%= name %> #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
   @level += 1
   answer.resize_captures(<%= capts.length %>)
-  <%- if vars.length > 0 -%>
+  <%- unless vars.empty? -%>
   answer.values = {}
   <%- end -%>
   <%- r = expr.reachability -%>
   <%- if r == Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
   <%- -%><%= gen.generate_code(expr, 0, 2, false) -%>
   @level -= 1
-  debug { warn "#{ "  " * @level}MATCH   <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
-  return answer
+  debug { warn "#{"  " * @level}MATCH   <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
+  answer
   <%- else -%>
   catch(0) do
     <%- -%><%= gen.generate_code(expr, 0, 4, false) -%>
     @level -= 1
-    debug { warn "#{ "  " * @level}MATCH   <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
+    debug { warn "#{"  " * @level}MATCH   <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
     return answer
   end
   @level -= 1
-  debug { warn "#{ "  " * @level}NOMATCH <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
-  return nil
+  debug { warn "#{"  " * @level}NOMATCH <%= name %> #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
+  nil
   <%- end -%>
 end

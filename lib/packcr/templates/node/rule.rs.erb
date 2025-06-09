@@ -2,19 +2,13 @@
 #[allow(non_snake_case)]
 fn evaluate_rule_<%= name %>(<% -%>
     <%- %>&mut self, <% -%>
-    <%- %><%= for_ref %>offset: usize, <% -%>
-    <%- if gen.location -%>
-    TODO
-    <%- end -%>
+    <%- %><%= for_ref %>offset: Position, <% -%>
     <%- %><%= for_ref %>limits: RuleLimit<% -%>
 ) -> Option<ThunkChunk> {
     let mut answer = ThunkChunk::new(self.input.position_offset);
-    <%-   if gen.location -%>
-    TODO
-    <%-   end -%>
     self.level += 1;
     answer.capts.resize(<%= capts.length %>);
-    <%- if vars.length > 0 -%>
+    <%- unless vars.empty? -%>
     answer.values.clear();
     <%- end -%>
     <%- r = expr.reachability -%>

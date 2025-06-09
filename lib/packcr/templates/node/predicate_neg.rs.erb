@@ -1,16 +1,10 @@
 <%- l = gen.next_label -%>
 <%- r = expr.reachability -%>
 let p = self.input.position_offset;
-<%- if gen.location -%>
-TODO
-<%- end -%>
 catch(<%= l %>, || {
     <%- %><%= gen.generate_code(expr, l, 4, false) -%>
     <%- if r != Packcr::CODE_REACH__ALWAYS_FAIL -%>
     self.input.position_offset = p;
-    <%-   if gen.location -%>
-    TODO
-    <%-   end -%>
     throw(<%= onfail %>)
     <%- else -%>
     NOP
@@ -18,7 +12,4 @@ catch(<%= l %>, || {
 })?;
 <%- if r != Packcr::CODE_REACH__ALWAYS_SUCCEED -%>
 self.input.position_offset = p;
-<%-   if gen.location -%>
-TODO
-<%-   end -%>
 <%- end -%>

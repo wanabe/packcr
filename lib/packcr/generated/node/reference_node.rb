@@ -56,19 +56,19 @@ class Packcr
             if gen.location
               erbout << ", offset_loc".freeze
             end
-            erbout << ", limits: limits)\n    throw(#{onsuccess})\n  end\nelse\n  if apply_rule(:evaluate_rule_#{name}, answer.thunks, nil, 0, offset".freeze
+            erbout << ", limits: limits)\n    throw(#{onsuccess})\n  end\nelsif apply_rule(:evaluate_rule_#{name}, answer.thunks, nil, 0, offset".freeze
           else
             erbout << "if limits && @position_offset == offset && !limits[:evaluate_rule_#{name}]\n  if apply_rule(:evaluate_rule_#{name}, answer.thunks, answer.values, #{index}, offset".freeze
             if gen.location
               erbout << ", offset_loc".freeze
             end
-            erbout << ", limits: limits)\n    throw(#{onsuccess})\n  end\nelse\n  if apply_rule(:evaluate_rule_#{name}, answer.thunks, answer.values, #{index}, offset".freeze
+            erbout << ", limits: limits)\n    throw(#{onsuccess})\n  end\nelsif apply_rule(:evaluate_rule_#{name}, answer.thunks, answer.values, #{index}, offset".freeze
 
           end
           if gen.location
             erbout << ", offset_loc".freeze
           end
-          erbout << ")\n    throw(#{onsuccess})\n  end\nend\n".freeze
+          erbout << ")\n  throw(#{onsuccess})\nend\n".freeze
           erbout
         else
           raise "unknown lang #{gen.lang}"

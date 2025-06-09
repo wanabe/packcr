@@ -94,14 +94,11 @@ class Packcr
           m = gen.next_label
           erbout << "catch(#{m}, || {\n    let p = self.input.position_offset;\n".freeze
 
-          if gen.location
-            erbout << "    TODO\n".freeze
-          end
           nodes.each_with_index do |expr, i|
             c = i + 1 < nodes.length
             if expr.reversible?(gen)
+              erbout << "    {\n#{gen.generate_code(expr, m, 8, false, reverse: true, oncut: onfail)}    }\n".freeze
 
-              erbout << "#{gen.generate_code(expr, m, 4, false, reverse: true, oncut: onfail)}".freeze
             else
               l = gen.next_label
               r = expr.reachability
@@ -119,9 +116,6 @@ class Packcr
             end
             erbout << "    self.input.position_offset = p;\n".freeze
 
-            if gen.location
-              erbout << "    TODO\n".freeze
-            end
             next if c
 
             erbout << "    throw(#{onfail})\n".freeze

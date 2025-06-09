@@ -3,9 +3,6 @@
 <%= gen.generate_code(expr, nil, 0, true) -%>
 <%- else -%>
 let p = self.input.position_offset;
-<%-   if gen.location -%>
-TODO
-<%-   end -%>
 <%-   if expr.reversible?(gen) -%>
 <%-     l = gen.next_label -%>
 catch(<%= l %>, || {
@@ -21,9 +18,6 @@ catch(<%= m %>, || {
         <%= gen.generate_code(expr, l, 8, false) -%>
         return throw(<%= m %>);
     })?;
-    <%- if gen.location -%>
-    TODO
-    <%-   end -%>
     self.input.position_offset = p;
     NOP
 })?;

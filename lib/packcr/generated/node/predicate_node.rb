@@ -139,31 +139,17 @@ class Packcr
           erbout = +""
           l = gen.next_label
           r = expr.reachability
-          erbout << "let p = self.input.position_offset;\n".freeze
-
-          if gen.location
-            erbout << "TODO\n".freeze
-          end
-          erbout << "catch(#{l}, || {\n#{gen.generate_code(expr, l, 4, false)}".freeze
+          erbout << "let p = self.input.position_offset;\ncatch(#{l}, || {\n#{gen.generate_code(expr, l, 4, false)}".freeze
           if r == Packcr::CODE_REACH__ALWAYS_FAIL
             erbout << "    NOP\n".freeze
           else
-            erbout << "    self.input.position_offset = p;\n".freeze
-
-            if gen.location
-              erbout << "    TODO\n".freeze
-            end
-            erbout << "    throw(#{onfail})\n".freeze
+            erbout << "    self.input.position_offset = p;\n    throw(#{onfail})\n".freeze
 
           end
           erbout << "})?;\n".freeze
 
           if r != Packcr::CODE_REACH__ALWAYS_SUCCEED
             erbout << "self.input.position_offset = p;\n".freeze
-
-            if gen.location
-              erbout << "TODO\n".freeze
-            end
           end
           erbout
         else

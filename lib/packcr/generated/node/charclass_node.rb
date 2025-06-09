@@ -355,7 +355,7 @@ class Packcr
 
             erbout << "{\n    return throw(#{onfail});\n}\n".freeze
           end
-          erbout << "self.input.position_offset += n;\n".freeze
+          erbout << "self.input.forward(n);\n".freeze
 
           erbout
         else

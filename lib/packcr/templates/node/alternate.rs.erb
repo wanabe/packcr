@@ -1,13 +1,12 @@
 <%- m = gen.next_label -%>
 catch(<%= m %>, || {
     let p = self.input.position_offset;
-    <%- if gen.location -%>
-    TODO
-    <%- end -%>
     <%- nodes.each_with_index do |expr, i| -%>
     <%-   c = i + 1 < nodes.length -%>
     <%-   if expr.reversible?(gen) -%>
-    <%-     %><%= gen.generate_code(expr, m, 4, false, reverse: true, oncut: onfail) -%>
+    {
+        <%- %><%= gen.generate_code(expr, m, 8, false, reverse: true, oncut: onfail) -%>
+    }
     <%-   else -%>
     <%-     l = gen.next_label -%>
     <%-     r = expr.reachability -%>
@@ -28,9 +27,6 @@ catch(<%= m %>, || {
     <%-     end -%>
     <%-   end -%>
     self.input.position_offset = p;
-    <%-   if gen.location -%>
-    TODO
-    <%-   end -%>
     <%-   if !c -%>
     throw(<%= onfail %>)
     <%-   end -%>
