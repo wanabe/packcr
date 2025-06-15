@@ -554,6 +554,23 @@ class Packcr
       __packcr_vars[__packcr_index].value = ____ if __packcr_vars
     end
 
+    def action_directive_value_1(__packcr_in, __packcr_vars, __packcr_index)
+      ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
+      __0 = __packcr_in.capt0.capture_string(@buffer)
+      __0s = @buffer_start_position + __packcr_in.capt0.range_start
+      __0e = @buffer_start_position + __packcr_in.capt0.range_end
+      __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc
+      __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc
+      __1 = __packcr_in.capts[0].capture_string(@buffer)
+      __1s = @buffer_start_position + __packcr_in.capts[0].range_start
+      __1e = @buffer_start_position + __packcr_in.capts[0].range_end
+      __1sl = @buffer_start_position_loc + __packcr_in.capts[0].start_loc
+      __1el = @buffer_start_position_loc + __packcr_in.capts[0].end_loc
+      @ctx.source_indent = __1.to_i
+
+      __packcr_vars[__packcr_index].value = ____ if __packcr_vars
+    end
+
     def action_directive_comment_0(__packcr_in, __packcr_vars, __packcr_index)
       ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
       __0 = __packcr_in.capt0.capture_string(@buffer)
@@ -2134,65 +2151,155 @@ class Packcr
       answer.pos_loc = @position_offset_loc
       debug { warn "#{"  " * @level}EVAL    directive_value #{answer.pos} #{@buffer[answer.pos..-1].inspect}" }
       @level += 1
-      answer.resize_captures(0)
+      answer.resize_captures(1)
       catch(0) do
-        if refill_buffer(8) < 8 ||
-           @buffer[@position_offset, 8] != "%capture"
-
-          throw(0)
-        end
-        @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 8)
-        @position_offset += 8
-        if limits && @position_offset == offset && !limits[:evaluate_rule_spaces]
-          if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
-            throw(0)
-          end
-        elsif !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc)
-          throw(0)
-        end
         catch(1) do
-          pos3 = @position_offset
-          p_loc3 = @position_offset_loc
-          n3 = answer.thunks.length
+          pos2 = @position_offset
+          p_loc2 = @position_offset_loc
+          n2 = answer.thunks.length
           catch(2) do
-            if refill_buffer(2) < 2 ||
-               @buffer[@position_offset, 2] != "on"
+            if refill_buffer(8) < 8 ||
+               @buffer[@position_offset, 8] != "%capture"
 
               throw(2)
             end
-            @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
-            @position_offset += 2
-            throw(1)
-          end
-          @position_offset = pos3
-          @position_offset_loc = p_loc3
-          answer.thunks[n3..-1] = []
-          catch(3) do
-            if refill_buffer(4) < 4 ||
-               @buffer[@position_offset, 4] != "true"
-
-              throw(3)
+            @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 8)
+            @position_offset += 8
+            if limits && @position_offset == offset && !limits[:evaluate_rule_spaces]
+              if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+                throw(2)
+              end
+            elsif !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc)
+              throw(2)
             end
-            @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 4)
-            @position_offset += 4
+            catch(3) do
+              pos4 = @position_offset
+              p_loc4 = @position_offset_loc
+              n4 = answer.thunks.length
+              catch(4) do
+                if refill_buffer(2) < 2 ||
+                   @buffer[@position_offset, 2] != "on"
+
+                  throw(4)
+                end
+                @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 2)
+                @position_offset += 2
+                throw(3)
+              end
+              @position_offset = pos4
+              @position_offset_loc = p_loc4
+              answer.thunks[n4..-1] = []
+              catch(5) do
+                if refill_buffer(4) < 4 ||
+                   @buffer[@position_offset, 4] != "true"
+
+                  throw(5)
+                end
+                @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 4)
+                @position_offset += 4
+                throw(3)
+              end
+              @position_offset = pos4
+              @position_offset_loc = p_loc4
+              answer.thunks[n4..-1] = []
+              throw(2)
+            end
+            answer.thunks.push(
+              ThunkLeaf.new(
+                :action_directive_value_0,
+                Capture.new(
+                  answer.pos, @position_offset,
+                  answer.pos_loc, @position_offset_loc,
+                ),
+                {},
+                {},
+              ),
+            )
             throw(1)
           end
-          @position_offset = pos3
-          @position_offset_loc = p_loc3
-          answer.thunks[n3..-1] = []
+          @position_offset = pos2
+          @position_offset_loc = p_loc2
+          answer.thunks[n2..-1] = []
+          catch(6) do
+            if refill_buffer(7) < 7 ||
+               @buffer[@position_offset, 7] != "%indent"
+
+              throw(6)
+            end
+            @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 7)
+            @position_offset += 7
+            if limits && @position_offset == offset && !limits[:evaluate_rule_spaces]
+              if !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc, limits: limits)
+                throw(6)
+              end
+            elsif !apply_rule(:evaluate_rule_spaces, answer.thunks, nil, 0, offset, offset_loc)
+              throw(6)
+            end
+            pos4 = @position_offset
+            p_loc4 = @position_offset_loc
+            q5 = @position_offset
+            q_loc5 = @position_offset_loc
+            m5 = answer.thunks.length
+            i5 = 0
+            pos5 = nil
+            p_loc5 = nil
+            n5 = nil
+            catch(7) do
+              pos5 = @position_offset
+              p_loc5 = @position_offset_loc
+              n5 = answer.thunks.length
+              if refill_buffer(1) < 1
+                throw(7)
+              end
+              u6 = @buffer[@position_offset]
+              if !u6.between?("0", "9")
+
+                throw(7)
+              end
+              @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
+              @position_offset += 1
+              i5 += 1
+              if @position_offset != pos5
+                redo
+              end
+              pos5 = nil
+            end
+            if pos5
+              @position_offset = pos5
+              @position_offset_loc = p_loc5
+              answer.thunks[n5..-1] = []
+            end
+            if i5 < 1
+              @position_offset = q5
+              @position_offset_loc = q_loc5
+              answer.thunks[m5..-1] = []
+              throw(6)
+            end
+            q4 = @position_offset
+            capt4 = answer.capts[0]
+            capt4.range_start = pos4
+            capt4.range_end = q4
+            q_loc4 = @position_offset_loc
+            capt4.start_loc = p_loc4
+            capt4.end_loc = q_loc4
+            answer.thunks.push(
+              ThunkLeaf.new(
+                :action_directive_value_1,
+                Capture.new(
+                  answer.pos, @position_offset,
+                  answer.pos_loc, @position_offset_loc,
+                ),
+                {},
+                answer.capts.slice(0),
+              ),
+            )
+            throw(1)
+          end
+          @position_offset = pos2
+          @position_offset_loc = p_loc2
+          answer.thunks[n2..-1] = []
           throw(0)
         end
-        answer.thunks.push(
-          ThunkLeaf.new(
-            :action_directive_value_0,
-            Capture.new(
-              answer.pos, @position_offset,
-              answer.pos_loc, @position_offset_loc,
-            ),
-            {},
-            {},
-          ),
-        )
         @level -= 1
         debug { warn "#{"  " * @level}MATCH   directive_value #{answer.pos} #{@buffer[answer.pos...@position_offset].inspect}" }
         return answer

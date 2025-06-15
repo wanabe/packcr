@@ -40,6 +40,7 @@ directive_string <- '%value' opt_spaces_or_comments strings:lang_strings { strin
                   / '%' < identifier > opt_spaces_or_comments str:quotation_double { @ctx.error $0sl.linenum + 1, $0sl.charnum + 1, "Invalid directive: #{$1}" }
 
 directive_value <- '%capture' spaces ('on' / 'true') { @ctx.capture_in_code = true }
+                 / '%indent' spaces <[0-9]+> { @ctx.source_indent = $1.to_i }
 
 directive_comment <- '%#' spaces? <[^\n]*> (lf / EOF) { Packcr::BroadCast.new(@ctx.code_block(:eheader), @ctx.code_block(:esource)) << Packcr::CodeBlock.new(@ctx.line_comment_code($1)).loc($0sl.linenum, $0sl.charnum) }
 
@@ -176,6 +177,7 @@ footer <- '%%' (lf / EOF) <.*> { @ctx.code_block(:lsource) << Packcr::CodeBlock.
 %earlysource {
   class Packcr
 }
+%indent 2
 %%
 
   class Parser

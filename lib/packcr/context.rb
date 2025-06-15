@@ -5,7 +5,7 @@ require "packcr/broadcast"
 class Packcr
   class Context
     attr_reader :lang, :root
-    attr_accessor :prefix, :auxil_type, :value_type, :errnum, :capture_in_code
+    attr_accessor :prefix, :auxil_type, :value_type, :errnum, :capture_in_code, :source_indent
 
     def initialize(path, lines: false, debug: false, ascii: false, lang: nil)
       if !path
@@ -52,6 +52,7 @@ class Packcr
       @ascii = !!ascii
       @utf8 = !ascii
 
+      @source_indent = 0
       @errnum = 0
 
       @code_blocks = {}
@@ -60,6 +61,14 @@ class Packcr
       return unless block_given?
 
       yield(self)
+    end
+
+    def source_indent=(indent)
+      unless indent.is_a?(Integer)
+        raise ArgumentError, "bad source_indent: #{indent.inspect}"
+      end
+
+      @source_indent = indent
     end
 
     def code_block(name)

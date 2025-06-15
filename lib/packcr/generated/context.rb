@@ -281,200 +281,7 @@ class Packcr
           end
           erbout << "\n".freeze
         end
-        erbout << "class #{class_name}\n".freeze
-
-        code_block(:location).each do |code|
-          erbout << "#{stream.get_code_block(code, 2, @iname)}\n".freeze
-        end
-        code_block(:source).each do |code|
-          erbout << "  #{stream.get_code_block(code, 2, @iname)}\n".freeze
-        end
-        erbout << "  class LrMemoTable\n    def initialize\n      @memos = {}\n    end\n\n    def clear\n      @memos.clear\n    end\n\n    def []=(index, rule_name, memo)\n      entry = @memos[index] ||= {}\n      entry[rule_name] = memo\n    end\n\n    def [](index, rule_name)\n      @memos.dig(index, rule_name)\n    end\n  end\n\n  class LrMemo\n    attr_accessor :grow, :answer, :offset, :fail\n".freeze
-
-        if @location
-          erbout << "    attr_accessor :offset_loc\n".freeze
-        end
-        erbout << "\n    def initialize(offset".freeze
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ")\n      @offset = offset\n".freeze
-
-        if @location
-          erbout << "      @offset_loc = offset_loc\n".freeze
-        end
-        erbout << "      @fail = true\n      @grow = false\n    end\n\n    def answer=(answer)\n      @fail = nil\n      @answer = answer\n    end\n  end\n\n  class ThunkChunk\n    attr_accessor :thunks, :capts, :pos, :values\n".freeze
-
-        if @location
-          erbout << "    attr_accessor :pos_loc\n".freeze
-        end
-        erbout << "\n    def initialize\n      super\n      @thunks = []\n      @capts = {}\n      @pos = 0\n      @values = {}\n    end\n\n    def resize_captures(len)\n      len.times do |i|\n        @capts[i] = Capture.new\n      end\n    end\n  end\n\n  class ThunkLeaf\n    attr_accessor :capt0, :capts, :value_refs, :action\n\n    def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})\n      @value_refs = value_refs\n      @capts = capts\n      @capt0 = capt0\n      @action = action\n    end\n\n    def do_action(ctx, values, index)\n      ctx.public_send(action, self, values, index)\n    end\n  end\n\n  class ThunkNode\n    attr_accessor :thunks, :values, :index\n\n    def initialize(thunks, values, index)\n      @thunks = thunks\n      @values = values\n      @index = index\n      values[index] ||= Value.new if values\n    end\n\n    def do_action(ctx, _values, _index)\n      @thunks.each do |thunk|\n        thunk.do_action(ctx, @values, @index)\n      end\n    end\n\n    def clear\n      @thunks.clear\n    end\n  end\n\n  class Capture\n    attr_accessor :range_start, :range_end\n".freeze
-
-        if @location
-          erbout << "    attr_accessor :start_loc, :end_loc\n".freeze
-        end
-        erbout << "\n    def initialize(range_start = 0, range_end = 0".freeze
-        if @location
-          erbout << ", start_loc = nil, end_loc = nil".freeze
-        end
-        erbout << ")\n      @range_start = range_start\n      @range_end = range_end\n".freeze
-
-        if @location
-          erbout << "      @start_loc = start_loc || Location.new\n      @end_loc = end_loc || Location.new\n".freeze
-        end
-        erbout << "    end\n\n    def capture_string(buffer)\n      @capture_string ||= buffer[@range_start, @range_end - @range_start]\n    end\n  end\n\n  class Value\n    attr_accessor :value\n  end\n\n  def initialize(".freeze
-        if @auxil_type
-          erbout << "#{auxil_type}, ".freeze
-        end
-        erbout << "debug: false)\n".freeze
-
-        if @utf8
-          erbout << "    @buffer = +\"\"\n".freeze
-
-        else
-          erbout << "    @buffer = +\"\".b\n".freeze
-        end
-        erbout << "\n    @buffer_start_position = 0\n    @position_offset = 0\n    @level = 0\n    @thunk = ThunkNode.new([], nil, 0)\n    @memos = LrMemoTable.new\n    @debug = debug\n    @global_values = {}\n".freeze
-
-        if @location
-          erbout << "    @buffer_start_position_loc = Location.new\n    @position_offset_loc = Location.new\n".freeze
-        end
-        code_block(:init).each do |code|
-          erbout << "#{stream.get_code_block(code, 4, @iname)}".freeze
-        end
-        erbout << "  end\n\n  def debug\n    yield if @debug\n  end\n\n  def getc\n".freeze
-
-        if @utf8
-          erbout << "    $stdin.getc\n".freeze
-
-        else
-          erbout << "    $stdin.getc&.b\n".freeze
-        end
-        erbout << "  end\n\n  def refill_buffer(num, mode = nil)\n    len = @buffer.length\n    if len >= @position_offset + num\n      return len - @position_offset\n    end\n    while len < @position_offset + num\n      c = getc\n      break if !c\n      @buffer << c\n      len = @buffer.length\n    end\n    return len - @position_offset\n  end\n\n  def commit_buffer\n    @buffer = @buffer[@position_offset, @buffer.length - @position_offset]\n    @buffer_start_position += @position_offset\n    @memos.clear\n    @position_offset = 0\n".freeze
-
-        if @location
-          erbout << "    @buffer_start_position_loc = @buffer_start_position_loc + @position_offset_loc\n    @position_offset_loc = Location.new\n".freeze
-        end
-        erbout << "  end\n\n  def parse\n    pos = @buffer_start_position\n".freeze
-
-        if !@root.rules.empty?
-          erbout << "    if apply_rule(:evaluate_rule_#{@root.rules[0].name}, @thunk.thunks, nil, 0, @buffer_start_position".freeze
-          if @location
-            erbout << ", @buffer_start_position_loc".freeze
-          end
-          erbout << ")\n      @thunk.do_action(self, nil, 0)\n    else\n      raise SyntaxError, \"can't parse\"\n    end\n    commit_buffer\n".freeze
-        end
-        erbout << "    @thunk.clear\n    refill_buffer(1) >= 1 && pos != @buffer_start_position\n  end\n\n  def run\n    nil while parse\n  end\n\n  def grow_lr(rule, offset".freeze
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ")\n    while true\n      old_offset = @position_offset\n      @position_offset = offset\n".freeze
-
-        if @location
-          erbout << "      @position_offset_loc = offset_loc\n".freeze
-        end
-        erbout << "      answer = public_send(rule, offset".freeze
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ", limits: {rule => true})\n      if !answer || @position_offset <= old_offset\n        break\n      end\n      memo = @memos[offset, rule]\n      memo.answer = answer\n      memo.offset = @position_offset\n".freeze
-
-        if @location
-          erbout << "      memo.offset_loc = @position_offset_loc\n".freeze
-        end
-        erbout << "    end\n  end\n\n  def rule_answer(rule)\n    offset = @position_offset\n".freeze
-
-        if @location
-          erbout << "    offset_loc = @position_offset_loc\n".freeze
-        end
-        erbout << "    memo = @memos[offset, rule]\n\n    if !memo\n      memo = LrMemo.new(offset".freeze
-
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ")\n      @memos[offset, rule] = memo\n      answer = public_send(rule, offset".freeze
-
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ")\n      memo.answer = answer\n      memo.offset = @position_offset\n".freeze
-
-        if @location
-          erbout << "      memo.offset_loc = @position_offset_loc\n".freeze
-        end
-        erbout << "      if memo.grow\n        grow_lr(rule, offset".freeze
-
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ")\n        memo.grow = false\n        answer = memo.answer\n        @position_offset = memo.offset\n".freeze
-
-        if @location
-          erbout << "        @position_offset_loc = memo.offset_loc\n".freeze
-        end
-        erbout << "      end\n      return answer\n    elsif memo.fail\n      memo.answer = nil\n      memo.grow = true\n      return nil\n    else\n      @position_offset = memo.offset\n".freeze
-
-        if @location
-          erbout << "      @position_offset_loc = memo.offset_loc\n".freeze
-        end
-        erbout << "      return memo.answer\n    end\n  end\n\n  def apply_rule(rule, thunks, values, index, offset".freeze
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ", limits: nil)\n    if limits\n      limits = limits.merge(rule => true)\n      answer = public_send(rule, offset".freeze
-
-        if @location
-          erbout << ", offset_loc".freeze
-        end
-        erbout << ", limits: limits)\n      memo = @memos[offset, rule]\n      if !answer || @position_offset <= memo.offset\n        if memo\n          answer = memo.answer\n          @position_offset = memo.offset\n".freeze
-
-        if @location
-          erbout << "          @position_offset_loc = memo.offset_loc\n".freeze
-        end
-        erbout << "        end\n      else\n        memo.answer = answer\n        memo.offset = @position_offset\n".freeze
-
-        if @location
-          erbout << "        memo.offset_loc = @position_offset_loc\n".freeze
-        end
-        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n".freeze
-
-        @root.rules.each do |rule|
-          rule.actions.each do |action|
-            erbout << "\n  def action_#{rule.name}_#{action.index}(__packcr_in, __packcr_vars, __packcr_index)\n    ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars\n".freeze
-
-            action.vars.each do |ref|
-              erbout << "    #{ref.var} = (__packcr_in.value_refs[#{ref.index}]  ||= Value.new).value\n".freeze
-            end
-            erbout << "    __0 = __packcr_in.capt0.capture_string(@buffer)\n    __0s = @buffer_start_position + __packcr_in.capt0.range_start\n    __0e = @buffer_start_position + __packcr_in.capt0.range_end\n".freeze
-
-            if @location
-              erbout << "    __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc\n    __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc\n".freeze
-            end
-            if @capture_in_code
-              erbout << "    __0c = __packcr_in.capt0\n".freeze
-            end
-            action.capts.each do |capture|
-              erbout << "    __#{capture.index + 1} = __packcr_in.capts[#{capture.index}].capture_string(@buffer)\n    __#{capture.index + 1}s = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_start\n    __#{capture.index + 1}e = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_end\n".freeze
-
-              if @location
-                erbout << "    __#{capture.index + 1}sl = @buffer_start_position_loc + __packcr_in.capts[#{capture.index}].start_loc\n    __#{capture.index + 1}el = @buffer_start_position_loc + __packcr_in.capts[#{capture.index}].end_loc\n".freeze
-              end
-              next unless @capture_in_code
-
-              erbout << "    __#{capture.index + 1}c = __packcr_in.capts[#{capture.index}]\n".freeze
-            end
-
-            erbout << "#{stream.get_code_block(action.code, 4, @iname)}\n    __packcr_vars[__packcr_index].value = ____ if __packcr_vars\n  end\n".freeze
-          end
-        end
-        @root.rules.each do |rule|
-          erbout << "\n".freeze
-
-          gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb)
-
-          erbout << "#{gen.generate_code(rule, 0, 2, false)}".freeze
-        end
-        erbout << "end\n".freeze
+        erbout << "#{Packcr.format_code(get_source_body_code(lang, stream), indent: source_indent)}\n".freeze
 
         if !code_block(:lsource).empty?
           erbout << "\n".freeze
@@ -756,6 +563,211 @@ class Packcr
             erbout << "#{stream.get_code_block(code, 0, @iname)}".freeze
           end
         end
+        erbout
+      else
+        raise "unknown lang #{lang}"
+      end
+    end
+
+    def get_source_body_code(lang, stream)
+      case lang
+      when :rb
+        erbout = +""
+        erbout << "class #{class_name}\n".freeze
+
+        code_block(:location).each do |code|
+          erbout << "#{stream.get_code_block(code, 2, @iname)}\n".freeze
+        end
+        code_block(:source).each do |code|
+          erbout << "  #{stream.get_code_block(code, 2, @iname)}\n".freeze
+        end
+        erbout << "  class LrMemoTable\n    def initialize\n      @memos = {}\n    end\n\n    def clear\n      @memos.clear\n    end\n\n    def []=(index, rule_name, memo)\n      entry = @memos[index] ||= {}\n      entry[rule_name] = memo\n    end\n\n    def [](index, rule_name)\n      @memos.dig(index, rule_name)\n    end\n  end\n\n  class LrMemo\n    attr_accessor :grow, :answer, :offset, :fail\n".freeze
+
+        if @location
+          erbout << "    attr_accessor :offset_loc\n".freeze
+        end
+        erbout << "\n    def initialize(offset".freeze
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ")\n      @offset = offset\n".freeze
+
+        if @location
+          erbout << "      @offset_loc = offset_loc\n".freeze
+        end
+        erbout << "      @fail = true\n      @grow = false\n    end\n\n    def answer=(answer)\n      @fail = nil\n      @answer = answer\n    end\n  end\n\n  class ThunkChunk\n    attr_accessor :thunks, :capts, :pos, :values\n".freeze
+
+        if @location
+          erbout << "    attr_accessor :pos_loc\n".freeze
+        end
+        erbout << "\n    def initialize\n      super\n      @thunks = []\n      @capts = {}\n      @pos = 0\n      @values = {}\n    end\n\n    def resize_captures(len)\n      len.times do |i|\n        @capts[i] = Capture.new\n      end\n    end\n  end\n\n  class ThunkLeaf\n    attr_accessor :capt0, :capts, :value_refs, :action\n\n    def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})\n      @value_refs = value_refs\n      @capts = capts\n      @capt0 = capt0\n      @action = action\n    end\n\n    def do_action(ctx, values, index)\n      ctx.public_send(action, self, values, index)\n    end\n  end\n\n  class ThunkNode\n    attr_accessor :thunks, :values, :index\n\n    def initialize(thunks, values, index)\n      @thunks = thunks\n      @values = values\n      @index = index\n      values[index] ||= Value.new if values\n    end\n\n    def do_action(ctx, _values, _index)\n      @thunks.each do |thunk|\n        thunk.do_action(ctx, @values, @index)\n      end\n    end\n\n    def clear\n      @thunks.clear\n    end\n  end\n\n  class Capture\n    attr_accessor :range_start, :range_end\n".freeze
+
+        if @location
+          erbout << "    attr_accessor :start_loc, :end_loc\n".freeze
+        end
+        erbout << "\n    def initialize(range_start = 0, range_end = 0".freeze
+        if @location
+          erbout << ", start_loc = nil, end_loc = nil".freeze
+        end
+        erbout << ")\n      @range_start = range_start\n      @range_end = range_end\n".freeze
+
+        if @location
+          erbout << "      @start_loc = start_loc || Location.new\n      @end_loc = end_loc || Location.new\n".freeze
+        end
+        erbout << "    end\n\n    def capture_string(buffer)\n      @capture_string ||= buffer[@range_start, @range_end - @range_start]\n    end\n  end\n\n  class Value\n    attr_accessor :value\n  end\n\n  def initialize(".freeze
+        if @auxil_type
+          erbout << "#{auxil_type}, ".freeze
+        end
+        erbout << "debug: false)\n".freeze
+
+        if @utf8
+          erbout << "    @buffer = +\"\"\n".freeze
+
+        else
+          erbout << "    @buffer = +\"\".b\n".freeze
+        end
+        erbout << "\n    @buffer_start_position = 0\n    @position_offset = 0\n    @level = 0\n    @thunk = ThunkNode.new([], nil, 0)\n    @memos = LrMemoTable.new\n    @debug = debug\n    @global_values = {}\n".freeze
+
+        if @location
+          erbout << "    @buffer_start_position_loc = Location.new\n    @position_offset_loc = Location.new\n".freeze
+        end
+        code_block(:init).each do |code|
+          erbout << "#{stream.get_code_block(code, 4, @iname)}".freeze
+        end
+        erbout << "  end\n\n  def debug\n    yield if @debug\n  end\n\n  def getc\n".freeze
+
+        if @utf8
+          erbout << "    $stdin.getc\n".freeze
+
+        else
+          erbout << "    $stdin.getc&.b\n".freeze
+        end
+        erbout << "  end\n\n  def refill_buffer(num, mode = nil)\n    len = @buffer.length\n    if len >= @position_offset + num\n      return len - @position_offset\n    end\n    while len < @position_offset + num\n      c = getc\n      break if !c\n      @buffer << c\n      len = @buffer.length\n    end\n    return len - @position_offset\n  end\n\n  def commit_buffer\n    @buffer = @buffer[@position_offset, @buffer.length - @position_offset]\n    @buffer_start_position += @position_offset\n    @memos.clear\n    @position_offset = 0\n".freeze
+
+        if @location
+          erbout << "    @buffer_start_position_loc = @buffer_start_position_loc + @position_offset_loc\n    @position_offset_loc = Location.new\n".freeze
+        end
+        erbout << "  end\n\n  def parse\n    pos = @buffer_start_position\n".freeze
+
+        if !@root.rules.empty?
+          erbout << "    if apply_rule(:evaluate_rule_#{@root.rules[0].name}, @thunk.thunks, nil, 0, @buffer_start_position".freeze
+          if @location
+            erbout << ", @buffer_start_position_loc".freeze
+          end
+          erbout << ")\n      @thunk.do_action(self, nil, 0)\n    else\n      raise SyntaxError, \"can't parse\"\n    end\n    commit_buffer\n".freeze
+        end
+        erbout << "    @thunk.clear\n    refill_buffer(1) >= 1 && pos != @buffer_start_position\n  end\n\n  def run\n    nil while parse\n  end\n\n  def grow_lr(rule, offset".freeze
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ")\n    while true\n      old_offset = @position_offset\n      @position_offset = offset\n".freeze
+
+        if @location
+          erbout << "      @position_offset_loc = offset_loc\n".freeze
+        end
+        erbout << "      answer = public_send(rule, offset".freeze
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ", limits: {rule => true})\n      if !answer || @position_offset <= old_offset\n        break\n      end\n      memo = @memos[offset, rule]\n      memo.answer = answer\n      memo.offset = @position_offset\n".freeze
+
+        if @location
+          erbout << "      memo.offset_loc = @position_offset_loc\n".freeze
+        end
+        erbout << "    end\n  end\n\n  def rule_answer(rule)\n    offset = @position_offset\n".freeze
+
+        if @location
+          erbout << "    offset_loc = @position_offset_loc\n".freeze
+        end
+        erbout << "    memo = @memos[offset, rule]\n\n    if !memo\n      memo = LrMemo.new(offset".freeze
+
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ")\n      @memos[offset, rule] = memo\n      answer = public_send(rule, offset".freeze
+
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ")\n      memo.answer = answer\n      memo.offset = @position_offset\n".freeze
+
+        if @location
+          erbout << "      memo.offset_loc = @position_offset_loc\n".freeze
+        end
+        erbout << "      if memo.grow\n        grow_lr(rule, offset".freeze
+
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ")\n        memo.grow = false\n        answer = memo.answer\n        @position_offset = memo.offset\n".freeze
+
+        if @location
+          erbout << "        @position_offset_loc = memo.offset_loc\n".freeze
+        end
+        erbout << "      end\n      return answer\n    elsif memo.fail\n      memo.answer = nil\n      memo.grow = true\n      return nil\n    else\n      @position_offset = memo.offset\n".freeze
+
+        if @location
+          erbout << "      @position_offset_loc = memo.offset_loc\n".freeze
+        end
+        erbout << "      return memo.answer\n    end\n  end\n\n  def apply_rule(rule, thunks, values, index, offset".freeze
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ", limits: nil)\n    if limits\n      limits = limits.merge(rule => true)\n      answer = public_send(rule, offset".freeze
+
+        if @location
+          erbout << ", offset_loc".freeze
+        end
+        erbout << ", limits: limits)\n      memo = @memos[offset, rule]\n      if !answer || @position_offset <= memo.offset\n        if memo\n          answer = memo.answer\n          @position_offset = memo.offset\n".freeze
+
+        if @location
+          erbout << "          @position_offset_loc = memo.offset_loc\n".freeze
+        end
+        erbout << "        end\n      else\n        memo.answer = answer\n        memo.offset = @position_offset\n".freeze
+
+        if @location
+          erbout << "        memo.offset_loc = @position_offset_loc\n".freeze
+        end
+        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n".freeze
+
+        @root.rules.each do |rule|
+          rule.actions.each do |action|
+            erbout << "\n  def action_#{rule.name}_#{action.index}(__packcr_in, __packcr_vars, __packcr_index)\n    ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars\n".freeze
+
+            action.vars.each do |ref|
+              erbout << "    #{ref.var} = (__packcr_in.value_refs[#{ref.index}]  ||= Value.new).value\n".freeze
+            end
+            erbout << "    __0 = __packcr_in.capt0.capture_string(@buffer)\n    __0s = @buffer_start_position + __packcr_in.capt0.range_start\n    __0e = @buffer_start_position + __packcr_in.capt0.range_end\n".freeze
+
+            if @location
+              erbout << "    __0sl = @buffer_start_position_loc + __packcr_in.capt0.start_loc\n    __0el = @buffer_start_position_loc + __packcr_in.capt0.end_loc\n".freeze
+            end
+            if @capture_in_code
+              erbout << "    __0c = __packcr_in.capt0\n".freeze
+            end
+            action.capts.each do |capture|
+              erbout << "    __#{capture.index + 1} = __packcr_in.capts[#{capture.index}].capture_string(@buffer)\n    __#{capture.index + 1}s = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_start\n    __#{capture.index + 1}e = @buffer_start_position + __packcr_in.capts[#{capture.index}].range_end\n".freeze
+
+              if @location
+                erbout << "    __#{capture.index + 1}sl = @buffer_start_position_loc + __packcr_in.capts[#{capture.index}].start_loc\n    __#{capture.index + 1}el = @buffer_start_position_loc + __packcr_in.capts[#{capture.index}].end_loc\n".freeze
+              end
+              next unless @capture_in_code
+
+              erbout << "    __#{capture.index + 1}c = __packcr_in.capts[#{capture.index}]\n".freeze
+            end
+
+            erbout << "#{stream.get_code_block(action.code, 4, @iname)}\n    __packcr_vars[__packcr_index].value = ____ if __packcr_vars\n  end\n".freeze
+          end
+        end
+        @root.rules.each do |rule|
+          erbout << "\n".freeze
+
+          gen = ::Packcr::Generator.new(rule, @ascii, @location, :rb)
+
+          erbout << "#{gen.generate_code(rule, 0, 2, false)}".freeze
+        end
+        erbout << "end\n".freeze
+
         erbout
       else
         raise "unknown lang #{lang}"

@@ -60,6 +60,7 @@ end
 file "lib/packcr/generated/context.rb" => Dir.glob("lib/packcr/templates/context/*.erb") do |t|
   generate_code(t, %w[Packcr Context], "", "lang",
     "source" => "(lang, stream)",
+    "source_body" => "(lang, stream)",
     "header" => "(lang, stream)",
   )
 end
