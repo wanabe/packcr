@@ -3,19 +3,15 @@ if limits && @position_offset == offset && !limits[:evaluate_rule_<%= name %>]
   if !apply_rule(:evaluate_rule_<%= name %>, answer.thunks, answer.values, <%= index %>, offset<% if gen.location %>, offset_loc<% end %>, limits: limits)
     throw(<%= onfail %>)
   end
-else
-  if !apply_rule(:evaluate_rule_<%= name %>, answer.thunks, answer.values, <%= index %>, offset<% if gen.location %>, offset_loc<% end %>)
-    throw(<%= onfail %>)
-  end
+elsif !apply_rule(:evaluate_rule_<%= name %>, answer.thunks, answer.values, <%= index %>, offset<% if gen.location %>, offset_loc<% end %>)
+  throw(<%= onfail %>)
 end
 <%- else -%>
 if limits && @position_offset == offset && !limits[:evaluate_rule_<%= name %>]
   if !apply_rule(:evaluate_rule_<%= name %>, answer.thunks, nil, 0, offset<% if gen.location %>, offset_loc<% end %>, limits: limits)
     throw(<%= onfail %>)
   end
-else
-  if !apply_rule(:evaluate_rule_<%= name %>, answer.thunks, nil, 0, offset<% if gen.location %>, offset_loc<% end %>)
-    throw(<%= onfail %>)
-  end
+elsif !apply_rule(:evaluate_rule_<%= name %>, answer.thunks, nil, 0, offset<% if gen.location %>, offset_loc<% end %>)
+  throw(<%= onfail %>)
 end
 <%- end -%>

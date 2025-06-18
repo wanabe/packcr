@@ -8,9 +8,9 @@ u<%= gen.level %> = @buffer[@position_offset]
 <%-   u0 = nil -%>
 <%-   r = false -%>
 <%-   if a -%>
-if (
+if<% -%>
 <%-   else -%>
-if (!(
+unless<% -%>
   <%-   end -%>
   <%-   while i < n -%>
   <%-     if charclass[i] == '\\' && i + 1 < n -%>
@@ -20,12 +20,12 @@ if (!(
   <%-     i += 1 -%>
   <%-     if r -%>
   <%-       # character range -%>
-  (u<%= gen.level %> >= <%= u0.dump  %> && u<%= gen.level %> <= <%= u.dump %>)<% if i < n %> ||<% end %>
+ u<%= gen.level %>.between?(<%= u0.dump  %>, <%= u.dump %>)<% if i < n %> ||<% end -%>
   <%-       u0 = 0 -%>
   <%-       r = false -%>
   <%-     elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position -%>
   <%-       # single character -%>
-  u<%= gen.level %> == <%= u.dump %><% if i < n %> ||<% end %>
+ u<%= gen.level %> == <%= u.dump %><% if i < n %> ||<% end -%>
   <%-       u0 = 0 -%>
   <%-       r = false -%>
   <%-     elsif charclass[i] == "-" -%>
@@ -36,11 +36,8 @@ if (!(
   <%-       raise "unexpected charclass #{charclass[i]}" -%>
   <%-     end -%>
   <%-   end -%>
-  <%-   if a -%>
-)
-<%-   else -%>
-))
-<%-   end -%>
+
+
   throw(<%= onfail %>)
 end
 <%- end -%>

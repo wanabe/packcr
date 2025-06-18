@@ -4,7 +4,6 @@
 <%-   code_block(:esource).each do |code| -%>
 <%=     stream.get_code_block(code, 0, @iname) -%>
 <%-   end -%>
-
 <%- end -%>
 <%= Packcr.format_code(get_source_body_code(lang, stream), indent: source_indent) %>
 <%- if !code_block(:lsource).empty? -%>

@@ -20,7 +20,7 @@ class Packcr
           erbout
         when :rb
           erbout = +""
-          erbout << "if (\n  refill_buffer(#{n}) < #{n} ||\n  @buffer[@position_offset, #{n}] != #{value[0, n].dump}\n)\n  throw(#{onfail})\nend\n".freeze
+          erbout << "if refill_buffer(#{n}) < #{n} ||\n   @buffer[@position_offset, #{n}] != #{value[0, n].dump}\n\n  throw(#{onfail})\nend\n".freeze
 
           if gen.location
             erbout << "@position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, #{n})\n".freeze
@@ -64,7 +64,7 @@ class Packcr
           erbout
         when :rb
           erbout = +""
-          erbout << "if (\n  refill_buffer(1) < 1 ||\n  @buffer[@position_offset] != \"#{Packcr.escape_character(value[0])}\"\n)\n  throw(#{onfail})\nend\n".freeze
+          erbout << "if refill_buffer(1) < 1 ||\n   @buffer[@position_offset] != \"#{Packcr.escape_character(value[0])}\"\n\n  throw(#{onfail})\nend\n".freeze
 
           if gen.location
             erbout << "@position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)\n".freeze

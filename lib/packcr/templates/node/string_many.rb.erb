@@ -1,7 +1,6 @@
-if (
-  refill_buffer(<%= n %>) < <%= n %> ||
-  @buffer[@position_offset, <%= n %>] != <%= value[0, n].dump %>
-)
+if refill_buffer(<%= n %>) < <%= n %> ||
+   @buffer[@position_offset, <%= n %>] != <%= value[0, n].dump %>
+
   throw(<%= onfail %>)
 end
 <%- if gen.location -%>

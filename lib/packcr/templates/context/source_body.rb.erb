@@ -27,10 +27,7 @@ class <%= class_name %>
   end
 
   class LrMemo
-    attr_accessor :grow, :answer, :offset, :fail
-    <%- if @location -%>
-    attr_accessor :offset_loc
-    <%- end -%>
+    attr_accessor :grow, :answer, :offset, :fail<% if @location %>, :offset_loc<% end %>
 
     def initialize(offset<% if @location %>, offset_loc<% end %>)
       @offset = offset
@@ -48,10 +45,7 @@ class <%= class_name %>
   end
 
   class ThunkChunk
-    attr_accessor :thunks, :capts, :pos, :values
-    <%- if @location -%>
-    attr_accessor :pos_loc
-    <%- end -%>
+    attr_accessor :thunks, :capts, :pos, :values<% if @location %>, :pos_loc<% end %>
 
     def initialize
       super
@@ -105,10 +99,7 @@ class <%= class_name %>
   end
 
   class Capture
-    attr_accessor :range_start, :range_end
-    <%- if @location -%>
-    attr_accessor :start_loc, :end_loc
-    <%- end -%>
+    attr_accessor :range_start, :range_end<% if @location %>, :start_loc, :end_loc<% end %>
 
     def initialize(range_start = 0, range_end = 0<% if @location %>, start_loc = nil, end_loc = nil<% end%>)
       @range_start = range_start
@@ -167,13 +158,15 @@ class <%= class_name %>
     if len >= @position_offset + num
       return len - @position_offset
     end
+
     while len < @position_offset + num
       c = getc
       break if !c
+
       @buffer << c
       len = @buffer.length
     end
-    return len - @position_offset
+    len - @position_offset
   end
 
   def commit_buffer
@@ -182,7 +175,7 @@ class <%= class_name %>
     @memos.clear
     @position_offset = 0
     <%- if @location -%>
-    @buffer_start_position_loc = @buffer_start_position_loc + @position_offset_loc
+    @buffer_start_position_loc += @position_offset_loc
     @position_offset_loc = Location.new
     <%- end -%>
   end
@@ -190,11 +183,10 @@ class <%= class_name %>
   def parse
     pos = @buffer_start_position
     <%- if !@root.rules.empty? -%>
-    if apply_rule(:evaluate_rule_<%= @root.rules[0].name %>, @thunk.thunks, nil, 0, @buffer_start_position<% if @location %>, @buffer_start_position_loc<% end %>)
-      @thunk.do_action(self, nil, 0)
-    else
-      raise SyntaxError, "can't parse"
-    end
+    raise SyntaxError, "can't parse" unless apply_rule(:evaluate_rule_<%= @root.rules[0].name %>, @thunk.thunks, nil, 0, @buffer_start_position<% if @location %>, @buffer_start_position_loc<% end %>)
+
+    @thunk.do_action(self, nil, 0)
+
     commit_buffer
     <%- end -%>
     @thunk.clear
@@ -212,10 +204,11 @@ class <%= class_name %>
       <%- if @location -%>
       @position_offset_loc = offset_loc
       <%- end -%>
-      answer = public_send(rule, offset<% if @location %>, offset_loc<% end %>, limits: {rule => true})
+      answer = public_send(rule, offset<% if @location %>, offset_loc<% end %>, limits: { rule => true })
       if !answer || @position_offset <= old_offset
         break
       end
+
       memo = @memos[offset, rule]
       memo.answer = answer
       memo.offset = @position_offset
@@ -250,17 +243,17 @@ class <%= class_name %>
         @position_offset_loc = memo.offset_loc
         <%- end -%>
       end
-      return answer
+      answer
     elsif memo.fail
       memo.answer = nil
       memo.grow = true
-      return nil
+      nil
     else
       @position_offset = memo.offset
       <%- if @location -%>
       @position_offset_loc = memo.offset_loc
       <%- end -%>
-      return memo.answer
+      memo.answer
     end
   end
 
@@ -287,13 +280,11 @@ class <%= class_name %>
     else
       answer = rule_answer(rule)
     end
+    return false unless answer
 
-    if !answer
-      return false
-    end
     values ||= @global_values
     thunks << ThunkNode.new(answer.thunks, values, index)
-    return true
+    true
   end
 
   def do_action(thunks, values, index)
@@ -307,7 +298,7 @@ class <%= class_name %>
   def action_<%= rule.name %>_<%= action.index %>(__packcr_in, __packcr_vars, __packcr_index)
     ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars
     <%-   action.vars.each do |ref| -%>
-    <%= ref.var %> = (__packcr_in.value_refs[<%= ref.index %>]  ||= Value.new).value
+    <%= ref.var %> = (__packcr_in.value_refs[<%= ref.index %>] ||= Value.new).value
     <%-   end -%>
     __0 = __packcr_in.capt0.capture_string(@buffer)
     __0s = @buffer_start_position + __packcr_in.capt0.range_start

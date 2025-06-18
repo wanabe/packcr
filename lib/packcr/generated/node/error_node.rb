@@ -33,7 +33,7 @@ class Packcr
           erbout << "catch(#{m}) do\n  catch(#{l}) do\n#{gen.generate_code(expr, l, 4, false)}    throw(#{m})\n  end\n\n  action_#{gen.rule.name}_#{index}(\n    ThunkLeaf.new(\n      :action_#{gen.rule.name}_#{index},\n      Capture.new(\n        answer.pos, @position_offset,\n".freeze
 
           if gen.location
-            erbout << "        answer.pos_loc,@position_offset_loc,\n".freeze
+            erbout << "        answer.pos_loc, @position_offset_loc,\n".freeze
           end
           erbout << "      ),\n".freeze
 
@@ -57,7 +57,7 @@ class Packcr
             end
             erbout << "),\n".freeze
           end
-          erbout << "    ),\n    nil,\n    0\n  )\n\n  throw(#{onfail})\nend\n".freeze
+          erbout << "    ),\n    nil,\n    0,\n  )\n\n  throw(#{onfail})\nend\n".freeze
 
           erbout
         else

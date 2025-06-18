@@ -22,9 +22,9 @@ if refill_buffer(1) < 1
 end
 c<%= gen.level %> = @buffer[@position_offset]
 <%-   if a -%>
-if (
+if<% -%>
 <%-   else -%>
-unless (
+unless<% -%>
 <%-   end -%>
 <%-   i = 0 -%>
 <%-   while i < n -%>
@@ -32,14 +32,14 @@ unless (
 <%-       i += 1 -%>
 <%-     end -%>
 <%-     if i + 2 < n && charclass[i + 1] == '-' -%>
-  (c<%= gen.level %> >= "<%= Packcr.escape_character(charclass[i]) %>" && c<%= gen.level %> <= "<%= Packcr.escape_character(charclass[i + 2]) %>")<%= (i + 3 == n) ? "" : " ||" %>
+ (c<%= gen.level %> >= "<%= Packcr.escape_character(charclass[i]) %>" && c<%= gen.level %> <= "<%= Packcr.escape_character(charclass[i + 2]) %>")<%= (i + 3 == n) ? "" : " ||" -%>
 <%-       i += 2 -%>
 <%-     else -%>
-  c<%= gen.level %> == "<%= Packcr.escape_character(charclass[i]) %>"<%= (i + 1 == n) ? "" : " ||" %>
+ c<%= gen.level %> == "<%= Packcr.escape_character(charclass[i]) %>"<%= (i + 1 == n) ? "" : " ||" -%>
 <%-     end -%>
 <%-     i += 1 -%>
 <%-   end -%>
-)
+
   throw(<%= onfail %>)
 end
 <%-   if gen.location -%>

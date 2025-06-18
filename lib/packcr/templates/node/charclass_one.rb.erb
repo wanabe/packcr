@@ -1,8 +1,6 @@
 <%- if a -%>
-if (
-  refill_buffer(1) < 1 ||
-  @buffer[@position_offset] == "<%= Packcr.escape_character(charclass[0]) %>"
-)
+if refill_buffer(1) < 1 ||
+   @buffer[@position_offset] == "<%= Packcr.escape_character(charclass[0]) %>"
   throw(<%= onfail %>)
 end
 <%-   if gen.location -%>
@@ -10,10 +8,8 @@ end
 <%-   end -%>
 @position_offset += 1
 <%- else -%>
-if (
-  refill_buffer(1) < 1 ||
-  @buffer[@position_offset] != "<%= Packcr.escape_character(charclass[0]) %>"
-)
+if refill_buffer(1) < 1 ||
+   @buffer[@position_offset] != "<%= Packcr.escape_character(charclass[0]) %>"
   throw(<%= onfail %>)
 end
 <%-   if gen.location -%>

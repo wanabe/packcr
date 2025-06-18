@@ -279,7 +279,6 @@ class Packcr
           code_block(:esource).each do |code|
             erbout << "#{stream.get_code_block(code, 0, @iname)}".freeze
           end
-          erbout << "\n".freeze
         end
         erbout << "#{Packcr.format_code(get_source_body_code(lang, stream), indent: source_indent)}\n".freeze
 
@@ -581,12 +580,12 @@ class Packcr
         code_block(:source).each do |code|
           erbout << "  #{stream.get_code_block(code, 2, @iname)}\n".freeze
         end
-        erbout << "  class LrMemoTable\n    def initialize\n      @memos = {}\n    end\n\n    def clear\n      @memos.clear\n    end\n\n    def []=(index, rule_name, memo)\n      entry = @memos[index] ||= {}\n      entry[rule_name] = memo\n    end\n\n    def [](index, rule_name)\n      @memos.dig(index, rule_name)\n    end\n  end\n\n  class LrMemo\n    attr_accessor :grow, :answer, :offset, :fail\n".freeze
+        erbout << "  class LrMemoTable\n    def initialize\n      @memos = {}\n    end\n\n    def clear\n      @memos.clear\n    end\n\n    def []=(index, rule_name, memo)\n      entry = @memos[index] ||= {}\n      entry[rule_name] = memo\n    end\n\n    def [](index, rule_name)\n      @memos.dig(index, rule_name)\n    end\n  end\n\n  class LrMemo\n    attr_accessor :grow, :answer, :offset, :fail".freeze
 
         if @location
-          erbout << "    attr_accessor :offset_loc\n".freeze
+          erbout << ", :offset_loc".freeze
         end
-        erbout << "\n    def initialize(offset".freeze
+        erbout << "\n\n    def initialize(offset".freeze
         if @location
           erbout << ", offset_loc".freeze
         end
@@ -595,17 +594,17 @@ class Packcr
         if @location
           erbout << "      @offset_loc = offset_loc\n".freeze
         end
-        erbout << "      @fail = true\n      @grow = false\n    end\n\n    def answer=(answer)\n      @fail = nil\n      @answer = answer\n    end\n  end\n\n  class ThunkChunk\n    attr_accessor :thunks, :capts, :pos, :values\n".freeze
+        erbout << "      @fail = true\n      @grow = false\n    end\n\n    def answer=(answer)\n      @fail = nil\n      @answer = answer\n    end\n  end\n\n  class ThunkChunk\n    attr_accessor :thunks, :capts, :pos, :values".freeze
 
         if @location
-          erbout << "    attr_accessor :pos_loc\n".freeze
+          erbout << ", :pos_loc".freeze
         end
-        erbout << "\n    def initialize\n      super\n      @thunks = []\n      @capts = {}\n      @pos = 0\n      @values = {}\n    end\n\n    def resize_captures(len)\n      len.times do |i|\n        @capts[i] = Capture.new\n      end\n    end\n  end\n\n  class ThunkLeaf\n    attr_accessor :capt0, :capts, :value_refs, :action\n\n    def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})\n      @value_refs = value_refs\n      @capts = capts\n      @capt0 = capt0\n      @action = action\n    end\n\n    def do_action(ctx, values, index)\n      ctx.public_send(action, self, values, index)\n    end\n  end\n\n  class ThunkNode\n    attr_accessor :thunks, :values, :index\n\n    def initialize(thunks, values, index)\n      @thunks = thunks\n      @values = values\n      @index = index\n      values[index] ||= Value.new if values\n    end\n\n    def do_action(ctx, _values, _index)\n      @thunks.each do |thunk|\n        thunk.do_action(ctx, @values, @index)\n      end\n    end\n\n    def clear\n      @thunks.clear\n    end\n  end\n\n  class Capture\n    attr_accessor :range_start, :range_end\n".freeze
+        erbout << "\n\n    def initialize\n      super\n      @thunks = []\n      @capts = {}\n      @pos = 0\n      @values = {}\n    end\n\n    def resize_captures(len)\n      len.times do |i|\n        @capts[i] = Capture.new\n      end\n    end\n  end\n\n  class ThunkLeaf\n    attr_accessor :capt0, :capts, :value_refs, :action\n\n    def initialize(action, capt0 = Capture.new, value_refs = {}, capts = {})\n      @value_refs = value_refs\n      @capts = capts\n      @capt0 = capt0\n      @action = action\n    end\n\n    def do_action(ctx, values, index)\n      ctx.public_send(action, self, values, index)\n    end\n  end\n\n  class ThunkNode\n    attr_accessor :thunks, :values, :index\n\n    def initialize(thunks, values, index)\n      @thunks = thunks\n      @values = values\n      @index = index\n      values[index] ||= Value.new if values\n    end\n\n    def do_action(ctx, _values, _index)\n      @thunks.each do |thunk|\n        thunk.do_action(ctx, @values, @index)\n      end\n    end\n\n    def clear\n      @thunks.clear\n    end\n  end\n\n  class Capture\n    attr_accessor :range_start, :range_end".freeze
 
         if @location
-          erbout << "    attr_accessor :start_loc, :end_loc\n".freeze
+          erbout << ", :start_loc, :end_loc".freeze
         end
-        erbout << "\n    def initialize(range_start = 0, range_end = 0".freeze
+        erbout << "\n\n    def initialize(range_start = 0, range_end = 0".freeze
         if @location
           erbout << ", start_loc = nil, end_loc = nil".freeze
         end
@@ -642,19 +641,19 @@ class Packcr
         else
           erbout << "    $stdin.getc&.b\n".freeze
         end
-        erbout << "  end\n\n  def refill_buffer(num, mode = nil)\n    len = @buffer.length\n    if len >= @position_offset + num\n      return len - @position_offset\n    end\n    while len < @position_offset + num\n      c = getc\n      break if !c\n      @buffer << c\n      len = @buffer.length\n    end\n    return len - @position_offset\n  end\n\n  def commit_buffer\n    @buffer = @buffer[@position_offset, @buffer.length - @position_offset]\n    @buffer_start_position += @position_offset\n    @memos.clear\n    @position_offset = 0\n".freeze
+        erbout << "  end\n\n  def refill_buffer(num, mode = nil)\n    len = @buffer.length\n    if len >= @position_offset + num\n      return len - @position_offset\n    end\n\n    while len < @position_offset + num\n      c = getc\n      break if !c\n\n      @buffer << c\n      len = @buffer.length\n    end\n    len - @position_offset\n  end\n\n  def commit_buffer\n    @buffer = @buffer[@position_offset, @buffer.length - @position_offset]\n    @buffer_start_position += @position_offset\n    @memos.clear\n    @position_offset = 0\n".freeze
 
         if @location
-          erbout << "    @buffer_start_position_loc = @buffer_start_position_loc + @position_offset_loc\n    @position_offset_loc = Location.new\n".freeze
+          erbout << "    @buffer_start_position_loc += @position_offset_loc\n    @position_offset_loc = Location.new\n".freeze
         end
         erbout << "  end\n\n  def parse\n    pos = @buffer_start_position\n".freeze
 
         if !@root.rules.empty?
-          erbout << "    if apply_rule(:evaluate_rule_#{@root.rules[0].name}, @thunk.thunks, nil, 0, @buffer_start_position".freeze
+          erbout << "    raise SyntaxError, \"can't parse\" unless apply_rule(:evaluate_rule_#{@root.rules[0].name}, @thunk.thunks, nil, 0, @buffer_start_position".freeze
           if @location
             erbout << ", @buffer_start_position_loc".freeze
           end
-          erbout << ")\n      @thunk.do_action(self, nil, 0)\n    else\n      raise SyntaxError, \"can't parse\"\n    end\n    commit_buffer\n".freeze
+          erbout << ")\n\n    @thunk.do_action(self, nil, 0)\n\n    commit_buffer\n".freeze
         end
         erbout << "    @thunk.clear\n    refill_buffer(1) >= 1 && pos != @buffer_start_position\n  end\n\n  def run\n    nil while parse\n  end\n\n  def grow_lr(rule, offset".freeze
         if @location
@@ -669,7 +668,7 @@ class Packcr
         if @location
           erbout << ", offset_loc".freeze
         end
-        erbout << ", limits: {rule => true})\n      if !answer || @position_offset <= old_offset\n        break\n      end\n      memo = @memos[offset, rule]\n      memo.answer = answer\n      memo.offset = @position_offset\n".freeze
+        erbout << ", limits: { rule => true })\n      if !answer || @position_offset <= old_offset\n        break\n      end\n\n      memo = @memos[offset, rule]\n      memo.answer = answer\n      memo.offset = @position_offset\n".freeze
 
         if @location
           erbout << "      memo.offset_loc = @position_offset_loc\n".freeze
@@ -704,12 +703,12 @@ class Packcr
         if @location
           erbout << "        @position_offset_loc = memo.offset_loc\n".freeze
         end
-        erbout << "      end\n      return answer\n    elsif memo.fail\n      memo.answer = nil\n      memo.grow = true\n      return nil\n    else\n      @position_offset = memo.offset\n".freeze
+        erbout << "      end\n      answer\n    elsif memo.fail\n      memo.answer = nil\n      memo.grow = true\n      nil\n    else\n      @position_offset = memo.offset\n".freeze
 
         if @location
           erbout << "      @position_offset_loc = memo.offset_loc\n".freeze
         end
-        erbout << "      return memo.answer\n    end\n  end\n\n  def apply_rule(rule, thunks, values, index, offset".freeze
+        erbout << "      memo.answer\n    end\n  end\n\n  def apply_rule(rule, thunks, values, index, offset".freeze
         if @location
           erbout << ", offset_loc".freeze
         end
@@ -728,14 +727,14 @@ class Packcr
         if @location
           erbout << "        memo.offset_loc = @position_offset_loc\n".freeze
         end
-        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n\n    if !answer\n      return false\n    end\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    return true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n".freeze
+        erbout << "      end\n    else\n      answer = rule_answer(rule)\n    end\n    return false unless answer\n\n    values ||= @global_values\n    thunks << ThunkNode.new(answer.thunks, values, index)\n    true\n  end\n\n  def do_action(thunks, values, index)\n    thunks.each do |thunk|\n      thunk.do_action(self, values, index)\n    end\n  end\n".freeze
 
         @root.rules.each do |rule|
           rule.actions.each do |action|
             erbout << "\n  def action_#{rule.name}_#{action.index}(__packcr_in, __packcr_vars, __packcr_index)\n    ____ = (__packcr_vars[__packcr_index] ||= Value.new).value if __packcr_vars\n".freeze
 
             action.vars.each do |ref|
-              erbout << "    #{ref.var} = (__packcr_in.value_refs[#{ref.index}]  ||= Value.new).value\n".freeze
+              erbout << "    #{ref.var} = (__packcr_in.value_refs[#{ref.index}] ||= Value.new).value\n".freeze
             end
             erbout << "    __0 = __packcr_in.capt0.capture_string(@buffer)\n    __0s = @buffer_start_position + __packcr_in.capt0.range_start\n    __0e = @buffer_start_position + __packcr_in.capt0.range_end\n".freeze
 

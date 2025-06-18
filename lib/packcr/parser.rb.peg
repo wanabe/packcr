@@ -20,15 +20,15 @@ supported_language <- 'c'
 
 comment <- '#' [^\n]* (lf / EOF)
 
-directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:esource)  << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%source'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:source)   << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%lateheader'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:lheader)  << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%latesource'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:lsource)  << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%header'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:header)   << b.loc($0sl.linenum, $0sl.charnum) } }
+directive_include <- '%earlysource' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:esource) << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%source'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:source) << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%lateheader'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:lheader) << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%latesource'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:lsource) << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%header'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:header) << b.loc($0sl.linenum, $0sl.charnum) } }
                    / '%location'    opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:location) << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%initialize'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:init)     << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%initialize'  opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| @ctx.code_block(:init) << b.loc($0sl.linenum, $0sl.charnum) } }
                    / '%earlycommon' opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| Packcr::BroadCast.new(@ctx.code_block(:eheader), @ctx.code_block(:esource)) << b.loc($0sl.linenum, $0sl.charnum) } }
-                   / '%common'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| Packcr::BroadCast.new(@ctx.code_block(:header),  @ctx.code_block(:source))  << b.loc($0sl.linenum, $0sl.charnum) } }
+                   / '%common'      opt_spaces_or_comments blocks:code_blocks { blocks.each { |b| Packcr::BroadCast.new(@ctx.code_block(:header), @ctx.code_block(:source)) << b.loc($0sl.linenum, $0sl.charnum) } }
                    / '%' < identifier > opt_spaces_or_comments blocks:code_blocks { blocks.each { @ctx.error $0sl.linenum + 1, $0sl.charnum + 1, "Invalid directive: #{$1}" } }
 
 code_blocks <- blocks:code_blocks opt_spaces_or_comments block:lang_code_block { blocks.push(block) if block; $$ = blocks }
@@ -52,7 +52,8 @@ lang_string <- string:quotation_double { ____ = string }
 
 rule <- name:identifier opt_spaces_or_comments '<-' opt_spaces_or_comments expr:expression {
   return unless expr
-  rule =  Packcr::Node::RuleNode.new(expr, name, $0sl.linenum, $0sl.charnum)
+
+  rule = Packcr::Node::RuleNode.new(expr, name, $0sl.linenum, $0sl.charnum)
   @ctx.root.rules << rule
 }
 
@@ -139,11 +140,9 @@ footer <- '%%' (lf / EOF) <.*> { @ctx.code_block(:lsource) << Packcr::CodeBlock.
     end
 
     def -(other)
-      if other.linenum == linenum || other.charnum.zero?
-        Location.new(@charnum - other.charnum, @linenum - other.linenum)
-      else
-        raise "unexpected location #{inspect} - #{other.inspect}"
-      end
+      raise "unexpected location #{inspect} - #{other.inspect}" unless other.linenum == linenum || other.charnum.zero?
+
+      Location.new(@charnum - other.charnum, @linenum - other.linenum)
     end
 
     def forward(buffer, cur, n)
@@ -179,7 +178,6 @@ footer <- '%%' (lf / EOF) <.*> { @ctx.code_block(:lsource) << Packcr::CodeBlock.
 }
 %indent 2
 %%
-
   class Parser
     def getc
       @ifile.getc

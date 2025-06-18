@@ -283,10 +283,7 @@ class Packcr
       else
         answer = rule_answer(rule)
       end
-
-      if !answer
-        return false
-      end
+      return false unless answer
 
       values ||= @global_values
       thunks << ThunkNode.new(answer.thunks, values, index)
@@ -2252,7 +2249,7 @@ class Packcr
                 throw(7)
               end
               u6 = @buffer[@position_offset]
-              if !u6.between?("0", "9")
+              unless u6.between?("0", "9")
 
                 throw(7)
               end
@@ -3349,7 +3346,7 @@ class Packcr
                   throw(5)
                 end
                 u8 = @buffer[@position_offset]
-                if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
+                unless [" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
 
                   throw(5)
                 end
@@ -3446,7 +3443,7 @@ class Packcr
                   throw(8)
                 end
                 u8 = @buffer[@position_offset]
-                if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
+                unless [" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
 
                   throw(8)
                 end
@@ -3515,7 +3512,7 @@ class Packcr
                   throw(11)
                 end
                 u8 = @buffer[@position_offset]
-                if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
+                unless [" ", "\t", "\v", "\f", "\r", "\n"].include?(u8)
 
                   throw(11)
                 end
@@ -3679,7 +3676,7 @@ class Packcr
               throw(14)
             end
             u6 = @buffer[@position_offset]
-            if !u6.between?("1", "9")
+            unless u6.between?("1", "9")
 
               throw(14)
             end
@@ -3697,7 +3694,7 @@ class Packcr
                 throw(15)
               end
               u7 = @buffer[@position_offset]
-              if !u7.between?("0", "9")
+              unless u7.between?("0", "9")
 
                 throw(15)
               end
@@ -4188,7 +4185,7 @@ class Packcr
             throw(1)
           end
           u6 = @buffer[@position_offset]
-          if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u6)
+          unless [" ", "\t", "\v", "\f", "\r", "\n"].include?(u6)
 
             throw(1)
           end
@@ -4280,7 +4277,7 @@ class Packcr
             throw(2)
           end
           u5 = @buffer[@position_offset]
-          if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u5)
+          unless [" ", "\t", "\v", "\f", "\r", "\n"].include?(u5)
 
             throw(2)
           end
@@ -4816,11 +4813,8 @@ class Packcr
           throw(0)
         end
         u3 = @buffer[@position_offset]
-        if !(
-          u3.between?("a", "z") ||
-          u3.between?("A", "Z") ||
-          u3 == "_"
-        )
+        unless u3.between?("a", "z") || u3.between?("A", "Z") || u3 == "_"
+
           throw(0)
         end
         @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
@@ -4837,12 +4831,8 @@ class Packcr
             throw(1)
           end
           u4 = @buffer[@position_offset]
-          if !(
-            u4.between?("a", "z") ||
-            u4.between?("A", "Z") ||
-            u4 == "_" ||
-            u4.between?("0", "9")
-          )
+          unless u4.between?("a", "z") || u4.between?("A", "Z") || u4 == "_" || u4.between?("0", "9")
+
             throw(1)
           end
           @position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)
@@ -4901,7 +4891,7 @@ class Packcr
             throw(1)
           end
           u3 = @buffer[@position_offset]
-          if ![" ", "\t", "\v", "\f", "\r", "\n"].include?(u3)
+          unless [" ", "\t", "\v", "\f", "\r", "\n"].include?(u3)
 
             throw(1)
           end

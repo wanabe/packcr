@@ -50,7 +50,7 @@ class Packcr
             end
             erbout << "),\n".freeze
           end
-          erbout << "  )\n)\n".freeze
+          erbout << "  ),\n)\n".freeze
 
           erbout
         when :rs

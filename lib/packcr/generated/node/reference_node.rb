@@ -23,19 +23,19 @@ class Packcr
             if gen.location
               erbout << ", offset_loc".freeze
             end
-            erbout << ", limits: limits)\n    throw(#{onfail})\n  end\nelse\n  if !apply_rule(:evaluate_rule_#{name}, answer.thunks, nil, 0, offset".freeze
+            erbout << ", limits: limits)\n    throw(#{onfail})\n  end\nelsif !apply_rule(:evaluate_rule_#{name}, answer.thunks, nil, 0, offset".freeze
           else
             erbout << "if limits && @position_offset == offset && !limits[:evaluate_rule_#{name}]\n  if !apply_rule(:evaluate_rule_#{name}, answer.thunks, answer.values, #{index}, offset".freeze
             if gen.location
               erbout << ", offset_loc".freeze
             end
-            erbout << ", limits: limits)\n    throw(#{onfail})\n  end\nelse\n  if !apply_rule(:evaluate_rule_#{name}, answer.thunks, answer.values, #{index}, offset".freeze
+            erbout << ", limits: limits)\n    throw(#{onfail})\n  end\nelsif !apply_rule(:evaluate_rule_#{name}, answer.thunks, answer.values, #{index}, offset".freeze
 
           end
           if gen.location
             erbout << ", offset_loc".freeze
           end
-          erbout << ")\n    throw(#{onfail})\n  end\nend\n".freeze
+          erbout << ")\n  throw(#{onfail})\nend\n".freeze
           erbout
         when :rs
           erbout = +""

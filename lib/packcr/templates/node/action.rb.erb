@@ -17,5 +17,5 @@ answer.thunks.push(
     <%- else -%>
     answer.capts.slice(<% capts.each_with_index do |capt, i| %><%= ", " if i > 0 %><%= capt.index %><% end %>),
     <%- end -%>
-  )
+  ),
 )

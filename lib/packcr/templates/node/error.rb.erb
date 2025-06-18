@@ -12,7 +12,7 @@ catch(<%= m %>) do
       Capture.new(
         answer.pos, @position_offset,
         <%- if gen.location -%>
-        answer.pos_loc,@position_offset_loc,
+        answer.pos_loc, @position_offset_loc,
         <%- end -%>
       ),
       <%- if vars.empty? -%>
@@ -27,7 +27,7 @@ catch(<%= m %>) do
       <%- end -%>
     ),
     nil,
-    0
+    0,
   )
 
   throw(<%= onfail %>)

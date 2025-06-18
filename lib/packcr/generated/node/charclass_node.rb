@@ -65,10 +65,11 @@ class Packcr
           else
 
             if a
-              erbout << "if (\n".freeze
+              erbout << "if".freeze
 
             else
-              erbout << "unless (\n".freeze
+              erbout << "unless".freeze
+
             end
             i = 0
             while i < n
@@ -76,15 +77,14 @@ class Packcr
                 i += 1
               end
               if i + 2 < n && charclass[i + 1] == "-"
-                erbout << "  (c#{gen.level} >= \"#{Packcr.escape_character(charclass[i])}\" && c#{gen.level} <= \"#{Packcr.escape_character(charclass[i + 2])}\")#{i + 3 == n ? "" : " ||"}\n".freeze
-
+                erbout << " (c#{gen.level} >= \"#{Packcr.escape_character(charclass[i])}\" && c#{gen.level} <= \"#{Packcr.escape_character(charclass[i + 2])}\")#{i + 3 == n ? "" : " ||"}".freeze
                 i += 2
               else
-                erbout << "  c#{gen.level} == \"#{Packcr.escape_character(charclass[i])}\"#{i + 1 == n ? "" : " ||"}\n".freeze
+                erbout << " c#{gen.level} == \"#{Packcr.escape_character(charclass[i])}\"#{i + 1 == n ? "" : " ||"}".freeze
               end
               i += 1
             end
-            erbout << ")\n  throw(#{onfail})\nend\n".freeze
+            erbout << "\n  throw(#{onfail})\nend\n".freeze
 
           end
           if gen.location
@@ -160,10 +160,10 @@ class Packcr
         when :rb
           erbout = +""
           if a
-            erbout << "if (\n  refill_buffer(1) < 1 ||\n  @buffer[@position_offset] == \"#{Packcr.escape_character(charclass[0])}\"\n)\n  throw(#{onfail})\nend\n".freeze
+            erbout << "if refill_buffer(1) < 1 ||\n   @buffer[@position_offset] == \"#{Packcr.escape_character(charclass[0])}\"\n  throw(#{onfail})\nend\n".freeze
 
           else
-            erbout << "if (\n  refill_buffer(1) < 1 ||\n  @buffer[@position_offset] != \"#{Packcr.escape_character(charclass[0])}\"\n)\n  throw(#{onfail})\nend\n".freeze
+            erbout << "if refill_buffer(1) < 1 ||\n   @buffer[@position_offset] != \"#{Packcr.escape_character(charclass[0])}\"\n  throw(#{onfail})\nend\n".freeze
 
           end
           if gen.location
@@ -250,10 +250,11 @@ class Packcr
             u0 = nil
             r = false
             if a
-              erbout << "if (\n".freeze
+              erbout << "if".freeze
 
             else
-              erbout << "if (!(\n".freeze
+              erbout << "unless".freeze
+
             end
             while i < n
               if charclass[i] == "\\" && i + 1 < n
@@ -263,22 +264,18 @@ class Packcr
               i += 1
               if r
                 # character range
-                erbout << "  (u#{gen.level} >= #{u0.dump} && u#{gen.level} <= #{u.dump})".freeze
+                erbout << " u#{gen.level}.between?(#{u0.dump}, #{u.dump})".freeze
                 if i < n
                   erbout << " ||".freeze
                 end
-                erbout << "\n".freeze
-
                 u0 = 0
                 r = false
               elsif charclass[i] != "-" || i == n - 1 # the individual '-' character is valid when it is at the first or the last position
                 # single character
-                erbout << "  u#{gen.level} == #{u.dump}".freeze
+                erbout << " u#{gen.level} == #{u.dump}".freeze
                 if i < n
                   erbout << " ||".freeze
                 end
-                erbout << "\n".freeze
-
                 u0 = 0
                 r = false
               elsif charclass[i] == "-"
@@ -289,13 +286,7 @@ class Packcr
                 raise "unexpected charclass #{charclass[i]}"
               end
             end
-            if a
-              erbout << ")\n".freeze
-
-            else
-              erbout << "))\n".freeze
-            end
-            erbout << "  throw(#{onfail})\nend\n".freeze
+            erbout << "\n\n  throw(#{onfail})\nend\n".freeze
           end
           if gen.location
             erbout << "@position_offset_loc = @position_offset_loc.forward(@buffer, @position_offset, 1)\n".freeze
